@@ -10,6 +10,12 @@ export class AppService {
         return 'ok';
     }
 
+    /**
+     *
+     * @param chain chain id, example: ethereum 1
+     * @param txHash transaction hash
+     * @returns boolean, If the transaction is successful, save on redis and returns true, else returns false
+     */
     async getTxStatus(chain: string, txHash: string): Promise<boolean> {
         let status: boolean = false;
 

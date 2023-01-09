@@ -11,6 +11,17 @@ export class ResponseSucc implements IResponse {
     data: any;
 }
 
+export class ResponseError implements IResponse {
+    constructor(code: number, msg: string) {
+        this.code = code;
+        this.msg = msg;
+        this.data = null;
+    }
+    code: number;
+    msg: string;
+    data: any;
+}
+
 export class ResponseInternalError implements IResponse {
     constructor(msg: string, code?: number) {
         this.code = code ?? HttpStatus.SERVICE_UNAVAILABLE;

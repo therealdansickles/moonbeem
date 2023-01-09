@@ -1,21 +1,54 @@
-import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { RequestMethod, ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { appConfig } from './lib/configs/app.config';
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
-    app.setGlobalPrefix('v1', {
-        exclude: [{ path: 'health', method: RequestMethod.GET }],
+    const app = await NestFactory.create(AppModule, {
+        // running log, production: not doing anything, dev: set NODE_ENV="dev"
+        logger: !appConfig.global.debug ? false : ['log', 'error', 'warn', 'debug', 'verbose'],
     });
-    // cros config
+
+    // configure: base route frefix
+    app.setGlobalPrefix(appConfig.global.prefix, { exclude: [{ path: 'health', method: RequestMethod.GET }] });
+
+    // configure: cros
     app.enableCors();
-    // param validator
+
+    // configure: param validator, controlled by dto's decorator
     app.useGlobalPipes(
         new ValidationPipe({
             whitelist: true,
             transform: true,
         })
     );
-    await app.listen(process.env.PORT || 3000);
+
+    // configure: swagger
+    if (appConfig.global.debug) {
+        var config = new DocumentBuilder();
+        config.setTitle(appConfig.swagger.title); // swagger title
+        config.setDescription(appConfig.swagger.description); // swagger description
+        config.setVersion(appConfig.swagger.version); // swagger version
+        // configure: swagger session -> header.session
+        config.addApiKey(
+            {
+                name: 'session',
+                type: 'apiKey',
+                in: 'header',
+            },
+            'session'
+        );
+        const cfg = config.build();
+        const document = SwaggerModule.createDocument(app, cfg);
+        SwaggerModule.setup(appConfig.swagger.route, app, document);
+    }
+
+    // listen server
+    await app.listen(appConfig.global.port);
+    // print some log
+    console.log(`Server Starting on http://localhost:${appConfig.global.port}`);
+    appConfig.global.debug ? console.log(`Swagger Starting on http://localhost:${appConfig.global.port}/${appConfig.swagger.route}`) : '';
 }
+
 bootstrap();

@@ -1,7 +1,7 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { jwtConfig } from './configs/jwt.config';
+import { jwtConfig } from '../configs/jwt.config';
 import { AuthPayload } from 'src/services/auth.service';
 import { JWTService } from 'src/services/jwt.service';
 
@@ -20,6 +20,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         if (!ret) throw new UnauthorizedException();
 
         return {
+            id: payload.id,
             address: payload.address,
             signature: payload.signature,
         };
