@@ -53,7 +53,7 @@ export class AuthService {
         const _key = this.redisClient.getKey(address.toLocaleLowerCase(), SESSION_PERFIX);
         const val = this.redisClient.get(_key);
         if (!val) return true;
-        this.redisClient.delete(_key);
+        await this.redisClient.delete(_key);
         return true;
     }
 }

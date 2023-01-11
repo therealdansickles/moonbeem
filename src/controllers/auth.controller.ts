@@ -37,7 +37,7 @@ export class AuthController {
     @ApiResponse({
         status: 200,
         description: 'logout and delete session',
-        type: String,
+        type: Boolean,
     })
     public async logout(@Req() req: Request): Promise<IResponse> {
         try {

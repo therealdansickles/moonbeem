@@ -53,6 +53,7 @@ export class UserWalletService {
      */
     async getAddressInfo(address: string, payload?: AuthPayload): Promise<UserWalletInfo> {
         const info = await this.getUserWalletInfo(address);
+        if (!info) throw new Error('address not found');
 
         if (payload) {
             // if login
@@ -99,7 +100,7 @@ export class UserWalletService {
     }
 
     /**
-     * 
+     *
      * @param id The address corresponds to the primary key in the database
      * @param p params, which fields you want to update
      * @returns bool, update is success?
