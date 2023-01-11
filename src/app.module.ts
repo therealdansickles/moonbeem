@@ -26,7 +26,7 @@ import { AuthResolver } from './resolvers/auth.resolver';
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver, // GraphQL server adapter
             debug: appConfig.global.debug ? true : false, // is debug?
-            playground: false, // is show platground? waiting for fix: throw an error when set it true
+            playground: appConfig.global.debug ? true : false, // is show platground? waiting for fix: throw an error when set it true
             autoSchemaFile: 'schema.graphql', // schema file(auto generated)
         }),
     ],
