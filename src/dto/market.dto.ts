@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsEthereumAddress } from 'class-validator';
 
 @ArgsType()
-export class AddressHoldingReqDto {
+export class VAddressHoldingReqDto {
     @Field()
     @ApiProperty({
         example: '0x9A70b15c2936d440c82Eb988A20F11ef2cd79395',

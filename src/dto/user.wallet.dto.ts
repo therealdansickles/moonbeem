@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsEthereumAddress, IsOptional, IsString } from 'class-validator';
 
 @ArgsType()
-export class FollowUserWalletReqDto {
+export class VFollowUserWalletReqDto {
     @Field()
     @IsEthereumAddress()
     @ApiProperty({
@@ -20,7 +20,7 @@ export class FollowUserWalletReqDto {
 }
 
 @ArgsType()
-export class GetAddressReqDto {
+export class VGetAddressReqDto {
     @Field()
     @IsEthereumAddress()
     @ApiProperty({
@@ -30,7 +30,7 @@ export class GetAddressReqDto {
 }
 
 @ArgsType()
-export class UpdateUserWalletReqDto {
+export class VUpdateUserWalletReqDto {
     @Field({ nullable: true })
     @ApiProperty({})
     @IsString()
@@ -75,7 +75,7 @@ export class UpdateUserWalletReqDto {
 }
 
 @ObjectType()
-export class UserWallet {
+export class VUserWallet {
     @Field()
     id: string;
 

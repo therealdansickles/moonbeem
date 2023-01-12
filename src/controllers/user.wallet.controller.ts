@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
 import { ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
-import { FollowUserWalletReqDto, GetAddressReqDto, UpdateUserWalletReqDto } from 'src/dto/user.wallet.dto';
+import { VFollowUserWalletReqDto, VGetAddressReqDto, VUpdateUserWalletReqDto } from 'src/dto/user.wallet.dto';
 import { Public } from 'src/lib/decorators/public.decorator';
 import { IResponse, ResponseInternalError, ResponseSucc } from 'src/lib/interfaces/response.interface';
 import { AuthPayload } from 'src/services/auth.service';
@@ -23,7 +23,7 @@ export class UserWalletController {
         description: 'follow some users',
         type: Boolean,
     })
-    public async followUserWallet(@Req() req: Request, @Body() body: FollowUserWalletReqDto): Promise<IResponse> {
+    public async followUserWallet(@Req() req: Request, @Body() body: VFollowUserWalletReqDto): Promise<IResponse> {
         try {
             const payload = req.user as AuthPayload;
             const rsp = await this.userWalletService.followUserWallet(payload, body.address.toLowerCase(), body.isFollowed);
@@ -39,7 +39,7 @@ export class UserWalletController {
         status: 200,
         description: 'get address info',
     })
-    public async getAddressInfo(@Req() req: Request, @Param() param: GetAddressReqDto): Promise<IResponse> {
+    public async getAddressInfo(@Req() req: Request, @Param() param: VGetAddressReqDto): Promise<IResponse> {
         try {
             const payload = await this.jwtService.verifySession(req.headers.session);
             const rsp = await this.userWalletService.getAddressInfo(param.address.toLowerCase(), payload);
@@ -54,7 +54,7 @@ export class UserWalletController {
         status: 200,
         description: 'update address info',
     })
-    public async updateAddresInfo(@Req() req: Request, @Body() body: UpdateUserWalletReqDto): Promise<IResponse> {
+    public async updateAddresInfo(@Req() req: Request, @Body() body: VUpdateUserWalletReqDto): Promise<IResponse> {
         try {
             const payload = req.user as AuthPayload;
             const rsp = await this.userWalletService.updateAddresInfo(payload.id, body);

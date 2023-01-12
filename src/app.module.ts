@@ -12,10 +12,7 @@ import { UserWalletModule } from './modules/user.wallet.module';
 import { AppService } from './services/app.service';
 import { MarketService } from './services/market.service';
 import { UserWalletService } from './services/user.wallet.service';
-import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
 import { AppResolver } from './resolvers/app.resolver';
-import { DirectiveLocation, GraphQLDirective } from 'graphql';
-import { AuthResolver } from './resolvers/auth.resolver';
 
 @Module({
     imports: [

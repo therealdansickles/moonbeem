@@ -1,6 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
-import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
-import { TxStatusReqDto } from 'src/dto/app.dto';
+import { Args, Query, Resolver } from '@nestjs/graphql';
+import { VTxStatusReqDto } from 'src/dto/app.dto';
 import { Public } from 'src/lib/decorators/public.decorator';
 import { AppService } from 'src/services/app.service';
 
@@ -15,7 +15,7 @@ export class AppResolver {
     }
 
     @Query(() => Boolean)
-    async getTxStatus(@Args() p: TxStatusReqDto): Promise<Boolean> {
+    async getTxStatus(@Args() p: VTxStatusReqDto): Promise<Boolean> {
         const recipe = await this.appService.getTxStatus(p.chain, p.txHash);
         if (!recipe) {
             throw new NotFoundException();

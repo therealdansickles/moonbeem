@@ -1,6 +1,6 @@
 import { Controller, Req, Post, HttpCode, HttpStatus, Body } from '@nestjs/common';
 import { IResponse, ResponseInternalError, ResponseSucc } from 'src/lib/interfaces/response.interface';
-import { LoginReqDto, LoginRspDto } from 'src/dto/auth.dto';
+import { VLoginReqDto, VLoginRspDto } from 'src/dto/auth.dto';
 import { Public } from 'src/lib/decorators/public.decorator';
 import { AuthPayload, AuthService } from 'src/services/auth.service';
 import { UserWalletService } from 'src/services/user.wallet.service';
@@ -21,9 +21,9 @@ export class AuthController {
     @ApiResponse({
         status: 200,
         description: 'login with wallet',
-        type: LoginRspDto,
+        type: VLoginRspDto,
     })
-    public async login(@Body() login: LoginReqDto): Promise<IResponse> {
+    public async login(@Body() login: VLoginReqDto): Promise<IResponse> {
         try {
             var rsp = await this.authService.loginWithWallet(login.address.toLowerCase(), login.message, login.signature);
             return new ResponseSucc(rsp);

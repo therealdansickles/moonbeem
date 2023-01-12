@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { Public } from 'src/lib/decorators/public.decorator';
-import { AddressHoldingReqDto } from 'src/dto/market.dto';
+import { VAddressHoldingReqDto } from 'src/dto/market.dto';
 import { IResponse, ResponseInternalError, ResponseSucc } from 'src/lib/interfaces/response.interface';
 import { MarketService } from 'src/services/market.service';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
@@ -18,7 +18,7 @@ export class MarketController {
 
     @Public()
     @Get('/get_address_holdings/:address')
-    public async getAddressHoldings(@Req() req: Request, @Param() params: AddressHoldingReqDto): Promise<IResponse> {
+    public async getAddressHoldings(@Req() req: Request, @Param() params: VAddressHoldingReqDto): Promise<IResponse> {
         try {
             const payload = await this.jwtService.verifySession(req.headers.session);
             const rsp = await this.marketService.getAddressHoldings(params.address.toLowerCase(), payload);

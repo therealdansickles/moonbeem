@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { UserWalletInfo } from 'src/dto/auth.dto';
-import { UpdateUserWalletReqDto } from 'src/dto/user.wallet.dto';
+import { VUserWalletInfo } from 'src/dto/auth.dto';
+import { VUpdateUserWalletReqDto } from 'src/dto/user.wallet.dto';
 import { PostgresAdapter } from 'src/lib/adapters/postgres.adapter';
 import { IAttribute } from 'src/lib/interfaces/main.interface';
 import { TbUserWallet, TbUserWalletFollowing, UserWallet, UserWalletFollowing } from 'src/lib/modules/db.module';
@@ -51,7 +51,7 @@ export class UserWalletService {
      * @param payload User authorization basic information, if nologin will be undefined
      * @returns User wallet info, if login, will return isFollow, else not
      */
-    async getAddressInfo(address: string, payload?: AuthPayload): Promise<UserWalletInfo> {
+    async getAddressInfo(address: string, payload?: AuthPayload): Promise<VUserWalletInfo> {
         const info = await this.getUserWalletInfo(address);
         if (!info) throw new Error('address not found');
 
@@ -76,7 +76,7 @@ export class UserWalletService {
      * @param address user address
      * @returns user wallet info
      */
-    async getUserWalletInfo(address: string): Promise<UserWalletInfo> {
+    async getUserWalletInfo(address: string): Promise<VUserWalletInfo> {
         let userWallet = await this.findOne(address);
         if (!userWallet) return null;
 
@@ -105,7 +105,7 @@ export class UserWalletService {
      * @param p params, which fields you want to update
      * @returns bool, update is success?
      */
-    async updateAddresInfo(id: string, p: UpdateUserWalletReqDto) {
+    async updateAddresInfo(id: string, p: VUpdateUserWalletReqDto) {
         // generate update params
         let _update: IAttribute[] = [];
         if (p.name != undefined) {

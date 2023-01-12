@@ -3,8 +3,7 @@ import { ethers } from 'ethers';
 import { UserWalletService } from './user.wallet.service';
 import { JWTService } from './jwt.service';
 import { RedisAdapter } from 'src/lib/adapters/redis.adapter';
-import { LoginRspDto } from 'src/dto/auth.dto';
-import { jwtConfig } from 'src/lib/configs/jwt.config';
+import { VLoginRspDto } from 'src/dto/auth.dto';
 
 export const SESSION_PERFIX = 'login_session';
 
@@ -19,7 +18,7 @@ export class AuthService {
      * @param signature information returned by the signature
      * @returns session and basic wallet information
      */
-    async loginWithWallet(address: string, message: string, signature: string): Promise<LoginRspDto> {
+    async loginWithWallet(address: string, message: string, signature: string): Promise<VLoginRspDto> {
         // verify message
         const _address = ethers.utils.verifyMessage(message, signature);
         if (address != _address.toLocaleLowerCase()) throw new HttpException('signature verification failure', HttpStatus.BAD_REQUEST);

@@ -3,7 +3,7 @@ import { IsEthereumAddress, IsString } from 'class-validator';
 import { ArgsType, Field, ID, Int, ObjectType } from '@nestjs/graphql';
 
 @ObjectType() // graphql: Object Type
-export class UserWalletInfo {
+export class VUserWalletInfo {
     @Field((type) => ID) // graphql: mean it is a field
     id: string;
 
@@ -42,7 +42,7 @@ export class UserWalletInfo {
 }
 
 @ArgsType() // graphql: variables/args type
-export class LoginReqDto {
+export class VLoginReqDto {
     @Field() // graphql: mean it is a field
     @IsString() // validator: type verify
     @ApiProperty() // swagger: api attribute
@@ -61,7 +61,7 @@ export class LoginReqDto {
 }
 
 @ObjectType()
-export class LoginRspDto {
+export class VLoginRspDto {
     @Field()
     @ApiProperty({
         description: 'session token',
@@ -72,5 +72,5 @@ export class LoginRspDto {
     @ApiProperty({
         description: 'wallet info',
     })
-    readonly item: UserWalletInfo;
+    readonly item: VUserWalletInfo;
 }

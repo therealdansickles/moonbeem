@@ -1,9 +1,9 @@
-import { ArgsType, Field, ID, ObjectType } from '@nestjs/graphql';
+import { ArgsType, Field } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 
 @ArgsType() // graphql: mark it as params class
-export class TxStatusReqDto {
+export class VTxStatusReqDto {
     @Field() // graphql: a field of the params
     @IsString() // field type validation
     @ApiProperty({

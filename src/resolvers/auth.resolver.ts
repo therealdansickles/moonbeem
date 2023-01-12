@@ -1,5 +1,5 @@
 import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
-import { LoginReqDto, LoginRspDto } from 'src/dto/auth.dto';
+import { VLoginReqDto, VLoginRspDto } from 'src/dto/auth.dto';
 import { Public } from 'src/lib/decorators/public.decorator';
 import { AuthPayload, AuthService } from 'src/services/auth.service';
 
@@ -8,8 +8,8 @@ export class AuthResolver {
     constructor(private readonly authService: AuthService) {}
 
     @Public()
-    @Mutation(() => LoginRspDto) // type: Query/Mutation, String: return type
-    async loginWithWallet(parent, @Args() args: LoginReqDto, context, info): Promise<LoginRspDto> {
+    @Mutation(() => VLoginRspDto) // type: Query/Mutation, String: return type
+    async loginWithWallet(parent, @Args() args: VLoginReqDto, context, info): Promise<VLoginRspDto> {
         var rsp = await this.authService.loginWithWallet(args.address.toLowerCase(), args.message, args.signature);
         return rsp;
     }
