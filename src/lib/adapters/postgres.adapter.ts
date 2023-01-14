@@ -23,4 +23,15 @@ export class PostgresAdapter {
         const res = (await this.db.query({ query: sqlStr, values: values }))[0] as T[];
         return res[0];
     }
+
+    async get<T>(sqlStr: string, values?: any[]) {
+        const res = await this.select<T>(sqlStr, values);
+        return res[0];
+    }
+
+    async select<T>(sqlStr: string, values?: any[]) {
+        if (!values) values = [];
+        const res = (await this.db.query({ query: sqlStr, values: values }))[0] as T[];
+        return res;
+    }
 }

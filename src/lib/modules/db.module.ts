@@ -1,3 +1,5 @@
+export const TbPreMintRecord = 'pre_mint_record';
+export const TbPreMint = 'pre_mint';
 export const TbUserWallet = 'UserWallet';
 export interface UserWallet {
     id: string;

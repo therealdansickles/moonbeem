@@ -2,9 +2,14 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type VIPriceType {
+  price: String!
+  token: EthereumAddress!
+}
+
 type VUserWalletInfo {
   id: ID!
-  address: String!
+  address: EthereumAddress!
   name: String!
   avatar: String
   customUrl: String!
@@ -15,6 +20,9 @@ type VUserWalletInfo {
   followerCount: Int!
   followingCount: Int!
   isFollow: Boolean
+  holding: Int
+  fansCount: Int
+  estimatedValues: [VIPriceType!]
 }
 
 type VLoginRspDto {
@@ -24,7 +32,7 @@ type VLoginRspDto {
 
 type VUserWallet {
   id: String!
-  address: String!
+  address: EthereumAddress!
   name: String!
   avatar: String!
   createdTime: String!
@@ -41,16 +49,19 @@ type VUserWallet {
   visible: Boolean!
 }
 
+"""Ethereum Address custom scalar type"""
+scalar EthereumAddress
+
 type Query {
   getHealth: String!
   getTxStatus(chain: String!, txHash: String!): Boolean!
-  getAddressInfo(address: String!): VUserWalletInfo!
+  getAddressInfo(address: EthereumAddress!): VUserWalletInfo!
   getAddressHoldings(address: String!): VUserWallet!
 }
 
 type Mutation {
-  loginWithWallet(address: String!, message: String!, signature: String!): VLoginRspDto!
+  loginWithWallet(address: EthereumAddress!, message: String!, signature: String!): VLoginRspDto!
   logoutWallet: Boolean!
-  followUserWallet(address: String!, isFollowed: Boolean): Boolean!
+  followUserWallet(address: EthereumAddress!, isFollowed: Boolean): Boolean!
   updateAddressInfo(name: String, avatar: String, customUrl: String, description: String, discordLink: String, facebookLink: String, twitterLink: String): Boolean!
 }

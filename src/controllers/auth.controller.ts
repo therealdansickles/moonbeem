@@ -16,13 +16,12 @@ export class AuthController {
     constructor(private readonly authService: AuthService, private userWalletService: UserWalletService) {}
 
     @Public() // decorator: this api is public, no identity verification required
-    @Post('login')
-    @HttpCode(HttpStatus.OK)
     @ApiResponse({
         status: 200,
         description: 'login with wallet',
         type: VLoginRspDto,
     })
+    @Post('login')
     public async login(@Body() login: VLoginReqDto): Promise<IResponse> {
         try {
             var rsp = await this.authService.loginWithWallet(login.address.toLowerCase(), login.message, login.signature);
@@ -32,13 +31,13 @@ export class AuthController {
         }
     }
 
-    @Post('logout')
-    @ApiSecurity('session') // swagger authentication, in header.session
     @ApiResponse({
         status: 200,
         description: 'logout and delete session',
         type: Boolean,
     })
+    @Post('logout')
+    @ApiSecurity('session') // swagger authentication, in header.session
     public async logout(@Req() req: Request): Promise<IResponse> {
         try {
             const addr = (req.user as AuthPayload).address;

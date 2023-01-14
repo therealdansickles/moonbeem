@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { VUserWalletInfo } from 'src/dto/auth.dto';
+import { VIPriceType, VUserWalletInfo } from 'src/dto/auth.dto';
 import { VUpdateUserWalletReqDto } from 'src/dto/user.wallet.dto';
 import { PostgresAdapter } from 'src/lib/adapters/postgres.adapter';
 import { IAttribute } from 'src/lib/interfaces/main.interface';
-import { TbUserWallet, TbUserWalletFollowing, UserWallet, UserWalletFollowing } from 'src/lib/modules/db.module';
-import { TotalRecord } from 'src/lib/modules/db.record.module';
+import { TbPreMint, TbPreMintRecord, TbUserWallet, TbUserWalletFollowing, UserWallet, UserWalletFollowing } from 'src/lib/modules/db.module';
+import { TokenPrice, TotalRecord } from 'src/lib/modules/db.record.module';
 import { v4 as uuidV4 } from 'uuid';
 import { AuthPayload } from './auth.service';
 
@@ -58,7 +58,9 @@ export class UserWalletService {
         if (payload) {
             // if login
             // get your own information, will not show isFollow
-            if (payload.address.toLocaleLowerCase() == address) return info;
+            if (payload.address.toLocaleLowerCase() == address) {
+                return info;
+            }
 
             // get other address information, check if records are available
             const row = await this.findOneUserFollow(payload.id, info.id);
@@ -83,6 +85,9 @@ export class UserWalletService {
         // get follower count and following count
         const followerCount = await this.countUserFollower(userWallet.id);
         const followingCount = await this.countUserFollowing(userWallet.id);
+        const nftHoldingRec = await this.countTotalNft(address);
+        const fansCountRec = await this.countTotalFans(address);
+        const estimates = (await this.getEstimates(address)) as VIPriceType[];
 
         return {
             id: userWallet.id,
@@ -96,6 +101,9 @@ export class UserWalletService {
             twitterLink: userWallet.twitterLink,
             followerCount: followerCount.total,
             followingCount: followingCount.total,
+            holding: nftHoldingRec.total,
+            fansCount: fansCountRec.total,
+            estimatedValues: estimates,
         };
     }
 
@@ -195,6 +203,41 @@ export class UserWalletService {
     async countUserFollowing(id: string) {
         let sqlStr = `SELECT COUNT(*) AS total FROM "${TbUserWalletFollowing}" WHERE wallet=? and "isFollow"=true`;
         const rsp = await this.pgClient.query<TotalRecord>(sqlStr, [id]);
+        return rsp;
+    }
+
+    // CRUD: Other
+    async countTotalNft(address: string) {
+        let sqlStr = `SELECT COUNT(*) AS total FROM "${TbPreMintRecord}" WHERE recipient = ?`;
+        const rsp = await this.pgClient.query<TotalRecord>(sqlStr, [address]);
+        return rsp;
+    }
+
+    async countTotalFans(address: string) {
+        let sqlStr = `SELECT COUNT(DISTINCT(pmr.recipient)) AS total FROM "${TbPreMintRecord}" AS pmr LEFT JOIN "${TbPreMint}" AS pm ON pmr.contract=pm.contract AND pmr.tier=pm.tier WHERE pm."owner"=?`;
+        const rsp = await this.pgClient.query<TotalRecord>(sqlStr, [address]);
+        return rsp;
+    }
+
+    async getEstimates(address: string) {
+        let sqlStr = `
+        SELECT
+            pmr.payment_token AS token,SUM(pmr.price::decimal(30,0)) AS price
+        FROM
+            pre_mint AS pm
+        LEFT JOIN
+            pre_mint_record AS pmr
+        ON
+            pm.contract=pmr.contract
+        AND
+            pm.tier=pmr.tier
+        WHERE
+            pmr.id IS NOT NULL
+        AND
+            pm."owner"=?
+        GROUP BY
+            pmr.payment_token`;
+        const rsp = await this.pgClient.select<TokenPrice>(sqlStr, [address]);
         return rsp;
     }
 }

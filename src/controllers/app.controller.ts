@@ -12,24 +12,23 @@ import { Request } from 'express';
 export class AppController {
     constructor(private readonly appService: AppService) {}
 
-    // swagger configure: api response description
+    @Public() // not need session in header
     @ApiResponse({
         status: 200,
         description: 'health check',
         type: String,
-    })
+    }) // swagger configure: api response description
     @Get('/health')
     getHealth(): string {
         return this.appService.getHealth();
     }
 
-    // swagger configure: api response description
     @Public()
     @ApiResponse({
         status: 200,
         description: 'check the tx hash is successed',
         type: Boolean,
-    })
+    }) // swagger configure: api response description
     @Get('/tx_status/:chain/:txHash')
     async getTxStatus(@Req() req: Request, @Param() params: VTxStatusReqDto): Promise<IResponse> {
         try {
