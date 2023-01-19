@@ -5,3 +5,8 @@ export const redisConfig = {
 export const postgresConfig = {
     url: process.env.DATABASE_URL,
 };
+
+export const mongoConfig = {
+    url: process.env.MONGO_URL,
+    db: process.env.MONGO_DATABASE || 'keystone',
+};

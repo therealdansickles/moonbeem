@@ -30,23 +30,47 @@ type VLoginRspDto {
   item: VUserWalletInfo!
 }
 
-type VUserWallet {
-  id: String!
+type VICollectionType {
   address: EthereumAddress!
   name: String!
   avatar: String!
-  createdTime: String!
-  updatedTime: String!
-  user: String!
-  banner: String!
-  customUrl: String!
   description: String!
-  discordLink: String!
-  facebookLink: String!
-  twitterLink: String!
-  collection: String!
-  walletType: String!
-  visible: Boolean!
+  background: String!
+  type: String!
+}
+
+type VITierAttr {
+  extra: String!
+  traitType: String!
+  value: String!
+}
+
+type VSecondaryMarketView {
+  onSale: Boolean!
+  onSalePrice: String!
+  maxSalePrice: String!
+  latestSalePrice: String!
+}
+
+type NftInfo {
+  collection: VICollectionType!
+  token: EthereumAddress!
+  tokenId: String!
+  name: String!
+  avatar: String!
+  description: String!
+  quantity: Int!
+  owner: EthereumAddress!
+  tierId: Int!
+  attributes: [VITierAttr!]!
+  currentPrice: String!
+  secondary: VSecondaryMarketView!
+  extensions: [String!]
+}
+
+type VAddressHoldingRspDto {
+  data: [NftInfo!]!
+  total: Int!
 }
 
 """Ethereum Address custom scalar type"""
@@ -56,7 +80,7 @@ type Query {
   getHealth: String!
   getTxStatus(chain: String!, txHash: String!): Boolean!
   getAddressInfo(address: EthereumAddress!): VUserWalletInfo!
-  getAddressHoldings(address: String!): VUserWallet!
+  getAddressHoldings(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VAddressHoldingRspDto!
 }
 
 type Mutation {

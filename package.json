@@ -34,6 +34,7 @@
     "class-validator": "^0.14.0",
     "ethers": "^5.7.2",
     "graphql": "^16.6.0",
+    "mongodb": "^4.13.0",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",

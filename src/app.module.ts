@@ -13,6 +13,7 @@ import { AppService } from './services/app.service';
 import { MarketService } from './services/market.service';
 import { UserWalletService } from './services/user.wallet.service';
 import { AppResolver } from './resolvers/app.resolver';
+import { MongoAdapter } from './lib/adapters/mongo.adapter';
 
 @Module({
     imports: [
@@ -28,7 +29,7 @@ import { AppResolver } from './resolvers/app.resolver';
         }),
     ],
     controllers: [AppController],
-    providers: [AppService, MarketService, UserWalletService, RpcClient, RedisAdapter, PostgresAdapter, AppResolver],
+    providers: [AppService, MarketService, UserWalletService, RpcClient, RedisAdapter, PostgresAdapter, MongoAdapter, AppResolver],
     exports: [],
 })
 export class AppModule {}
