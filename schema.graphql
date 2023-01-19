@@ -30,6 +30,25 @@ type VLoginRspDto {
   item: VUserWalletInfo!
 }
 
+type VFollowingInfo {
+  name: String!
+  address: EthereumAddress!
+  avatar: String!
+  followingCount: Float!
+  followerCount: Float!
+  isFollowed: Boolean
+}
+
+type VUserFollowingListRspDto {
+  data: [VFollowingInfo!]!
+  total: Float!
+}
+
+type VUserFollowerListRspDto {
+  data: [VFollowingInfo!]!
+  total: Float!
+}
+
 type VICollectionType {
   address: EthereumAddress!
   name: String!
@@ -80,6 +99,8 @@ type Query {
   getHealth: String!
   getTxStatus(chain: String!, txHash: String!): Boolean!
   getAddressInfo(address: EthereumAddress!): VUserWalletInfo!
+  getUserFollowingList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowingListRspDto!
+  getUserFollowerList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowerListRspDto!
   getAddressHoldings(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VAddressHoldingRspDto!
 }
 

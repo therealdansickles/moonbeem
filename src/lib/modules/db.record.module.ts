@@ -21,3 +21,10 @@ export interface AddressHolding {
     owner: string;
     price: string;
 }
+
+export interface UserFollowingRec {
+    id: string;
+    address: string;
+    avatar: string;
+    name: string;
+}

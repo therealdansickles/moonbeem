@@ -12,7 +12,6 @@ export class MarketResolver {
     @Public()
     @Query(() => VAddressHoldingRspDto)
     async getAddressHoldings(@Context('req') req: any, @Args() args: VAddressHoldingReqDto): Promise<VAddressHoldingRspDto> {
-        console.log("args: ", args)
         const payload = await this.jwtService.verifySession(req.headers.session);
         const rsp = await this.marketService.getAddressHoldings(args, payload);
         return rsp;

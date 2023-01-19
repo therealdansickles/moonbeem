@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { VIPriceType, VUserWalletInfo } from 'src/dto/auth.dto';
-import { VUpdateUserWalletReqDto } from 'src/dto/user.wallet.dto';
+import { VFollowingInfo, VUpdateUserWalletReqDto, VUserFollowingListReqDto, VUserFollowingListRspDto } from 'src/dto/user.wallet.dto';
 import { PostgresAdapter } from 'src/lib/adapters/postgres.adapter';
 import { IAttribute } from 'src/lib/interfaces/main.interface';
 import { TbPreMint, TbPreMintRecord, TbUserWallet, TbUserWalletFollowing, UserWallet, UserWalletFollowing } from 'src/lib/modules/db.module';
-import { TokenPrice, TotalRecord } from 'src/lib/modules/db.record.module';
+import { TokenPrice, TotalRecord, UserFollowingRec } from 'src/lib/modules/db.record.module';
 import { v4 as uuidV4 } from 'uuid';
 import { AuthPayload } from './auth.service';
 
@@ -21,6 +21,7 @@ export class UserWalletService {
      */
     async followUserWallet(follower: AuthPayload, address: string, isFollowed?: boolean) {
         if (follower.address === address) throw new Error('can not follow yourself');
+        if (isFollowed == undefined) isFollowed = true;
 
         // check address is exists
         const wallet = await this.findOne(address);
@@ -132,6 +133,67 @@ export class UserWalletService {
         return true;
     }
 
+    async getUserFollowingList(args: VUserFollowingListReqDto, payload?: AuthPayload): Promise<VUserFollowingListRspDto> {
+        let userWallet = await this.findOne(args.address.toLocaleLowerCase());
+        if (!userWallet) throw new Error('address not found');
+
+        let rsp: VUserFollowingListRspDto = {
+            data: [],
+            total: await (await this.countUserFollowingList(userWallet.id)).total,
+        };
+
+        const data = await this.findManyUserFollowingList(userWallet.id, args.skip, args.take);
+        for (let d of data) {
+            let followerCount = await this.countUserFollower(d.id);
+            let followingCount = await this.countUserFollowing(d.id);
+
+            let rec: UserWalletFollowing;
+            if (payload) {
+                rec = await this.findOneUserFollow(payload.id, d.id);
+            }
+            rsp.data.push({
+                name: d.name,
+                address: d.address,
+                avatar: d.avatar ?? '',
+                followingCount: followingCount.total,
+                followerCount: followerCount.total,
+                isFollowed: rec ? true : false,
+            });
+        }
+
+        return rsp;
+    }
+
+    async getUserFollowerList(args: VUserFollowingListReqDto, payload?: AuthPayload): Promise<VUserFollowingListRspDto> {
+        let userWallet = await this.findOne(args.address.toLocaleLowerCase());
+        if (!userWallet) throw new Error('address not found');
+
+        let rsp: VUserFollowingListRspDto = {
+            data: [],
+            total: await (await this.countUserFollowerList(userWallet.id)).total,
+        };
+
+        const data = await this.findManyUserFollowerList(userWallet.id, args.skip, args.take);
+        for (let d of data) {
+            let followerCount = await this.countUserFollower(d.id);
+            let followingCount = await this.countUserFollowing(d.id);
+            let rec: UserWalletFollowing;
+            if (payload) {
+                rec = await this.findOneUserFollow(payload.id, d.id);
+            }
+            rsp.data.push({
+                name: d.name,
+                address: d.address,
+                avatar: d.avatar ?? '',
+                followingCount: followingCount.total,
+                followerCount: followerCount.total,
+                isFollowed: rec ? true : false,
+            });
+        }
+
+        return rsp;
+    }
+
     // CRUD: UserWallet
     async findOne(address: string): Promise<UserWallet | undefined> {
         let sqlStr = `SELECT * FROM "${TbUserWallet}" WHERE address=?`;
@@ -190,6 +252,7 @@ export class UserWalletService {
         let values: any[] = [];
         values.push(isFollow);
         values.push(id);
+        console.log(sqlStr);
         const rsp = await this.pgClient.query<UserWalletFollowing>(sqlStr, values);
         return rsp;
     }
@@ -202,6 +265,98 @@ export class UserWalletService {
 
     async countUserFollowing(id: string) {
         let sqlStr = `SELECT COUNT(*) AS total FROM "${TbUserWalletFollowing}" WHERE wallet=? and "isFollow"=true`;
+        const rsp = await this.pgClient.query<TotalRecord>(sqlStr, [id]);
+        return rsp;
+    }
+
+    async findManyUserFollowingList(id: string, offset?: number, limit?: number) {
+        let sqlStr = `
+        SELECT
+            uw.id,uw.address,uw.avatar,uw."name"
+        FROM
+            "UserWalletFollowing" AS uwf
+        LEFT JOIN
+            "UserWallet" AS uw
+        ON
+            uw.id =uwf."followingWallet"
+        WHERE
+            uwf.wallet=?
+        AND
+            uwf."isFollow"=true `;
+        let values: any[] = [];
+        values.push(id);
+        if (offset) {
+            sqlStr = `${sqlStr} OFFSET ${offset}`;
+            values.push(offset);
+        }
+        if (limit) {
+            sqlStr = `${sqlStr} LIMIT ${limit}`;
+            values.push(limit);
+        }
+        const rsp = await this.pgClient.select<UserFollowingRec>(sqlStr, values);
+        return rsp;
+    }
+
+    async countUserFollowingList(id: string) {
+        let sqlStr = `
+        SELECT
+            COUNT(*) AS total
+        FROM
+            "UserWalletFollowing" AS uwf
+        LEFT JOIN
+            "UserWallet" AS uw
+        ON
+            uw.id =uwf."followingWallet"
+        WHERE
+            uwf.wallet=?
+        AND
+            uwf."isFollow"=true `;
+        const rsp = await this.pgClient.query<TotalRecord>(sqlStr, [id]);
+        return rsp;
+    }
+
+    async findManyUserFollowerList(id: string, offset?: number, limit?: number) {
+        let sqlStr = `
+        SELECT
+            uw.id,uw.address,uw.avatar,uw."name"
+        FROM
+            "UserWalletFollowing" AS uwf
+        LEFT JOIN
+            "UserWallet" AS uw
+        ON
+            uw.id =uwf.wallet
+        WHERE
+            uwf."followingWallet"=?
+        AND
+            uwf."isFollow"=true`;
+        let values: any[] = [];
+        values.push(id);
+        if (offset) {
+            sqlStr = `${sqlStr} OFFSET ${offset}`;
+            values.push(offset);
+        }
+        if (limit) {
+            sqlStr = `${sqlStr} LIMIT ${limit}`;
+            values.push(limit);
+        }
+        const rsp = await this.pgClient.select<UserFollowingRec>(sqlStr, values);
+        return rsp;
+    }
+
+    async countUserFollowerList(id: string) {
+        let sqlStr = `
+        SELECT
+            COUNT(*) AS total
+        FROM
+            "UserWalletFollowing" AS uwf
+        LEFT JOIN
+            "UserWallet" AS uw
+        ON
+            uw.id =uwf.wallet
+        WHERE
+            uwf."followingWallet"=?
+        AND
+            uwf."isFollow"=true`;
         const rsp = await this.pgClient.query<TotalRecord>(sqlStr, [id]);
         return rsp;
     }

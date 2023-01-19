@@ -1,6 +1,7 @@
-import { ArgsType, Field, ObjectType } from '@nestjs/graphql';
+import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsEthereumAddress, IsOptional, IsString, IsUUID } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsBoolean, IsEthereumAddress, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 import { EthereumAddress } from 'src/lib/scalars/eth.scalar';
 
 @ArgsType()
@@ -154,4 +155,113 @@ export class VUserWallet {
     @ApiProperty()
     @IsBoolean()
     visible: boolean;
+}
+
+@ArgsType()
+@ObjectType()
+export class VUserFollowingListReqDto {
+    @Field((type) => EthereumAddress)
+    @ApiProperty({
+        example: '0x9A70b15c2936d440c82Eb988A20F11ef2cd79395',
+    })
+    @IsEthereumAddress()
+    readonly address: string;
+
+    @Field((type) => Int, { nullable: true, defaultValue: 0 })
+    @ApiProperty({
+        nullable: true,
+        default: 0,
+    })
+    @Type(() => Number)
+    @IsNumber()
+    readonly skip?: number;
+
+    @Field((type) => Int, { nullable: true, defaultValue: 10 })
+    @ApiProperty({ nullable: true, default: 10 })
+    @IsNumber()
+    @Type(() => Number)
+    readonly take?: number;
+}
+
+@ObjectType()
+export class VFollowingInfo {
+    @Field()
+    @ApiProperty()
+    @IsString()
+    readonly name: string;
+
+    @Field((type) => EthereumAddress)
+    @ApiProperty()
+    @IsEthereumAddress()
+    readonly address: string;
+
+    @Field()
+    @ApiProperty()
+    @IsString()
+    readonly avatar: string;
+
+    @Field()
+    @ApiProperty()
+    @IsNumber()
+    readonly followingCount: number;
+
+    @Field()
+    @ApiProperty()
+    @IsNumber()
+    readonly followerCount: number;
+
+    @Field({ nullable: true })
+    @ApiProperty()
+    @IsBoolean()
+    isFollowed?: boolean;
+}
+
+@ObjectType()
+export class VUserFollowingListRspDto {
+    @Field((type) => [VFollowingInfo])
+    @ApiProperty({ type: [VFollowingInfo] })
+    readonly data: VFollowingInfo[];
+
+    @Field()
+    @ApiProperty()
+    @IsNumber()
+    readonly total: number;
+}
+
+@ArgsType()
+@ObjectType()
+export class VUserFollowerListReqDto {
+    @Field((type) => EthereumAddress)
+    @ApiProperty({
+        example: '0xee6bf10a93c73617432e0debec4e10920ae898a1',
+    })
+    @IsEthereumAddress()
+    readonly address: string;
+
+    @Field((type) => Int, { nullable: true, defaultValue: 0 })
+    @ApiProperty({
+        nullable: true,
+        default: 0,
+    })
+    @Type(() => Number)
+    @IsNumber()
+    readonly skip?: number;
+
+    @Field((type) => Int, { nullable: true, defaultValue: 10 })
+    @ApiProperty({ nullable: true, default: 10 })
+    @IsNumber()
+    @Type(() => Number)
+    readonly take?: number;
+}
+
+@ObjectType()
+export class VUserFollowerListRspDto {
+    @Field((type) => [VFollowingInfo])
+    @ApiProperty({ type: [VFollowingInfo] })
+    readonly data: VFollowingInfo[];
+
+    @Field()
+    @ApiProperty()
+    @IsNumber()
+    readonly total: number;
 }

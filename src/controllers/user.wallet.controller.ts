@@ -1,8 +1,8 @@
-import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
 import { ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { VUserWalletInfo } from 'src/dto/auth.dto';
-import { VFollowUserWalletReqDto, VGetAddressReqDto, VUpdateUserWalletReqDto } from 'src/dto/user.wallet.dto';
+import { VFollowUserWalletReqDto, VGetAddressReqDto, VUpdateUserWalletReqDto, VUserFollowerListReqDto, VUserFollowerListRspDto, VUserFollowingListReqDto, VUserFollowingListRspDto } from 'src/dto/user.wallet.dto';
 import { Public } from 'src/lib/decorators/public.decorator';
 import { IResponse, ResponseInternalError, ResponseSucc } from 'src/lib/interfaces/response.interface';
 import { AuthPayload } from 'src/services/auth.service';
@@ -61,6 +61,36 @@ export class UserWalletController {
         try {
             const payload = req.user as AuthPayload;
             const rsp = await this.userWalletService.updateAddresInfo(payload.id, body);
+            return new ResponseSucc(rsp);
+        } catch (err) {
+            return new ResponseInternalError((err as Error).message);
+        }
+    }
+
+    @Public()
+    @ApiResponse({
+        type: VUserFollowingListRspDto,
+    })
+    @Post('/get_following_list')
+    public async getUserFollowingList(@Req() req: Request, @Body() args: VUserFollowingListReqDto): Promise<IResponse> {
+        try {
+            const payload = await this.jwtService.verifySession(req.headers.session);
+            const rsp = await this.userWalletService.getUserFollowingList(args, payload);
+            return new ResponseSucc(rsp);
+        } catch (err) {
+            return new ResponseInternalError((err as Error).message);
+        }
+    }
+
+    @Public()
+    @ApiResponse({
+        type: VUserFollowerListRspDto,
+    })
+    @Post('/get_follower_list')
+    public async getUserFollowerList(@Req() req: Request, @Body() args: VUserFollowerListReqDto): Promise<IResponse> {
+        try {
+            const payload = await this.jwtService.verifySession(req.headers.session);
+            const rsp = await this.userWalletService.getUserFollowerList(args, payload);
             return new ResponseSucc(rsp);
         } catch (err) {
             return new ResponseInternalError((err as Error).message);
