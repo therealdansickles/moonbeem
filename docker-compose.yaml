@@ -1,0 +1,24 @@
+version: '3.0'
+services:
+  server-restful:
+    image: vibe-server-restful:latest
+    container_name: server-restful
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: dev
+      DATABASE_URL: postgres://root:root@postgres/vibe-server
+      REDIS_URL: redis://default:redis@redis:6379
+      MONGO_URL: mongodb://root:root@mongo:27017
+      SESSION_SECRET: secretKey
+    networks:
+      vibe_net:
+        aliases:
+          - server-restful
+
+networks:
+  vibe_net:
+    external: true
