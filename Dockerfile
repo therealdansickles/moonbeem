@@ -9,6 +9,18 @@ RUN yarn install
 
 COPY . .
 
+RUN yarn run build
+
+RUN echo $' \
+if [[ $NODE_ENV == "dev" ]] \n \
+then \n \
+    yarn run dev \n \
+else \n \
+    yarn start \n \
+fi \n \
+' \
+    >./entrypoint.sh
+
 EXPOSE 3000
 
-CMD ["npm", "run", "dev"]
+ENTRYPOINT [ "sh", "./entrypoint.sh" ]
