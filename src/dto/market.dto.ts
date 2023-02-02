@@ -183,3 +183,114 @@ export class VAddressHoldingRspDto {
     @IsNumber()
     readonly total: number;
 }
+
+@ArgsType()
+@ObjectType()
+export class VActivityReqDto {
+    @Field((type) => EthereumAddress)
+    @ApiProperty({
+        example: '0x9A70b15c2936d440c82Eb988A20F11ef2cd79395',
+    })
+    @IsEthereumAddress()
+    readonly address: string;
+
+    @Field((type) => Int, { nullable: true, defaultValue: 0 })
+    @ApiProperty({
+        nullable: true,
+        default: 0,
+    })
+    @Type(() => Number)
+    @IsNumber()
+    readonly skip?: number;
+
+    @Field((type) => Int, { nullable: true, defaultValue: 10 })
+    @ApiProperty({ nullable: true, default: 10 })
+    @IsNumber()
+    @Type(() => Number)
+    readonly take?: number;
+}
+
+// activity
+export enum VActivityStatus {
+    Mint = 'Minted',
+    Transfer = 'Transfer',
+}
+
+@ObjectType()
+export class VActivityInfo {
+    @Field((type) => EthereumAddress)
+    @ApiProperty()
+    @IsEthereumAddress()
+    readonly token: string;
+
+    @Field()
+    @ApiProperty()
+    @IsString()
+    readonly tokenId: string;
+
+    @Field()
+    @ApiProperty()
+    readonly status: VActivityStatus;
+
+    @Field((type) => VICollectionType)
+    @ApiProperty()
+    readonly collection: VICollectionType;
+
+    @Field((type) => EthereumAddress)
+    @ApiProperty()
+    @IsEthereumAddress()
+    readonly owner: string;
+
+    @Field((type) => EthereumAddress)
+    @ApiProperty()
+    @IsEthereumAddress()
+    readonly recipient: string;
+
+    @Field()
+    @ApiProperty()
+    @IsString()
+    readonly name: string;
+
+    @Field()
+    @ApiProperty()
+    @IsString()
+    readonly avatar: string;
+
+    @Field()
+    @ApiProperty()
+    @IsString()
+    readonly description: string;
+
+    @Field((type) => VSecondaryMarketView)
+    @ApiProperty({ type: VSecondaryMarketView })
+    readonly secondary: VSecondaryMarketView;
+
+    @Field((type) => [VITierAttr])
+    @ApiProperty({
+        type: [VITierAttr],
+    })
+    readonly attributes: VITierAttr[];
+
+    @Field()
+    @ApiProperty()
+    @IsNumberString()
+    readonly currentPrice: string;
+
+    @Field((type) => [String], { nullable: true })
+    @ApiProperty({ type: [String], nullable: true })
+    readonly extensions?: string[];
+}
+
+@ObjectType()
+export class VActivityRspDto {
+    @Field((type) => [VActivityInfo])
+    @ApiProperty({
+        type: [VActivityInfo],
+    })
+    readonly data: VActivityInfo[];
+
+    @Field((type) => Int)
+    @ApiProperty()
+    @IsNumber()
+    readonly total: number;
+}
