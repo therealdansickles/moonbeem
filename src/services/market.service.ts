@@ -36,6 +36,16 @@ export class MarketService {
             let meta = await this.getMetadataFromMongo(d.collection_id, d.collection_tier);
 
             let attrs = [];
+            if (!meta || !meta.attributes) {
+                meta = {
+                    token: '',
+                    token_id: '',
+                    name: '',
+                    image: '',
+                    external_url: '',
+                    attributes: [],
+                };
+            }
             meta.attributes.forEach((attr) => {
                 attrs.push({
                     extra: '',
@@ -43,15 +53,13 @@ export class MarketService {
                     value: attr.value,
                 });
             });
-
             rsp.data.push({
                 collection: col,
                 token: d.token,
-                tokenId: d.token_id,
-                name: meta.name,
-                avatar: meta.image,
-                description: meta.description,
-                quantity: 1, // TODO: just erc721 now, so it can be 1
+                name: meta.name ?? '',
+                avatar: meta.image ?? '',
+                description: meta.description ?? '',
+                quantity: d.end_id - d.start_id + 1, // TODO: just erc721 now, so it can be 1
                 owner: d.owner,
                 tierId: d.collection_tier,
                 attributes: attrs as VITierAttr[],
@@ -176,16 +184,18 @@ export class MarketService {
     async findManyAddressReleased(address: string, offset?: number, limit?: number) {
         let sqlStr = `
         SELECT
-            c.id AS collection_id,c.collection AS collection_address,c."name" AS collection_name,c.avatar AS collection_avatar,c.description AS collection_description,c.background AS collection_background,c."type" AS collection_type,pmr.tier AS collection_tier,
-            pmr.contract AS token,pmr.token_id AS token_id,pmr.recipient  AS owner,pmr.price  AS price
+            c.id AS collection_id,c.collection AS collection_address,c."name" AS collection_name,c.avatar AS collection_avatar,c.description AS collection_description,c.background AS collection_background,c."type" AS collection_type,pm.tier AS collection_tier,
+            pm.contract AS token,pm.owner  AS owner,pm.price  AS price,pm.start_id,pm.end_id
         FROM
-            pre_mint_record AS pmr
+            pre_mint AS pm
         LEFT JOIN
             collection AS c
         ON
-            pmr.contract=c.collection
+            pm.contract=c.collection
         WHERE
-            pmr.recipient=?`;
+            pm.owner=?
+        AND
+            c.id IS NOT NULL`;
 
         let values: any[] = [];
         values.push(address);
@@ -290,13 +300,15 @@ export class MarketService {
         SELECT
             COUNT(*) AS total
         FROM
-            pre_mint_record AS pmr
+            pre_mint AS pm
         LEFT JOIN
             collection AS c
         ON
-            pmr.contract=c.collection
+            pm.contract=c.collection
         WHERE
-            pmr.recipient=?`;
+            pm.owner=?
+        AND
+            c.id IS NOT NULL`;
 
         const rsp = await this.pgClient.query<TotalRecord>(sqlStr, [address]);
         return rsp;

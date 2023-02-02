@@ -58,4 +58,6 @@ export interface AddressReleased {
     token_id: string;
     owner: string;
     price: string;
+    start_id: number;
+    end_id: number;
 }

@@ -116,7 +116,6 @@ type VActivityRspDto {
 type ReleasedInfo {
   collection: VICollectionType!
   token: EthereumAddress!
-  tokenId: String!
   name: String!
   avatar: String!
   description: String!

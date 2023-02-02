@@ -337,11 +337,6 @@ export class ReleasedInfo {
     @Field()
     @ApiProperty()
     @IsString()
-    readonly tokenId: string;
-
-    @Field()
-    @ApiProperty()
-    @IsString()
     readonly name: string;
 
     @Field()
@@ -395,7 +390,7 @@ export class VAddressReleasedRspDto {
     @ApiProperty({
         type: [ReleasedInfo],
     })
-    readonly data: NftInfo[];
+    readonly data: ReleasedInfo[];
 
     @Field((type) => Int)
     @ApiProperty()
