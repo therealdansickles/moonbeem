@@ -108,6 +108,11 @@ type VActivityInfo {
   extensions: [String!]
 }
 
+type VActivityRspDto {
+  data: [VActivityInfo!]!
+  total: Int!
+}
+
 """Ethereum Address custom scalar type"""
 scalar EthereumAddress
 
@@ -118,6 +123,7 @@ type Query {
   getUserFollowingList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowingListRspDto!
   getUserFollowerList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowerListRspDto!
   getAddressHoldings(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VAddressHoldingRspDto!
+  getAddressActivities(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VActivityRspDto!
 }
 
 type Mutation {

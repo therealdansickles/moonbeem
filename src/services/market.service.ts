@@ -58,7 +58,7 @@ export class MarketService {
                 status: status,
                 collection: col,
                 owner: d.recipient,
-                recipient: d.owner,
+                recipient: d.owner ?? '',
                 name: meta.name,
                 avatar: meta.image,
                 description: meta.description,
