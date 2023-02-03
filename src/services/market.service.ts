@@ -131,7 +131,7 @@ export class MarketService {
     async getAddressActivities(args: VActivityReqDto, payload?: AuthPayload) {
         let rsp: VActivityRspDto = {
             data: [],
-            total: 0,
+            total: await (await this.countAddressActivity(args.address.toLowerCase())).total,
         };
         // check address exists
         const userWallet = await this.userWallet.findOne(args.address.toLowerCase());
@@ -423,6 +423,23 @@ export class MarketService {
             pmr.contract=c.collection
         WHERE
             c.collection=?`;
+
+        const rsp = await this.pgClient.query<TotalRecord>(sqlStr, [address]);
+        return rsp;
+    }
+
+    async countAddressActivity(address: string) {
+        let sqlStr = `
+        SELECT
+            COUNT(*) AS total
+        FROM
+            pre_mint_record AS pmr
+        LEFT JOIN
+            collection AS c
+        ON
+            pmr.contract=c.collection
+        WHERE
+            pmr.recipient=?`;
 
         const rsp = await this.pgClient.query<TotalRecord>(sqlStr, [address]);
         return rsp;
