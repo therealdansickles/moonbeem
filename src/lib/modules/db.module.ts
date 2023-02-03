@@ -27,3 +27,14 @@ export interface UserWalletFollowing {
     followingWallet: string;
     isFollow: boolean;
 }
+
+export const TbWaitlistScores = 'BetaScore';
+export interface WaitlistScore {
+    id: string;
+    points: number;
+    address: string;
+}
+
+export interface WaitlistCount {
+    count: number;
+}
