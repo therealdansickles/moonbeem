@@ -1,5 +1,5 @@
 import { Args, Context, Query, Resolver } from '@nestjs/graphql';
-import { VActivityReqDto, VActivityRspDto, VAddressHoldingReqDto, VAddressHoldingRspDto, VAddressReleasedReqDto, VAddressReleasedRspDto } from 'src/dto/market.dto';
+import { VActivityReqDto, VActivityRspDto, VAddressHoldingReqDto, VAddressHoldingRspDto, VAddressReleasedReqDto, VAddressReleasedRspDto, VCollectionActivityReqDto, VCollectionActivityRspDto } from 'src/dto/market.dto';
 import { VUserWallet } from 'src/dto/user.wallet.dto';
 import { Public } from 'src/lib/decorators/public.decorator';
 import { JWTService } from 'src/services/jwt.service';
@@ -30,6 +30,14 @@ export class MarketResolver {
     async getAddressReleased(@Context('req') req: any, @Args() args: VAddressReleasedReqDto): Promise<VAddressReleasedRspDto> {
         const payload = await this.jwtService.verifySession(req.headers.session);
         const rsp = await this.marketService.getAddressReleased(args, payload);
+        return rsp;
+    }
+
+    @Public()
+    @Query(() => VCollectionActivityRspDto)
+    public async getCollectionActivities(@Context('req') req: any, @Args() args: VCollectionActivityReqDto): Promise<VCollectionActivityRspDto> {
+        const payload = await this.jwtService.verifySession(req.headers.session);
+        const rsp = await this.marketService.getCollectionActivities(args, payload);
         return rsp;
     }
 }
