@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { Public } from 'src/lib/decorators/public.decorator';
-import { VActivityReqDto, VActivityRspDto, VAddressHoldingReqDto, VAddressHoldingRspDto, VAddressReleasedReqDto } from 'src/dto/market.dto';
+import { VActivityReqDto, VActivityRspDto, VAddressHoldingReqDto, VAddressHoldingRspDto, VAddressReleasedReqDto, VCollectionActivityReqDto, VCollectionActivityRspDto } from 'src/dto/market.dto';
 import { IResponse, ResponseInternalError, ResponseSucc } from 'src/lib/interfaces/response.interface';
 import { MarketService } from 'src/services/market.service';
 import { ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
@@ -53,6 +53,18 @@ export class MarketController {
         try {
             const payload = await this.jwtService.verifySession(req.headers.session);
             const rsp = await this.marketService.getAddressReleased(args, payload);
+            return new ResponseSucc(rsp);
+        } catch (err) {
+            return new ResponseInternalError((err as Error).message);
+        }
+    }
+    @Public()
+    @ApiResponse({ type: VCollectionActivityRspDto })
+    @Get('/get_collection_activities')
+    public async getCollectionActivities(@Req() req: Request, @Query() args: VCollectionActivityReqDto): Promise<IResponse> {
+        try {
+            const payload = await this.jwtService.verifySession(req.headers.session);
+            const rsp = await this.marketService.getCollectionActivities(args, payload);
             return new ResponseSucc(rsp);
         } catch (err) {
             return new ResponseInternalError((err as Error).message);

@@ -133,6 +133,22 @@ type VAddressReleasedRspDto {
   total: Int!
 }
 
+type VCollectionActivityInfo {
+  token: EthereumAddress!
+  tokenId: String!
+  status: String!
+  collection: VICollectionType!
+  owner: EthereumAddress!
+  recipient: EthereumAddress!
+  name: String!
+  avatar: String!
+  description: String!
+  secondary: VSecondaryMarketView!
+  attributes: [VITierAttr!]!
+  currentPrice: String!
+  extensions: [String!]
+}
+
 """Ethereum Address custom scalar type"""
 scalar EthereumAddress
 
