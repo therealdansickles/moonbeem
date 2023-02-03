@@ -58,6 +58,7 @@ export class MarketController {
             return new ResponseInternalError((err as Error).message);
         }
     }
+
     @Public()
     @ApiResponse({ type: VCollectionActivityRspDto })
     @Get('/get_collection_activities')
