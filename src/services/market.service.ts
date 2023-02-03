@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { VActivityReqDto, VActivityRspDto, VActivityStatus, VAddressHoldingRspDto, VAddressReleasedRspDto, VICollectionType, VITierAttr, VSecondaryMarketView } from 'src/dto/market.dto';
+import { VActivityReqDto, VActivityRspDto, VActivityStatus, VAddressHoldingRspDto, VAddressReleasedRspDto, VCollectionActivityRspDto, VICollectionType, VITierAttr, VSecondaryMarketView } from 'src/dto/market.dto';
 import { MongoAdapter } from 'src/lib/adapters/mongo.adapter';
 import { PostgresAdapter } from 'src/lib/adapters/postgres.adapter';
 import { IMetadata } from 'src/lib/modules/db.mongo.module';
-import { AddressActivity, AddressHolding, AddressReleased, TotalRecord } from 'src/lib/modules/db.record.module';
+import { AddressActivity, AddressHolding, AddressReleased, CollectionActivity, TotalRecord } from 'src/lib/modules/db.record.module';
 import { AuthPayload } from './auth.service';
 import { UserWalletService } from './user.wallet.service';
 
@@ -13,7 +13,7 @@ export class MarketService {
 
     // services: controller
     async getCollectionActivities(args: VActivityReqDto, payload?: AuthPayload) {
-        let rsp: VActivityRspDto = {
+        let rsp: VCollectionActivityRspDto = {
             data: [],
             total: await (await this.countCollectionActivity(args.address.toLowerCase())).total,
         };
@@ -63,6 +63,7 @@ export class MarketService {
                 attributes: attrs,
                 secondary: secondary,
                 currentPrice: d.price,
+                txTime: d.tx_time,
             });
         }
         return rsp;
@@ -244,7 +245,7 @@ export class MarketService {
         let sqlStr = `
         SELECT
             c.id AS collection_id,c.collection AS collection_address,c."name" AS collection_name,c.avatar AS collection_avatar,c.description AS collection_description,c.background AS collection_background,c."type" AS collection_type,pmr.tier AS collection_tier,
-            pmr.contract AS token,pmr.token_id AS token_id,pmr.recipient  AS recipient,pmr.price  AS price,asset.owner
+            pmr.contract AS token,pmr.token_id AS token_id,pmr.recipient  AS recipient,pmr.price  AS price,asset.owner,pmr.tx_time AS tx_time
         FROM
             collection AS c
         LEFT JOIN
@@ -273,7 +274,7 @@ export class MarketService {
             sqlStr = `${sqlStr} LIMIT ${limit}`;
             values.push(limit);
         }
-        const rsp = await this.pgClient.select<AddressActivity>(sqlStr, values);
+        const rsp = await this.pgClient.select<CollectionActivity>(sqlStr, values);
         return rsp;
     }
 

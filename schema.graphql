@@ -136,6 +136,7 @@ type VAddressReleasedRspDto {
 type VCollectionActivityInfo {
   token: EthereumAddress!
   tokenId: String!
+  txTime: Int!
   status: String!
   collection: VICollectionType!
   owner: EthereumAddress!

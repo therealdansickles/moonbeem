@@ -438,6 +438,11 @@ export class VCollectionActivityInfo {
     @IsString()
     readonly tokenId: string;
 
+    @Field((type) => Int)
+    @ApiProperty()
+    @IsNumber()
+    readonly txTime: number;
+
     @Field()
     @ApiProperty()
     readonly status: VActivityStatus;
