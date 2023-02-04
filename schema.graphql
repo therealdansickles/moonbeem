@@ -92,6 +92,69 @@ type VAddressHoldingRspDto {
   total: Int!
 }
 
+type VActivityInfo {
+  token: EthereumAddress!
+  tokenId: String!
+  status: String!
+  collection: VICollectionType!
+  owner: EthereumAddress!
+  recipient: EthereumAddress!
+  name: String!
+  avatar: String!
+  description: String!
+  secondary: VSecondaryMarketView!
+  attributes: [VITierAttr!]!
+  currentPrice: String!
+  extensions: [String!]
+}
+
+type VActivityRspDto {
+  data: [VActivityInfo!]!
+  total: Int!
+}
+
+type ReleasedInfo {
+  collection: VICollectionType!
+  token: EthereumAddress!
+  name: String!
+  avatar: String!
+  description: String!
+  quantity: Int!
+  owner: EthereumAddress!
+  tierId: Int!
+  attributes: [VITierAttr!]!
+  currentPrice: String!
+  secondary: VSecondaryMarketView!
+  extensions: [String!]
+}
+
+type VAddressReleasedRspDto {
+  data: [ReleasedInfo!]!
+  total: Int!
+}
+
+type VCollectionActivityInfo {
+  token: EthereumAddress!
+  tokenId: String!
+  txTime: Int!
+  status: String!
+  collection: VICollectionType!
+  owner: EthereumAddress!
+  recipient: EthereumAddress!
+  name: String!
+  avatar: String!
+  description: String!
+  secondary: VSecondaryMarketView!
+  attributes: [VITierAttr!]!
+  currentPrice: String!
+  extensions: [String!]
+}
+
+type VCollectionActivityRspDto {
+  data: [VCollectionActivityInfo!]!
+  total: Int!
+}
+
 """Ethereum Address custom scalar type"""
 scalar EthereumAddress
 
@@ -102,6 +165,9 @@ type Query {
   getUserFollowingList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowingListRspDto!
   getUserFollowerList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowerListRspDto!
   getAddressHoldings(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VAddressHoldingRspDto!
+  getAddressActivities(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VActivityRspDto!
+  getAddressReleased(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VAddressReleasedRspDto!
+  getCollectionActivities(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VCollectionActivityRspDto!
 }
 
 type Mutation {
