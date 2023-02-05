@@ -14,12 +14,14 @@ import { MarketService } from './services/market.service';
 import { UserWalletService } from './services/user.wallet.service';
 import { AppResolver } from './resolvers/app.resolver';
 import { MongoAdapter } from './lib/adapters/mongo.adapter';
+import { BetaWaitlistModule } from './modules/beta.waitlist.module';
 
 @Module({
     imports: [
         AuthModule,
         UserWalletModule,
         MarketModule,
+        BetaWaitlistModule,
         // integration graphql
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver, // GraphQL server adapter
