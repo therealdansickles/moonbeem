@@ -40,6 +40,7 @@ export class BetaWaitlistService {
 
         const sumTrade = nftscanResult.content.reduce((sum, item) => (sum += item.latest_trade_price), 0);
 
+        // 0.025 represents Vibe's platform fees being taken
         points = sumTrade * 0.025;
 
         const sqlStr = `SELECT * FROM "${TbWaitlistScores}" WHERE wallet NOT IN ('${address}') ORDER BY points DESC;`;
