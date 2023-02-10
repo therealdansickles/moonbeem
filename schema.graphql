@@ -155,6 +155,19 @@ type VCollectionActivityRspDto {
   total: Int!
 }
 
+type VSearchCollectionItem {
+  name: String!
+  image: String!
+  collection: EthereumAddress!
+  itemsCount: Float!
+}
+
+type VSearchAccountItem {
+  name: String!
+  avatar: String!
+  address: EthereumAddress!
+}
+
 """Ethereum Address custom scalar type"""
 scalar EthereumAddress
 

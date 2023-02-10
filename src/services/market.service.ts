@@ -1,9 +1,26 @@
 import { Injectable } from '@nestjs/common';
-import { VActivityReqDto, VActivityRspDto, VActivityStatus, VAddressHoldingRspDto, VAddressReleasedRspDto, VCollectionActivityRspDto, VICollectionType, VITierAttr, VSecondaryMarketView } from 'src/dto/market.dto';
+import {
+    VActivityReqDto,
+    VActivityRspDto,
+    VActivityStatus,
+    VAddressHoldingRspDto,
+    VAddressReleasedRspDto,
+    VCollectionActivityRspDto,
+    VGlobalSearchReqDto,
+    VGlobalSearchRspDto,
+    VICollectionType,
+    VITierAttr,
+    VSearchAccountItem,
+    VSearchAccountRsp,
+    VSearchCollectionItem,
+    VSearchCollectionRsp,
+    VSecondaryMarketView,
+} from 'src/dto/market.dto';
 import { MongoAdapter } from 'src/lib/adapters/mongo.adapter';
 import { PostgresAdapter } from 'src/lib/adapters/postgres.adapter';
+import { IRowCount } from 'src/lib/modules/db.module';
 import { IMetadata } from 'src/lib/modules/db.mongo.module';
-import { AddressActivity, AddressHolding, AddressReleased, CollectionActivity, TotalRecord } from 'src/lib/modules/db.record.module';
+import { AddressActivity, AddressHolding, AddressReleased, CollectionActivity, SearchAccountItem, SearchCollectionItem, TotalRecord } from 'src/lib/modules/db.record.module';
 import { AuthPayload } from './auth.service';
 import { UserWalletService } from './user.wallet.service';
 
@@ -462,5 +479,55 @@ export class MarketService {
         const metaCol = this.mongoClient.db.collection('metadata');
         const r = (await metaCol.findOne({ 'vibe_properties.collection': collectionId, 'vibe_properties.tier_id': tierId })) as unknown as IMetadata | null;
         return r;
+    }
+
+    async executeSearch(searchArgs: VGlobalSearchReqDto, AuthPayload?: AuthPayload): Promise<VGlobalSearchRspDto> {
+        const page = searchArgs.page || 0;
+        const pageSize = searchArgs.pageSize || 10;
+        const offset = page * pageSize;
+
+        const collectionSqlStr = `select * from collection where lower(name) like '%${searchArgs.searchTerm.toLowerCase()}%' or lower(collection) like '%${searchArgs.searchTerm.toLowerCase()}%' fetch first ${pageSize} row only offset ${offset} rows`;
+        const collectionSqlCountStr = `SELECT COUNT(*) FROM collection where lower(name) like '%${searchArgs.searchTerm.toLowerCase()}%' or lower(collection) like '%${searchArgs.searchTerm.toLowerCase()}%'`;
+
+        const collectionCountRsp = await this.pgClient.query<IRowCount>(collectionSqlCountStr);
+        const collectionRsp = await this.pgClient.select<SearchCollectionItem>(collectionSqlStr);
+        const isLastCollectionPage = collectionCountRsp.count - (offset + collectionRsp.length) <= 0;
+
+        const collectionData: VSearchCollectionItem[] = collectionRsp.map((col) => ({
+            name: col.name,
+            image: col.avatar,
+            collection: col.collection,
+            itemsCount: col.tiers.reduce((sum, item) => (sum += item.endId - item.startId + 1), 0),
+        }));
+
+        const accountSqlStr = `select * from "UserWallet" where lower(address) like '%${searchArgs.searchTerm.toLowerCase()}%' OR lower(name) like '%${searchArgs.searchTerm.toLowerCase()}%' fetch first ${pageSize} row only offset ${offset} rows`;
+        const accountSqlCountStr = `SELECT COUNT(*) FROM "UserWallet" where lower(address) like '%${searchArgs.searchTerm.toLowerCase()}%' or lower(name) like '%${searchArgs.searchTerm.toLowerCase()}%'`;
+
+        const accountCountRsp = await this.pgClient.query<IRowCount>(accountSqlCountStr);
+        const accountsRsp = await this.pgClient.select<SearchAccountItem>(accountSqlStr);
+        const isLastAccountsPage = accountCountRsp.count - (offset + accountsRsp.length) <= 0;
+
+        const accountsData: VSearchAccountItem[] = accountsRsp.map((acc) => ({
+            name: acc.name,
+            address: acc.address,
+            avatar: acc.avatar,
+        }));
+
+        const collections: VSearchCollectionRsp = {
+            data: collectionData,
+            total: parseInt(collectionCountRsp.count.toString()),
+            isLastPage: isLastCollectionPage,
+        };
+
+        const accounts: VSearchAccountRsp = {
+            data: accountsData,
+            total: parseInt(accountCountRsp.count.toString()),
+            isLastPage: isLastAccountsPage,
+        };
+
+        return {
+            collections,
+            accounts,
+        };
     }
 }

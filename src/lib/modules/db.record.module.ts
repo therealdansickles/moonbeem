@@ -78,3 +78,16 @@ export interface CollectionActivity {
     price: string;
     tx_time: number;
 }
+
+export interface SearchCollectionItem {
+    name: string;
+    collection: string;
+    avatar?: string;
+    tiers: any[];
+}
+
+export interface SearchAccountItem {
+    name: string;
+    address: string;
+    avatar?: string;
+}

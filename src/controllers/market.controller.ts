@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { Public } from 'src/lib/decorators/public.decorator';
-import { VActivityReqDto, VActivityRspDto, VAddressHoldingReqDto, VAddressHoldingRspDto, VAddressReleasedReqDto, VCollectionActivityReqDto, VCollectionActivityRspDto } from 'src/dto/market.dto';
+import { VActivityReqDto, VActivityRspDto, VAddressHoldingReqDto, VAddressHoldingRspDto, VAddressReleasedReqDto, VCollectionActivityReqDto, VCollectionActivityRspDto, VGlobalSearchReqDto, VGlobalSearchRspDto } from 'src/dto/market.dto';
 import { IResponse, ResponseInternalError, ResponseSucc } from 'src/lib/interfaces/response.interface';
 import { MarketService } from 'src/services/market.service';
 import { ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
@@ -66,6 +66,19 @@ export class MarketController {
         try {
             const payload = await this.jwtService.verifySession(req.headers.session);
             const rsp = await this.marketService.getCollectionActivities(args, payload);
+            return new ResponseSucc(rsp);
+        } catch (err) {
+            return new ResponseInternalError((err as Error).message);
+        }
+    }
+
+    @Public()
+    @ApiResponse({ type: VGlobalSearchRspDto })
+    @Get('/search')
+    public async search(@Req() req: Request, @Query() args: VGlobalSearchReqDto): Promise<IResponse> {
+        try {
+            const payload = await this.jwtService.verifySession(req.headers.session);
+            const rsp = await this.marketService.executeSearch(args, payload);
             return new ResponseSucc(rsp);
         } catch (err) {
             return new ResponseInternalError((err as Error).message);

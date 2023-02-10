@@ -35,6 +35,6 @@ export interface WaitlistScore {
     address: string;
 }
 
-export interface WaitlistCount {
+export interface IRowCount {
     count: number;
 }

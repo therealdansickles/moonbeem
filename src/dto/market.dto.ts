@@ -1,7 +1,7 @@
 import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsEthereumAddress, IsNumber, IsNumberString, IsString } from 'class-validator';
+import { IsBoolean, IsEthereumAddress, IsInt, IsNumber, IsNumberString, IsOptional, IsString } from 'class-validator';
 import { EthereumAddress } from 'src/lib/scalars/eth.scalar';
 
 @ArgsType()
@@ -508,4 +508,121 @@ export class VCollectionActivityRspDto {
     @ApiProperty()
     @IsNumber()
     readonly total: number;
+}
+
+@ArgsType()
+@ObjectType()
+export class VGlobalSearchReqDto {
+    @Field()
+    @ApiProperty()
+    @IsString()
+    searchTerm: string;
+
+    @Field()
+    @ApiProperty()
+    @IsInt()
+    @Type(() => Number)
+    @IsOptional()
+    page?: number;
+
+    @Field()
+    @ApiProperty()
+    @IsInt()
+    @Type(() => Number)
+    @IsOptional()
+    pageSize?: number;
+}
+
+@ObjectType()
+export class VSearchCollectionItem {
+    @Field()
+    @ApiProperty()
+    @IsString()
+    name: String;
+
+    @Field()
+    @ApiProperty()
+    @IsString()
+    @IsOptional()
+    image: String;
+
+    @Field((type) => EthereumAddress)
+    @ApiProperty()
+    @IsEthereumAddress()
+    collection: string;
+
+    @Field()
+    @ApiProperty()
+    @IsNumber()
+    @IsOptional()
+    itemsCount: Number;
+}
+
+@ObjectType()
+export class VSearchAccountItem {
+    @Field()
+    @ApiProperty()
+    @IsString()
+    name: String;
+
+    @Field()
+    @ApiProperty()
+    @IsString()
+    @IsOptional()
+    avatar: String;
+
+    @Field((type) => EthereumAddress)
+    @ApiProperty()
+    @IsEthereumAddress()
+    address: string;
+}
+
+@ObjectType()
+export class VSearchCollectionRsp {
+    @Field((type) => [VSearchCollectionItem])
+    @ApiProperty({
+        type: [VSearchCollectionItem],
+    })
+    @IsOptional()
+    data: VSearchCollectionItem[];
+
+    @ApiProperty()
+    @IsBoolean()
+    isLastPage: Boolean;
+
+    @ApiProperty()
+    @IsNumber()
+    @Type(() => Number)
+    total: Number;
+}
+
+@ObjectType()
+export class VSearchAccountRsp {
+    @Field((type) => [VSearchAccountItem])
+    @ApiProperty({
+        type: [VSearchAccountItem],
+    })
+    @IsOptional()
+    data: VSearchAccountItem[];
+
+    @ApiProperty()
+    @IsBoolean()
+    isLastPage: Boolean;
+
+    @ApiProperty()
+    @IsNumber()
+    @Type(() => Number)
+    total: Number;
+}
+
+@ObjectType()
+export class VGlobalSearchRspDto {
+    @ApiProperty({
+        type: [VSearchCollectionRsp],
+    })
+    collections: VSearchCollectionRsp;
+    @ApiProperty({
+        type: [VSearchAccountRsp],
+    })
+    accounts: VSearchAccountRsp;
 }

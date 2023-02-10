@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { VBetaWaitlistLeaderboardRsp, VBetaWaitlistScoreRsp } from 'src/dto/beta.waitlist.dto';
 import { PostgresAdapter } from 'src/lib/adapters/postgres.adapter';
-import { TbWaitlistScores, WaitlistCount, WaitlistScore } from 'src/lib/modules/db.module';
+import { IRowCount, TbWaitlistScores, WaitlistScore } from 'src/lib/modules/db.module';
 import { v4 as uuidv4 } from 'uuid';
 import { ErcType, NftscanEvm } from 'nftscan-api';
 
@@ -17,7 +17,7 @@ export class BetaWaitlistService {
         const sqlStr = `SELECT * FROM "${TbWaitlistScores}" ORDER BY points DESC LIMIT ${pageSize} OFFSET ${offset};`;
         const sqlCountStr = `SELECT COUNT(*) FROM "${TbWaitlistScores}"`;
 
-        const countRsp = await this.pgClient.query<WaitlistCount>(sqlCountStr);
+        const countRsp = await this.pgClient.query<IRowCount>(sqlCountStr);
         const rsp = await this.pgClient.select<WaitlistScore>(sqlStr);
 
         const isLastPage = countRsp.count - (offset + rsp.length) <= 0;
