@@ -105,6 +105,54 @@ export class VSecondaryMarketView {
 }
 
 @ObjectType()
+export class VCoin {
+    @Field()
+    @ApiProperty()
+    @IsString()
+    readonly id: string;
+
+    @Field()
+    @ApiProperty()
+    @IsNumber()
+    readonly chainId: number;
+
+    @Field()
+    @ApiProperty()
+    @IsString()
+    readonly contract: string;
+
+    @Field()
+    @ApiProperty()
+    @IsString()
+    readonly name: string;
+
+    @Field()
+    @ApiProperty()
+    @IsString()
+    readonly symbol: string;
+
+    @Field()
+    @ApiProperty()
+    @IsNumber()
+    readonly decimals: number;
+
+    @Field()
+    @ApiProperty()
+    @IsString()
+    readonly derivedETH: string;
+
+    @Field()
+    @ApiProperty()
+    @IsString()
+    readonly derivedUSDC: string;
+
+    @Field()
+    @ApiProperty()
+    @IsBoolean()
+    readonly native: boolean;
+}
+
+@ObjectType()
 export class NftInfo {
     @Field((type) => VICollectionType)
     @ApiProperty()
@@ -168,6 +216,10 @@ export class NftInfo {
     @Field((type) => [String], { nullable: true })
     @ApiProperty({ type: [String], nullable: true })
     readonly extensions?: string[];
+
+    @Field((type) => VCoin)
+    @ApiProperty({ type: VCoin })
+    readonly priceInfo?: VCoin;
 }
 
 @ObjectType()
@@ -382,6 +434,10 @@ export class ReleasedInfo {
     @Field((type) => [String], { nullable: true })
     @ApiProperty({ type: [String], nullable: true })
     readonly extensions?: string[];
+
+    @Field((type) => VCoin)
+    @ApiProperty({ type: VCoin })
+    readonly priceInfo?: VCoin;
 }
 
 @ObjectType()

@@ -71,6 +71,18 @@ type VSecondaryMarketView {
   latestSalePrice: String!
 }
 
+type VCoin {
+  id: String!
+  chainId: Float!
+  contract: String!
+  name: String!
+  symbol: String!
+  decimals: Float!
+  derivedETH: String!
+  derivedUSDC: String!
+  native: Boolean!
+}
+
 type NftInfo {
   collection: VICollectionType!
   token: EthereumAddress!
@@ -85,6 +97,7 @@ type NftInfo {
   currentPrice: String!
   secondary: VSecondaryMarketView!
   extensions: [String!]
+  priceInfo: VCoin!
 }
 
 type VAddressHoldingRspDto {
@@ -126,6 +139,7 @@ type ReleasedInfo {
   currentPrice: String!
   secondary: VSecondaryMarketView!
   extensions: [String!]
+  priceInfo: VCoin!
 }
 
 type VAddressReleasedRspDto {

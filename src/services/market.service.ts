@@ -5,6 +5,7 @@ import {
     VActivityStatus,
     VAddressHoldingRspDto,
     VAddressReleasedRspDto,
+    VCoin,
     VCollectionActivityRspDto,
     VGlobalSearchReqDto,
     VGlobalSearchRspDto,
@@ -107,6 +108,18 @@ export class MarketService {
                 type: d.collection_type,
             };
 
+            let coin: VCoin = {
+                id: d.coin_id,
+                chainId: d.coin_chain_id,
+                contract: d.coin_contract,
+                name: d.coin_name,
+                symbol: d.coin_symbol,
+                decimals: d.coin_decimals,
+                derivedETH: d.coin_derived_eth,
+                derivedUSDC: d.coin_derived_usdc,
+                native: d.coin_native,
+            };
+
             const secondary = await this.getSecondaryMarketView();
             let meta = await this.getMetadataFromMongo(d.collection_id, d.collection_tier);
 
@@ -141,6 +154,7 @@ export class MarketService {
                 currentPrice: d.price,
                 secondary: secondary,
                 extensions: [],
+                priceInfo: coin,
             });
         }
         return rsp;
@@ -226,6 +240,18 @@ export class MarketService {
                 type: d.collection_type,
             };
 
+            let coin: VCoin = {
+                id: d.coin_id,
+                chainId: d.coin_chain_id,
+                contract: d.coin_contract,
+                name: d.coin_name,
+                symbol: d.coin_symbol,
+                decimals: d.coin_decimals,
+                derivedETH: d.coin_derived_eth,
+                derivedUSDC: d.coin_derived_usdc,
+                native: d.coin_native,
+            };
+
             const secondary = await this.getSecondaryMarketView();
             let meta = await this.getMetadataFromMongo(d.collection_id, d.collection_tier);
 
@@ -252,6 +278,7 @@ export class MarketService {
                 currentPrice: d.price,
                 secondary: secondary,
                 extensions: [],
+                priceInfo: coin,
             });
         }
         return rsp;
@@ -299,13 +326,18 @@ export class MarketService {
         let sqlStr = `
         SELECT
             c.id AS collection_id,c.collection AS collection_address,c."name" AS collection_name,c.avatar AS collection_avatar,c.description AS collection_description,c.background AS collection_background,c."type" AS collection_type,pm.tier AS collection_tier,
-            pm.contract AS token,pm.owner  AS owner,pm.price  AS price,pm.start_id,pm.end_id
+            pm.contract AS token,pm.owner  AS owner,pm.price  AS price,pm.start_id,pm.end_id, co.id as coin_id, co."chainId" as coin_chain_id, co.contract as coin_contract, co.name as coin_name, co.symbol as coin_symbol, co.decimals as coin_decimals, 
+            co."derivedETH" as coin_derived_eth,  co."derivedUSDC" as coin_derived_usdc, co.native as coin_native
         FROM
             pre_mint AS pm
         LEFT JOIN
             collection AS c
         ON
             pm.contract=c.collection
+        LEFT JOIN
+            coin as co
+        ON
+            pm.payment_token = co.contract
         WHERE
             pm.owner=?
         AND
@@ -366,14 +398,19 @@ export class MarketService {
     async findManyAddressHoldings(address: string, offset?: number, limit?: number) {
         let sqlStr = `
         SELECT
-            c.id AS collection_id,c.collection AS collection_address,c."name" AS collection_name,c.avatar AS collection_avatar,c.description AS collection_description,c.background AS collection_background,c."type" AS collection_type,pmr.tier AS collection_tier,
-            pmr.contract AS token,pmr.token_id AS token_id,pmr.recipient  AS owner,pmr.price  AS price
+        c.id AS collection_id,c.collection AS collection_address,c."name" AS collection_name,c.avatar AS collection_avatar,c.description AS collection_description,c.background AS collection_background,c."type" AS collection_type,pmr.tier AS collection_tier,
+        pmr.contract AS token,pmr.token_id AS token_id,pmr.recipient  AS owner,pmr.price  AS price,  co.id as coin_id, co."chainId" as coin_chain_id, co.contract as coin_contract, co.name as coin_name, co.symbol as coin_symbol, co.decimals as coin_decimals, 
+        co."derivedETH" as coin_derived_eth,  co."derivedUSDC" as coin_derived_usdc, co.native as coin_native
         FROM
             pre_mint_record AS pmr
         LEFT JOIN
             collection AS c
         ON
             pmr.contract=c.collection
+        LEFT JOIN
+            coin as co
+        ON
+            pmr.payment_token = co.contract
         WHERE
             pmr.recipient=?`;
 

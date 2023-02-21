@@ -16,10 +16,20 @@ export interface AddressHolding {
     collection_background: string;
     collection_type: string;
     collection_tier: number;
+    payment_token: string;
     token: string;
     token_id: string;
     owner: string;
     price: string;
+    coin_id?: string;
+    coin_chain_id?: number;
+    coin_contract?: string;
+    coin_name?: string;
+    coin_symbol?: string;
+    coin_decimals?: number;
+    coin_derived_eth?: string;
+    coin_derived_usdc?: string;
+    coin_native?: boolean;
 }
 
 export interface UserFollowingRec {
@@ -60,6 +70,15 @@ export interface AddressReleased {
     price: string;
     start_id: number;
     end_id: number;
+    coin_id?: string;
+    coin_chain_id?: number;
+    coin_contract?: string;
+    coin_name?: string;
+    coin_symbol?: string;
+    coin_decimals?: number;
+    coin_derived_eth?: string;
+    coin_derived_usdc?: string;
+    coin_native?: boolean;
 }
 
 export interface CollectionActivity {
