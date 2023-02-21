@@ -2,7 +2,7 @@ import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsEthereumAddress, IsInt, IsNumber, IsNumberString, IsOptional, IsString } from 'class-validator';
-import { EthereumAddress } from 'src/lib/scalars/eth.scalar';
+import { EthereumAddress } from '../lib/scalars/eth.scalar.js';
 
 @ArgsType()
 @ObjectType()

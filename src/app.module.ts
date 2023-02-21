@@ -1,20 +1,24 @@
+import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
+dotenv.config();
+
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
-import { RpcClient } from 'src/lib/adapters/eth.client.adapter';
-import { AppController } from './controllers/app.controller';
-import { PostgresAdapter } from './lib/adapters/postgres.adapter';
-import { RedisAdapter } from './lib/adapters/redis.adapter';
-import { appConfig } from './lib/configs/app.config';
-import { AuthModule } from './modules/auth.module';
-import { MarketModule } from './modules/market.module';
-import { UserWalletModule } from './modules/user.wallet.module';
-import { AppService } from './services/app.service';
-import { MarketService } from './services/market.service';
-import { UserWalletService } from './services/user.wallet.service';
-import { AppResolver } from './resolvers/app.resolver';
-import { MongoAdapter } from './lib/adapters/mongo.adapter';
-import { BetaWaitlistModule } from './modules/beta.waitlist.module';
+import { RpcClient } from './lib/adapters/eth.client.adapter.js';
+import { AppController } from './controllers/app.controller.js';
+import { PostgresAdapter } from './lib/adapters/postgres.adapter.js';
+import { RedisAdapter } from './lib/adapters/redis.adapter.js';
+import { appConfig } from './lib/configs/app.config.js';
+import { AuthModule } from './modules/auth.module.js';
+import { MarketModule } from './modules/market.module.js';
+import { UserWalletModule } from './modules/user.wallet.module.js';
+import { AppService } from './services/app.service.js';
+import { MarketService } from './services/market.service.js';
+import { UserWalletService } from './services/user.wallet.service.js';
+import { AppResolver } from './resolvers/app.resolver.js';
+import { MongoAdapter } from './lib/adapters/mongo.adapter.js';
+import { BetaWaitlistModule } from './modules/beta.waitlist.module.js';
+import { UploadModule } from './modules/upload.module.js';
 
 @Module({
     imports: [
@@ -22,6 +26,7 @@ import { BetaWaitlistModule } from './modules/beta.waitlist.module';
         UserWalletModule,
         MarketModule,
         BetaWaitlistModule,
+        UploadModule,
         // integration graphql
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver, // GraphQL server adapter

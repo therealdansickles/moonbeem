@@ -4,8 +4,9 @@ dotenv.config();
 import { NestFactory } from '@nestjs/core';
 import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AppModule } from './app.module';
-import { appConfig } from './lib/configs/app.config';
+import { AppModule } from './app.module.js';
+import { appConfig } from './lib/configs/app.config.js';
+import { json } from 'express';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
@@ -26,6 +27,8 @@ async function bootstrap() {
             transform: true,
         })
     );
+
+    app.use(json({ limit: '80mb' }));
 
     // configure: swagger
     if (appConfig.global.debug) {

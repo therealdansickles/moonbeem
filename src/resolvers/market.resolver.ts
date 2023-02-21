@@ -1,9 +1,8 @@
 import { Args, Context, Query, Resolver } from '@nestjs/graphql';
-import { VActivityReqDto, VActivityRspDto, VAddressHoldingReqDto, VAddressHoldingRspDto, VAddressReleasedReqDto, VAddressReleasedRspDto, VCollectionActivityReqDto, VCollectionActivityRspDto } from 'src/dto/market.dto';
-import { VUserWallet } from 'src/dto/user.wallet.dto';
-import { Public } from 'src/lib/decorators/public.decorator';
-import { JWTService } from 'src/services/jwt.service';
-import { MarketService } from 'src/services/market.service';
+import { VActivityReqDto, VActivityRspDto, VAddressHoldingReqDto, VAddressHoldingRspDto, VAddressReleasedReqDto, VAddressReleasedRspDto, VCollectionActivityReqDto, VCollectionActivityRspDto } from '../dto/market.dto.js';
+import { Public } from '../lib/decorators/public.decorator.js';
+import { JWTService } from '../services/jwt.service.js';
+import { MarketService } from '../services/market.service.js';
 
 @Resolver('Market')
 export class MarketResolver {

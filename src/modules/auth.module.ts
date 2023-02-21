@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { AuthController } from 'src/controllers/auth.controller';
-import { AuthService } from 'src/services/auth.service';
-import { UserWalletModule } from './user.wallet.module';
+import { AuthController } from '../controllers/auth.controller.js';
+import { AuthService } from '../services/auth.service.js';
+import { UserWalletModule } from './user.wallet.module.js';
 import { PassportModule } from '@nestjs/passport';
-import { JWTModule } from './jwt.module';
-import { SharedModule } from './share.module';
-import { AuthResolver } from 'src/resolvers/auth.resolver';
+import { JWTModule } from './jwt.module.js';
+import { SharedModule } from './share.module.js';
+import { AuthResolver } from '../resolvers/auth.resolver.js';
 
 @Module({
     imports: [SharedModule, UserWalletModule, PassportModule, JWTModule],

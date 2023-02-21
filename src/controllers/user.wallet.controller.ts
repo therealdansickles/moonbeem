@@ -1,13 +1,13 @@
 import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
 import { ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
-import { VUserWalletInfo } from 'src/dto/auth.dto';
-import { VFollowUserWalletReqDto, VGetAddressReqDto, VUpdateUserWalletReqDto, VUserFollowerListReqDto, VUserFollowerListRspDto, VUserFollowingListReqDto, VUserFollowingListRspDto } from 'src/dto/user.wallet.dto';
-import { Public } from 'src/lib/decorators/public.decorator';
-import { IResponse, ResponseInternalError, ResponseSucc } from 'src/lib/interfaces/response.interface';
-import { AuthPayload } from 'src/services/auth.service';
-import { JWTService } from 'src/services/jwt.service';
-import { UserWalletService } from 'src/services/user.wallet.service';
+import { VUserWalletInfo } from '../dto/auth.dto.js';
+import { VFollowUserWalletReqDto, VGetAddressReqDto, VUpdateUserWalletReqDto, VUserFollowerListReqDto, VUserFollowerListRspDto, VUserFollowingListReqDto, VUserFollowingListRspDto } from '../dto/user.wallet.dto.js';
+import { Public } from '../lib/decorators/public.decorator.js';
+import { IResponse, ResponseInternalError, ResponseSucc } from '../lib/interfaces/response.interface.js';
+import { AuthPayload } from '../services/auth.service.js';
+import { JWTService } from '../services/jwt.service.js';
+import { UserWalletService } from '../services/user.wallet.service.js';
 
 @ApiTags('Wallet')
 @ApiSecurity('session') // swagger authentication, in header.session

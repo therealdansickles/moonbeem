@@ -1,7 +1,7 @@
 import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
-import { VLoginReqDto, VLoginRspDto } from 'src/dto/auth.dto';
-import { Public } from 'src/lib/decorators/public.decorator';
-import { AuthPayload, AuthService } from 'src/services/auth.service';
+import { VLoginReqDto, VLoginRspDto } from '../dto/auth.dto.js';
+import { Public } from '../lib/decorators/public.decorator.js';
+import { AuthPayload, AuthService } from '../services/auth.service.js';
 
 @Resolver('Auth') // decorator: mean this is graphql resolver
 export class AuthResolver {

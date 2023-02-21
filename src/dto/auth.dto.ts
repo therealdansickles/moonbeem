@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsEthereumAddress, IsIn, IsInt, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 import { ArgsType, Field, ID, Int, ObjectType } from '@nestjs/graphql';
-import { EthereumAddress } from 'src/lib/scalars/eth.scalar';
+import { EthereumAddress } from '../lib/scalars/eth.scalar.js';
 
 @ObjectType()
 export class VIPriceType {

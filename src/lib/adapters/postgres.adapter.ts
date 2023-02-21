@@ -1,5 +1,5 @@
 import { Sequelize } from 'sequelize';
-import { postgresConfig } from '../configs/db.config';
+import { postgresConfig } from '../configs/db.config.js';
 
 export class PostgresAdapter {
     private db;

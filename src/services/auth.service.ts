@@ -1,9 +1,9 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ethers } from 'ethers';
-import { UserWalletService } from './user.wallet.service';
-import { JWTService } from './jwt.service';
-import { RedisAdapter } from 'src/lib/adapters/redis.adapter';
-import { VLoginRspDto } from 'src/dto/auth.dto';
+import { UserWalletService } from './user.wallet.service.js';
+import { JWTService } from './jwt.service.js';
+import { RedisAdapter } from '../lib/adapters/redis.adapter.js';
+import { VLoginRspDto } from '../dto/auth.dto.js';
 
 export const SESSION_PERFIX = 'login_session';
 

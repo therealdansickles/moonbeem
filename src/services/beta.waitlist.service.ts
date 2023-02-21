@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { VBetaWaitlistLeaderboardRsp, VBetaWaitlistScoreRsp } from 'src/dto/beta.waitlist.dto';
-import { PostgresAdapter } from 'src/lib/adapters/postgres.adapter';
-import { IRowCount, TbWaitlistScores, WaitlistScore } from 'src/lib/modules/db.module';
+import { VBetaWaitlistLeaderboardRsp, VBetaWaitlistScoreRsp } from '../dto/beta.waitlist.dto.js';
+import { PostgresAdapter } from '../lib/adapters/postgres.adapter.js';
+import { IRowCount, TbWaitlistScores, WaitlistScore } from '../lib/modules/db.module.js';
 import { v4 as uuidv4 } from 'uuid';
 import { ErcType, NftscanEvm } from 'nftscan-api';
 

@@ -1,10 +1,10 @@
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { VUserWalletInfo } from 'src/dto/auth.dto';
-import { VFollowUserWalletReqDto, VGetAddressReqDto, VUpdateUserWalletReqDto, VUserFollowerListReqDto, VUserFollowerListRspDto, VUserFollowingListReqDto, VUserFollowingListRspDto } from 'src/dto/user.wallet.dto';
-import { Public } from 'src/lib/decorators/public.decorator';
-import { AuthPayload } from 'src/services/auth.service';
-import { JWTService } from 'src/services/jwt.service';
-import { UserWalletService } from 'src/services/user.wallet.service';
+import { VUserWalletInfo } from '../dto/auth.dto.js';
+import { VFollowUserWalletReqDto, VGetAddressReqDto, VUpdateUserWalletReqDto, VUserFollowerListReqDto, VUserFollowerListRspDto, VUserFollowingListReqDto, VUserFollowingListRspDto } from '../dto/user.wallet.dto.js';
+import { Public } from '../lib/decorators/public.decorator.js';
+import { AuthPayload } from '../services/auth.service.js';
+import { JWTService } from '../services/jwt.service.js';
+import { UserWalletService } from '../services/user.wallet.service.js';
 
 @Resolver('UserWallet')
 export class UserWalletResolver {

@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { chainList } from 'src/lib/configs/chain.list.config';
+import { chainList } from '../configs/chain.list.config.js';
 
 export class EthersClient {
     private client: ethers.providers.JsonRpcProvider;

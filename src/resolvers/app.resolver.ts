@@ -1,8 +1,8 @@
 import { NotFoundException } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
-import { VTxStatusReqDto } from 'src/dto/app.dto';
-import { Public } from 'src/lib/decorators/public.decorator';
-import { AppService } from 'src/services/app.service';
+import { VTxStatusReqDto } from '../dto/app.dto.js';
+import { Public } from '../lib/decorators/public.decorator.js';
+import { AppService } from '../services/app.service.js';
 
 @Public() // decorator: this api is public, no identity verification required
 @Resolver('App') // decorator: mean this is graphql resolver

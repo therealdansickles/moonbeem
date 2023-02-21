@@ -1,9 +1,9 @@
 import { Controller, Get, Param, Req } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Public } from 'src/lib/decorators/public.decorator';
-import { VTxStatusReqDto } from 'src/dto/app.dto';
-import { IResponse, ResponseInternalError, ResponseSucc } from 'src/lib/interfaces/response.interface';
-import { AppService } from '../services/app.service';
+import { Public } from '../lib/decorators/public.decorator.js';
+import { VTxStatusReqDto } from '../dto/app.dto.js';
+import { IResponse, ResponseInternalError, ResponseSucc } from '../lib/interfaces/response.interface.js';
+import { AppService } from '../services/app.service.js';
 import { Request } from 'express';
 
 @Public() // decorator: this api is public, no identity verification required

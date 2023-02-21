@@ -1,5 +1,5 @@
 import { createClient } from 'redis';
-import { redisConfig } from 'src/lib/configs/db.config';
+import { redisConfig } from '../configs/db.config.js';
 
 export class RedisAdapter {
     private client;

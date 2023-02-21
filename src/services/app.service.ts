@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { RedisAdapter } from 'src/lib/adapters/redis.adapter';
-import { RpcClient } from 'src/lib/adapters/eth.client.adapter';
+import { RedisAdapter } from '../lib/adapters/redis.adapter.js';
+import { RpcClient } from '../lib/adapters/eth.client.adapter.js';
 
 @Injectable()
 export class AppService {

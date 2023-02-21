@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { MongoAdapter } from 'src/lib/adapters/mongo.adapter';
-import { PostgresAdapter } from 'src/lib/adapters/postgres.adapter';
-import { RedisAdapter } from 'src/lib/adapters/redis.adapter';
-import { EthereumAddress } from 'src/lib/scalars/eth.scalar';
+import { MongoAdapter } from '../lib/adapters/mongo.adapter.js';
+import { PostgresAdapter } from '../lib/adapters/postgres.adapter.js';
+import { RedisAdapter } from '../lib/adapters/redis.adapter.js';
+import { EthereumAddress } from '../lib/scalars/eth.scalar.js';
 
 @Module({
     imports: [],

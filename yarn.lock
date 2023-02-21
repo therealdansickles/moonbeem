@@ -3471,6 +3471,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@uploadcare/upload-client@npm:^6.2.1":
+  version: 6.2.1
+  resolution: "@uploadcare/upload-client@npm:6.2.1"
+  dependencies:
+    form-data: ^4.0.0
+    ws: ^8.2.3
+  checksum: 9ac31a0d49e18934160974f637c2fd6b82de1a9b4ce35bbe99df417b90db7017038ab6c37858a991a2bf08065a3cfa72fa558c3a53f1bb3037bfb04ad386124a
+  languageName: node
+  linkType: hard
+
 "@webassemblyjs/ast@npm:1.11.1":
   version: 1.11.1
   resolution: "@webassemblyjs/ast@npm:1.11.1"
@@ -8669,6 +8679,7 @@ __metadata:
     "@types/supertest": ^2.0.11
     "@typescript-eslint/eslint-plugin": ^5.0.0
     "@typescript-eslint/parser": ^5.0.0
+    "@uploadcare/upload-client": ^6.2.1
     apollo-server-express: ^3.11.1
     class-transformer: ^0.5.1
     class-validator: ^0.14.0
@@ -9839,6 +9850,21 @@ __metadata:
     utf-8-validate:
       optional: true
   checksum: c3c100a181b731f40b7f2fddf004aa023f79d64f489706a28bc23ff88e87f6a64b3c6651fbec3a84a53960b75159574d7a7385709847a62ddb7ad6af76f49138
+  languageName: node
+  linkType: hard
+
+"ws@npm:^8.2.3":
+  version: 8.12.1
+  resolution: "ws@npm:8.12.1"
+  peerDependencies:
+    bufferutil: ^4.0.1
+    utf-8-validate: ">=5.0.2"
+  peerDependenciesMeta:
+    bufferutil:
+      optional: true
+    utf-8-validate:
+      optional: true
+  checksum: 97301c1c4d838fc81bd413f370f75c12aabe44527b31323b761eab3043a9ecb7e32ffd668548382c9a6a5ad3a1c3a9249608e8338e6b939f2f9540f1e21970b5
   languageName: node
   linkType: hard
 

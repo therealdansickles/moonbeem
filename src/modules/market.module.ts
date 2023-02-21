@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { MarketController } from 'src/controllers/market.controller';
-import { MarketResolver } from 'src/resolvers/market.resolver';
-import { MarketService } from 'src/services/market.service';
-import { UserWalletService } from 'src/services/user.wallet.service';
-import { JWTModule } from './jwt.module';
-import { SharedModule } from './share.module';
+import { MarketController } from '../controllers/market.controller.js';
+import { MarketResolver } from '../resolvers/market.resolver.js';
+import { MarketService } from '../services/market.service.js';
+import { UserWalletService } from '../services/user.wallet.service.js';
+import { JWTModule } from './jwt.module.js';
+import { SharedModule } from './share.module.js';
 
 @Module({
     imports: [JWTModule, SharedModule],

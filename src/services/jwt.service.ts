@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { RedisAdapter } from 'src/lib/adapters/redis.adapter';
-import { jwtConfig } from 'src/lib/configs/jwt.config';
-import { AuthPayload, SESSION_PERFIX } from './auth.service';
+import { RedisAdapter } from '../lib/adapters/redis.adapter.js';
+import { jwtConfig } from '../lib/configs/jwt.config.js';
+import { AuthPayload, SESSION_PERFIX } from './auth.service.js';
 
 @Injectable()
 export class JWTService {

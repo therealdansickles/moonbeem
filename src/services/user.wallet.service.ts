@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { VIPriceType, VUserWalletInfo } from 'src/dto/auth.dto';
-import { VFollowingInfo, VUpdateUserWalletReqDto, VUserFollowingListReqDto, VUserFollowingListRspDto } from 'src/dto/user.wallet.dto';
-import { PostgresAdapter } from 'src/lib/adapters/postgres.adapter';
-import { IAttribute } from 'src/lib/interfaces/main.interface';
-import { TbPreMint, TbPreMintRecord, TbUserWallet, TbUserWalletFollowing, UserWallet, UserWalletFollowing } from 'src/lib/modules/db.module';
-import { TokenPrice, TotalRecord, UserFollowingRec } from 'src/lib/modules/db.record.module';
+import { VIPriceType, VUserWalletInfo } from '../dto/auth.dto.js';
+import { VFollowingInfo, VUpdateUserWalletReqDto, VUserFollowingListReqDto, VUserFollowingListRspDto } from '../dto/user.wallet.dto.js';
+import { PostgresAdapter } from '../lib/adapters/postgres.adapter.js';
+import { IAttribute } from '../lib/interfaces/main.interface.js';
+import { TbPreMint, TbPreMintRecord, TbUserWallet, TbUserWalletFollowing, UserWallet, UserWalletFollowing } from '../lib/modules/db.module.js';
+import { TokenPrice, TotalRecord, UserFollowingRec } from '../lib/modules/db.record.module.js';
 import { v4 as uuidV4 } from 'uuid';
-import { AuthPayload } from './auth.service';
+import { AuthPayload } from './auth.service.js';
 
 @Injectable()
 export class UserWalletService {

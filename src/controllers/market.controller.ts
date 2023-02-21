@@ -1,11 +1,11 @@
 import { Controller, Get, Param, Query, Req } from '@nestjs/common';
 import { Request } from 'express';
-import { Public } from 'src/lib/decorators/public.decorator';
-import { VActivityReqDto, VActivityRspDto, VAddressHoldingReqDto, VAddressHoldingRspDto, VAddressReleasedReqDto, VCollectionActivityReqDto, VCollectionActivityRspDto, VGlobalSearchReqDto, VGlobalSearchRspDto } from 'src/dto/market.dto';
-import { IResponse, ResponseInternalError, ResponseSucc } from 'src/lib/interfaces/response.interface';
-import { MarketService } from 'src/services/market.service';
+import { Public } from '../lib/decorators/public.decorator.js';
+import { VActivityReqDto, VActivityRspDto, VAddressHoldingReqDto, VAddressHoldingRspDto, VAddressReleasedReqDto, VCollectionActivityReqDto, VCollectionActivityRspDto, VGlobalSearchReqDto, VGlobalSearchRspDto } from '../dto/market.dto.js';
+import { IResponse, ResponseInternalError, ResponseSucc } from '../lib/interfaces/response.interface.js';
+import { MarketService } from '../services/market.service.js';
 import { ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { JWTService } from 'src/services/jwt.service';
+import { JWTService } from '../services/jwt.service.js';
 
 @ApiTags('Market')
 @ApiSecurity('session') // swagger authentication, in header.session

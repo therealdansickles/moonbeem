@@ -1,9 +1,9 @@
 import { Controller, Req, Post, HttpCode, HttpStatus, Body } from '@nestjs/common';
-import { IResponse, ResponseInternalError, ResponseSucc } from 'src/lib/interfaces/response.interface';
-import { VLoginReqDto, VLoginRspDto } from 'src/dto/auth.dto';
-import { Public } from 'src/lib/decorators/public.decorator';
-import { AuthPayload, AuthService } from 'src/services/auth.service';
-import { UserWalletService } from 'src/services/user.wallet.service';
+import { IResponse, ResponseInternalError, ResponseSucc } from '../lib/interfaces/response.interface.js';
+import { VLoginReqDto, VLoginRspDto } from '../dto/auth.dto.js';
+import { Public } from '../lib/decorators/public.decorator.js';
+import { AuthPayload, AuthService } from '../services/auth.service.js';
+import { UserWalletService } from '../services/user.wallet.service.js';
 import { Request } from 'express';
 import { ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
 

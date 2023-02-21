@@ -15,14 +15,14 @@ import {
     VSearchCollectionItem,
     VSearchCollectionRsp,
     VSecondaryMarketView,
-} from 'src/dto/market.dto';
-import { MongoAdapter } from 'src/lib/adapters/mongo.adapter';
-import { PostgresAdapter } from 'src/lib/adapters/postgres.adapter';
-import { IRowCount } from 'src/lib/modules/db.module';
-import { IMetadata } from 'src/lib/modules/db.mongo.module';
-import { AddressActivity, AddressHolding, AddressReleased, CollectionActivity, SearchAccountItem, SearchCollectionItem, TotalRecord } from 'src/lib/modules/db.record.module';
-import { AuthPayload } from './auth.service';
-import { UserWalletService } from './user.wallet.service';
+} from '../dto/market.dto.js';
+import { MongoAdapter } from '../lib/adapters/mongo.adapter.js';
+import { PostgresAdapter } from '../lib/adapters/postgres.adapter.js';
+import { IRowCount } from '../lib/modules/db.module.js';
+import { IMetadata } from '../lib/modules/db.mongo.module.js';
+import { AddressActivity, AddressHolding, AddressReleased, CollectionActivity, SearchAccountItem, SearchCollectionItem, TotalRecord } from '../lib/modules/db.record.module.js';
+import { AuthPayload } from './auth.service.js';
+import { UserWalletService } from './user.wallet.service.js';
 
 @Injectable()
 export class MarketService {
