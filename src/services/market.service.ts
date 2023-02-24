@@ -37,7 +37,7 @@ export class MarketService {
         };
 
         const data = await this.findManyCollectionActivities(args.address.toLowerCase(), args.skip, args.take);
-
+        console.log("data: ", data)
         for (let d of data) {
             let status: VActivityStatus;
             switch (d.owner) {
@@ -58,7 +58,7 @@ export class MarketService {
             };
             const secondary = await this.getSecondaryMarketView();
             let meta = await this.getMetadataFromMongo(d.collection_id, d.collection_tier);
-
+            console.log(meta)
             let attrs = [];
             meta.attributes.forEach((attr) => {
                 attrs.push({
@@ -291,15 +291,15 @@ export class MarketService {
             c.id AS collection_id,c.collection AS collection_address,c."name" AS collection_name,c.avatar AS collection_avatar,c.description AS collection_description,c.background AS collection_background,c."type" AS collection_type,pmr.tier AS collection_tier,
             pmr.contract AS token,pmr.token_id AS token_id,pmr.recipient  AS recipient,pmr.price  AS price,asset.owner,pmr.tx_time AS tx_time
         FROM
-            collection AS c
+            pre_mint_record AS pmr
         LEFT JOIN
             pre_mint AS pm
         ON
-            pm.contract=c.collection
-        LEFT JOIN
-            pre_mint_record AS pmr
-        ON
             pm.contract=pmr.contract AND pm.tier=pmr.tier
+        LEFT JOIN
+            collection AS c
+        ON
+            pm.contract=c.collection
         LEFT JOIN
             assets_721 AS asset
         ON
