@@ -37,7 +37,6 @@ export class MarketService {
         };
 
         const data = await this.findManyCollectionActivities(args.address.toLowerCase(), args.skip, args.take);
-        console.log("data: ", data)
         for (let d of data) {
             let status: VActivityStatus;
             switch (d.owner) {
@@ -58,7 +57,6 @@ export class MarketService {
             };
             const secondary = await this.getSecondaryMarketView();
             let meta = await this.getMetadataFromMongo(d.collection_id, d.collection_tier);
-            console.log(meta)
             let attrs = [];
             meta.attributes.forEach((attr) => {
                 attrs.push({
@@ -523,13 +521,12 @@ export class MarketService {
         const pageSize = searchArgs.pageSize || 10;
         const offset = page * pageSize;
 
-        const collectionSqlStr = `select * from collection where lower(name) like '%${searchArgs.searchTerm.toLowerCase()}%' or lower(collection) like '%${searchArgs.searchTerm.toLowerCase()}%' fetch first ${pageSize} row only offset ${offset} rows`;
-        const collectionSqlCountStr = `SELECT COUNT(*) FROM collection where lower(name) like '%${searchArgs.searchTerm.toLowerCase()}%' or lower(collection) like '%${searchArgs.searchTerm.toLowerCase()}%'`;
+        const collectionSqlStr = `select * from collection as c where (lower(c.name) like '%${searchArgs.searchTerm.toLowerCase()}%' or lower(c.collection) like '%${searchArgs.searchTerm.toLowerCase()}%') and c.collection!='' fetch first ${pageSize} row only offset ${offset} rows`;
+        const collectionSqlCountStr = `SELECT COUNT(*) FROM collection as c where (lower(c.name) like '%${searchArgs.searchTerm.toLowerCase()}%' or lower(c.collection) like '%${searchArgs.searchTerm.toLowerCase()}%') and c.collection!=''`;
 
         const collectionCountRsp = await this.pgClient.query<IRowCount>(collectionSqlCountStr);
         const collectionRsp = await this.pgClient.select<SearchCollectionItem>(collectionSqlStr);
         const isLastCollectionPage = collectionCountRsp.count - (offset + collectionRsp.length) <= 0;
-
         const collectionData: VSearchCollectionItem[] = collectionRsp.map((col) => ({
             name: col.name,
             image: col.avatar,
