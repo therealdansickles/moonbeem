@@ -20,6 +20,8 @@ import { MongoAdapter } from './lib/adapters/mongo.adapter.js';
 import { BetaWaitlistModule } from './modules/beta.waitlist.module.js';
 import { UploadModule } from './modules/upload.module.js';
 import { AWSAdapter } from './lib/adapters/aws.adapter.js';
+import { ScheduleModule } from '@nestjs/schedule';
+import { PollerService } from './services/poller.service.js';
 
 @Module({
     imports: [
@@ -35,9 +37,10 @@ import { AWSAdapter } from './lib/adapters/aws.adapter.js';
             playground: appConfig.global.debug ? true : false, // is show platground? waiting for fix: throw an error when set it true
             autoSchemaFile: 'schema.graphql', // schema file(auto generated)
         }),
+        ScheduleModule.forRoot(),
     ],
     controllers: [AppController],
-    providers: [AppService, MarketService, UserWalletService, RpcClient, RedisAdapter, PostgresAdapter, MongoAdapter, AppResolver, AWSAdapter],
+    providers: [AppService, MarketService, UserWalletService, RpcClient, RedisAdapter, PostgresAdapter, PollerService, MongoAdapter, AppResolver, AWSAdapter],
     exports: [],
 })
 export class AppModule {}
