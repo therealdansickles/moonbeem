@@ -19,6 +19,7 @@ import { AppResolver } from './resolvers/app.resolver.js';
 import { MongoAdapter } from './lib/adapters/mongo.adapter.js';
 import { BetaWaitlistModule } from './modules/beta.waitlist.module.js';
 import { UploadModule } from './modules/upload.module.js';
+import { AWSAdapter } from './lib/adapters/aws.adapter.js';
 
 @Module({
     imports: [
@@ -36,7 +37,7 @@ import { UploadModule } from './modules/upload.module.js';
         }),
     ],
     controllers: [AppController],
-    providers: [AppService, MarketService, UserWalletService, RpcClient, RedisAdapter, PostgresAdapter, MongoAdapter, AppResolver],
+    providers: [AppService, MarketService, UserWalletService, RpcClient, RedisAdapter, PostgresAdapter, MongoAdapter, AppResolver, AWSAdapter],
     exports: [],
 })
 export class AppModule {}

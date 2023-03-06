@@ -5,7 +5,7 @@
   "author": "ritter@vibe.xyz",
   "private": true,
   "license": "UNLICENSED",
-   "type": "module",
+  "type": "module",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
@@ -32,6 +32,7 @@
     "@nestjs/swagger": "^6.1.4",
     "@uploadcare/upload-client": "^6.2.1",
     "apollo-server-express": "^3.11.1",
+    "aws-sdk": "^2.1322.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "dotenv": "^16.0.3",
