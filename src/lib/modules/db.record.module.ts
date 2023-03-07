@@ -110,3 +110,13 @@ export interface SearchAccountItem {
     address: string;
     avatar?: string;
 }
+
+export interface MetadataPollerItem {
+    id: string;
+    collection: string;
+    uniq_id: string;
+    tier: number;
+    start_id: number;
+    end_id: number;
+    current_id: number;
+}

@@ -21,7 +21,7 @@ import { BetaWaitlistModule } from './modules/beta.waitlist.module.js';
 import { UploadModule } from './modules/upload.module.js';
 import { AWSAdapter } from './lib/adapters/aws.adapter.js';
 import { ScheduleModule } from '@nestjs/schedule';
-import { PollerService } from './services/poller.service.js';
+import { PollerModule } from './modules/poller.module.js';
 
 @Module({
     imports: [
@@ -30,6 +30,7 @@ import { PollerService } from './services/poller.service.js';
         MarketModule,
         BetaWaitlistModule,
         UploadModule,
+        PollerModule,
         // integration graphql
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver, // GraphQL server adapter
@@ -40,7 +41,7 @@ import { PollerService } from './services/poller.service.js';
         ScheduleModule.forRoot(),
     ],
     controllers: [AppController],
-    providers: [AppService, MarketService, UserWalletService, RpcClient, RedisAdapter, PostgresAdapter, PollerService, MongoAdapter, AppResolver, AWSAdapter],
+    providers: [AppService, MarketService, UserWalletService, RpcClient, RedisAdapter, PostgresAdapter, MongoAdapter, AppResolver],
     exports: [],
 })
 export class AppModule {}
