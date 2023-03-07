@@ -7,7 +7,7 @@ import { IMetadata } from '../lib/modules/db.mongo.module.js';
 
 export class MetadataUploadPoller {
     constructor(private readonly pgClient: PostgresAdapter, private readonly redisClient: RedisAdapter, private readonly aws: AWSAdapter, private readonly mongoClient: MongoAdapter) {
-        console.log(`Metadata Poller Start On ${Date.now()}`)
+        console.log(`Metadata Poller Start On ${Date.now()}`);
     }
 
     redisKey(str: string) {
@@ -58,7 +58,7 @@ export class MetadataUploadPoller {
     }
 
     async handler(item: MetadataPollerItem) {
-        let uploadRecord = await this.getUploadRecord(item.uniq_id);
+        let uploadRecord = await this.getUploadRecord(`${item.uniq_id}_${item.tier}`);
         let meta = await this.getMetadata(item.id, item.tier);
 
         let attrs: IAttributeForOpensea[] = [];
@@ -97,11 +97,10 @@ export class MetadataUploadPoller {
             for (let idx = 0; idx < item.current_id - uploadRecord.current_id; idx++) {
                 metadata.token_id = (item.start_id + idx).toString();
                 let url = await this.upload(item.uniq_id, uploadRecord.current_id + idx, metadata);
-                console.log(`url: ${url}`);
+                console.log(`url-: ${url}`);
             }
         }
-
-        await this.saveUploadRecord(item.uniq_id, item);
+        await this.saveUploadRecord(`${item.uniq_id}_${item.tier}`, item);
     }
 
     async do() {
@@ -111,6 +110,7 @@ export class MetadataUploadPoller {
         for (let sr of srs) {
             await this.handler(sr);
         }
+        console.log(`Metadata Poller Done On ${Date.now()}`)
     }
 }
 
