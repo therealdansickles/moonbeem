@@ -120,3 +120,68 @@ export interface MetadataPollerItem {
     end_id: number;
     current_id: number;
 }
+
+export interface LandingPageCollectionItem {
+    user_address: string;
+    user_name: string;
+    user_description: string;
+    user_avatar: string;
+    user_discord: string;
+    user_facebook: string;
+    user_twitter: string;
+    user_customurl: string;
+    id: string;
+    name: string;
+    description: string;
+    avatar: string;
+    background: string;
+    address: string;
+    type: string;
+    chain_id: number;
+    org_id: string;
+    creator: string;
+    payment_token: string;
+    total_sypply: number;
+    begin_time: number;
+    end_time: number;
+    royalty_address: string;
+    royalty_rate: number;
+    floor_price: string;
+    tiers: string;
+}
+
+export interface LandingPageRankingOfCreatorItem {
+    user_address: string;
+    user_name: string;
+    user_description: string;
+    user_avatar: string;
+    user_discord: string;
+    user_facebook: string;
+    user_twitter: string;
+    user_customurl: string;
+    total_price: string;
+    payment_token: string;
+}
+
+export interface LandingPageRankingOfItemItem {
+    tier_id: number;
+    tier_startid: number;
+    tier_endid: number;
+    tier_currentid: number;
+    tier_price: string;
+    id: string;
+    name: string;
+    description: string;
+    avatar: string;
+    background: string;
+    address: string;
+    type: string;
+    chain_id: number;
+    org_id: string;
+    creator: string;
+    payment_token: string;
+    total_sypply: number;
+    begin_time: number;
+    end_time: number;
+    tiers: string;
+}

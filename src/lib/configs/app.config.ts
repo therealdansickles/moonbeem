@@ -11,4 +11,7 @@ export const appConfig = {
         description: `About the restful api of marketplace, it is different from dashboard in that it uses wallet address to verify identity`,
         version: '1.0',
     },
+    cron: {
+        disabled: Boolean(process.env.DISABLE_CRON),
+    },
 };

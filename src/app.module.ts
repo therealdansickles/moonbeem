@@ -22,6 +22,7 @@ import { UploadModule } from './modules/upload.module.js';
 import { AWSAdapter } from './lib/adapters/aws.adapter.js';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PollerModule } from './modules/poller.module.js';
+import { LandingModule } from './modules/landing.modules.js';
 
 @Module({
     imports: [
@@ -31,6 +32,7 @@ import { PollerModule } from './modules/poller.module.js';
         BetaWaitlistModule,
         UploadModule,
         PollerModule,
+        LandingModule,
         // integration graphql
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver, // GraphQL server adapter

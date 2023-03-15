@@ -182,6 +182,108 @@ type VSearchAccountItem {
   address: EthereumAddress!
 }
 
+type BasicPriceInfo {
+  price: String!
+  token: EthereumAddress!
+  chainId: Int!
+}
+
+type BasicFloorPriceInfo {
+  price: String!
+  token: EthereumAddress!
+  chainId: Int!
+}
+
+type BasicAttributeInfo {
+  value: String!
+  traitType: String!
+  displayType: String
+}
+
+type BasicCollectionInfo {
+  name: String!
+  description: String!
+  avatar: String!
+  background: String!
+  address: EthereumAddress!
+  type: String!
+  chainId: Int!
+  orgId: ID!
+  creator: EthereumAddress!
+  paymentToken: EthereumAddress!
+  totalSupply: Int!
+  beginTime: Int!
+  endTime: Int!
+}
+
+type BasicTierInfo {
+  collection: EthereumAddress!
+  name: String!
+  description: String!
+  avatar: String!
+  id: Int!
+  startId: Int!
+  endId: Int!
+  currentId: Int!
+  price: BasicPriceInfo!
+  attributes: [BasicAttributeInfo!]!
+}
+
+type BasicCollectionRoyaltyInfo {
+  address: EthereumAddress!
+  rate: Int!
+}
+
+type BasicWalletInfo {
+  address: EthereumAddress!
+  name: String!
+  description: String!
+  avatar: String!
+  discord: String!
+  facebook: String!
+  twitter: String!
+  customUrl: String!
+}
+
+type LandingPageCollectionData {
+  creator: BasicWalletInfo!
+  collection: BasicCollectionInfo!
+  royalty: BasicCollectionRoyaltyInfo!
+  floorPrice: BasicFloorPriceInfo!
+  tiers: [BasicTierInfo!]!
+  attributeOverview: JSONObject!
+}
+
+"""
+The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSONObject
+
+type LandingPageCollectionRspDto {
+  data: [LandingPageCollectionData!]!
+  total: Int!
+}
+
+type LandingPageRankingOfCreatorData {
+  user: BasicWalletInfo!
+  volume: BasicPriceInfo!
+}
+
+type LandingPageRankingOfCreatorsRspDto {
+  data: [LandingPageRankingOfCreatorData!]!
+  total: Int!
+}
+
+type LandingPageRankingOfItemData {
+  tier: BasicTierInfo!
+  collection: BasicCollectionInfo!
+}
+
+type LandingPageRankingOfItemsRspDto {
+  data: [LandingPageRankingOfItemData!]!
+  total: Int!
+}
+
 """Ethereum Address custom scalar type"""
 scalar EthereumAddress
 
@@ -195,6 +297,21 @@ type Query {
   getAddressActivities(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VActivityRspDto!
   getAddressReleased(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VAddressReleasedRspDto!
   getCollectionActivities(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VCollectionActivityRspDto!
+  getLandingPageCollections(skip: Int = 0, take: Int = 10, status: BasicCollectionStatus, type: BasicCollectionType): LandingPageCollectionRspDto!
+  getRankingOfCreators(skip: Int = 0, take: Int = 10, startTime: Int = 0, endTime: Int = 0): LandingPageRankingOfCreatorsRspDto!
+  getRankingOfItems(skip: Int = 0, take: Int = 10): LandingPageRankingOfItemsRspDto!
+}
+
+enum BasicCollectionStatus {
+  Upcoming
+  Live
+  Expired
+}
+
+enum BasicCollectionType {
+  Tiered
+  Edition
+  Custom
 }
 
 type Mutation {
