@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { chainList } from '../configs/chain.list.config.js';
+import { chainList } from '../configs/chain.list.config';
 
 export class EthersClient {
     private client: ethers.providers.JsonRpcProvider;
@@ -31,7 +31,7 @@ export class RpcClient {
     }
 
     init() {
-        for (let chainId in chainList) {
+        for (const chainId in chainList) {
             const _c = new EthersClient(chainList[chainId]);
             this.clients.set(chainId, _c);
         }

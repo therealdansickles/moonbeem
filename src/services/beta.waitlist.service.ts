@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { VBetaWaitlistLeaderboardRsp, VBetaWaitlistScoreRsp } from '../dto/beta.waitlist.dto.js';
-import { PostgresAdapter } from '../lib/adapters/postgres.adapter.js';
-import { IRowCount, TbWaitlistScores, WaitlistScore } from '../lib/modules/db.module.js';
 import { v4 as uuidv4 } from 'uuid';
 import { ErcType, NftscanEvm } from 'nftscan-api';
+import { VBetaWaitlistLeaderboardRsp, VBetaWaitlistScoreRsp } from '../dto/beta.waitlist.dto';
+import { PostgresAdapter } from '../lib/adapters/postgres.adapter';
+import { TbWaitlistScores, IRowCount, WaitlistScore } from '../lib/modules/db.module';
 
 @Injectable()
 export class BetaWaitlistService {
@@ -30,7 +30,7 @@ export class BetaWaitlistService {
 
     public async calculateScore(address: string): Promise<VBetaWaitlistScoreRsp> {
         const reqId = uuidv4();
-        let points: number = 0;
+        let points = 0;
         console.log(`[${reqId}] - Getting total sales for ${address}`);
 
         const nftscanResult = await this.nftscan.asset.getAssetsByAccount(address, {
@@ -48,13 +48,13 @@ export class BetaWaitlistService {
 
         const leaderboard = scoresRsp.map((row) => row.points);
 
-        let position = leaderboard
+        const position = leaderboard
             .concat(points)
             .sort((a, b) => b - a)
             .indexOf(points);
 
         const sqlInsertStr = `INSERT INTO "${TbWaitlistScores}" (id,points,wallet) VALUES(?,?,?)`;
-        const values: any[] = [];
+        const values: unknown[] = [];
         values.push(uuidv4());
         values.push(points);
         values.push(address);

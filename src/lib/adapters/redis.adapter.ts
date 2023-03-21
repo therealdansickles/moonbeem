@@ -1,5 +1,5 @@
 import { createClient } from 'redis';
-import { redisConfig } from '../configs/db.config.js';
+import { redisConfig } from '../configs/db.config';
 
 export class RedisAdapter {
     private client;
@@ -21,7 +21,7 @@ export class RedisAdapter {
         return `${prefix}_${k}`;
     }
 
-    async set(k: string, value: any, seconds?: number) {
+    async set(k: string, value: unknown, seconds?: number) {
         value = JSON.stringify(value);
         if (!seconds) {
             this.client.set(k, value);
@@ -31,7 +31,7 @@ export class RedisAdapter {
     }
 
     async get(k: string) {
-        var data = await this.client.get(k);
+        const data = await this.client.get(k);
         if (!data) return;
         return JSON.parse(data);
     }

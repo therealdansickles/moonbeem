@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { SharedModule } from './share.module.js';
-import { JWTService } from '../services/jwt.service.js';
-import { jwtConfig } from '../lib/configs/jwt.config.js';
-import { LocalStrategy } from '../lib/strategies/local.strategy.js';
-import { JwtStrategy } from '../lib/strategies/jwt.strategy.js';
+import { SharedModule } from './share.module';
+import { JWTService } from '../services/jwt.service';
+import { jwtConfig } from '../lib/configs/jwt.config';
+import { LocalStrategy } from '../lib/strategies/local.strategy';
+import { JwtStrategy } from '../lib/strategies/jwt.strategy';
 import { APP_GUARD } from '@nestjs/core';
-import { JwtAuthGuard } from '../lib/guards/jwt-auth.guard.js';
+import { JwtAuthGuard } from '../lib/guards/jwt-auth.guard';
 
 @Module({
     imports: [

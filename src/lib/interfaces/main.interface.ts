@@ -1,6 +1,6 @@
 export interface IAttribute {
     traitType: string;
-    value: any;
+    value: unknown;
     displayType?: string;
 }
 
@@ -25,7 +25,7 @@ export type IVibeProperty = {
     displayType?: string;
     extension?: string;
     traitType: string;
-    value: any;
+    value: unknown;
 };
 
 export interface IPreMint {
@@ -45,5 +45,5 @@ export interface IPreMint {
 
 export interface IAttributeOverview {
     collection: string;
-    attribute: any;
+    attribute: unknown;
 }

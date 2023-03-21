@@ -1,5 +1,5 @@
-import { mongoConfig } from '../configs/db.config.js';
 import { Db, MongoClient } from 'mongodb';
+import { mongoConfig } from '../configs/db.config';
 
 export class MongoAdapter {
     public db: Db;

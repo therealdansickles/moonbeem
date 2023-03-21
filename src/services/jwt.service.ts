@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { RedisAdapter } from '../lib/adapters/redis.adapter.js';
-import { jwtConfig } from '../lib/configs/jwt.config.js';
-import { AuthPayload, SESSION_PERFIX } from './auth.service.js';
+import { RedisAdapter } from '../lib/adapters/redis.adapter';
+import { jwtConfig } from '../lib/configs/jwt.config';
+import { AuthPayload, SESSION_PERFIX } from './auth.service';
 
 @Injectable()
 export class JWTService {
@@ -31,7 +31,9 @@ export class JWTService {
             const _token = typeof token == 'string' ? token : token[0];
             const res = this.jwt.verify<AuthPayload>(_token, { secret: jwtConfig.secretKey });
             return res;
-        } catch (err) {}
+        } catch (err) {
+            throw new Error('Unknown Token');
+        }
     }
 
     /**

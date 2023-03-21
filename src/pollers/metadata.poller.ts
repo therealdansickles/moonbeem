@@ -1,9 +1,9 @@
-import { MongoAdapter } from '../lib/adapters/mongo.adapter.js';
-import { AWSAdapter, ResourceType } from '../lib/adapters/aws.adapter.js';
-import { PostgresAdapter } from '../lib/adapters/postgres.adapter.js';
-import { RedisAdapter } from '../lib/adapters/redis.adapter.js';
-import { MetadataPollerItem } from '../lib/modules/db.record.module.js';
-import { IMetadata } from '../lib/modules/db.mongo.module.js';
+import { MongoAdapter } from '../lib/adapters/mongo.adapter';
+import { AWSAdapter, ResourceType } from '../lib/adapters/aws.adapter';
+import { PostgresAdapter } from '../lib/adapters/postgres.adapter';
+import { RedisAdapter } from '../lib/adapters/redis.adapter';
+import { MetadataPollerItem } from '../lib/modules/db.record.module';
+import { IMetadata } from '../lib/modules/db.mongo.module';
 
 export class MetadataUploadPoller {
     constructor(private readonly pgClient: PostgresAdapter, private readonly redisClient: RedisAdapter, private readonly aws: AWSAdapter, private readonly mongoClient: MongoAdapter) {
@@ -15,7 +15,7 @@ export class MetadataUploadPoller {
     }
 
     async getSaleRecord() {
-        let sqlStr = `
+        const sqlStr = `
         SELECT
             c.id,c.collection,c.uniq_id,pm.tier,pm.start_id,pm.end_id,pm.current_id
         FROM
@@ -43,10 +43,10 @@ export class MetadataUploadPoller {
         await this.redisClient.set(this.redisKey(uniq_id), str);
     }
 
-    async upload(uniq_id: string, id: number, content: any) {
+    async upload(uniq_id: string, id: number, content: unknown) {
         const buf = Buffer.from(JSON.stringify(content, null, 2));
 
-        // TODO: check if `.json` suffix is required --> `${uniq_id}/${id}.json`
+        // TODO: check if `on` suffix is required --> `${uniq_id}/${id}on`
         const url = await this.aws.s3PutData(buf, `${uniq_id}/${id}`, ResourceType.Metadata, 'application/json');
         return url;
     }
@@ -58,12 +58,12 @@ export class MetadataUploadPoller {
     }
 
     async handler(item: MetadataPollerItem) {
-        let uploadRecord = await this.getUploadRecord(`${item.uniq_id}_${item.tier}`);
-        let meta = await this.getMetadata(item.id, item.tier);
+        const uploadRecord = await this.getUploadRecord(`${item.uniq_id}_${item.tier}`);
+        const meta = await this.getMetadata(item.id, item.tier);
 
-        let attrs: IAttributeForOpensea[] = [];
-        for (let i of meta.attributes) {
-            let attr: IAttributeForOpensea = {
+        const attrs: IAttributeForOpensea[] = [];
+        for (const i of meta.attributes) {
+            const attr: IAttributeForOpensea = {
                 trait_type: i.trait_type,
                 value: i.value,
             };
@@ -71,7 +71,7 @@ export class MetadataUploadPoller {
             attrs.push(attr);
         }
 
-        let metadata: IMetadataForOpensea = {
+        const metadata: IMetadataForOpensea = {
             token: item.collection,
             token_id: '',
             name: meta.name,
@@ -85,7 +85,7 @@ export class MetadataUploadPoller {
             if (item.current_id - item.start_id > 0) {
                 for (let idx = 0; idx < item.current_id - item.start_id; idx++) {
                     metadata.token_id = (item.start_id + idx).toString();
-                    let url = await this.upload(item.uniq_id, item.start_id + idx, metadata);
+                    const url = await this.upload(item.uniq_id, item.start_id + idx, metadata);
                     console.log(`url: ${url}`);
                 }
             }
@@ -96,7 +96,7 @@ export class MetadataUploadPoller {
             // Upload the remaining parts
             for (let idx = 0; idx < item.current_id - uploadRecord.current_id; idx++) {
                 metadata.token_id = (item.start_id + idx).toString();
-                let url = await this.upload(item.uniq_id, uploadRecord.current_id + idx, metadata);
+                const url = await this.upload(item.uniq_id, uploadRecord.current_id + idx, metadata);
                 console.log(`url-: ${url}`);
             }
         }
@@ -107,10 +107,10 @@ export class MetadataUploadPoller {
         const srs = await this.getSaleRecord();
         if (!srs) return;
 
-        for (let sr of srs) {
+        for (const sr of srs) {
             await this.handler(sr);
         }
-        console.log(`Metadata Poller Done On ${Date.now()}`)
+        console.log(`Metadata Poller Done On ${Date.now()}`);
     }
 }
 
@@ -127,6 +127,6 @@ export interface IMetadataForOpensea {
 
 export interface IAttributeForOpensea {
     trait_type: string;
-    value: any;
+    value: unknown;
     display_type?: string;
 }

@@ -1,15 +1,15 @@
 import { ArgsType } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsBoolean, IsNumber, IsObject, IsOptional, isString, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class VBetaWaitlistLeaderboardItem {
     @ApiProperty()
     @IsString()
-    address: string;
+        address: string;
 
     @ApiProperty()
     @IsNumber()
-    points: number;
+        points: number;
 }
 
 export class VBetaWaitlistLeaderboardRsp {
@@ -17,32 +17,32 @@ export class VBetaWaitlistLeaderboardRsp {
         type: [VBetaWaitlistLeaderboardItem],
     })
     @IsArray()
-    items: VBetaWaitlistLeaderboardItem[];
+        items: VBetaWaitlistLeaderboardItem[];
 
     @ApiProperty()
     @IsBoolean()
-    isLastPage: boolean;
+        isLastPage: boolean;
 }
 
 export class VBetaWaitlistScoreRsp {
     @ApiProperty()
     @IsNumber()
-    points: number;
+        points: number;
 
     @ApiProperty()
     @IsNumber()
     @IsOptional()
-    position?: number;
+        position?: number;
 
     @ApiProperty()
     @IsString()
     @IsOptional()
-    leaderboard?: string;
+        leaderboard?: string;
 }
 
 @ArgsType()
 export class VGetAddressScoreReq {
     @ApiProperty()
     @IsString()
-    address: string;
+        address: string;
 }

@@ -1,8 +1,8 @@
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { EthereumAddress } from '../lib/scalars/eth.scalar.js';
 import { ArgsType, Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { IsEthereumAddress, IsNumber, IsNumberString, IsString, IsUUID } from 'class-validator';
+import { EthereumAddress } from '../lib/scalars/eth.scalar';
 
 @ObjectType()
 export class BasicPriceInfo {
@@ -11,12 +11,12 @@ export class BasicPriceInfo {
     @IsNumberString()
     readonly price: string;
 
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
     readonly token: string;
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @IsNumber()
     readonly chainId: number;
@@ -38,7 +38,7 @@ export class BasicAttributeInfo {
     @ApiProperty()
     readonly traitType: string;
 
-    @Field((type) => String, { nullable: true })
+    @Field(() => String, { nullable: true })
     @ApiProperty({ nullable: true })
     readonly displayType?: string;
 }
@@ -46,13 +46,13 @@ export class BasicAttributeInfo {
 @ArgsType()
 @ObjectType()
 export class BasicPagingParams {
-    @Field((type) => Int, { nullable: true, defaultValue: 0 })
+    @Field(() => Int, { nullable: true, defaultValue: 0 })
     @ApiProperty({ nullable: true, default: 0 })
     @Type(() => Number)
     @IsNumber()
     readonly skip?: number = 0;
 
-    @Field((type) => Int, { nullable: true, defaultValue: 10 })
+    @Field(() => Int, { nullable: true, defaultValue: 10 })
     @ApiProperty({ nullable: true, default: 10 })
     @Type(() => Number)
     @IsNumber()
@@ -81,7 +81,7 @@ export class BasicCollectionInfo {
     @IsString()
     readonly background: string;
 
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
     readonly address: string;
@@ -91,37 +91,37 @@ export class BasicCollectionInfo {
     @IsString()
     readonly type: string;
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @IsNumber()
     readonly chainId: number;
 
-    @Field((type) => ID)
+    @Field(() => ID)
     @ApiProperty()
     @IsUUID()
     readonly orgId: string;
 
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
     readonly creator: string;
 
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
     readonly paymentToken: string;
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @IsNumber()
     readonly totalSupply: number;
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @IsNumber()
     readonly beginTime: number;
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @IsNumber()
     readonly endTime: number;
@@ -129,7 +129,7 @@ export class BasicCollectionInfo {
 
 @ObjectType()
 export class BasicTierInfo {
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
     readonly collection: string;
@@ -149,44 +149,44 @@ export class BasicTierInfo {
     @IsString()
     readonly avatar: string;
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @IsNumber()
     readonly id: number;
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @IsNumber()
     readonly startId: number;
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @IsNumber()
     readonly endId: number;
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @IsNumber()
     readonly currentId: number;
 
-    @Field((type) => BasicPriceInfo)
+    @Field(() => BasicPriceInfo)
     @ApiProperty()
     @IsNumberString()
     readonly price: BasicPriceInfo;
 
-    @Field((type) => [BasicAttributeInfo])
+    @Field(() => [BasicAttributeInfo])
     @ApiProperty({ type: BasicAttributeInfo })
     readonly attributes: BasicAttributeInfo[];
 }
 
 @ObjectType()
 export class BasicCollectionRoyaltyInfo {
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
     readonly address: string;
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @IsNumber()
     readonly rate: number;
@@ -194,7 +194,7 @@ export class BasicCollectionRoyaltyInfo {
 
 @ObjectType()
 export class BasicWalletInfo {
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
     readonly address: string;

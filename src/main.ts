@@ -4,9 +4,9 @@ dotenv.config();
 import { NestFactory } from '@nestjs/core';
 import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AppModule } from './app.module.js';
-import { appConfig } from './lib/configs/app.config.js';
 import { json, urlencoded } from 'express';
+import { AppModule } from './app.module';
+import { appConfig } from './lib/configs/app.config';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
@@ -33,7 +33,7 @@ async function bootstrap() {
 
     // configure: swagger
     if (appConfig.global.debug) {
-        var config = new DocumentBuilder();
+        const config = new DocumentBuilder();
         config.setTitle(appConfig.swagger.title); // swagger title
         config.setDescription(appConfig.swagger.description); // swagger description
         config.setVersion(appConfig.swagger.version); // swagger version

@@ -1,53 +1,52 @@
 import { Injectable } from '@nestjs/common';
 import {
     VActivityReqDto,
-    VActivityRspDto,
+    VCollectionActivityRspDto,
     VActivityStatus,
-    VAddressHoldingRspDto,
+    VICollectionType,
     VAddressReleasedRspDto,
     VCoin,
-    VCollectionActivityRspDto,
+    VITierAttr,
+    VActivityRspDto,
+    VAddressHoldingRspDto,
+    VSecondaryMarketView,
     VGlobalSearchReqDto,
     VGlobalSearchRspDto,
-    VICollectionType,
-    VITierAttr,
-    VSearchAccountItem,
-    VSearchAccountRsp,
     VSearchCollectionItem,
+    VSearchAccountItem,
     VSearchCollectionRsp,
-    VSecondaryMarketView,
-} from '../dto/market.dto.js';
-import { MongoAdapter } from '../lib/adapters/mongo.adapter.js';
-import { PostgresAdapter } from '../lib/adapters/postgres.adapter.js';
-import { IRowCount } from '../lib/modules/db.module.js';
-import { IMetadata } from '../lib/modules/db.mongo.module.js';
-import { AddressActivity, AddressHolding, AddressReleased, CollectionActivity, SearchAccountItem, SearchCollectionItem, TotalRecord } from '../lib/modules/db.record.module.js';
-import { AuthPayload } from './auth.service.js';
-import { UserWalletService } from './user.wallet.service.js';
+    VSearchAccountRsp,
+} from '../dto/market.dto';
+import { MongoAdapter } from '../lib/adapters/mongo.adapter';
+import { PostgresAdapter } from '../lib/adapters/postgres.adapter';
+import { IRowCount } from '../lib/modules/db.module';
+import { IMetadata } from '../lib/modules/db.mongo.module';
+import { CollectionActivity, AddressReleased, AddressActivity, AddressHolding, TotalRecord, SearchCollectionItem, SearchAccountItem } from '../lib/modules/db.record.module';
+import { UserWalletService } from './user.wallet.service';
 
 @Injectable()
 export class MarketService {
     constructor(private readonly pgClient: PostgresAdapter, private readonly userWallet: UserWalletService, private readonly mongoClient: MongoAdapter) {}
 
     // services: controller
-    async getCollectionActivities(args: VActivityReqDto, payload?: AuthPayload) {
-        let rsp: VCollectionActivityRspDto = {
+    async getCollectionActivities(args: VActivityReqDto) {
+        const rsp: VCollectionActivityRspDto = {
             data: [],
             total: await (await this.countCollectionActivity(args.address.toLowerCase())).total,
         };
 
         const data = await this.findManyCollectionActivities(args.address.toLowerCase(), args.skip, args.take);
-        for (let d of data) {
+        for (const d of data) {
             let status: VActivityStatus;
             switch (d.owner) {
-                case d.recipient:
-                    status = VActivityStatus.Mint;
-                    break;
-                default:
-                    status = VActivityStatus.Transfer;
-                    break;
+            case d.recipient:
+                status = VActivityStatus.Mint;
+                break;
+            default:
+                status = VActivityStatus.Transfer;
+                break;
             }
-            let col: VICollectionType = {
+            const col: VICollectionType = {
                 address: d.collection_address,
                 name: d.collection_name,
                 avatar: d.collection_avatar,
@@ -56,8 +55,8 @@ export class MarketService {
                 type: d.collection_type,
             };
             const secondary = await this.getSecondaryMarketView();
-            let meta = await this.getMetadataFromMongo(d.collection_id, d.collection_tier);
-            let attrs = [];
+            const meta = await this.getMetadataFromMongo(d.collection_id, d.collection_tier);
+            const attrs = [];
             meta.attributes.forEach((attr) => {
                 attrs.push({
                     extra: '',
@@ -85,8 +84,8 @@ export class MarketService {
         return rsp;
     }
 
-    async getAddressReleased(args, payload?: AuthPayload) {
-        let rsp: VAddressReleasedRspDto = {
+    async getAddressReleased(args) {
+        const rsp: VAddressReleasedRspDto = {
             data: [],
             total: await (await this.countAddressReleased(args.address)).total,
         };
@@ -96,8 +95,8 @@ export class MarketService {
         if (!userWallet) throw new Error('address not found');
         const data = await this.findManyAddressReleased(args.address.toLowerCase(), args.skip, args.take);
 
-        for (let d of data) {
-            let col: VICollectionType = {
+        for (const d of data) {
+            const col: VICollectionType = {
                 address: d.collection_address,
                 name: d.collection_name,
                 avatar: d.collection_avatar,
@@ -106,7 +105,7 @@ export class MarketService {
                 type: d.collection_type,
             };
 
-            let coin: VCoin = {
+            const coin: VCoin = {
                 id: d.coin_id,
                 chainId: d.coin_chain_id,
                 contract: d.coin_contract,
@@ -121,7 +120,7 @@ export class MarketService {
             const secondary = await this.getSecondaryMarketView();
             let meta = await this.getMetadataFromMongo(d.collection_id, d.collection_tier);
 
-            let attrs = [];
+            const attrs = [];
             if (!meta || !meta.attributes) {
                 meta = {
                     token: '',
@@ -158,8 +157,8 @@ export class MarketService {
         return rsp;
     }
 
-    async getAddressActivities(args: VActivityReqDto, payload?: AuthPayload) {
-        let rsp: VActivityRspDto = {
+    async getAddressActivities(args: VActivityReqDto) {
+        const rsp: VActivityRspDto = {
             data: [],
             total: await (await this.countAddressActivity(args.address.toLowerCase())).total,
         };
@@ -169,17 +168,17 @@ export class MarketService {
 
         const data = await this.findManyAddressActivities(args.address.toLowerCase(), args.skip, args.take);
 
-        for (let d of data) {
+        for (const d of data) {
             let status: VActivityStatus;
             switch (d.owner) {
-                case d.recipient:
-                    status = VActivityStatus.Mint;
-                    break;
-                default:
-                    status = VActivityStatus.Transfer;
-                    break;
+            case d.recipient:
+                status = VActivityStatus.Mint;
+                break;
+            default:
+                status = VActivityStatus.Transfer;
+                break;
             }
-            let col: VICollectionType = {
+            const col: VICollectionType = {
                 address: d.collection_address,
                 name: d.collection_name,
                 avatar: d.collection_avatar,
@@ -188,9 +187,9 @@ export class MarketService {
                 type: d.collection_type,
             };
             const secondary = await this.getSecondaryMarketView();
-            let meta = await this.getMetadataFromMongo(d.collection_id, d.collection_tier);
+            const meta = await this.getMetadataFromMongo(d.collection_id, d.collection_tier);
 
-            let attrs = [];
+            const attrs = [];
             meta.attributes.forEach((attr) => {
                 attrs.push({
                     extra: '',
@@ -217,8 +216,8 @@ export class MarketService {
         return rsp;
     }
 
-    async getAddressHoldings(args, payload?: AuthPayload) {
-        let rsp: VAddressHoldingRspDto = {
+    async getAddressHoldings(args) {
+        const rsp: VAddressHoldingRspDto = {
             data: [],
             total: await (await this.countAddressHoldings(args.address)).total,
         };
@@ -228,8 +227,8 @@ export class MarketService {
         if (!userWallet) throw new Error('address not found');
         const data = await this.findManyAddressHoldings(args.address.toLowerCase(), args.skip, args.take);
 
-        for (let d of data) {
-            let col: VICollectionType = {
+        for (const d of data) {
+            const col: VICollectionType = {
                 address: d.collection_address,
                 name: d.collection_name,
                 avatar: d.collection_avatar,
@@ -238,7 +237,7 @@ export class MarketService {
                 type: d.collection_type,
             };
 
-            let coin: VCoin = {
+            const coin: VCoin = {
                 id: d.coin_id,
                 chainId: d.coin_chain_id,
                 contract: d.coin_contract,
@@ -251,9 +250,9 @@ export class MarketService {
             };
 
             const secondary = await this.getSecondaryMarketView();
-            let meta = await this.getMetadataFromMongo(d.collection_id, d.collection_tier);
+            const meta = await this.getMetadataFromMongo(d.collection_id, d.collection_tier);
 
-            let attrs = [];
+            const attrs = [];
             meta.attributes.forEach((attr) => {
                 attrs.push({
                     extra: '',
@@ -305,7 +304,7 @@ export class MarketService {
         WHERE
             c.collection=?`;
 
-        let values: any[] = [];
+        const values: unknown[] = [];
         values.push(address);
 
         if (offset) {
@@ -341,7 +340,7 @@ export class MarketService {
         AND
             c.id IS NOT NULL`;
 
-        let values: any[] = [];
+        const values: unknown[] = [];
         values.push(address);
 
         if (offset) {
@@ -378,7 +377,7 @@ export class MarketService {
         WHERE
             pmr.recipient=?`;
 
-        let values: any[] = [];
+        const values: unknown[] = [];
         values.push(address);
 
         if (offset) {
@@ -412,7 +411,7 @@ export class MarketService {
         WHERE
             pmr.recipient=?`;
 
-        let values: any[] = [];
+        const values: unknown[] = [];
         values.push(address);
 
         if (offset) {
@@ -429,7 +428,7 @@ export class MarketService {
 
     // services: count data
     async countAddressHoldings(address: string) {
-        let sqlStr = `
+        const sqlStr = `
         SELECT
             COUNT(*) AS total
         FROM
@@ -446,7 +445,7 @@ export class MarketService {
     }
 
     async countAddressReleased(address: string) {
-        let sqlStr = `
+        const sqlStr = `
         SELECT
             COUNT(*) AS total
         FROM
@@ -465,7 +464,7 @@ export class MarketService {
     }
 
     async countCollectionActivity(address: string) {
-        let sqlStr = `
+        const sqlStr = `
         SELECT
             COUNT(*) AS total
         FROM
@@ -482,7 +481,7 @@ export class MarketService {
     }
 
     async countAddressActivity(address: string) {
-        let sqlStr = `
+        const sqlStr = `
         SELECT
             COUNT(*) AS total
         FROM
@@ -501,7 +500,7 @@ export class MarketService {
     // services: other
     async getSecondaryMarketView() {
         // TODO: no secondary now
-        let view: VSecondaryMarketView = {
+        const view: VSecondaryMarketView = {
             onSale: false,
             onSalePrice: '',
             maxSalePrice: '',
@@ -516,7 +515,7 @@ export class MarketService {
         return r;
     }
 
-    async executeSearch(searchArgs: VGlobalSearchReqDto, AuthPayload?: AuthPayload): Promise<VGlobalSearchRspDto> {
+    async executeSearch(searchArgs: VGlobalSearchReqDto): Promise<VGlobalSearchRspDto> {
         const page = searchArgs.page || 0;
         const pageSize = searchArgs.pageSize || 10;
         const offset = page * pageSize;

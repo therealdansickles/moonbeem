@@ -1,24 +1,12 @@
 import { Module } from '@nestjs/common';
-import { SharedModule } from './share.module.js';
-import { UploadClient } from '@uploadcare/upload-client';
-import { UploadController } from '../controllers/upload.controller.js';
-import { UploadService } from '../services/upload.service.js';
+import { UploadService } from 'src/services/upload.service';
+import { UploadController } from '../controllers/upload.controller';
+import { SharedModule } from './share.module';
 
 @Module({
     imports: [SharedModule],
-    providers: [
-        UploadService,
-        {
-            provide: 'UPLOADCARE',
-            useFactory: () => {
-                const client: UploadClient = new UploadClient({
-                    publicKey: process.env.UPLOADCARE_KEY,
-                });
-                return client;
-            },
-        },
-    ],
+    providers: [UploadService],
     controllers: [UploadController],
-    exports: [UploadService],
+    exports: [],
 })
 export class UploadModule {}

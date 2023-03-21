@@ -2,6 +2,19 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type FactoryConfigData {
+  name: String!
+  value: String!
+  type: String!
+  comment: String!
+  chainId: Int!
+}
+
+type FactoryConfigRspDto {
+  data: [FactoryConfigData!]!
+  total: Int!
+}
+
 type VIPriceType {
   price: String!
   token: EthereumAddress!
@@ -47,6 +60,108 @@ type VUserFollowingListRspDto {
 type VUserFollowerListRspDto {
   data: [VFollowingInfo!]!
   total: Float!
+}
+
+type BasicPriceInfo {
+  price: String!
+  token: EthereumAddress!
+  chainId: Int!
+}
+
+type BasicFloorPriceInfo {
+  price: String!
+  token: EthereumAddress!
+  chainId: Int!
+}
+
+type BasicAttributeInfo {
+  value: String!
+  traitType: String!
+  displayType: String
+}
+
+type BasicCollectionInfo {
+  name: String!
+  description: String!
+  avatar: String!
+  background: String!
+  address: EthereumAddress!
+  type: String!
+  chainId: Int!
+  orgId: ID!
+  creator: EthereumAddress!
+  paymentToken: EthereumAddress!
+  totalSupply: Int!
+  beginTime: Int!
+  endTime: Int!
+}
+
+type BasicTierInfo {
+  collection: EthereumAddress!
+  name: String!
+  description: String!
+  avatar: String!
+  id: Int!
+  startId: Int!
+  endId: Int!
+  currentId: Int!
+  price: BasicPriceInfo!
+  attributes: [BasicAttributeInfo!]!
+}
+
+type BasicCollectionRoyaltyInfo {
+  address: EthereumAddress!
+  rate: Int!
+}
+
+type BasicWalletInfo {
+  address: EthereumAddress!
+  name: String!
+  description: String!
+  avatar: String!
+  discord: String!
+  facebook: String!
+  twitter: String!
+  customUrl: String!
+}
+
+type LandingPageCollectionData {
+  creator: BasicWalletInfo!
+  collection: BasicCollectionInfo!
+  royalty: BasicCollectionRoyaltyInfo!
+  floorPrice: BasicFloorPriceInfo!
+  tiers: [BasicTierInfo!]!
+  attributeOverview: JSONObject!
+}
+
+"""
+The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSONObject
+
+type LandingPageCollectionRspDto {
+  data: [LandingPageCollectionData!]!
+  total: Int!
+}
+
+type LandingPageRankingOfCreatorData {
+  user: BasicWalletInfo!
+  volume: BasicPriceInfo!
+}
+
+type LandingPageRankingOfCreatorsRspDto {
+  data: [LandingPageRankingOfCreatorData!]!
+  total: Int!
+}
+
+type LandingPageRankingOfItemData {
+  tier: BasicTierInfo!
+  collection: BasicCollectionInfo!
+}
+
+type LandingPageRankingOfItemsRspDto {
+  data: [LandingPageRankingOfItemData!]!
+  total: Int!
 }
 
 type VICollectionType {
@@ -182,114 +297,13 @@ type VSearchAccountItem {
   address: EthereumAddress!
 }
 
-type BasicPriceInfo {
-  price: String!
-  token: EthereumAddress!
-  chainId: Int!
-}
-
-type BasicFloorPriceInfo {
-  price: String!
-  token: EthereumAddress!
-  chainId: Int!
-}
-
-type BasicAttributeInfo {
-  value: String!
-  traitType: String!
-  displayType: String
-}
-
-type BasicCollectionInfo {
-  name: String!
-  description: String!
-  avatar: String!
-  background: String!
-  address: EthereumAddress!
-  type: String!
-  chainId: Int!
-  orgId: ID!
-  creator: EthereumAddress!
-  paymentToken: EthereumAddress!
-  totalSupply: Int!
-  beginTime: Int!
-  endTime: Int!
-}
-
-type BasicTierInfo {
-  collection: EthereumAddress!
-  name: String!
-  description: String!
-  avatar: String!
-  id: Int!
-  startId: Int!
-  endId: Int!
-  currentId: Int!
-  price: BasicPriceInfo!
-  attributes: [BasicAttributeInfo!]!
-}
-
-type BasicCollectionRoyaltyInfo {
-  address: EthereumAddress!
-  rate: Int!
-}
-
-type BasicWalletInfo {
-  address: EthereumAddress!
-  name: String!
-  description: String!
-  avatar: String!
-  discord: String!
-  facebook: String!
-  twitter: String!
-  customUrl: String!
-}
-
-type LandingPageCollectionData {
-  creator: BasicWalletInfo!
-  collection: BasicCollectionInfo!
-  royalty: BasicCollectionRoyaltyInfo!
-  floorPrice: BasicFloorPriceInfo!
-  tiers: [BasicTierInfo!]!
-  attributeOverview: JSONObject!
-}
-
-"""
-The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
-"""
-scalar JSONObject
-
-type LandingPageCollectionRspDto {
-  data: [LandingPageCollectionData!]!
-  total: Int!
-}
-
-type LandingPageRankingOfCreatorData {
-  user: BasicWalletInfo!
-  volume: BasicPriceInfo!
-}
-
-type LandingPageRankingOfCreatorsRspDto {
-  data: [LandingPageRankingOfCreatorData!]!
-  total: Int!
-}
-
-type LandingPageRankingOfItemData {
-  tier: BasicTierInfo!
-  collection: BasicCollectionInfo!
-}
-
-type LandingPageRankingOfItemsRspDto {
-  data: [LandingPageRankingOfItemData!]!
-  total: Int!
-}
-
 """Ethereum Address custom scalar type"""
 scalar EthereumAddress
 
 type Query {
   getHealth: String!
   getTxStatus(chain: String!, txHash: String!): Boolean!
+  getFactoryConfig(chainId: String = ""): FactoryConfigRspDto!
   getAddressInfo(address: EthereumAddress!): VUserWalletInfo!
   getUserFollowingList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowingListRspDto!
   getUserFollowerList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowerListRspDto!

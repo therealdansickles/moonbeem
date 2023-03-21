@@ -1,14 +1,14 @@
 import { HttpStatus } from '@nestjs/common';
 
 export class ResponseSucc implements IResponse {
-    constructor(data?: any, msg?: string) {
+    constructor(data?: unknown, msg?: string) {
         this.code = HttpStatus.OK;
         this.msg = msg ?? 'success';
         this.data = data;
     }
     code: number;
     msg: string;
-    data: any;
+    data: unknown;
 }
 
 export class ResponseError implements IResponse {
@@ -19,7 +19,7 @@ export class ResponseError implements IResponse {
     }
     code: number;
     msg: string;
-    data: any;
+    data: unknown;
 }
 
 export class ResponseInternalError implements IResponse {
@@ -30,11 +30,11 @@ export class ResponseInternalError implements IResponse {
     }
     code: number;
     msg: string;
-    data: any;
+    data: unknown;
 }
 
 export interface IResponse {
     code: number;
     msg: string;
-    data: any;
+    data: unknown;
 }

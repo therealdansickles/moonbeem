@@ -1,105 +1,105 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsEthereumAddress, IsIn, IsInt, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsBoolean, IsEthereumAddress, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 import { ArgsType, Field, ID, Int, ObjectType } from '@nestjs/graphql';
-import { EthereumAddress } from '../lib/scalars/eth.scalar.js';
+import { EthereumAddress } from '../lib/scalars/eth.scalar';
 
 @ObjectType()
 export class VIPriceType {
     @Field()
     @ApiProperty()
     @IsString()
-    price: string;
+        price: string;
 
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
-    token: string;
+        token: string;
 }
 
 @ObjectType() // graphql: Object Type
 export class VUserWalletInfo {
-    @Field((type) => ID) // graphql: mean it is a field
+    @Field(() => ID) // graphql: mean it is a field
     @ApiProperty() // swagger
     @IsUUID() // warameter verification
-    id: string;
+        id: string;
 
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
-    address: string;
+        address: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-    name: string;
+        name: string;
 
     @Field({ nullable: true }) // graphql: can be null, not String!
     @ApiProperty()
     @IsString()
-    avatar: string;
+        avatar: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-    customUrl: string;
+        customUrl: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-    description: string;
+        description: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-    discordLink: string;
+        discordLink: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-    facebookLink: string;
+        facebookLink: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-    twitterLink: string;
+        twitterLink: string;
 
-    @Field((type) => Int) // graphql: Int, not folat
+    @Field(() => Int) // graphql: Int, not folat
     @ApiProperty()
     @IsNumber()
-    followerCount: number;
+        followerCount: number;
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @IsNumber()
-    followingCount: number;
+        followingCount: number;
 
     @Field({ nullable: true })
     @ApiProperty()
     @IsBoolean()
     @IsOptional()
-    isFollow?: boolean;
+        isFollow?: boolean;
 
-    @Field((type) => Int, { nullable: true })
+    @Field(() => Int, { nullable: true })
     @ApiProperty()
     @IsNumber()
     @IsOptional()
-    holding?: number;
+        holding?: number;
 
-    @Field((type) => Int, { nullable: true })
+    @Field(() => Int, { nullable: true })
     @ApiProperty()
     @IsNumber()
     @IsOptional()
-    fansCount?: number;
+        fansCount?: number;
 
-    @Field((type) => [VIPriceType], { nullable: true })
+    @Field(() => [VIPriceType], { nullable: true })
     @ApiProperty()
     @IsOptional()
-    estimatedValues?: VIPriceType[];
+        estimatedValues?: VIPriceType[];
 }
 
 @ArgsType() // graphql: variables/args type
 export class VLoginReqDto {
-    @Field((type) => EthereumAddress) // graphql: mean it is a field
+    @Field(() => EthereumAddress) // graphql: mean it is a field
     @ApiProperty() // swagger: api attribute
     @IsEthereumAddress() // validator: mean it is ethereum address
     readonly address: string;

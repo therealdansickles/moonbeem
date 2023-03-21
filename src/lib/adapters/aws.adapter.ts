@@ -1,6 +1,5 @@
-import S3 from 'aws-sdk/clients/s3.js';
-import CloudFront from 'aws-sdk/clients/cloudfront.js';
-import { randomString } from '../utils.js';
+import { S3, CloudFront } from 'aws-sdk';
+import { randomString } from '../utils';
 
 export enum ResourceType {
     Metadata = 'metadata',
@@ -18,13 +17,13 @@ export class AWSAdapter {
 
     constructor() {
         // Verify that AccessKeyId or SecretAccessKey is provided
-        let accessKeyId = process.env.AWS_ACCESS_KEY_ID;
-        let secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-        let bucket = process.env.AWS_S3_BUCKET_NAME;
-        let region = process.env.AWS_REGION ? process.env.AWS_REGION : 'us-east-1';
-        let metadataBaseuri = process.env.AWS_METADATA_BASE_URI;
-        let mediaBaseUri = process.env.AWS_IMAGE_BASE_URI;
-        let baseUri = process.env.AWS_BASE_URL;
+        const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+        const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+        const bucket = process.env.AWS_S3_BUCKET_NAME;
+        const region = process.env.AWS_REGION ? process.env.AWS_REGION : 'us-east-1';
+        const metadataBaseuri = process.env.AWS_METADATA_BASE_URI;
+        const mediaBaseUri = process.env.AWS_IMAGE_BASE_URI;
+        const baseUri = process.env.AWS_BASE_URL;
 
         if (!accessKeyId || !secretAccessKey || !bucket) console.log('Please provide AWS AccessKeyId or SecretAccessKey or bucket');
         if (!metadataBaseuri || !mediaBaseUri || !baseUri) console.log('Please provide the metadata baseuri or media baseuri or baseuri');
@@ -41,20 +40,19 @@ export class AWSAdapter {
     async s3PutData(data: Buffer, fileName: string, resourceType?: ResourceType, contentType?: string): Promise<string> {
         let url = '';
         switch (resourceType) {
-            case ResourceType.Metadata:
-                url = this.metadataUri + fileName;
-                fileName = `${ResourceType.Metadata}/${fileName}`;
-                if (!contentType) contentType = 'application/json';
-                break;
-            case ResourceType.Media:
-                url = this.mediaUri + fileName;
-                fileName = `${ResourceType.Media}/${fileName}`;
-                if (!contentType) contentType = 'image/jpeg';
-                break;
-            default:
-                url = this.baseUri + fileName;
-                fileName = fileName;
-                if (!contentType) contentType = 'application/octet-stream';
+        case ResourceType.Metadata:
+            url = this.metadataUri + fileName;
+            fileName = `${ResourceType.Metadata}/${fileName}`;
+            if (!contentType) contentType = 'application/json';
+            break;
+        case ResourceType.Media:
+            url = this.mediaUri + fileName;
+            fileName = `${ResourceType.Media}/${fileName}`;
+            if (!contentType) contentType = 'image/jpeg';
+            break;
+        default:
+            url = this.baseUri + fileName;
+            if (!contentType) contentType = 'application/octet-stream';
         }
 
         const succ = await this.s3PutData_(data, fileName, contentType);

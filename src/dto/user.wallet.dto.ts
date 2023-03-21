@@ -2,12 +2,12 @@ import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsEthereumAddress, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
-import { EthereumAddress } from '../lib/scalars/eth.scalar.js';
+import { EthereumAddress } from '../lib/scalars/eth.scalar';
 
 @ArgsType()
 @ObjectType()
 export class VFollowUserWalletReqDto {
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
     readonly address: string;
@@ -22,7 +22,7 @@ export class VFollowUserWalletReqDto {
 @ArgsType()
 @ObjectType()
 export class VGetAddressReqDto {
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
     readonly address: string;
@@ -79,95 +79,95 @@ export class VUserWallet {
     @Field()
     @ApiProperty()
     @IsUUID()
-    id: string;
+        id: string;
 
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
-    address: string;
+        address: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-    name: string;
+        name: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-    avatar: string;
+        avatar: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-    createdTime: string;
+        createdTime: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-    updatedTime: string;
+        updatedTime: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-    user: string;
+        user: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-    banner: string;
+        banner: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-    customUrl: string;
+        customUrl: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-    description: string;
+        description: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-    discordLink: string;
+        discordLink: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-    facebookLink: string;
+        facebookLink: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-    twitterLink: string;
+        twitterLink: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-    collection: string;
+        collection: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-    walletType: string;
+        walletType: string;
 
     @Field()
     @ApiProperty()
     @IsBoolean()
-    visible: boolean;
+        visible: boolean;
 }
 
 @ArgsType()
 @ObjectType()
 export class VUserFollowingListReqDto {
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty({
         example: '0x9A70b15c2936d440c82Eb988A20F11ef2cd79395',
     })
     @IsEthereumAddress()
     readonly address: string;
 
-    @Field((type) => Int, { nullable: true, defaultValue: 0 })
+    @Field(() => Int, { nullable: true, defaultValue: 0 })
     @ApiProperty({
         nullable: true,
         default: 0,
@@ -176,7 +176,7 @@ export class VUserFollowingListReqDto {
     @IsNumber()
     readonly skip?: number;
 
-    @Field((type) => Int, { nullable: true, defaultValue: 10 })
+    @Field(() => Int, { nullable: true, defaultValue: 10 })
     @ApiProperty({ nullable: true, default: 10 })
     @IsNumber()
     @Type(() => Number)
@@ -190,7 +190,7 @@ export class VFollowingInfo {
     @IsString()
     readonly name: string;
 
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
     readonly address: string;
@@ -213,12 +213,12 @@ export class VFollowingInfo {
     @Field({ nullable: true })
     @ApiProperty()
     @IsBoolean()
-    isFollowed?: boolean;
+        isFollowed?: boolean;
 }
 
 @ObjectType()
 export class VUserFollowingListRspDto {
-    @Field((type) => [VFollowingInfo])
+    @Field(() => [VFollowingInfo])
     @ApiProperty({ type: [VFollowingInfo] })
     readonly data: VFollowingInfo[];
 
@@ -231,14 +231,14 @@ export class VUserFollowingListRspDto {
 @ArgsType()
 @ObjectType()
 export class VUserFollowerListReqDto {
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty({
         example: '0xee6bf10a93c73617432e0debec4e10920ae898a1',
     })
     @IsEthereumAddress()
     readonly address: string;
 
-    @Field((type) => Int, { nullable: true, defaultValue: 0 })
+    @Field(() => Int, { nullable: true, defaultValue: 0 })
     @ApiProperty({
         nullable: true,
         default: 0,
@@ -247,7 +247,7 @@ export class VUserFollowerListReqDto {
     @IsNumber()
     readonly skip?: number;
 
-    @Field((type) => Int, { nullable: true, defaultValue: 10 })
+    @Field(() => Int, { nullable: true, defaultValue: 10 })
     @ApiProperty({ nullable: true, default: 10 })
     @IsNumber()
     @Type(() => Number)
@@ -256,7 +256,7 @@ export class VUserFollowerListReqDto {
 
 @ObjectType()
 export class VUserFollowerListRspDto {
-    @Field((type) => [VFollowingInfo])
+    @Field(() => [VFollowingInfo])
     @ApiProperty({ type: [VFollowingInfo] })
     readonly data: VFollowingInfo[];
 

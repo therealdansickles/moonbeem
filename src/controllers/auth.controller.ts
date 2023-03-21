@@ -1,11 +1,11 @@
-import { Controller, Req, Post, HttpCode, HttpStatus, Body } from '@nestjs/common';
-import { IResponse, ResponseInternalError, ResponseSucc } from '../lib/interfaces/response.interface.js';
-import { VLoginReqDto, VLoginRspDto } from '../dto/auth.dto.js';
-import { Public } from '../lib/decorators/public.decorator.js';
-import { AuthPayload, AuthService } from '../services/auth.service.js';
-import { UserWalletService } from '../services/user.wallet.service.js';
+import { Controller, Req, Post, Body } from '@nestjs/common';
 import { Request } from 'express';
 import { ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { AuthPayload, AuthService } from '../services/auth.service';
+import { UserWalletService } from '../services/user.wallet.service';
+import { VLoginReqDto, VLoginRspDto } from '../dto/auth.dto';
+import { IResponse, ResponseInternalError, ResponseSucc } from '../lib/interfaces/response.interface';
+import { Public } from '../lib/decorators/public.decorator';
 
 @ApiTags('Auth') // swagger tag category
 @Controller({
@@ -24,7 +24,7 @@ export class AuthController {
     @Post('login')
     public async login(@Body() login: VLoginReqDto): Promise<IResponse> {
         try {
-            var rsp = await this.authService.loginWithWallet(login.address.toLowerCase(), login.message, login.signature);
+            const rsp = await this.authService.loginWithWallet(login.address.toLowerCase(), login.message, login.signature);
             return new ResponseSucc(rsp);
         } catch (error) {
             return new ResponseInternalError((error as Error).message);
@@ -41,7 +41,7 @@ export class AuthController {
     public async logout(@Req() req: Request): Promise<IResponse> {
         try {
             const addr = (req.user as AuthPayload).address;
-            var rsp = await this.authService.logoutWithWallet(addr);
+            const rsp = await this.authService.logoutWithWallet(addr);
             return new ResponseSucc(rsp);
         } catch (err) {
             return new ResponseInternalError((err as Error).message);

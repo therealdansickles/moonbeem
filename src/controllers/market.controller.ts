@@ -1,11 +1,11 @@
-import { Controller, Get, Param, Query, Req } from '@nestjs/common';
+import { Controller, Get, Query, Req } from '@nestjs/common';
 import { Request } from 'express';
-import { Public } from '../lib/decorators/public.decorator.js';
-import { VActivityReqDto, VActivityRspDto, VAddressHoldingReqDto, VAddressHoldingRspDto, VAddressReleasedReqDto, VCollectionActivityReqDto, VCollectionActivityRspDto, VGlobalSearchReqDto, VGlobalSearchRspDto } from '../dto/market.dto.js';
-import { IResponse, ResponseInternalError, ResponseSucc } from '../lib/interfaces/response.interface.js';
-import { MarketService } from '../services/market.service.js';
 import { ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { JWTService } from '../services/jwt.service.js';
+import { VAddressHoldingRspDto, VAddressHoldingReqDto, VActivityRspDto, VActivityReqDto, VAddressReleasedReqDto, VCollectionActivityRspDto, VCollectionActivityReqDto, VGlobalSearchRspDto, VGlobalSearchReqDto } from '../dto/market.dto';
+import { Public } from '../lib/decorators/public.decorator';
+import { IResponse, ResponseSucc, ResponseInternalError } from '../lib/interfaces/response.interface';
+import { JWTService } from '../services/jwt.service';
+import { MarketService } from '../services/market.service';
 
 @ApiTags('Market')
 @ApiSecurity('session') // swagger authentication, in header.session
@@ -23,8 +23,7 @@ export class MarketController {
     @Get('/get_address_holdings')
     public async getAddressHoldings(@Req() req: Request, @Query() args: VAddressHoldingReqDto): Promise<IResponse> {
         try {
-            const payload = await this.jwtService.verifySession(req.headers.session);
-            const rsp = await this.marketService.getAddressHoldings(args, payload);
+            const rsp = await this.marketService.getAddressHoldings(args);
             return new ResponseSucc(rsp);
         } catch (err) {
             return new ResponseInternalError((err as Error).message);
@@ -36,8 +35,7 @@ export class MarketController {
     @Get('/get_address_activities')
     public async getAddressActivities(@Req() req: Request, @Query() args: VActivityReqDto): Promise<IResponse> {
         try {
-            const payload = await this.jwtService.verifySession(req.headers.session);
-            const rsp = await this.marketService.getAddressActivities(args, payload);
+            const rsp = await this.marketService.getAddressActivities(args);
             return new ResponseSucc(rsp);
         } catch (err) {
             return new ResponseInternalError((err as Error).message);
@@ -51,8 +49,7 @@ export class MarketController {
     @Get('/get_address_released')
     public async getAddressReleased(@Req() req: Request, @Query() args: VAddressReleasedReqDto): Promise<IResponse> {
         try {
-            const payload = await this.jwtService.verifySession(req.headers.session);
-            const rsp = await this.marketService.getAddressReleased(args, payload);
+            const rsp = await this.marketService.getAddressReleased(args);
             return new ResponseSucc(rsp);
         } catch (err) {
             return new ResponseInternalError((err as Error).message);
@@ -64,8 +61,7 @@ export class MarketController {
     @Get('/get_collection_activities')
     public async getCollectionActivities(@Req() req: Request, @Query() args: VCollectionActivityReqDto): Promise<IResponse> {
         try {
-            const payload = await this.jwtService.verifySession(req.headers.session);
-            const rsp = await this.marketService.getCollectionActivities(args, payload);
+            const rsp = await this.marketService.getCollectionActivities(args);
             return new ResponseSucc(rsp);
         } catch (err) {
             return new ResponseInternalError((err as Error).message);
@@ -77,8 +73,7 @@ export class MarketController {
     @Get('/search')
     public async search(@Req() req: Request, @Query() args: VGlobalSearchReqDto): Promise<IResponse> {
         try {
-            const payload = await this.jwtService.verifySession(req.headers.session);
-            const rsp = await this.marketService.executeSearch(args, payload);
+            const rsp = await this.marketService.executeSearch(args);
             return new ResponseSucc(rsp);
         } catch (err) {
             return new ResponseInternalError((err as Error).message);

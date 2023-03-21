@@ -2,32 +2,32 @@ import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNumber, IsOptional } from 'class-validator';
-import { BasicCollectionInfo, BasicCollectionRoyaltyInfo, BasicFloorPriceInfo, BasicPagingParams, BasicTierInfo, BasicCollectionStatus, BasicCollectionType, BasicWalletInfo, BasicPriceInfo } from './basic.dto.js';
 import { GraphQLJSONObject } from 'graphql-type-json';
+import { BasicWalletInfo, BasicCollectionInfo, BasicCollectionRoyaltyInfo, BasicFloorPriceInfo, BasicTierInfo, BasicPagingParams, BasicCollectionStatus, BasicCollectionType, BasicPriceInfo } from './basic.dto';
 
 @ObjectType()
 export class LandingPageCollectionData {
-    @Field((type) => BasicWalletInfo)
+    @Field(() => BasicWalletInfo)
     @ApiProperty({ type: BasicWalletInfo })
     readonly creator: BasicWalletInfo;
 
-    @Field((type) => BasicCollectionInfo)
+    @Field(() => BasicCollectionInfo)
     @ApiProperty({ type: BasicCollectionInfo })
     readonly collection: BasicCollectionInfo;
 
-    @Field((type) => BasicCollectionRoyaltyInfo)
+    @Field(() => BasicCollectionRoyaltyInfo)
     @ApiProperty({ type: BasicCollectionRoyaltyInfo })
     readonly royalty: BasicCollectionRoyaltyInfo;
 
-    @Field((type) => BasicFloorPriceInfo)
+    @Field(() => BasicFloorPriceInfo)
     @ApiProperty({ type: BasicFloorPriceInfo })
     readonly floorPrice: BasicFloorPriceInfo;
 
-    @Field((type) => [BasicTierInfo])
+    @Field(() => [BasicTierInfo])
     @ApiProperty({ type: [BasicTierInfo] })
     readonly tiers: BasicTierInfo[];
 
-    @Field((type) => GraphQLJSONObject)
+    @Field(() => GraphQLJSONObject)
     @ApiProperty({ type: JSON })
     readonly attributeOverview: JSON;
 }
@@ -35,12 +35,12 @@ export class LandingPageCollectionData {
 @ArgsType()
 @ObjectType()
 export class LandingPageCollectionReqDto extends BasicPagingParams {
-    @Field((type) => BasicCollectionStatus, { nullable: true })
+    @Field(() => BasicCollectionStatus, { nullable: true })
     @ApiProperty({ nullable: true, type: BasicCollectionStatus })
     @IsOptional()
     readonly status?: BasicCollectionStatus;
 
-    @Field((type) => BasicCollectionType, { nullable: true })
+    @Field(() => BasicCollectionType, { nullable: true })
     @ApiProperty({ nullable: true, type: BasicCollectionType })
     @IsOptional()
     readonly type?: BasicCollectionType;
@@ -48,12 +48,12 @@ export class LandingPageCollectionReqDto extends BasicPagingParams {
 
 @ObjectType()
 export class LandingPageCollectionRspDto {
-    @Field((type) => [LandingPageCollectionData])
+    @Field(() => [LandingPageCollectionData])
     @ApiProperty({ type: [LandingPageCollectionData] })
     @Type()
     readonly data: LandingPageCollectionData[];
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @Type(() => Number)
     @IsNumber()
@@ -62,11 +62,11 @@ export class LandingPageCollectionRspDto {
 
 @ObjectType()
 export class LandingPageRankingOfCreatorData {
-    @Field((type) => BasicWalletInfo)
+    @Field(() => BasicWalletInfo)
     @ApiProperty({ type: BasicWalletInfo })
     readonly user: BasicWalletInfo;
 
-    @Field((type) => BasicPriceInfo)
+    @Field(() => BasicPriceInfo)
     @ApiProperty({ type: BasicPriceInfo })
     readonly volume: BasicPriceInfo;
 }
@@ -74,13 +74,13 @@ export class LandingPageRankingOfCreatorData {
 @ArgsType()
 @ObjectType()
 export class LandingPageRankingOfCreatorsReqDto extends BasicPagingParams {
-    @Field((type) => Int, { nullable: true, defaultValue: 0 })
+    @Field(() => Int, { nullable: true, defaultValue: 0 })
     @ApiProperty({ nullable: true, default: 0 })
     @Type(() => Number)
     @IsNumber()
     readonly startTime?: number;
 
-    @Field((type) => Int, { nullable: true, defaultValue: 0 })
+    @Field(() => Int, { nullable: true, defaultValue: 0 })
     @ApiProperty({ nullable: true, default: 0 })
     @Type(() => Number)
     @IsNumber()
@@ -89,12 +89,12 @@ export class LandingPageRankingOfCreatorsReqDto extends BasicPagingParams {
 
 @ObjectType()
 export class LandingPageRankingOfCreatorsRspDto {
-    @Field((type) => [LandingPageRankingOfCreatorData])
+    @Field(() => [LandingPageRankingOfCreatorData])
     @ApiProperty({ type: [LandingPageRankingOfCreatorData] })
     @Type()
     readonly data: LandingPageRankingOfCreatorData[];
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @Type(() => Number)
     @IsNumber()
@@ -103,11 +103,11 @@ export class LandingPageRankingOfCreatorsRspDto {
 
 @ObjectType()
 export class LandingPageRankingOfItemData {
-    @Field((type) => BasicTierInfo)
+    @Field(() => BasicTierInfo)
     @ApiProperty({ type: BasicTierInfo })
     readonly tier: BasicTierInfo;
 
-    @Field((type) => BasicCollectionInfo)
+    @Field(() => BasicCollectionInfo)
     @ApiProperty({ type: BasicCollectionInfo })
     readonly collection: BasicCollectionInfo;
 }
@@ -118,12 +118,12 @@ export class LandingPageRankingOfItemsReqDto extends BasicPagingParams {}
 
 @ObjectType()
 export class LandingPageRankingOfItemsRspDto {
-    @Field((type) => [LandingPageRankingOfItemData])
+    @Field(() => [LandingPageRankingOfItemData])
     @ApiProperty({ type: [LandingPageRankingOfItemData] })
     @Type()
     readonly data: LandingPageRankingOfItemData[];
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @Type(() => Number)
     @IsNumber()

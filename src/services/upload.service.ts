@@ -1,10 +1,12 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { UploadClient } from '@uploadcare/upload-client';
-import { VUploadImageReqDto, VUploadImageRsp } from '../dto/upload.dto.js';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { VUploadImageReqDto, VUploadImageRsp } from 'src/dto/upload.dto';
+import { AWSAdapter, ResourceType } from '../lib/adapters/aws.adapter';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UploadService {
-    constructor(@Inject('UPLOADCARE') private readonly uploadcareClient: UploadClient) {}
+    constructor(private readonly aws: AWSAdapter) {}
+
     public async handleImage(uploadImageReq: VUploadImageReqDto): Promise<VUploadImageRsp> {
         if (!uploadImageReq.buffer || !uploadImageReq.contentType) {
             throw new HttpException(
@@ -15,12 +17,12 @@ export class UploadService {
                 HttpStatus.BAD_REQUEST
             );
         }
+        const buf = Buffer.from(uploadImageReq.buffer);
+        const fileName = uuidv4();
 
         // upload image to uploadcare
-        const { cdnUrl } = await this.uploadcareClient.uploadFile(Buffer.from(uploadImageReq.buffer), {
-            contentType: uploadImageReq.contentType,
-        });
+        const url = await this.aws.s3PutData(buf, fileName, ResourceType.Media, uploadImageReq.contentType);
 
-        return { url: cdnUrl };
+        return { url: url };
     }
 }

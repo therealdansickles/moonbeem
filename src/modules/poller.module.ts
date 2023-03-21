@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { PollerService } from '../services/poller.service.js';
-import { SharedModule } from './share.module.js';
+import { PollerService } from '../services/poller.service';
+import { SharedModule } from './share.module';
 
 @Module({
     imports: [SharedModule],

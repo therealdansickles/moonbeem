@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { AWSAdapter } from '../lib/adapters/aws.adapter.js';
-import { MongoAdapter } from '../lib/adapters/mongo.adapter.js';
-import { PostgresAdapter } from '../lib/adapters/postgres.adapter.js';
-import { RedisAdapter } from '../lib/adapters/redis.adapter.js';
-import { EthereumAddress } from '../lib/scalars/eth.scalar.js';
+import { AWSAdapter } from '../lib/adapters/aws.adapter';
+import { MongoAdapter } from '../lib/adapters/mongo.adapter';
+import { PostgresAdapter } from '../lib/adapters/postgres.adapter';
+import { RedisAdapter } from '../lib/adapters/redis.adapter';
+import { EthereumAddress } from '../lib/scalars/eth.scalar';
 
 @Module({
     imports: [],

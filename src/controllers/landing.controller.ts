@@ -1,10 +1,10 @@
 import { Request } from 'express';
 import { Controller, Get, Query, Req } from '@nestjs/common';
-import { Public } from '../lib/decorators/public.decorator.js';
 import { ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { IResponse, ResponseInternalError, ResponseSucc } from '../lib/interfaces/response.interface.js';
-import { LandingPageCollectionReqDto, LandingPageCollectionRspDto, LandingPageRankingOfCreatorsReqDto, LandingPageRankingOfCreatorsRspDto, LandingPageRankingOfItemsReqDto, LandingPageRankingOfItemsRspDto } from '../dto/landing.dto.js';
-import { LandingService } from '../services/landing.service.js';
+import { LandingService } from '../services/landing.service';
+import { Public } from '../lib/decorators/public.decorator';
+import { LandingPageCollectionReqDto, LandingPageCollectionRspDto, LandingPageRankingOfCreatorsReqDto, LandingPageRankingOfCreatorsRspDto, LandingPageRankingOfItemsReqDto, LandingPageRankingOfItemsRspDto } from '../dto/landing.dto';
+import { IResponse, ResponseSucc, ResponseInternalError } from '../lib/interfaces/response.interface';
 
 @ApiTags('LandingPage')
 @ApiSecurity('session') // swagger authentication, in header.session

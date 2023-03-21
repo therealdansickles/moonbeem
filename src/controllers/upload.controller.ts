@@ -1,10 +1,10 @@
-import { Body, Controller, DefaultValuePipe, Get, Inject, Param, ParseIntPipe, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Post, Req } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
-import { VUploadImageReqDto, VUploadImageRsp } from '../dto/upload.dto.js';
-import { Public } from '../lib/decorators/public.decorator.js';
-import { IResponse, ResponseInternalError, ResponseSucc } from '../lib/interfaces/response.interface.js';
-import { UploadService } from '../services/upload.service.js';
+import { VUploadImageRsp, VUploadImageReqDto } from 'src/dto/upload.dto';
+import { Public } from 'src/lib/decorators/public.decorator';
+import { IResponse, ResponseSucc, ResponseInternalError } from 'src/lib/interfaces/response.interface';
+import { UploadService } from 'src/services/upload.service';
 
 @ApiTags('Upload')
 @Controller({
@@ -26,7 +26,6 @@ export class UploadController {
             var rsp = await this.uploadService.handleImage(body);
             return new ResponseSucc(rsp);
         } catch (error) {
-            console.log('err', error);
             return new ResponseInternalError((error as Error).message);
         }
     }

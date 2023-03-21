@@ -185,3 +185,11 @@ export interface LandingPageRankingOfItemItem {
     end_time: number;
     tiers: string;
 }
+
+export interface SysConfigItem {
+    cfg_name: string;
+    cfg_value: string;
+    cfg_type: string;
+    cfg_comment: string;
+    chain_id: number;
+}

@@ -2,19 +2,19 @@ import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsEthereumAddress, IsInt, IsNumber, IsNumberString, IsOptional, IsString } from 'class-validator';
-import { EthereumAddress } from '../lib/scalars/eth.scalar.js';
+import { EthereumAddress } from '../lib/scalars/eth.scalar';
 
 @ArgsType()
 @ObjectType()
 export class VAddressHoldingReqDto {
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty({
         example: '0x9A70b15c2936d440c82Eb988A20F11ef2cd79395',
     })
     @IsEthereumAddress()
     readonly address: string;
 
-    @Field((type) => Int, { nullable: true, defaultValue: 0 })
+    @Field(() => Int, { nullable: true, defaultValue: 0 })
     @ApiProperty({
         nullable: true,
         default: 0,
@@ -23,7 +23,7 @@ export class VAddressHoldingReqDto {
     @IsNumber()
     readonly skip?: number;
 
-    @Field((type) => Int, { nullable: true, defaultValue: 10 })
+    @Field(() => Int, { nullable: true, defaultValue: 10 })
     @ApiProperty({ nullable: true, default: 10 })
     @IsNumber()
     @Type(() => Number)
@@ -32,7 +32,7 @@ export class VAddressHoldingReqDto {
 
 @ObjectType()
 export class VICollectionType {
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
     readonly address: string;
@@ -68,17 +68,17 @@ export class VITierAttr {
     @Field()
     @ApiProperty()
     @IsString()
-    readonly extra: String;
+    readonly extra: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-    readonly traitType: String;
+    readonly traitType: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-    readonly value: String;
+    readonly value: string;
 }
 
 @ObjectType()
@@ -154,11 +154,11 @@ export class VCoin {
 
 @ObjectType()
 export class NftInfo {
-    @Field((type) => VICollectionType)
+    @Field(() => VICollectionType)
     @ApiProperty()
     readonly collection: VICollectionType;
 
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
     readonly token: string;
@@ -183,22 +183,22 @@ export class NftInfo {
     @IsString()
     readonly description: string;
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @IsNumber()
     readonly quantity: number;
 
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
     readonly owner: string;
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @IsNumber()
     readonly tierId: number;
 
-    @Field((type) => [VITierAttr])
+    @Field(() => [VITierAttr])
     @ApiProperty({
         type: [VITierAttr],
     })
@@ -209,28 +209,28 @@ export class NftInfo {
     @IsNumberString()
     readonly currentPrice: string;
 
-    @Field((type) => VSecondaryMarketView)
+    @Field(() => VSecondaryMarketView)
     @ApiProperty({ type: VSecondaryMarketView })
     readonly secondary: VSecondaryMarketView;
 
-    @Field((type) => [String], { nullable: true })
+    @Field(() => [String], { nullable: true })
     @ApiProperty({ type: [String], nullable: true })
     readonly extensions?: string[];
 
-    @Field((type) => VCoin)
+    @Field(() => VCoin)
     @ApiProperty({ type: VCoin })
     readonly priceInfo?: VCoin;
 }
 
 @ObjectType()
 export class VAddressHoldingRspDto {
-    @Field((type) => [NftInfo])
+    @Field(() => [NftInfo])
     @ApiProperty({
         type: [NftInfo],
     })
     readonly data: NftInfo[];
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @IsNumber()
     readonly total: number;
@@ -240,14 +240,14 @@ export class VAddressHoldingRspDto {
 @ArgsType()
 @ObjectType()
 export class VActivityReqDto {
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty({
         example: '0x9A70b15c2936d440c82Eb988A20F11ef2cd79395',
     })
     @IsEthereumAddress()
     readonly address: string;
 
-    @Field((type) => Int, { nullable: true, defaultValue: 0 })
+    @Field(() => Int, { nullable: true, defaultValue: 0 })
     @ApiProperty({
         nullable: true,
         default: 0,
@@ -256,7 +256,7 @@ export class VActivityReqDto {
     @IsNumber()
     readonly skip?: number;
 
-    @Field((type) => Int, { nullable: true, defaultValue: 10 })
+    @Field(() => Int, { nullable: true, defaultValue: 10 })
     @ApiProperty({ nullable: true, default: 10 })
     @IsNumber()
     @Type(() => Number)
@@ -270,7 +270,7 @@ export enum VActivityStatus {
 
 @ObjectType()
 export class VActivityInfo {
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
     readonly token: string;
@@ -284,16 +284,16 @@ export class VActivityInfo {
     @ApiProperty()
     readonly status: VActivityStatus;
 
-    @Field((type) => VICollectionType)
+    @Field(() => VICollectionType)
     @ApiProperty()
     readonly collection: VICollectionType;
 
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
     readonly owner: string;
 
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
     readonly recipient: string;
@@ -313,11 +313,11 @@ export class VActivityInfo {
     @IsString()
     readonly description: string;
 
-    @Field((type) => VSecondaryMarketView)
+    @Field(() => VSecondaryMarketView)
     @ApiProperty({ type: VSecondaryMarketView })
     readonly secondary: VSecondaryMarketView;
 
-    @Field((type) => [VITierAttr])
+    @Field(() => [VITierAttr])
     @ApiProperty({
         type: [VITierAttr],
     })
@@ -328,20 +328,20 @@ export class VActivityInfo {
     @IsNumberString()
     readonly currentPrice: string;
 
-    @Field((type) => [String], { nullable: true })
+    @Field(() => [String], { nullable: true })
     @ApiProperty({ type: [String], nullable: true })
     readonly extensions?: string[];
 }
 
 @ObjectType()
 export class VActivityRspDto {
-    @Field((type) => [VActivityInfo])
+    @Field(() => [VActivityInfo])
     @ApiProperty({
         type: [VActivityInfo],
     })
     readonly data: VActivityInfo[];
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @IsNumber()
     readonly total: number;
@@ -352,14 +352,14 @@ export class VActivityRspDto {
 @ArgsType()
 @ObjectType()
 export class VAddressReleasedReqDto {
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty({
         example: '0x9A70b15c2936d440c82Eb988A20F11ef2cd79395',
     })
     @IsEthereumAddress()
     readonly address: string;
 
-    @Field((type) => Int, { nullable: true, defaultValue: 0 })
+    @Field(() => Int, { nullable: true, defaultValue: 0 })
     @ApiProperty({
         nullable: true,
         default: 0,
@@ -368,7 +368,7 @@ export class VAddressReleasedReqDto {
     @IsNumber()
     readonly skip?: number;
 
-    @Field((type) => Int, { nullable: true, defaultValue: 10 })
+    @Field(() => Int, { nullable: true, defaultValue: 10 })
     @ApiProperty({ nullable: true, default: 10 })
     @IsNumber()
     @Type(() => Number)
@@ -377,11 +377,11 @@ export class VAddressReleasedReqDto {
 
 @ObjectType()
 export class ReleasedInfo {
-    @Field((type) => VICollectionType)
+    @Field(() => VICollectionType)
     @ApiProperty()
     readonly collection: VICollectionType;
 
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
     readonly token: string;
@@ -401,22 +401,22 @@ export class ReleasedInfo {
     @IsString()
     readonly description: string;
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @IsNumber()
     readonly quantity: number;
 
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
     readonly owner: string;
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @IsNumber()
     readonly tierId: number;
 
-    @Field((type) => [VITierAttr])
+    @Field(() => [VITierAttr])
     @ApiProperty({
         type: [VITierAttr],
     })
@@ -427,28 +427,28 @@ export class ReleasedInfo {
     @IsNumberString()
     readonly currentPrice: string;
 
-    @Field((type) => VSecondaryMarketView)
+    @Field(() => VSecondaryMarketView)
     @ApiProperty({ type: VSecondaryMarketView })
     readonly secondary: VSecondaryMarketView;
 
-    @Field((type) => [String], { nullable: true })
+    @Field(() => [String], { nullable: true })
     @ApiProperty({ type: [String], nullable: true })
     readonly extensions?: string[];
 
-    @Field((type) => VCoin)
+    @Field(() => VCoin)
     @ApiProperty({ type: VCoin })
     readonly priceInfo?: VCoin;
 }
 
 @ObjectType()
 export class VAddressReleasedRspDto {
-    @Field((type) => [ReleasedInfo])
+    @Field(() => [ReleasedInfo])
     @ApiProperty({
         type: [ReleasedInfo],
     })
     readonly data: ReleasedInfo[];
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @IsNumber()
     readonly total: number;
@@ -459,14 +459,14 @@ export class VAddressReleasedRspDto {
 @ArgsType()
 @ObjectType()
 export class VCollectionActivityReqDto {
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty({
         example: '0x9A70b15c2936d440c82Eb988A20F11ef2cd79395',
     })
     @IsEthereumAddress()
     readonly address: string;
 
-    @Field((type) => Int, { nullable: true, defaultValue: 0 })
+    @Field(() => Int, { nullable: true, defaultValue: 0 })
     @ApiProperty({
         nullable: true,
         default: 0,
@@ -475,7 +475,7 @@ export class VCollectionActivityReqDto {
     @IsNumber()
     readonly skip?: number;
 
-    @Field((type) => Int, { nullable: true, defaultValue: 10 })
+    @Field(() => Int, { nullable: true, defaultValue: 10 })
     @ApiProperty({ nullable: true, default: 10 })
     @IsNumber()
     @Type(() => Number)
@@ -484,7 +484,7 @@ export class VCollectionActivityReqDto {
 
 @ObjectType()
 export class VCollectionActivityInfo {
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
     readonly token: string;
@@ -494,7 +494,7 @@ export class VCollectionActivityInfo {
     @IsString()
     readonly tokenId: string;
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @IsNumber()
     readonly txTime: number;
@@ -503,16 +503,16 @@ export class VCollectionActivityInfo {
     @ApiProperty()
     readonly status: VActivityStatus;
 
-    @Field((type) => VICollectionType)
+    @Field(() => VICollectionType)
     @ApiProperty()
     readonly collection: VICollectionType;
 
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
     readonly owner: string;
 
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
     readonly recipient: string;
@@ -532,11 +532,11 @@ export class VCollectionActivityInfo {
     @IsString()
     readonly description: string;
 
-    @Field((type) => VSecondaryMarketView)
+    @Field(() => VSecondaryMarketView)
     @ApiProperty({ type: VSecondaryMarketView })
     readonly secondary: VSecondaryMarketView;
 
-    @Field((type) => [VITierAttr])
+    @Field(() => [VITierAttr])
     @ApiProperty({
         type: [VITierAttr],
     })
@@ -547,20 +547,20 @@ export class VCollectionActivityInfo {
     @IsNumberString()
     readonly currentPrice: string;
 
-    @Field((type) => [String], { nullable: true })
+    @Field(() => [String], { nullable: true })
     @ApiProperty({ type: [String], nullable: true })
     readonly extensions?: string[];
 }
 
 @ObjectType()
 export class VCollectionActivityRspDto {
-    @Field((type) => [VCollectionActivityInfo])
+    @Field(() => [VCollectionActivityInfo])
     @ApiProperty({
         type: [VCollectionActivityInfo],
     })
     readonly data: VCollectionActivityInfo[];
 
-    @Field((type) => Int)
+    @Field(() => Int)
     @ApiProperty()
     @IsNumber()
     readonly total: number;
@@ -572,21 +572,21 @@ export class VGlobalSearchReqDto {
     @Field()
     @ApiProperty()
     @IsString()
-    searchTerm: string;
+        searchTerm: string;
 
     @Field()
     @ApiProperty()
     @IsInt()
     @Type(() => Number)
     @IsOptional()
-    page?: number;
+        page?: number;
 
     @Field()
     @ApiProperty()
     @IsInt()
     @Type(() => Number)
     @IsOptional()
-    pageSize?: number;
+        pageSize?: number;
 }
 
 @ObjectType()
@@ -594,24 +594,24 @@ export class VSearchCollectionItem {
     @Field()
     @ApiProperty()
     @IsString()
-    name: String;
+        name: string;
 
     @Field()
     @ApiProperty()
     @IsString()
     @IsOptional()
-    image: String;
+        image: string;
 
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
-    collection: string;
+        collection: string;
 
     @Field()
     @ApiProperty()
     @IsNumber()
     @IsOptional()
-    itemsCount: Number;
+        itemsCount: number;
 }
 
 @ObjectType()
@@ -619,56 +619,56 @@ export class VSearchAccountItem {
     @Field()
     @ApiProperty()
     @IsString()
-    name: String;
+        name: string;
 
     @Field()
     @ApiProperty()
     @IsString()
     @IsOptional()
-    avatar: String;
+        avatar: string;
 
-    @Field((type) => EthereumAddress)
+    @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
-    address: string;
+        address: string;
 }
 
 @ObjectType()
 export class VSearchCollectionRsp {
-    @Field((type) => [VSearchCollectionItem])
+    @Field(() => [VSearchCollectionItem])
     @ApiProperty({
         type: [VSearchCollectionItem],
     })
     @IsOptional()
-    data: VSearchCollectionItem[];
+        data: VSearchCollectionItem[];
 
     @ApiProperty()
     @IsBoolean()
-    isLastPage: Boolean;
+        isLastPage: boolean;
 
     @ApiProperty()
     @IsNumber()
     @Type(() => Number)
-    total: Number;
+        total: number;
 }
 
 @ObjectType()
 export class VSearchAccountRsp {
-    @Field((type) => [VSearchAccountItem])
+    @Field(() => [VSearchAccountItem])
     @ApiProperty({
         type: [VSearchAccountItem],
     })
     @IsOptional()
-    data: VSearchAccountItem[];
+        data: VSearchAccountItem[];
 
     @ApiProperty()
     @IsBoolean()
-    isLastPage: Boolean;
+        isLastPage: boolean;
 
     @ApiProperty()
     @IsNumber()
     @Type(() => Number)
-    total: Number;
+        total: number;
 }
 
 @ObjectType()
@@ -676,9 +676,9 @@ export class VGlobalSearchRspDto {
     @ApiProperty({
         type: [VSearchCollectionRsp],
     })
-    collections: VSearchCollectionRsp;
+        collections: VSearchCollectionRsp;
     @ApiProperty({
         type: [VSearchAccountRsp],
     })
-    accounts: VSearchAccountRsp;
+        accounts: VSearchAccountRsp;
 }

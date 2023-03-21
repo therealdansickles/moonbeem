@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { EvmChain, NftscanEvm } from 'nftscan-api';
-import { BetaWaitlistController } from '../controllers/beta.waitlist.controller.js';
-import { BetaWaitlistService } from '../services/beta.waitlist.service.js';
-import { SharedModule } from './share.module.js';
+import { BetaWaitlistController } from '../controllers/beta.waitlist.controller';
+import { BetaWaitlistService } from '../services/beta.waitlist.service';
+import { SharedModule } from './share.module';
 
 @Module({
     imports: [SharedModule],

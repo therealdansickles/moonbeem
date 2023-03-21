@@ -1,9 +1,9 @@
 import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host.js';
+import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { AuthGuard } from '@nestjs/passport';
-import { IS_PUBLIC_KEY } from '../../lib/decorators/public.decorator.js';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -27,7 +27,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         }
     }
 
-    handleRequest(err, user, info) {
+    handleRequest(err, user) {
         if (err || !user) throw err || new UnauthorizedException();
         return user;
     }

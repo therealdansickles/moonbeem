@@ -1,24 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import { PostgresAdapter } from '../lib/adapters/postgres.adapter.js';
-import { LandingPageCollectionReqDto, LandingPageCollectionRspDto, LandingPageRankingOfCreatorsReqDto, LandingPageRankingOfCreatorsRspDto, LandingPageRankingOfItemsReqDto, LandingPageRankingOfItemsRspDto } from '../dto/landing.dto.js';
-import { LandingPageCollectionItem, LandingPageRankingOfCreatorItem, LandingPageRankingOfItemItem, TotalRecord } from '../lib/modules/db.record.module.js';
-import { BasicAttributeInfo, BasicCollectionInfo, BasicCollectionRoyaltyInfo, BasicCollectionStatus, BasicFloorPriceInfo, BasicPriceInfo, BasicTierInfo, BasicWalletInfo } from '../dto/basic.dto.js';
-import { IAttributeOverview, IPreMint, ITier } from '../lib/interfaces/main.interface.js';
-import { MongoAdapter } from '../lib/adapters/mongo.adapter.js';
+import { BasicWalletInfo, BasicCollectionInfo, BasicCollectionRoyaltyInfo, BasicFloorPriceInfo, BasicTierInfo, BasicAttributeInfo, BasicCollectionStatus, BasicPriceInfo } from '../dto/basic.dto';
+import { LandingPageCollectionReqDto, LandingPageCollectionRspDto, LandingPageRankingOfCreatorsReqDto, LandingPageRankingOfCreatorsRspDto, LandingPageRankingOfItemsReqDto, LandingPageRankingOfItemsRspDto } from '../dto/landing.dto';
+import { MongoAdapter } from '../lib/adapters/mongo.adapter';
+import { PostgresAdapter } from '../lib/adapters/postgres.adapter';
+import { ITier, IPreMint, IAttributeOverview } from '../lib/interfaces/main.interface';
+import { LandingPageCollectionItem, TotalRecord, LandingPageRankingOfCreatorItem, LandingPageRankingOfItemItem } from '../lib/modules/db.record.module';
 
 @Injectable()
 export class LandingService {
     constructor(private readonly pgClient: PostgresAdapter, private readonly mongoClient: MongoAdapter) {}
 
     async getLandingPageCollections(args: LandingPageCollectionReqDto): Promise<LandingPageCollectionRspDto> {
-        let rsp: LandingPageCollectionRspDto = {
+        const rsp: LandingPageCollectionRspDto = {
             data: [],
             total: await (await this.countLandingPageCollection(args)).total,
         };
 
         const data = await this.findManyLandingPageCollections(args);
-        for (let item of data) {
-            let user: BasicWalletInfo = {
+        for (const item of data) {
+            const user: BasicWalletInfo = {
                 address: item.user_address,
                 name: item.user_name,
                 description: item.user_description,
@@ -29,7 +29,7 @@ export class LandingService {
                 customUrl: item.user_customurl,
             };
 
-            let collection: BasicCollectionInfo = {
+            const collection: BasicCollectionInfo = {
                 name: item.name,
                 description: item.description,
                 avatar: item.avatar,
@@ -45,20 +45,20 @@ export class LandingService {
                 endTime: item.end_time,
             };
 
-            let royalty: BasicCollectionRoyaltyInfo = {
+            const royalty: BasicCollectionRoyaltyInfo = {
                 address: item.royalty_address,
                 rate: item.royalty_rate,
             };
 
-            let floor: BasicFloorPriceInfo = {
+            const floor: BasicFloorPriceInfo = {
                 price: item.floor_price,
                 token: item.payment_token,
                 chainId: 137,
             };
 
-            let tiers: BasicTierInfo[] = await this.matchCollectionTiers(item.address, item.tiers);
+            const tiers: BasicTierInfo[] = await this.matchCollectionTiers(item.address, item.tiers);
 
-            let att = await this.getAttributeOverview(item.id);
+            const att = await this.getAttributeOverview(item.id);
 
             rsp.data.push({
                 creator: user,
@@ -66,27 +66,27 @@ export class LandingService {
                 royalty: royalty,
                 floorPrice: floor,
                 tiers: tiers,
-                attributeOverview: att.attribute,
+                attributeOverview: (att ? att.attribute : {}) as JSON,
             });
         }
         return rsp;
     }
 
     async matchCollectionTiers(collection: string, tiers: string) {
-        let tierResult: BasicTierInfo[] = [];
+        const tierResult: BasicTierInfo[] = [];
         const tiersArr = Object(tiers) as ITier[];
         const onchainTiers = await this.getTierInfos(collection, -2);
 
-        for (let tier of tiersArr) {
-            let onchainTier = onchainTiers.filter((t) => tier.tierId == t.tier);
+        for (const tier of tiersArr) {
+            const onchainTier = onchainTiers.filter((t) => tier.tierId == t.tier);
             if (!onchainTier || onchainTier.length < 1) continue;
 
-            let attributes: BasicAttributeInfo[] = [];
+            const attributes: BasicAttributeInfo[] = [];
             if (tier.attributes) {
-                for (let a of tier.attributes) {
+                for (const a of tier.attributes) {
                     attributes.push({
                         displayType: a.displayType,
-                        value: a.value,
+                        value: a.value as string,
                         traitType: a.traitType,
                     });
                 }
@@ -133,28 +133,28 @@ export class LandingService {
             pm.contract IS NOT NULL
         `;
 
-        let values: any[] = [];
+        const values: unknown[] = [];
         if (args.type) {
             sqlStr = `${sqlStr} AND c.type=?`;
             values.push(args.type);
         }
 
         if (args.status) {
-            let currTime = Number(Date.now() / 1000);
+            const currTime = Number(Date.now() / 1000);
             switch (args.status) {
-                case BasicCollectionStatus.Upcoming:
-                    sqlStr = `${sqlStr} AND pm.begin_time >= ?`;
-                    values.push(currTime);
-                    break;
-                case BasicCollectionStatus.Live:
-                    sqlStr = `${sqlStr} AND pm.begin_time <= ? AND ? <= pm.end_time`;
-                    values.push(currTime);
-                    values.push(currTime);
-                    break;
-                case BasicCollectionStatus.Expired:
-                    sqlStr = `${sqlStr} AND pm.end_time <= ?`;
-                    values.push(currTime);
-                    break;
+            case BasicCollectionStatus.Upcoming:
+                sqlStr = `${sqlStr} AND pm.begin_time >= ?`;
+                values.push(currTime);
+                break;
+            case BasicCollectionStatus.Live:
+                sqlStr = `${sqlStr} AND pm.begin_time <= ? AND ? <= pm.end_time`;
+                values.push(currTime);
+                values.push(currTime);
+                break;
+            case BasicCollectionStatus.Expired:
+                sqlStr = `${sqlStr} AND pm.end_time <= ?`;
+                values.push(currTime);
+                break;
             }
         }
         sqlStr += ' GROUP BY c.id,pm.payment_token,pm.id,uw.address,uw."name",uw.description,uw.avatar,uw."discordLink",uw."facebookLink",uw."twitterLink",uw."customUrl"';
@@ -182,7 +182,7 @@ export class LandingService {
                 1=1
             `;
 
-        let values: any[] = [];
+        const values: unknown[] = [];
         sqlStr = `${sqlStr} AND pm.contract=?`;
         values.push(address);
 
@@ -195,10 +195,14 @@ export class LandingService {
     }
 
     async getAttributeOverview(collection: string) {
-        const metaOverviewCol = this.mongoClient.db.collection('metadata_overview');
+        try {
+            const metaOverviewCol = this.mongoClient.db.collection('metadata_overview');
 
-        const data = (await metaOverviewCol.findOne({ collection: collection })) as unknown as IAttributeOverview;
-        return data;
+            const data = (await metaOverviewCol.findOne({ collection: collection })) as unknown as IAttributeOverview;
+            return data;
+        } catch (err) {
+            return {} as IAttributeOverview;
+        }
     }
 
     async countLandingPageCollection(args: LandingPageCollectionReqDto) {
@@ -213,7 +217,7 @@ export class LandingService {
             c.collection=pm.contract
         WHERE
             pm.contract IS NOT NULL`;
-        let values: any[] = [];
+        const values: unknown[] = [];
 
         if (args.type) {
             sqlStr = `${sqlStr} AND c.type=?`;
@@ -221,21 +225,21 @@ export class LandingService {
         }
 
         if (args.status) {
-            let currTime = Number(Date.now() / 1000);
+            const currTime = Number(Date.now() / 1000);
             switch (args.status) {
-                case BasicCollectionStatus.Upcoming:
-                    sqlStr = `${sqlStr} AND pm.begin_time >= ?`;
-                    values.push(currTime);
-                    break;
-                case BasicCollectionStatus.Live:
-                    sqlStr = `${sqlStr} AND pm.begin_time <= ? AND ? <= pm.end_time`;
-                    values.push(currTime);
-                    values.push(currTime);
-                    break;
-                case BasicCollectionStatus.Expired:
-                    sqlStr = `${sqlStr} AND pm.end_time <= ?`;
-                    values.push(currTime);
-                    break;
+            case BasicCollectionStatus.Upcoming:
+                sqlStr = `${sqlStr} AND pm.begin_time >= ?`;
+                values.push(currTime);
+                break;
+            case BasicCollectionStatus.Live:
+                sqlStr = `${sqlStr} AND pm.begin_time <= ? AND ? <= pm.end_time`;
+                values.push(currTime);
+                values.push(currTime);
+                break;
+            case BasicCollectionStatus.Expired:
+                sqlStr = `${sqlStr} AND pm.end_time <= ?`;
+                values.push(currTime);
+                break;
             }
         }
         const rsp = await this.pgClient.query<TotalRecord>(sqlStr, values);
@@ -243,13 +247,13 @@ export class LandingService {
     }
 
     async getRankingOfCreators(args: LandingPageRankingOfCreatorsReqDto): Promise<LandingPageRankingOfCreatorsRspDto> {
-        let rsp: LandingPageRankingOfCreatorsRspDto = {
+        const rsp: LandingPageRankingOfCreatorsRspDto = {
             data: [],
             total: await (await this.countRankingOfCreator(args)).total,
         };
         const data = await this.findManyRankingOfCreators(args);
-        for (let item of data) {
-            let user: BasicWalletInfo = {
+        for (const item of data) {
+            const user: BasicWalletInfo = {
                 address: item.user_address,
                 name: item.user_name,
                 description: item.user_description,
@@ -260,7 +264,7 @@ export class LandingService {
                 customUrl: item.user_customurl,
             };
 
-            let volume: BasicPriceInfo = {
+            const volume: BasicPriceInfo = {
                 price: item.total_price,
                 token: item.payment_token,
                 chainId: 137,
@@ -293,7 +297,7 @@ export class LandingService {
             1=1
         `;
 
-        let values: any[] = [];
+        const values: unknown[] = [];
         if (args.startTime) {
             sqlStr = `${sqlStr} AND pmr.tx_time >= ?`;
             values.push(args.startTime);
@@ -336,7 +340,7 @@ export class LandingService {
            1=1
        `;
 
-        let values: any[] = [];
+        const values: unknown[] = [];
         if (args.startTime) {
             sqlStr = `${sqlStr} AND pmr.tx_time >= ?`;
             values.push(args.startTime);
@@ -350,28 +354,28 @@ export class LandingService {
     }
 
     async getRankingOfItems(args: LandingPageRankingOfItemsReqDto): Promise<LandingPageRankingOfItemsRspDto> {
-        let rsp: LandingPageRankingOfItemsRspDto = {
+        const rsp: LandingPageRankingOfItemsRspDto = {
             data: [],
-            total: await (await this.countRankingOfItems(args)).total,
+            total: await (await this.countRankingOfItems()).total,
         };
 
-        let data = await this.findManyRankingOfItems(args);
-        for (let item of data) {
+        const data = await this.findManyRankingOfItems(args);
+        for (const item of data) {
             const tiersArr = Object(item.tiers) as ITier[];
             const offchainTier = tiersArr.filter((t) => t.tierId == item.tier_id);
 
-            let attributes: BasicAttributeInfo[] = [];
+            const attributes: BasicAttributeInfo[] = [];
             if (offchainTier.length > 0 && offchainTier[0].attributes) {
-                for (let a of offchainTier[0].attributes) {
+                for (const a of offchainTier[0].attributes) {
                     attributes.push({
                         displayType: a.displayType,
-                        value: a.value,
+                        value: a.value as string,
                         traitType: a.traitType,
                     });
                 }
             }
 
-            let tier: BasicTierInfo = {
+            const tier: BasicTierInfo = {
                 collection: item.address,
                 name: offchainTier.length > 0 ? offchainTier[0].name : '',
                 description: offchainTier.length > 0 ? offchainTier[0].description : '',
@@ -388,7 +392,7 @@ export class LandingService {
                 attributes: attributes,
             };
 
-            let collection: BasicCollectionInfo = {
+            const collection: BasicCollectionInfo = {
                 name: item.name,
                 description: item.description,
                 avatar: item.avatar,
@@ -427,7 +431,7 @@ export class LandingService {
             pm.current_id != pm.start_id
         `;
 
-        let values: any[] = [];
+        const values: unknown[] = [];
         sqlStr += ' GROUP BY c.id,pm.payment_token,pm.begin_time,pm.end_time,pm.tier,pm.start_id,pm.end_id,pm.current_id,pm.price';
         sqlStr += ' ORDER BY pm.current_id - pm.start_id DESC';
         if (args.skip) {
@@ -442,8 +446,8 @@ export class LandingService {
         return rsp;
     }
 
-    async countRankingOfItems(args: LandingPageRankingOfItemsReqDto) {
-        let sqlStr = `
+    async countRankingOfItems() {
+        const sqlStr = `
         SELECT
            COUNT(DISTINCT(pm.id)) AS total
         FROM
@@ -456,7 +460,7 @@ export class LandingService {
            pm.current_id != pm.start_id
        `;
 
-        let values: any[] = [];
+        const values: unknown[] = [];
         const rsp = await this.pgClient.query<TotalRecord>(sqlStr, values);
         return rsp;
     }

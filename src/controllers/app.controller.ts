@@ -1,10 +1,10 @@
-import { Controller, Get, Param, Req } from '@nestjs/common';
+import { Controller, Get, Param, Query, Req } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Public } from '../lib/decorators/public.decorator.js';
-import { VTxStatusReqDto } from '../dto/app.dto.js';
-import { IResponse, ResponseInternalError, ResponseSucc } from '../lib/interfaces/response.interface.js';
-import { AppService } from '../services/app.service.js';
 import { Request } from 'express';
+import { FactoryConfigReqDto, FactoryConfigRspDto, VTxStatusReqDto } from '../dto/app.dto';
+import { Public } from '../lib/decorators/public.decorator';
+import { IResponse, ResponseInternalError, ResponseSucc } from '../lib/interfaces/response.interface';
+import { AppService } from '../services/app.service';
 
 @Public() // decorator: this api is public, no identity verification required
 @ApiTags('App') // swagger tag category
@@ -33,6 +33,23 @@ export class AppController {
     async getTxStatus(@Req() req: Request, @Param() params: VTxStatusReqDto): Promise<IResponse> {
         try {
             const rsp = await this.appService.getTxStatus(params.chain, params.txHash);
+            return new ResponseSucc(rsp);
+        } catch (err) {
+            return new ResponseInternalError((err as Error).message);
+        }
+    }
+
+    @Public()
+    @ApiResponse({
+        status: 200,
+        description: 'get factory config',
+        type: FactoryConfigRspDto,
+    })
+    @Get('/get_factory_config')
+    async getFactoryConfig(@Req() req: Request, @Query() params: FactoryConfigReqDto): Promise<IResponse> {
+        try {
+            // const rsp = await this.appService.getTxStatus(params.chain, params.txHash);
+            const rsp = await this.appService.getFactoryConfig(params);
             return new ResponseSucc(rsp);
         } catch (err) {
             return new ResponseInternalError((err as Error).message);

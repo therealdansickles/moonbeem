@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { VIPriceType, VUserWalletInfo } from '../dto/auth.dto.js';
-import { VFollowingInfo, VUpdateUserWalletReqDto, VUserFollowingListReqDto, VUserFollowingListRspDto } from '../dto/user.wallet.dto.js';
-import { PostgresAdapter } from '../lib/adapters/postgres.adapter.js';
-import { IAttribute } from '../lib/interfaces/main.interface.js';
-import { TbPreMint, TbPreMintRecord, TbUserWallet, TbUserWalletFollowing, UserWallet, UserWalletFollowing } from '../lib/modules/db.module.js';
-import { TokenPrice, TotalRecord, UserFollowingRec } from '../lib/modules/db.record.module.js';
+import { VUserWalletInfo, VIPriceType } from '../dto/auth.dto';
+import { VUpdateUserWalletReqDto, VUserFollowingListReqDto, VUserFollowingListRspDto } from '../dto/user.wallet.dto';
+import { PostgresAdapter } from '../lib/adapters/postgres.adapter';
+import { IAttribute } from '../lib/interfaces/main.interface';
+import { UserWalletFollowing, UserWallet, TbUserWallet, TbUserWalletFollowing, TbPreMintRecord, TbPreMint } from '../lib/modules/db.module';
+import { TotalRecord, UserFollowingRec, TokenPrice } from '../lib/modules/db.record.module';
 import { v4 as uuidV4 } from 'uuid';
-import { AuthPayload } from './auth.service.js';
+import { AuthPayload } from './auth.service';
 
 @Injectable()
 export class UserWalletService {
@@ -80,7 +80,7 @@ export class UserWalletService {
      * @returns user wallet info
      */
     async getUserWalletInfo(address: string): Promise<VUserWalletInfo> {
-        let userWallet = await this.findOne(address);
+        const userWallet = await this.findOne(address);
         if (!userWallet) return null;
 
         // get follower count and following count
@@ -116,7 +116,7 @@ export class UserWalletService {
      */
     async updateAddresInfo(id: string, p: VUpdateUserWalletReqDto) {
         // generate update params
-        let _update: IAttribute[] = [];
+        const _update: IAttribute[] = [];
         if (p.name != undefined) {
             if (p.name == '') throw new Error('name can not be null');
             _update.push({ traitType: 'name', value: p.name });
@@ -134,18 +134,18 @@ export class UserWalletService {
     }
 
     async getUserFollowingList(args: VUserFollowingListReqDto, payload?: AuthPayload): Promise<VUserFollowingListRspDto> {
-        let userWallet = await this.findOne(args.address.toLocaleLowerCase());
+        const userWallet = await this.findOne(args.address.toLocaleLowerCase());
         if (!userWallet) throw new Error('address not found');
 
-        let rsp: VUserFollowingListRspDto = {
+        const rsp: VUserFollowingListRspDto = {
             data: [],
             total: await (await this.countUserFollowingList(userWallet.id)).total,
         };
 
         const data = await this.findManyUserFollowingList(userWallet.id, args.skip, args.take);
-        for (let d of data) {
-            let followerCount = await this.countUserFollower(d.id);
-            let followingCount = await this.countUserFollowing(d.id);
+        for (const d of data) {
+            const followerCount = await this.countUserFollower(d.id);
+            const followingCount = await this.countUserFollowing(d.id);
 
             let rec: UserWalletFollowing;
             if (payload) {
@@ -165,18 +165,18 @@ export class UserWalletService {
     }
 
     async getUserFollowerList(args: VUserFollowingListReqDto, payload?: AuthPayload): Promise<VUserFollowingListRspDto> {
-        let userWallet = await this.findOne(args.address.toLocaleLowerCase());
+        const userWallet = await this.findOne(args.address.toLocaleLowerCase());
         if (!userWallet) throw new Error('address not found');
 
-        let rsp: VUserFollowingListRspDto = {
+        const rsp: VUserFollowingListRspDto = {
             data: [],
             total: await (await this.countUserFollowerList(userWallet.id)).total,
         };
 
         const data = await this.findManyUserFollowerList(userWallet.id, args.skip, args.take);
-        for (let d of data) {
-            let followerCount = await this.countUserFollower(d.id);
-            let followingCount = await this.countUserFollowing(d.id);
+        for (const d of data) {
+            const followerCount = await this.countUserFollower(d.id);
+            const followingCount = await this.countUserFollowing(d.id);
             let rec: UserWalletFollowing;
             if (payload) {
                 rec = await this.findOneUserFollow(payload.id, d.id);
@@ -196,14 +196,14 @@ export class UserWalletService {
 
     // CRUD: UserWallet
     async findOne(address: string): Promise<UserWallet | undefined> {
-        let sqlStr = `SELECT * FROM "${TbUserWallet}" WHERE address=?`;
+        const sqlStr = `SELECT * FROM "${TbUserWallet}" WHERE address=?`;
         const rsp = await this.pgClient.query<UserWallet>(sqlStr, [address.toLowerCase()]);
         return rsp;
     }
 
     async createOne(address: string, type?: string) {
-        let sqlStr = `INSERT INTO "${TbUserWallet}" (id,address,name,"walletType") VALUES(?,?,?,?)`;
-        let values: any[] = [];
+        const sqlStr = `INSERT INTO "${TbUserWallet}" (id,address,name,"walletType") VALUES(?,?,?,?)`;
+        const values: unknown[] = [];
         values.push(uuidV4());
         values.push(address.toLowerCase());
         values.push(address.toLowerCase());
@@ -213,14 +213,14 @@ export class UserWalletService {
     }
 
     async updateOne(id: string, params: IAttribute[]) {
-        let _updater: string[] = [];
-        let values: any[] = [];
-        for (let param of params) {
+        const _updater: string[] = [];
+        const values: unknown[] = [];
+        for (const param of params) {
             _updater.push(`"${param.traitType}"=?`);
             values.push(param.value);
         }
 
-        let sqlStr = `UPDATE "${TbUserWallet}" SET ${_updater.join(',')} WHERE id=? `;
+        const sqlStr = `UPDATE "${TbUserWallet}" SET ${_updater.join(',')} WHERE id=? `;
         values.push(id);
         const rsp = await this.pgClient.query<UserWallet>(sqlStr, values);
         return rsp;
@@ -228,8 +228,8 @@ export class UserWalletService {
 
     // CRUD: UserWalletFollowing
     async findOneUserFollow(wallet: string, following: string) {
-        let sqlStr = `SELECT * FROM "${TbUserWalletFollowing}" WHERE wallet = ? AND "followingWallet" = ?`;
-        let values: any[] = [];
+        const sqlStr = `SELECT * FROM "${TbUserWalletFollowing}" WHERE wallet = ? AND "followingWallet" = ?`;
+        const values: unknown[] = [];
         values.push(wallet);
         values.push(following);
         const rsp = await this.pgClient.query<UserWalletFollowing>(sqlStr, values);
@@ -237,8 +237,8 @@ export class UserWalletService {
     }
 
     async createOneUserFollow(wallet: string, following: string, isFollow: boolean) {
-        let sqlStr = `INSERT INTO "${TbUserWalletFollowing}" (id,wallet,"followingWallet","isFollow") VALUES(?,?,?,?)`;
-        let values: any[] = [];
+        const sqlStr = `INSERT INTO "${TbUserWalletFollowing}" (id,wallet,"followingWallet","isFollow") VALUES(?,?,?,?)`;
+        const values: unknown[] = [];
         values.push(uuidV4());
         values.push(wallet);
         values.push(following);
@@ -248,8 +248,8 @@ export class UserWalletService {
     }
 
     async updateOneUserFollow(id: string, isFollow: boolean) {
-        let sqlStr = `UPDATE "${TbUserWalletFollowing}" SET "isFollow"=? WHERE id=?`;
-        let values: any[] = [];
+        const sqlStr = `UPDATE "${TbUserWalletFollowing}" SET "isFollow"=? WHERE id=?`;
+        const values: unknown[] = [];
         values.push(isFollow);
         values.push(id);
         console.log(sqlStr);
@@ -258,13 +258,13 @@ export class UserWalletService {
     }
 
     async countUserFollower(id: string) {
-        let sqlStr = `SELECT COUNT(*) AS total FROM "${TbUserWalletFollowing}" WHERE "followingWallet"=? and "isFollow"=true`;
+        const sqlStr = `SELECT COUNT(*) AS total FROM "${TbUserWalletFollowing}" WHERE "followingWallet"=? and "isFollow"=true`;
         const rsp = await this.pgClient.query<TotalRecord>(sqlStr, [id]);
         return rsp;
     }
 
     async countUserFollowing(id: string) {
-        let sqlStr = `SELECT COUNT(*) AS total FROM "${TbUserWalletFollowing}" WHERE wallet=? and "isFollow"=true`;
+        const sqlStr = `SELECT COUNT(*) AS total FROM "${TbUserWalletFollowing}" WHERE wallet=? and "isFollow"=true`;
         const rsp = await this.pgClient.query<TotalRecord>(sqlStr, [id]);
         return rsp;
     }
@@ -283,7 +283,7 @@ export class UserWalletService {
             uwf.wallet=?
         AND
             uwf."isFollow"=true `;
-        let values: any[] = [];
+        const values: unknown[] = [];
         values.push(id);
         if (offset) {
             sqlStr = `${sqlStr} OFFSET ${offset}`;
@@ -298,7 +298,7 @@ export class UserWalletService {
     }
 
     async countUserFollowingList(id: string) {
-        let sqlStr = `
+        const sqlStr = `
         SELECT
             COUNT(*) AS total
         FROM
@@ -329,7 +329,7 @@ export class UserWalletService {
             uwf."followingWallet"=?
         AND
             uwf."isFollow"=true`;
-        let values: any[] = [];
+        const values: unknown[] = [];
         values.push(id);
         if (offset) {
             sqlStr = `${sqlStr} OFFSET ${offset}`;
@@ -344,7 +344,7 @@ export class UserWalletService {
     }
 
     async countUserFollowerList(id: string) {
-        let sqlStr = `
+        const sqlStr = `
         SELECT
             COUNT(*) AS total
         FROM
@@ -363,19 +363,19 @@ export class UserWalletService {
 
     // CRUD: Other
     async countTotalNft(address: string) {
-        let sqlStr = `SELECT COUNT(*) AS total FROM "${TbPreMintRecord}" WHERE recipient = ?`;
+        const sqlStr = `SELECT COUNT(*) AS total FROM "${TbPreMintRecord}" WHERE recipient = ?`;
         const rsp = await this.pgClient.query<TotalRecord>(sqlStr, [address]);
         return rsp;
     }
 
     async countTotalFans(address: string) {
-        let sqlStr = `SELECT COUNT(DISTINCT(pmr.recipient)) AS total FROM "${TbPreMintRecord}" AS pmr LEFT JOIN "${TbPreMint}" AS pm ON pmr.contract=pm.contract AND pmr.tier=pm.tier WHERE pm."owner"=?`;
+        const sqlStr = `SELECT COUNT(DISTINCT(pmr.recipient)) AS total FROM "${TbPreMintRecord}" AS pmr LEFT JOIN "${TbPreMint}" AS pm ON pmr.contract=pm.contract AND pmr.tier=pm.tier WHERE pm."owner"=?`;
         const rsp = await this.pgClient.query<TotalRecord>(sqlStr, [address]);
         return rsp;
     }
 
     async getEstimates(address: string) {
-        let sqlStr = `
+        const sqlStr = `
         SELECT
             pmr.payment_token AS token,SUM(pmr.price::decimal(30,0)) AS price
         FROM

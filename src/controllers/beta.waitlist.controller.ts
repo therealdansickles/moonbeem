@@ -1,10 +1,8 @@
-import { Controller, DefaultValuePipe, Get, Inject, Param, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, DefaultValuePipe, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
-import { NftscanEvm } from 'nftscan-api';
-import { VBetaWaitlistLeaderboardRsp, VBetaWaitlistScoreRsp, VGetAddressScoreReq } from '../dto/beta.waitlist.dto.js';
-import { Public } from '../lib/decorators/public.decorator.js';
-import { AppService } from '../services/app.service.js';
-import { BetaWaitlistService } from '../services/beta.waitlist.service.js';
+import { VBetaWaitlistLeaderboardRsp, VBetaWaitlistScoreRsp, VGetAddressScoreReq } from '../dto/beta.waitlist.dto';
+import { Public } from '../lib/decorators/public.decorator';
+import { BetaWaitlistService } from '../services/beta.waitlist.service';
 
 @ApiTags('BetaWaitlist')
 @Controller({

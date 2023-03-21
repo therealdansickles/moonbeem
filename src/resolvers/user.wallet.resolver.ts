@@ -1,10 +1,10 @@
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { VUserWalletInfo } from '../dto/auth.dto.js';
-import { VFollowUserWalletReqDto, VGetAddressReqDto, VUpdateUserWalletReqDto, VUserFollowerListReqDto, VUserFollowerListRspDto, VUserFollowingListReqDto, VUserFollowingListRspDto } from '../dto/user.wallet.dto.js';
-import { Public } from '../lib/decorators/public.decorator.js';
-import { AuthPayload } from '../services/auth.service.js';
-import { JWTService } from '../services/jwt.service.js';
-import { UserWalletService } from '../services/user.wallet.service.js';
+import { VUserWalletInfo } from '../dto/auth.dto';
+import { VGetAddressReqDto, VFollowUserWalletReqDto, VUpdateUserWalletReqDto, VUserFollowingListRspDto, VUserFollowingListReqDto, VUserFollowerListRspDto, VUserFollowerListReqDto } from '../dto/user.wallet.dto';
+import { Public } from '../lib/decorators/public.decorator';
+import { AuthPayload } from '../services/auth.service';
+import { JWTService } from '../services/jwt.service';
+import { UserWalletService } from '../services/user.wallet.service';
 
 @Resolver('UserWallet')
 export class UserWalletResolver {
@@ -19,14 +19,14 @@ export class UserWalletResolver {
     }
 
     @Mutation(() => Boolean)
-    async followUserWallet(@Context('req') req: any, @Args() args: VFollowUserWalletReqDto): Promise<Boolean> {
+    async followUserWallet(@Context('req') req: any, @Args() args: VFollowUserWalletReqDto): Promise<boolean> {
         const payload = req.user as AuthPayload;
-        var rsp = await this.userWalletService.followUserWallet(payload, args.address.toLowerCase(), args.isFollowed);
+        const rsp = await this.userWalletService.followUserWallet(payload, args.address.toLowerCase(), args.isFollowed);
         return rsp;
     }
 
     @Mutation(() => Boolean)
-    async updateAddressInfo(@Context('req') req: any, @Args() args: VUpdateUserWalletReqDto): Promise<Boolean> {
+    async updateAddressInfo(@Context('req') req: any, @Args() args: VUpdateUserWalletReqDto): Promise<boolean> {
         const payload = req.user as AuthPayload;
         const rsp = await this.userWalletService.updateAddresInfo(payload.id, args);
         return rsp;

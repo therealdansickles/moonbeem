@@ -3,21 +3,21 @@ import { ethers } from 'ethers';
 import { GraphQLError, Kind, ValueNode } from 'graphql';
 
 @Scalar('EthereumAddress')
-export class EthereumAddress implements CustomScalar<string, String> {
+export class EthereumAddress implements CustomScalar<string, string> {
     description = 'Ethereum Address custom scalar type';
 
-    parseValue(value: string): String {
+    parseValue(value: string): string {
         if (ethers.utils.isAddress(value)) {
             return value.toLowerCase();
         }
         throw new GraphQLError(`EthereumAddress cannot represent a non ethereum address value: ${value}`);
     }
 
-    serialize(value: String): string {
+    serialize(value: string): string {
         return value.toLowerCase();
     }
 
-    parseLiteral(ast: ValueNode): String {
+    parseLiteral(ast: ValueNode): string {
         if (ast.kind === Kind.STRING) {
             return ast.value.toLowerCase();
         }
