@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsEthereumAddress, IsInt, IsNumber, IsNumberString, IsOptional, IsString } from 'class-validator';
 import { EthereumAddress } from '../lib/scalars/eth.scalar';
+import { BasicCollectionInfo, BasicErc721Info, BasicPagingParams, BasicPriceInfo, BasicTierInfo } from './basic.dto';
 
 @ArgsType()
 @ObjectType()
@@ -236,10 +237,10 @@ export class VAddressHoldingRspDto {
     readonly total: number;
 }
 
-// activity start
+// MarketAddressActivities
 @ArgsType()
 @ObjectType()
-export class VActivityReqDto {
+export class MarketAddressActivitiesReqDto extends BasicPagingParams {
     @Field(() => EthereumAddress)
     @ApiProperty({
         example: '0x9A70b15c2936d440c82Eb988A20F11ef2cd79395',
@@ -248,50 +249,38 @@ export class VActivityReqDto {
     readonly address: string;
 
     @Field(() => Int, { nullable: true, defaultValue: 0 })
-    @ApiProperty({
-        nullable: true,
-        default: 0,
-    })
+    @ApiProperty({ nullable: true, default: 0 })
     @Type(() => Number)
     @IsNumber()
-    readonly skip?: number;
-
-    @Field(() => Int, { nullable: true, defaultValue: 10 })
-    @ApiProperty({ nullable: true, default: 10 })
-    @IsNumber()
-    @Type(() => Number)
-    readonly take?: number;
+    readonly chainId?: number = 0;
 }
 
-export enum VActivityStatus {
+export enum MarketAddressActivityStatus {
     Mint = 'Minted',
     Transfer = 'Transfer',
 }
 
 @ObjectType()
-export class VActivityInfo {
-    @Field(() => EthereumAddress)
-    @ApiProperty()
-    @IsEthereumAddress()
-    readonly token: string;
+export class MarketAddressActivityData {
+    @Field(() => BasicCollectionInfo)
+    @ApiProperty({ type: BasicCollectionInfo })
+    readonly collection: BasicCollectionInfo;
 
-    @Field()
-    @ApiProperty()
-    @IsString()
-    readonly tokenId: string;
+    @Field(() => BasicErc721Info)
+    @ApiProperty({ type: BasicErc721Info })
+    readonly nft: BasicErc721Info;
 
-    @Field()
-    @ApiProperty()
-    readonly status: VActivityStatus;
+    @Field(() => BasicTierInfo)
+    @ApiProperty({ type: BasicTierInfo })
+    readonly tier: BasicTierInfo;
 
-    @Field(() => VICollectionType)
-    @ApiProperty()
-    readonly collection: VICollectionType;
+    @Field(() => VSecondaryMarketView)
+    @ApiProperty({ type: VSecondaryMarketView })
+    readonly secondary: VSecondaryMarketView;
 
-    @Field(() => EthereumAddress)
-    @ApiProperty()
-    @IsEthereumAddress()
-    readonly owner: string;
+    @Field(() => BasicPriceInfo)
+    @ApiProperty({ type: BasicPriceInfo })
+    readonly currentPrice: BasicPriceInfo;
 
     @Field(() => EthereumAddress)
     @ApiProperty()
@@ -300,33 +289,7 @@ export class VActivityInfo {
 
     @Field()
     @ApiProperty()
-    @IsString()
-    readonly name: string;
-
-    @Field()
-    @ApiProperty()
-    @IsString()
-    readonly avatar: string;
-
-    @Field()
-    @ApiProperty()
-    @IsString()
-    readonly description: string;
-
-    @Field(() => VSecondaryMarketView)
-    @ApiProperty({ type: VSecondaryMarketView })
-    readonly secondary: VSecondaryMarketView;
-
-    @Field(() => [VITierAttr])
-    @ApiProperty({
-        type: [VITierAttr],
-    })
-    readonly attributes: VITierAttr[];
-
-    @Field()
-    @ApiProperty()
-    @IsNumberString()
-    readonly currentPrice: string;
+    readonly status: MarketAddressActivityStatus;
 
     @Field(() => [String], { nullable: true })
     @ApiProperty({ type: [String], nullable: true })
@@ -334,24 +297,24 @@ export class VActivityInfo {
 }
 
 @ObjectType()
-export class VActivityRspDto {
-    @Field(() => [VActivityInfo])
+export class MarketAddressActivitiesRspDto {
+    @Field(() => [MarketAddressActivityData])
     @ApiProperty({
-        type: [VActivityInfo],
+        type: [MarketAddressActivityData],
     })
-    readonly data: VActivityInfo[];
+    readonly data: MarketAddressActivityData[];
 
     @Field(() => Int)
     @ApiProperty()
+    @Type(() => Number)
     @IsNumber()
     readonly total: number;
 }
-// activity end
 
 // released start
 @ArgsType()
 @ObjectType()
-export class VAddressReleasedReqDto {
+export class MarketAddressReleasedReqDto extends BasicPagingParams {
     @Field(() => EthereumAddress)
     @ApiProperty({
         example: '0x9A70b15c2936d440c82Eb988A20F11ef2cd79395',
@@ -360,72 +323,30 @@ export class VAddressReleasedReqDto {
     readonly address: string;
 
     @Field(() => Int, { nullable: true, defaultValue: 0 })
-    @ApiProperty({
-        nullable: true,
-        default: 0,
-    })
+    @ApiProperty({ nullable: true, default: 0 })
     @Type(() => Number)
     @IsNumber()
-    readonly skip?: number;
-
-    @Field(() => Int, { nullable: true, defaultValue: 10 })
-    @ApiProperty({ nullable: true, default: 10 })
-    @IsNumber()
-    @Type(() => Number)
-    readonly take?: number;
+    readonly chainId?: number = 0;
 }
 
 @ObjectType()
-export class ReleasedInfo {
-    @Field(() => VICollectionType)
-    @ApiProperty()
-    readonly collection: VICollectionType;
+export class MarketAddressReleasedData {
+    @Field(() => BasicCollectionInfo)
+    @ApiProperty({ type: BasicCollectionInfo })
+    readonly collection: BasicCollectionInfo;
 
-    @Field(() => EthereumAddress)
-    @ApiProperty()
-    @IsEthereumAddress()
-    readonly token: string;
-
-    @Field()
-    @ApiProperty()
-    @IsString()
-    readonly name: string;
-
-    @Field()
-    @ApiProperty()
-    @IsString()
-    readonly avatar: string;
-
-    @Field()
-    @ApiProperty()
-    @IsString()
-    readonly description: string;
+    @Field(() => BasicTierInfo)
+    @ApiProperty({ type: BasicTierInfo })
+    readonly tier: BasicTierInfo;
 
     @Field(() => Int)
     @ApiProperty()
     @IsNumber()
     readonly quantity: number;
 
-    @Field(() => EthereumAddress)
-    @ApiProperty()
-    @IsEthereumAddress()
-    readonly owner: string;
-
-    @Field(() => Int)
-    @ApiProperty()
-    @IsNumber()
-    readonly tierId: number;
-
-    @Field(() => [VITierAttr])
-    @ApiProperty({
-        type: [VITierAttr],
-    })
-    readonly attributes: VITierAttr[];
-
-    @Field()
-    @ApiProperty()
-    @IsNumberString()
-    readonly currentPrice: string;
+    @Field(() => BasicPriceInfo)
+    @ApiProperty({ type: BasicPriceInfo })
+    readonly currentPrice: BasicPriceInfo;
 
     @Field(() => VSecondaryMarketView)
     @ApiProperty({ type: VSecondaryMarketView })
@@ -434,22 +355,19 @@ export class ReleasedInfo {
     @Field(() => [String], { nullable: true })
     @ApiProperty({ type: [String], nullable: true })
     readonly extensions?: string[];
-
-    @Field(() => VCoin)
-    @ApiProperty({ type: VCoin })
-    readonly priceInfo?: VCoin;
 }
 
 @ObjectType()
-export class VAddressReleasedRspDto {
-    @Field(() => [ReleasedInfo])
+export class MarketAddressReleasedRspDto {
+    @Field(() => [MarketAddressReleasedData])
     @ApiProperty({
-        type: [ReleasedInfo],
+        type: [MarketAddressReleasedData],
     })
-    readonly data: ReleasedInfo[];
+    readonly data: MarketAddressReleasedData[];
 
     @Field(() => Int)
     @ApiProperty()
+    @Type(() => Number)
     @IsNumber()
     readonly total: number;
 }
@@ -501,7 +419,7 @@ export class VCollectionActivityInfo {
 
     @Field()
     @ApiProperty()
-    readonly status: VActivityStatus;
+    readonly status: MarketAddressActivityStatus;
 
     @Field(() => VICollectionType)
     @ApiProperty()
@@ -572,21 +490,21 @@ export class VGlobalSearchReqDto {
     @Field()
     @ApiProperty()
     @IsString()
-        searchTerm: string;
+    searchTerm: string;
 
     @Field()
     @ApiProperty()
     @IsInt()
     @Type(() => Number)
     @IsOptional()
-        page?: number;
+    page?: number;
 
     @Field()
     @ApiProperty()
     @IsInt()
     @Type(() => Number)
     @IsOptional()
-        pageSize?: number;
+    pageSize?: number;
 }
 
 @ObjectType()
@@ -594,24 +512,24 @@ export class VSearchCollectionItem {
     @Field()
     @ApiProperty()
     @IsString()
-        name: string;
+    name: string;
 
     @Field()
     @ApiProperty()
     @IsString()
     @IsOptional()
-        image: string;
+    image: string;
 
     @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
-        collection: string;
+    collection: string;
 
     @Field()
     @ApiProperty()
     @IsNumber()
     @IsOptional()
-        itemsCount: number;
+    itemsCount: number;
 }
 
 @ObjectType()
@@ -619,18 +537,18 @@ export class VSearchAccountItem {
     @Field()
     @ApiProperty()
     @IsString()
-        name: string;
+    name: string;
 
     @Field()
     @ApiProperty()
     @IsString()
     @IsOptional()
-        avatar: string;
+    avatar: string;
 
     @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
-        address: string;
+    address: string;
 }
 
 @ObjectType()
@@ -640,16 +558,16 @@ export class VSearchCollectionRsp {
         type: [VSearchCollectionItem],
     })
     @IsOptional()
-        data: VSearchCollectionItem[];
+    data: VSearchCollectionItem[];
 
     @ApiProperty()
     @IsBoolean()
-        isLastPage: boolean;
+    isLastPage: boolean;
 
     @ApiProperty()
     @IsNumber()
     @Type(() => Number)
-        total: number;
+    total: number;
 }
 
 @ObjectType()
@@ -659,16 +577,16 @@ export class VSearchAccountRsp {
         type: [VSearchAccountItem],
     })
     @IsOptional()
-        data: VSearchAccountItem[];
+    data: VSearchAccountItem[];
 
     @ApiProperty()
     @IsBoolean()
-        isLastPage: boolean;
+    isLastPage: boolean;
 
     @ApiProperty()
     @IsNumber()
     @Type(() => Number)
-        total: number;
+    total: number;
 }
 
 @ObjectType()
@@ -676,9 +594,9 @@ export class VGlobalSearchRspDto {
     @ApiProperty({
         type: [VSearchCollectionRsp],
     })
-        collections: VSearchCollectionRsp;
+    collections: VSearchCollectionRsp;
     @ApiProperty({
         type: [VSearchAccountRsp],
     })
-        accounts: VSearchAccountRsp;
+    accounts: VSearchAccountRsp;
 }

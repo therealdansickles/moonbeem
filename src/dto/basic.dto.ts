@@ -235,6 +235,24 @@ export class BasicWalletInfo {
     readonly customUrl: string;
 }
 
+@ObjectType()
+export class BasicErc721Info {
+    @Field(() => EthereumAddress)
+    @ApiProperty()
+    @IsEthereumAddress()
+    readonly token: string;
+
+    @Field()
+    @ApiProperty()
+    @IsString()
+    readonly tokenId: string;
+
+    @Field(() => EthereumAddress)
+    @ApiProperty()
+    @IsEthereumAddress()
+    readonly owner: string;
+}
+
 export enum BasicCollectionStatus {
     Upcoming = 'Upcoming',
     Live = 'Live',

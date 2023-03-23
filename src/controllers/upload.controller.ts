@@ -23,7 +23,7 @@ export class UploadController {
     @Post('/asset')
     public async uploadImage(@Req() req: Request, @Body() body: VUploadImageReqDto): Promise<IResponse> {
         try {
-            var rsp = await this.uploadService.handleImage(body);
+            const rsp = await this.uploadService.handleImage(body);
             return new ResponseSucc(rsp);
         } catch (error) {
             return new ResponseInternalError((error as Error).message);

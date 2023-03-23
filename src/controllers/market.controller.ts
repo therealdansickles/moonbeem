@@ -1,7 +1,7 @@
 import { Controller, Get, Query, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { VAddressHoldingRspDto, VAddressHoldingReqDto, VActivityRspDto, VActivityReqDto, VAddressReleasedReqDto, VCollectionActivityRspDto, VCollectionActivityReqDto, VGlobalSearchRspDto, VGlobalSearchReqDto } from '../dto/market.dto';
+import { VAddressHoldingRspDto, VAddressHoldingReqDto, MarketAddressActivitiesRspDto, MarketAddressReleasedRspDto, MarketAddressActivitiesReqDto, MarketAddressReleasedReqDto, VCollectionActivityRspDto, VCollectionActivityReqDto, VGlobalSearchRspDto, VGlobalSearchReqDto } from '../dto/market.dto';
 import { Public } from '../lib/decorators/public.decorator';
 import { IResponse, ResponseSucc, ResponseInternalError } from '../lib/interfaces/response.interface';
 import { JWTService } from '../services/jwt.service';
@@ -31,9 +31,9 @@ export class MarketController {
     }
 
     @Public()
-    @ApiResponse({ type: VActivityRspDto })
+    @ApiResponse({ type: MarketAddressActivitiesRspDto })
     @Get('/get_address_activities')
-    public async getAddressActivities(@Req() req: Request, @Query() args: VActivityReqDto): Promise<IResponse> {
+    public async getAddressActivities(@Req() req: Request, @Query() args: MarketAddressActivitiesReqDto): Promise<IResponse> {
         try {
             const rsp = await this.marketService.getAddressActivities(args);
             return new ResponseSucc(rsp);
@@ -44,10 +44,10 @@ export class MarketController {
 
     @Public()
     @ApiResponse({
-        type: VAddressReleasedReqDto,
+        type: MarketAddressReleasedRspDto,
     })
     @Get('/get_address_released')
-    public async getAddressReleased(@Req() req: Request, @Query() args: VAddressReleasedReqDto): Promise<IResponse> {
+    public async getAddressReleased(@Req() req: Request, @Query() args: MarketAddressReleasedReqDto): Promise<IResponse> {
         try {
             const rsp = await this.marketService.getAddressReleased(args);
             return new ResponseSucc(rsp);

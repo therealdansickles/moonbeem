@@ -36,7 +36,7 @@ export class LandingService {
                 background: item.background,
                 address: item.address,
                 type: item.type,
-                chainId: 137,
+                chainId: item.chain_id ?? 0,
                 orgId: item.org_id,
                 creator: item.creator,
                 paymentToken: item.payment_token,
@@ -53,10 +53,10 @@ export class LandingService {
             const floor: BasicFloorPriceInfo = {
                 price: item.floor_price,
                 token: item.payment_token,
-                chainId: 137,
+                chainId: item.chain_id ?? 0,
             };
 
-            const tiers: BasicTierInfo[] = await this.matchCollectionTiers(item.address, item.tiers);
+            const tiers: BasicTierInfo[] = await this.matchCollectionTiers(item.address, item.chain_id ?? 0, item.tiers);
 
             const att = await this.getAttributeOverview(item.id);
 
@@ -72,10 +72,10 @@ export class LandingService {
         return rsp;
     }
 
-    async matchCollectionTiers(collection: string, tiers: string) {
+    async matchCollectionTiers(collection: string, chainId: number, tiers: string) {
         const tierResult: BasicTierInfo[] = [];
         const tiersArr = Object(tiers) as ITier[];
-        const onchainTiers = await this.getTierInfos(collection, -2);
+        const onchainTiers = await this.getTierInfos(collection, chainId, -2);
 
         for (const tier of tiersArr) {
             const onchainTier = onchainTiers.filter((t) => tier.tierId == t.tier);
@@ -103,7 +103,7 @@ export class LandingService {
                 price: {
                     price: onchainTier[0].price,
                     token: onchainTier[0].payment_token,
-                    chainId: 137,
+                    chainId: onchainTier[0].chain_id ?? 0,
                 },
                 attributes: attributes,
             });
@@ -115,7 +115,7 @@ export class LandingService {
         let sqlStr = `
         SELECT
             uw.address AS user_address,uw.name AS user_name,uw.description AS user_description,uw.avatar AS user_avatar,uw."discordLink" AS user_discord,uw."facebookLink" AS user_facebook,uw."twitterLink" AS user_twitter,uw."customUrl" AS user_customurl,
-            c.id, c."name",c.description,c.avatar,c.background,c.collection AS address,c."type",c.id AS chain_id,c.org_id,c.creator,pm.payment_token,SUM(pm.end_id - pm.start_id + 1) AS total_sypply,pm.begin_time,pm.end_time,
+            c.id, c."name",c.description,c.avatar,c.background,c.collection AS address,c."type",c.chain_id AS chain_id,c.org_id,c.creator,pm.payment_token,SUM(pm.end_id - pm.start_id + 1) AS total_sypply,pm.begin_time,pm.end_time,
             pm.royalty_receiver as royalty_address, pm.royalty_rate,
             MIN(pm.price::decimal(30, 0)) floor_price,
             c.tiers
@@ -137,6 +137,11 @@ export class LandingService {
         if (args.type) {
             sqlStr = `${sqlStr} AND c.type=?`;
             values.push(args.type);
+        }
+
+        if (args.chainId) {
+            sqlStr = `${sqlStr} AND c.chain_id=?`;
+            values.push(args.chainId);
         }
 
         if (args.status) {
@@ -171,11 +176,11 @@ export class LandingService {
         return rsp;
     }
 
-    async getTierInfos(address: string, tier: number) {
+    async getTierInfos(address: string, chainId: number, tier: number) {
         let sqlStr = `
             SELECT
                 pm.owner,pm.contract,pm.begin_time,pm.end_time,pm.tier,
-                pm.start_id,pm.current_id,pm.end_id,pm.payment_token,pm.price
+                pm.start_id,pm.current_id,pm.end_id,pm.payment_token,pm.price,pm.chain_id
             FROM
                 pre_mint AS pm
             WHERE
@@ -183,8 +188,9 @@ export class LandingService {
             `;
 
         const values: unknown[] = [];
-        sqlStr = `${sqlStr} AND pm.contract=?`;
+        sqlStr = `${sqlStr} AND pm.contract=? AND pm.chain_id=?`;
         values.push(address);
+        values.push(chainId);
 
         if (tier != -2) {
             sqlStr = `${sqlStr} AND pm.tier=?`;
@@ -222,6 +228,11 @@ export class LandingService {
         if (args.type) {
             sqlStr = `${sqlStr} AND c.type=?`;
             values.push(args.type);
+        }
+
+        if (args.chainId) {
+            sqlStr = `${sqlStr} AND c.chain_id=?`;
+            values.push(args.chainId);
         }
 
         if (args.status) {
@@ -267,7 +278,7 @@ export class LandingService {
             const volume: BasicPriceInfo = {
                 price: item.total_price,
                 token: item.payment_token,
-                chainId: 137,
+                chainId: item.chain_id,
             };
 
             rsp.data.push({
@@ -282,7 +293,7 @@ export class LandingService {
         let sqlStr = `
         SELECT
             uw.address AS user_address,uw.name AS user_name,uw.description AS user_description,uw.avatar AS user_avatar,uw."discordLink" AS user_discord,uw."facebookLink" AS user_facebook,uw."twitterLink" AS user_twitter,uw."customUrl" AS user_customurl,
-            SUM(pm.price::decimal(30, 0)) AS total_price,pmr.payment_token
+            SUM(pm.price::decimal(30, 0)) AS total_price,pmr.payment_token,pmr.chain_id
         FROM
             pre_mint_record AS pmr
         LEFT JOIN
@@ -306,8 +317,12 @@ export class LandingService {
             sqlStr = `${sqlStr} AND pmr.tx_time <= ?`;
             values.push(args.endTime);
         }
+        if (args.chainId) {
+            sqlStr = `${sqlStr} AND pmr.chain_id=?`;
+            values.push(args.chainId);
+        }
 
-        sqlStr += ' GROUP BY uw.address,uw."name",uw.description,uw.avatar,uw."discordLink",uw."facebookLink",uw."twitterLink",uw."customUrl",pmr.payment_token';
+        sqlStr += ' GROUP BY uw.address,uw."name",uw.description,uw.avatar,uw."discordLink",uw."facebookLink",uw."twitterLink",uw."customUrl",pmr.payment_token,pmr.chain_id';
         sqlStr += ' ORDER BY total_price DESC';
 
         if (args.skip) {
@@ -349,6 +364,10 @@ export class LandingService {
             sqlStr = `${sqlStr} AND pmr.tx_time <= ?`;
             values.push(args.endTime);
         }
+        if (args.chainId) {
+            sqlStr = `${sqlStr} AND pmr.chain_id=?`;
+            values.push(args.chainId);
+        }
         const rsp = await this.pgClient.query<TotalRecord>(sqlStr, values);
         return rsp;
     }
@@ -356,7 +375,7 @@ export class LandingService {
     async getRankingOfItems(args: LandingPageRankingOfItemsReqDto): Promise<LandingPageRankingOfItemsRspDto> {
         const rsp: LandingPageRankingOfItemsRspDto = {
             data: [],
-            total: await (await this.countRankingOfItems()).total,
+            total: await (await this.countRankingOfItems(args)).total,
         };
 
         const data = await this.findManyRankingOfItems(args);
@@ -387,7 +406,7 @@ export class LandingService {
                 price: {
                     price: item.tier_price,
                     token: item.payment_token,
-                    chainId: 137,
+                    chainId: item.chain_id,
                 },
                 attributes: attributes,
             };
@@ -399,7 +418,7 @@ export class LandingService {
                 background: item.background,
                 address: item.address,
                 type: item.type,
-                chainId: 137,
+                chainId: item.chain_id,
                 orgId: item.org_id,
                 creator: item.creator,
                 paymentToken: item.payment_token,
@@ -420,7 +439,7 @@ export class LandingService {
         let sqlStr = `
         SELECT
             pm.tier AS tier_id,pm.start_id AS tier_startid,pm.end_id AS tier_endid,pm.current_id AS tier_currentid,pm.price AS tier_price,
-            c.id, c."name",c.description,c.avatar,c.background,c.collection AS address,c."type",c.id AS chain_id,c.org_id,c.creator,pm.payment_token,SUM(pm.end_id - pm.start_id + 1) AS total_sypply,pm.begin_time,pm.end_time,c.tiers
+            c.id, c."name",c.description,c.avatar,c.background,c.collection AS address,c."type",c.chain_id AS chain_id,c.org_id,c.creator,pm.payment_token,SUM(pm.end_id - pm.start_id + 1) AS total_sypply,pm.begin_time,pm.end_time,c.tiers
         FROM
             pre_mint AS pm
         LEFT JOIN
@@ -432,6 +451,11 @@ export class LandingService {
         `;
 
         const values: unknown[] = [];
+        if (args.chainId) {
+            sqlStr = `${sqlStr} AND c.chain_id=?`;
+            values.push(args.chainId);
+        }
+
         sqlStr += ' GROUP BY c.id,pm.payment_token,pm.begin_time,pm.end_time,pm.tier,pm.start_id,pm.end_id,pm.current_id,pm.price';
         sqlStr += ' ORDER BY pm.current_id - pm.start_id DESC';
         if (args.skip) {
@@ -446,8 +470,8 @@ export class LandingService {
         return rsp;
     }
 
-    async countRankingOfItems() {
-        const sqlStr = `
+    async countRankingOfItems(args: LandingPageRankingOfItemsReqDto) {
+        let sqlStr = `
         SELECT
            COUNT(DISTINCT(pm.id)) AS total
         FROM
@@ -461,6 +485,10 @@ export class LandingService {
        `;
 
         const values: unknown[] = [];
+        if (args) {
+            sqlStr = `${sqlStr} AND c.chain_id=?`;
+            values.push(args.chainId);
+        }
         const rsp = await this.pgClient.query<TotalRecord>(sqlStr, values);
         return rsp;
     }

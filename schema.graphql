@@ -125,6 +125,12 @@ type BasicWalletInfo {
   customUrl: String!
 }
 
+type BasicErc721Info {
+  token: EthereumAddress!
+  tokenId: String!
+  owner: EthereumAddress!
+}
+
 type LandingPageCollectionData {
   creator: BasicWalletInfo!
   collection: BasicCollectionInfo!
@@ -132,6 +138,7 @@ type LandingPageCollectionData {
   floorPrice: BasicFloorPriceInfo!
   tiers: [BasicTierInfo!]!
   attributeOverview: JSONObject!
+  chainId: Int
 }
 
 """
@@ -220,45 +227,33 @@ type VAddressHoldingRspDto {
   total: Int!
 }
 
-type VActivityInfo {
-  token: EthereumAddress!
-  tokenId: String!
-  status: String!
-  collection: VICollectionType!
-  owner: EthereumAddress!
-  recipient: EthereumAddress!
-  name: String!
-  avatar: String!
-  description: String!
+type MarketAddressActivityData {
+  collection: BasicCollectionInfo!
+  nft: BasicErc721Info!
+  tier: BasicTierInfo!
   secondary: VSecondaryMarketView!
-  attributes: [VITierAttr!]!
-  currentPrice: String!
+  currentPrice: BasicPriceInfo!
+  recipient: EthereumAddress!
+  status: String!
   extensions: [String!]
 }
 
-type VActivityRspDto {
-  data: [VActivityInfo!]!
+type MarketAddressActivitiesRspDto {
+  data: [MarketAddressActivityData!]!
   total: Int!
 }
 
-type ReleasedInfo {
-  collection: VICollectionType!
-  token: EthereumAddress!
-  name: String!
-  avatar: String!
-  description: String!
+type MarketAddressReleasedData {
+  collection: BasicCollectionInfo!
+  tier: BasicTierInfo!
   quantity: Int!
-  owner: EthereumAddress!
-  tierId: Int!
-  attributes: [VITierAttr!]!
-  currentPrice: String!
+  currentPrice: BasicPriceInfo!
   secondary: VSecondaryMarketView!
   extensions: [String!]
-  priceInfo: VCoin!
 }
 
-type VAddressReleasedRspDto {
-  data: [ReleasedInfo!]!
+type MarketAddressReleasedRspDto {
+  data: [MarketAddressReleasedData!]!
   total: Int!
 }
 
@@ -303,17 +298,17 @@ scalar EthereumAddress
 type Query {
   getHealth: String!
   getTxStatus(chain: String!, txHash: String!): Boolean!
-  getFactoryConfig(chainId: String = ""): FactoryConfigRspDto!
+  getFactoryConfig(chainId: Int = 0): FactoryConfigRspDto!
   getAddressInfo(address: EthereumAddress!): VUserWalletInfo!
   getUserFollowingList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowingListRspDto!
   getUserFollowerList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowerListRspDto!
   getAddressHoldings(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VAddressHoldingRspDto!
-  getAddressActivities(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VActivityRspDto!
-  getAddressReleased(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VAddressReleasedRspDto!
+  getAddressActivities(skip: Int = 0, take: Int = 10, address: EthereumAddress!, chainId: Int = 0): MarketAddressActivitiesRspDto!
+  getAddressReleased(skip: Int = 0, take: Int = 10, address: EthereumAddress!, chainId: Int = 0): MarketAddressReleasedRspDto!
   getCollectionActivities(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VCollectionActivityRspDto!
-  getLandingPageCollections(skip: Int = 0, take: Int = 10, status: BasicCollectionStatus, type: BasicCollectionType): LandingPageCollectionRspDto!
-  getRankingOfCreators(skip: Int = 0, take: Int = 10, startTime: Int = 0, endTime: Int = 0): LandingPageRankingOfCreatorsRspDto!
-  getRankingOfItems(skip: Int = 0, take: Int = 10): LandingPageRankingOfItemsRspDto!
+  getLandingPageCollections(skip: Int = 0, take: Int = 10, status: BasicCollectionStatus, type: BasicCollectionType, chainId: Int = 0): LandingPageCollectionRspDto!
+  getRankingOfCreators(skip: Int = 0, take: Int = 10, startTime: Int = 0, endTime: Int = 0, chainId: Int = 0): LandingPageRankingOfCreatorsRspDto!
+  getRankingOfItems(skip: Int = 0, take: Int = 10, chainId: Int = 0): LandingPageRankingOfItemsRspDto!
 }
 
 enum BasicCollectionStatus {

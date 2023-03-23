@@ -40,6 +40,7 @@ export interface IPreMint {
     start_id: number;
     current_id: number;
     end_id: number;
+    chain_id: number;
     payment_token: string;
 }
 

@@ -1,6 +1,6 @@
 import { ArgsType, Field, Int, ObjectType } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 @ArgsType() // graphql: mark it as params class
@@ -24,11 +24,11 @@ export class VTxStatusReqDto {
 
 @ArgsType()
 export class FactoryConfigReqDto {
-    @Field({ nullable: true, defaultValue: '' })
-    @ApiProperty({ nullable: true, default: '' })
-    @IsString()
-    @IsOptional()
-    readonly chainId?: string;
+    @Field(() => Int, { nullable: true, defaultValue: 0 })
+    @ApiProperty({ nullable: true, default: 0 })
+    @Type(() => Number)
+    @IsNumber()
+    readonly chainId?: number = 0;
 }
 
 @ObjectType()

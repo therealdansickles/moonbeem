@@ -1,5 +1,5 @@
 import { Args, Context, Query, Resolver } from '@nestjs/graphql';
-import { VAddressHoldingRspDto, VAddressHoldingReqDto, VActivityRspDto, VActivityReqDto, VAddressReleasedRspDto, VAddressReleasedReqDto, VCollectionActivityRspDto, VCollectionActivityReqDto } from '../dto/market.dto';
+import { VAddressHoldingRspDto, VAddressHoldingReqDto, MarketAddressActivitiesRspDto, MarketAddressActivitiesReqDto, MarketAddressReleasedRspDto, MarketAddressReleasedReqDto, VCollectionActivityRspDto, VCollectionActivityReqDto } from '../dto/market.dto';
 import { Public } from '../lib/decorators/public.decorator';
 import { JWTService } from '../services/jwt.service';
 import { MarketService } from '../services/market.service';
@@ -16,15 +16,15 @@ export class MarketResolver {
     }
 
     @Public()
-    @Query(() => VActivityRspDto)
-    public async getAddressActivities(@Context('req') req: any, @Args() args: VActivityReqDto): Promise<VActivityRspDto> {
+    @Query(() => MarketAddressActivitiesRspDto)
+    public async getAddressActivities(@Context('req') req: any, @Args() args: MarketAddressActivitiesReqDto): Promise<MarketAddressActivitiesRspDto> {
         const rsp = await this.marketService.getAddressActivities(args);
         return rsp;
     }
 
     @Public()
-    @Query(() => VAddressReleasedRspDto)
-    async getAddressReleased(@Context('req') req: any, @Args() args: VAddressReleasedReqDto): Promise<VAddressReleasedRspDto> {
+    @Query(() => MarketAddressReleasedRspDto)
+    async getAddressReleased(@Context('req') req: any, @Args() args: MarketAddressReleasedReqDto): Promise<MarketAddressReleasedRspDto> {
         const rsp = await this.marketService.getAddressReleased(args);
         return rsp;
     }

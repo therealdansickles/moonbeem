@@ -20,13 +20,6 @@ import { INestApplication } from '@nestjs/common';
 
 export const gql = String.raw;
 
-const user1 = {
-    address: '0xC07542b5a1faB8b5cd1Ea19c21A5E1eE57Ed4618',
-    message: 'sign in vibe',
-    signature: '0x3aa40ecabfcbbd81f79b6308ab441644038986b3bc60b90e188c5c70567e4b1b697d39f136c602d955cd41500df8c97470e5cf59424ad22a85e5ba932ef074a01b',
-    name: 'Vibe Test Account 1',
-};
-
 const param = {
     getLandingPageCollections: gql`
         query {

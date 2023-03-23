@@ -30,6 +30,12 @@ export class LandingPageCollectionData {
     @Field(() => GraphQLJSONObject)
     @ApiProperty({ type: JSON })
     readonly attributeOverview: JSON;
+
+    @Field(() => Int, { nullable: true, defaultValue: 0 })
+    @ApiProperty({ nullable: true, default: 0 })
+    @Type(() => Number)
+    @IsNumber()
+    readonly chainId?: number = 0;
 }
 
 @ArgsType()
@@ -44,6 +50,12 @@ export class LandingPageCollectionReqDto extends BasicPagingParams {
     @ApiProperty({ nullable: true, type: BasicCollectionType })
     @IsOptional()
     readonly type?: BasicCollectionType;
+
+    @Field(() => Int, { nullable: true, defaultValue: 0 })
+    @ApiProperty({ nullable: true, default: 0 })
+    @Type(() => Number)
+    @IsNumber()
+    readonly chainId?: number = 0;
 }
 
 @ObjectType()
@@ -85,6 +97,12 @@ export class LandingPageRankingOfCreatorsReqDto extends BasicPagingParams {
     @Type(() => Number)
     @IsNumber()
     readonly endTime?: number;
+
+    @Field(() => Int, { nullable: true, defaultValue: 0 })
+    @ApiProperty({ nullable: true, default: 0 })
+    @Type(() => Number)
+    @IsNumber()
+    readonly chainId?: number = 0;
 }
 
 @ObjectType()
@@ -114,7 +132,13 @@ export class LandingPageRankingOfItemData {
 
 @ArgsType()
 @ObjectType()
-export class LandingPageRankingOfItemsReqDto extends BasicPagingParams {}
+export class LandingPageRankingOfItemsReqDto extends BasicPagingParams {
+    @Field(() => Int, { nullable: true, defaultValue: 0 })
+    @ApiProperty({ nullable: true, default: 0 })
+    @Type(() => Number)
+    @IsNumber()
+    readonly chainId?: number = 0;
+}
 
 @ObjectType()
 export class LandingPageRankingOfItemsRspDto {

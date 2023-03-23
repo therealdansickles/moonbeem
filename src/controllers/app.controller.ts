@@ -48,7 +48,6 @@ export class AppController {
     @Get('/get_factory_config')
     async getFactoryConfig(@Req() req: Request, @Query() params: FactoryConfigReqDto): Promise<IResponse> {
         try {
-            // const rsp = await this.appService.getTxStatus(params.chain, params.txHash);
             const rsp = await this.appService.getFactoryConfig(params);
             return new ResponseSucc(rsp);
         } catch (err) {

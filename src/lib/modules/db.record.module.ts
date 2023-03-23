@@ -40,45 +40,47 @@ export interface UserFollowingRec {
 }
 
 export interface AddressActivity {
-    collection_id: string;
-    collection_address: string;
-    collection_name: string;
-    collection_avatar: string;
-    collection_description: string;
-    collection_background: string;
-    collection_type: string;
-    collection_tier: number;
+    // collection data
+    id: string;
+    name: string;
+    description: string;
+    avatar: string;
+    background: string;
+    address: string;
+    type: string;
+    chain_id: number;
+    org_id: string;
+    creator: string;
+    payment_token: string;
+    total_sypply: number;
+    begin_time: number;
+    end_time: number;
+    tiers: string;
     token: string;
     token_id: string;
     owner: string;
-    recipient: string;
+    tier_id: number;
     price: string;
 }
 
 export interface AddressReleased {
-    collection_id: string;
-    collection_address: string;
-    collection_name: string;
-    collection_avatar: string;
-    collection_description: string;
-    collection_background: string;
-    collection_type: string;
-    collection_tier: number;
-    token: string;
-    token_id: string;
-    owner: string;
+    id: string;
+    name: string;
+    description: string;
+    avatar: string;
+    address: string;
+    background: string;
+    type: string;
+    chain_id: number;
+    org_id: string;
+    creator: string;
+    payment_token: string;
+    total_sypply: number;
+    begin_time: number;
+    end_time: number;
     price: string;
-    start_id: number;
-    end_id: number;
-    coin_id?: string;
-    coin_chain_id?: number;
-    coin_contract?: string;
-    coin_name?: string;
-    coin_symbol?: string;
-    coin_decimals?: number;
-    coin_derived_eth?: string;
-    coin_derived_usdc?: string;
-    coin_native?: boolean;
+    tier_id: number;
+    tiers: string;
 }
 
 export interface CollectionActivity {
@@ -161,6 +163,7 @@ export interface LandingPageRankingOfCreatorItem {
     user_customurl: string;
     total_price: string;
     payment_token: string;
+    chain_id: number;
 }
 
 export interface LandingPageRankingOfItemItem {
