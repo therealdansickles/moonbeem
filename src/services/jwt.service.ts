@@ -43,6 +43,8 @@ export class JWTService {
      */
     async verifySession(token: string | string[]): Promise<AuthPayload> {
         // parse token is correct
+        if (!token) return;
+
         const payload = this.parseToken(token);
         if (!payload) return;
 
