@@ -580,6 +580,7 @@ export class MarketService {
             name: col.name,
             image: col.avatar,
             collection: col.collection,
+            chainId: col.chain_id,
             itemsCount: col.tiers.reduce((sum, item) => (sum += item.endId - item.startId + 1), 0),
         }));
 

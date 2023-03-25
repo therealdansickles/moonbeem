@@ -528,6 +528,11 @@ export class VSearchCollectionItem {
     @Field()
     @ApiProperty()
     @IsNumber()
+    chainId: number;
+
+    @Field()
+    @ApiProperty()
+    @IsNumber()
     @IsOptional()
     itemsCount: number;
 }
@@ -591,10 +596,13 @@ export class VSearchAccountRsp {
 
 @ObjectType()
 export class VGlobalSearchRspDto {
+    @Field(() => VSearchCollectionRsp)
     @ApiProperty({
         type: [VSearchCollectionRsp],
     })
     collections: VSearchCollectionRsp;
+
+    @Field(() => VSearchAccountRsp)
     @ApiProperty({
         type: [VSearchAccountRsp],
     })

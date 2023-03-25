@@ -103,6 +103,7 @@ export interface CollectionActivity {
 export interface SearchCollectionItem {
     name: string;
     collection: string;
+    chain_id: number;
     avatar?: string;
     tiers: any[];
 }

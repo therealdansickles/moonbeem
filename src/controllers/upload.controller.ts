@@ -1,10 +1,10 @@
 import { Body, Controller, Post, Req } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
-import { VUploadImageRsp, VUploadImageReqDto } from 'src/dto/upload.dto';
-import { Public } from 'src/lib/decorators/public.decorator';
-import { IResponse, ResponseSucc, ResponseInternalError } from 'src/lib/interfaces/response.interface';
-import { UploadService } from 'src/services/upload.service';
+import { VUploadImageRsp, VUploadImageReqDto } from '../dto/upload.dto';
+import { Public } from '../lib/decorators/public.decorator';
+import { IResponse, ResponseSucc, ResponseInternalError } from '../lib/interfaces/response.interface';
+import { UploadService } from '../services/upload.service';
 
 @ApiTags('Upload')
 @Controller({

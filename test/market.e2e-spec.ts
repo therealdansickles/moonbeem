@@ -43,8 +43,10 @@ const param = {
         query {
             getAddressActivities(address: "${user1.address}") {
                 data {
-                    token
-                    tokenId
+                    nft {
+                        token
+                        tokenId
+                    }
                 }
                 total
             }
@@ -54,7 +56,9 @@ const param = {
         query {
             getAddressReleased(address: "${user1.address}") {
                 data {
-                    token
+                    currentPrice {
+                        token
+                    }
                 }
                 total
             }
@@ -68,6 +72,24 @@ const param = {
                     tokenId
                 }
                 total
+            }
+        }
+    `,
+    executeSearch: gql`
+        query {
+            search(searchTerm: "d", page: 0, pageSize: 3) {
+                collections {
+                    data {
+                        name
+                        chainId
+                    }
+                }
+                accounts {
+                    data {
+                        name
+                        address
+                    }
+                }
             }
         }
     `,
@@ -143,6 +165,22 @@ describe('GraphQL AuthResolver (e2e) {Supertest}', () => {
                         expect(res.body.data.getCollectionActivities).toBeDefined();
                         const total = res.body.data.getCollectionActivities.total;
                         expect(total).toBeGreaterThanOrEqual(0);
+                    });
+            });
+        });
+
+        describe('executeSearch', () => {
+            it('should return search results', () => {
+                return request(app.getHttpServer())
+                    .post('/graphql')
+                    .send({ query: param.executeSearch })
+                    .expect(200)
+                    .expect((res) => {
+                        expect(res.body.data.search).toBeDefined();
+                        expect(res.body.data.search.collections).toBeDefined();
+                        expect(res.body.data.search.accounts).toBeDefined();
+                        expect(res.body.data.search.collections.data.length).toBeLessThanOrEqual(3);
+                        expect(res.body.data.search.collections.data[0].chainId).toBeDefined();
                     });
             });
         });

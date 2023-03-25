@@ -283,6 +283,7 @@ type VSearchCollectionItem {
   name: String!
   image: String!
   collection: EthereumAddress!
+  chainId: Float!
   itemsCount: Float!
 }
 
@@ -290,6 +291,19 @@ type VSearchAccountItem {
   name: String!
   avatar: String!
   address: EthereumAddress!
+}
+
+type VSearchCollectionRsp {
+  data: [VSearchCollectionItem!]!
+}
+
+type VSearchAccountRsp {
+  data: [VSearchAccountItem!]!
+}
+
+type VGlobalSearchRspDto {
+  collections: VSearchCollectionRsp!
+  accounts: VSearchAccountRsp!
 }
 
 """Ethereum Address custom scalar type"""
@@ -306,6 +320,7 @@ type Query {
   getAddressActivities(skip: Int = 0, take: Int = 10, address: EthereumAddress!, chainId: Int = 0): MarketAddressActivitiesRspDto!
   getAddressReleased(skip: Int = 0, take: Int = 10, address: EthereumAddress!, chainId: Int = 0): MarketAddressReleasedRspDto!
   getCollectionActivities(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VCollectionActivityRspDto!
+  search(searchTerm: String!, page: Float!, pageSize: Float!): VGlobalSearchRspDto!
   getLandingPageCollections(skip: Int = 0, take: Int = 10, status: BasicCollectionStatus, type: BasicCollectionType, chainId: Int = 0): LandingPageCollectionRspDto!
   getRankingOfCreators(skip: Int = 0, take: Int = 10, startTime: Int = 0, endTime: Int = 0, chainId: Int = 0): LandingPageRankingOfCreatorsRspDto!
   getRankingOfItems(skip: Int = 0, take: Int = 10, chainId: Int = 0): LandingPageRankingOfItemsRspDto!
