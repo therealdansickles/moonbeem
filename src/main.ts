@@ -27,7 +27,7 @@ async function bootstrap() {
     });
 
     app.use(json({ limit: '100mb' }));
-    app.use(urlencoded({ limit: '100mb' }));
+    app.use(urlencoded({ extended: true, limit: '100mb' }));
 
     // configure: param validator, controlled by dto's decorator
     app.useGlobalPipes(
