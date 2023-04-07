@@ -7,6 +7,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 import { appConfig } from './lib/configs/app.config';
+import * as Sentry from '@sentry/node';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
@@ -19,6 +20,11 @@ async function bootstrap() {
 
     // configure: cros
     app.enableCors();
+
+    // configure: sentry
+    Sentry.init({
+        dsn: process.env.SENTRY_DSN,
+    });
 
     app.use(json({ limit: '100mb' }));
     app.use(urlencoded({ limit: '100mb' }));

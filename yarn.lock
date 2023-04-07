@@ -2603,6 +2603,46 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@nestjs/graphql@npm:^11.0.0":
+  version: 11.0.4
+  resolution: "@nestjs/graphql@npm:11.0.4"
+  dependencies:
+    "@graphql-tools/merge": 8.4.0
+    "@graphql-tools/schema": 9.0.17
+    "@graphql-tools/utils": 9.2.1
+    "@nestjs/mapped-types": 1.2.2
+    chokidar: 3.5.3
+    fast-glob: 3.2.12
+    graphql-tag: 2.12.6
+    graphql-ws: 5.12.0
+    lodash: 4.17.21
+    normalize-path: 3.0.0
+    subscriptions-transport-ws: 0.11.0
+    tslib: 2.5.0
+    uuid: 9.0.0
+    ws: 8.13.0
+  peerDependencies:
+    "@apollo/subgraph": ^2.0.0
+    "@nestjs/common": ^9.3.8
+    "@nestjs/core": ^9.3.8
+    class-transformer: "*"
+    class-validator: "*"
+    graphql: ^16.6.0
+    reflect-metadata: ^0.1.13
+    ts-morph: ^15.0.0 || ^16.0.0 || ^17.0.0
+  peerDependenciesMeta:
+    "@apollo/subgraph":
+      optional: true
+    class-transformer:
+      optional: true
+    class-validator:
+      optional: true
+    ts-morph:
+      optional: true
+  checksum: 563c4dbda83af4e88fc1e5e62c3aaf2dcd59551d741e81c1fdf4f1afd1caa94f0c50c4c17212be8787f1c13a591896198bbb2d5733d0e3986cf02f9e177bbe61
+  languageName: node
+  linkType: hard
+
 "@nestjs/jwt@npm:^10.0.1":
   version: 10.0.2
   resolution: "@nestjs/jwt@npm:10.0.2"
@@ -2919,6 +2959,62 @@ __metadata:
   peerDependencies:
     "@redis/client": ^1.0.0
   checksum: a5fca079deb04a2f204a7f9a375a6ff698a119d5dd53f7581fa8fd9e3bacacf1ecb0253b97fada484a012fea7a98014bc0f4f79707d4e92ff61c00318f2bfe04
+  languageName: node
+  linkType: hard
+
+"@sentry-internal/tracing@npm:7.47.0":
+  version: 7.47.0
+  resolution: "@sentry-internal/tracing@npm:7.47.0"
+  dependencies:
+    "@sentry/core": 7.47.0
+    "@sentry/types": 7.47.0
+    "@sentry/utils": 7.47.0
+    tslib: ^1.9.3
+  checksum: 46cb6cdd5b64841acd7b38cdde156e15dcf2c225ccd36219ea5796b7ebad34a3c0db1f4c7545e1fec1a1e5897d4368003b1101845404bcd1c27a21c09784cbd3
+  languageName: node
+  linkType: hard
+
+"@sentry/core@npm:7.47.0":
+  version: 7.47.0
+  resolution: "@sentry/core@npm:7.47.0"
+  dependencies:
+    "@sentry/types": 7.47.0
+    "@sentry/utils": 7.47.0
+    tslib: ^1.9.3
+  checksum: 1cfd41020e5707c7e142dbb7c99118a264bcc5fa64fc06f1e51d8c6166dea0a50fd5896ce5287a4805d088257dc3757cc53ab4f5092166cd759ffeeea1cd8d2e
+  languageName: node
+  linkType: hard
+
+"@sentry/node@npm:^7.47.0":
+  version: 7.47.0
+  resolution: "@sentry/node@npm:7.47.0"
+  dependencies:
+    "@sentry-internal/tracing": 7.47.0
+    "@sentry/core": 7.47.0
+    "@sentry/types": 7.47.0
+    "@sentry/utils": 7.47.0
+    cookie: ^0.4.1
+    https-proxy-agent: ^5.0.0
+    lru_map: ^0.3.3
+    tslib: ^1.9.3
+  checksum: 485a3267313cf4475986a4406e213a5139f03a57be4336d088e7d9004f647ea3ff28b13eab4e49e2c0d208dbf5a9ad4188b201f60f094354bcfd0b4c9a07f5d8
+  languageName: node
+  linkType: hard
+
+"@sentry/types@npm:7.47.0":
+  version: 7.47.0
+  resolution: "@sentry/types@npm:7.47.0"
+  checksum: 42f1f58bebb2689d609ebc614a04462cb15f749d304dcadc2c93b851ecb88a20d59853b01f22b91f37c7cfb41ed7d0992843043ada7a7592ea1043191092e350
+  languageName: node
+  linkType: hard
+
+"@sentry/utils@npm:7.47.0":
+  version: 7.47.0
+  resolution: "@sentry/utils@npm:7.47.0"
+  dependencies:
+    "@sentry/types": 7.47.0
+    tslib: ^1.9.3
+  checksum: d37d6299ef28c7ce32b1af7644f59ab5a5fd7a8155e97b3758c87d11a4b2cb406d4e3d2b260afcd200dadef99582f92b08ef6b89543f11611d2e034b3940d7b3
   languageName: node
   linkType: hard
 
@@ -4866,6 +4962,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cookie@npm:^0.4.1":
+  version: 0.4.2
+  resolution: "cookie@npm:0.4.2"
+  checksum: a00833c998bedf8e787b4c342defe5fa419abd96b32f4464f718b91022586b8f1bafbddd499288e75c037642493c83083da426c6a9080d309e3bd90fd11baa9b
+  languageName: node
+  linkType: hard
+
 "cookiejar@npm:^2.1.4":
   version: 2.1.4
   resolution: "cookiejar@npm:2.1.4"
@@ -6084,6 +6187,15 @@ __metadata:
   peerDependencies:
     graphql: ">=0.11 <=16"
   checksum: 75ea80702fa027b8d4ff1faba9824b11184fef0946560c535040b79f0f7f56ac7ce42873ea3b34083373ddf3a439cda1e7b7bfae20939ab739330456f4e7776b
+  languageName: node
+  linkType: hard
+
+"graphql-ws@npm:5.12.0":
+  version: 5.12.0
+  resolution: "graphql-ws@npm:5.12.0"
+  peerDependencies:
+    graphql: ">=0.11 <=16"
+  checksum: 5c683e2d5bdadfcfec0639eda69b8a66ef275e68e64f662bd75da6779a87b34395cbce8e37cb66830a9febca1871f7dc2575e6814f6f6e899904fe72e245f216
   languageName: node
   linkType: hard
 
@@ -7382,6 +7494,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lru_map@npm:^0.3.3":
+  version: 0.3.3
+  resolution: "lru_map@npm:0.3.3"
+  checksum: ca9dd43c65ed7a4f117c548028101c5b6855e10923ea9d1f635af53ad20c5868ff428c364d454a7b57fe391b89c704982275410c3c5099cca5aeee00d76e169a
+  languageName: node
+  linkType: hard
+
 "luxon@npm:^3.2.1":
   version: 3.3.0
   resolution: "luxon@npm:3.3.0"
@@ -7822,6 +7941,23 @@ __metadata:
   version: 2.6.2
   resolution: "neo-async@npm:2.6.2"
   checksum: deac9f8d00eda7b2e5cd1b2549e26e10a0faa70adaa6fdadca701cc55f49ee9018e427f424bac0c790b7c7e2d3068db97f3093f1093975f2acb8f8818b936ed9
+  languageName: node
+  linkType: hard
+
+"nest-raven@npm:^9.2.0":
+  version: 9.2.0
+  resolution: "nest-raven@npm:9.2.0"
+  dependencies:
+    "@nestjs/graphql": ^11.0.0
+  peerDependencies:
+    "@nestjs/common": ^9.0.0
+    "@sentry/node": "*"
+    reflect-metadata: "*"
+    rxjs: "*"
+  dependenciesMeta:
+    "@nestjs/graphql":
+      optional: true
+  checksum: f85766121d7980a0692bd765d7ce022af8485962ab1e10d9b5dee80678a8d3ecc42ba3a69d026820f64694d4560f45a1a92add4fe073d430ea9f76f9aac22b6f
   languageName: node
   linkType: hard
 
@@ -8958,6 +9094,7 @@ __metadata:
     "@nestjs/schematics": ^9.0.0
     "@nestjs/swagger": ^6.1.4
     "@nestjs/testing": ^9.0.0
+    "@sentry/node": ^7.47.0
     "@types/cron": ^2.0.0
     "@types/express": ^4.17.13
     "@types/jest": 28.1.8
@@ -8981,6 +9118,7 @@ __metadata:
     graphql-type-json: ^0.3.2
     jest: 28.1.3
     mongodb: ^4.13.0
+    nest-raven: ^9.2.0
     nftscan-api: ^1.6.1
     passport: ^0.6.0
     passport-jwt: ^4.0.1
@@ -9694,7 +9832,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^1.11.1, tslib@npm:^1.8.1, tslib@npm:^1.9.0":
+"tslib@npm:^1.11.1, tslib@npm:^1.8.1, tslib@npm:^1.9.0, tslib@npm:^1.9.3":
   version: 1.14.1
   resolution: "tslib@npm:1.14.1"
   checksum: dbe628ef87f66691d5d2959b3e41b9ca0045c3ee3c7c7b906cc1e328b39f199bb1ad9e671c39025bd56122ac57dfbf7385a94843b1cc07c60a4db74795829acd
@@ -10190,6 +10328,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ws@npm:8.13.0, ws@npm:^8.2.3":
+  version: 8.13.0
+  resolution: "ws@npm:8.13.0"
+  peerDependencies:
+    bufferutil: ^4.0.1
+    utf-8-validate: ">=5.0.2"
+  peerDependenciesMeta:
+    bufferutil:
+      optional: true
+    utf-8-validate:
+      optional: true
+  checksum: 53e991bbf928faf5dc6efac9b8eb9ab6497c69feeb94f963d648b7a3530a720b19ec2e0ec037344257e05a4f35bd9ad04d9de6f289615ffb133282031b18c61c
+  languageName: node
+  linkType: hard
+
 "ws@npm:^5.2.0 || ^6.0.0 || ^7.0.0":
   version: 7.5.9
   resolution: "ws@npm:7.5.9"
@@ -10202,21 +10355,6 @@ __metadata:
     utf-8-validate:
       optional: true
   checksum: c3c100a181b731f40b7f2fddf004aa023f79d64f489706a28bc23ff88e87f6a64b3c6651fbec3a84a53960b75159574d7a7385709847a62ddb7ad6af76f49138
-  languageName: node
-  linkType: hard
-
-"ws@npm:^8.2.3":
-  version: 8.13.0
-  resolution: "ws@npm:8.13.0"
-  peerDependencies:
-    bufferutil: ^4.0.1
-    utf-8-validate: ">=5.0.2"
-  peerDependenciesMeta:
-    bufferutil:
-      optional: true
-    utf-8-validate:
-      optional: true
-  checksum: 53e991bbf928faf5dc6efac9b8eb9ab6497c69feeb94f963d648b7a3530a720b19ec2e0ec037344257e05a4f35bd9ad04d9de6f289615ffb133282031b18c61c
   languageName: node
   linkType: hard
 

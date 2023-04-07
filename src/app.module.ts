@@ -22,10 +22,13 @@ import { AppService } from './services/app.service';
 import { MarketService } from './services/market.service';
 import { UserWalletService } from './services/user.wallet.service';
 import { UploadModule } from './modules/upload.module';
+import { RavenModule, RavenInterceptor } from 'nest-raven';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Module({
     imports: [
         AuthModule,
+        RavenModule,
         UserWalletModule,
         MarketModule,
         BetaWaitlistModule,
@@ -42,7 +45,20 @@ import { UploadModule } from './modules/upload.module';
         ScheduleModule.forRoot(),
     ],
     controllers: [AppController],
-    providers: [AppService, MarketService, UserWalletService, RpcClient, RedisAdapter, PostgresAdapter, MongoAdapter, AppResolver],
+    providers: [
+        {
+            provide: APP_INTERCEPTOR,
+            useValue: new RavenInterceptor(),
+        },
+        AppService,
+        MarketService,
+        UserWalletService,
+        RpcClient,
+        RedisAdapter,
+        PostgresAdapter,
+        MongoAdapter,
+        AppResolver,
+    ],
     exports: [],
 })
 export class AppModule {}
