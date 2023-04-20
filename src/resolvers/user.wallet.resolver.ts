@@ -1,8 +1,8 @@
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { VUserWalletInfo } from '../dto/auth.dto';
+import { VUserWalletInfo } from '../auth/auth.dto';
 import { VGetAddressReqDto, VFollowUserWalletReqDto, VUpdateUserWalletReqDto, VUserFollowingListRspDto, VUserFollowingListReqDto, VUserFollowerListRspDto, VUserFollowerListReqDto } from '../dto/user.wallet.dto';
 import { Public } from '../lib/decorators/public.decorator';
-import { AuthPayload } from '../services/auth.service';
+import { AuthPayload } from '../auth/auth.service';
 import { JWTService } from '../services/jwt.service';
 import { UserWalletService } from '../services/user.wallet.service';
 

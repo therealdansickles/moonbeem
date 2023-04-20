@@ -1,4 +1,5 @@
-import { Body, Controller, Post, Req } from '@nestjs/common';
+import { Body, Controller, Post, Req, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { VUploadImageRsp, VUploadImageReqDto } from '../dto/upload.dto';
@@ -24,6 +25,22 @@ export class UploadController {
     public async uploadImage(@Req() req: Request, @Body() body: VUploadImageReqDto): Promise<IResponse> {
         try {
             const rsp = await this.uploadService.handleImage(body);
+            return new ResponseSucc(rsp);
+        } catch (error) {
+            return new ResponseInternalError((error as Error).message);
+        }
+    }
+
+    @Public()
+    @ApiResponse({
+        status: 200,
+        description: 'upload an image file to S3',
+    })
+    @Post('/asset/image')
+    @UseInterceptors(FileInterceptor('file'))
+    public async uploadImageFile(@UploadedFile() file: Express.Multer.File) {
+        try {
+            const rsp = await this.uploadService.handleImage({ contentType: file.mimetype, buffer: file.buffer });
             return new ResponseSucc(rsp);
         } catch (error) {
             return new ResponseInternalError((error as Error).message);

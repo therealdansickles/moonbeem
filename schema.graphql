@@ -15,6 +15,26 @@ type FactoryConfigRspDto {
   total: Int!
 }
 
+type User {
+  id: ID!
+  username: String!
+  name: String!
+  email: String!
+  password: String!
+  avatarUrl: String!
+}
+
+type Wallet {
+  """The id for a wallet."""
+  id: ID!
+
+  """The address for a wallet."""
+  address: String!
+
+  """The owner of the wallet."""
+  owner: String
+}
+
 type VIPriceType {
   price: String!
   token: EthereumAddress!
@@ -38,9 +58,14 @@ type VUserWalletInfo {
   estimatedValues: [VIPriceType!]
 }
 
-type VLoginRspDto {
+type LoginWithWalletResponse {
   sessionToken: String!
-  item: VUserWalletInfo!
+  item: Wallet!
+}
+
+type LoginWithEmailResponse {
+  sessionToken: String!
+  user: User!
 }
 
 type VFollowingInfo {
@@ -60,6 +85,192 @@ type VUserFollowingListRspDto {
 type VUserFollowerListRspDto {
   data: [VFollowingInfo!]!
   total: Float!
+}
+
+type Collection {
+  """The ID for a collection"""
+  id: String!
+
+  """The unique URL-friendly identifier for a collection."""
+  name: String!
+
+  """The name that we display for the collection."""
+  displayName: String!
+
+  """The type of collection this is."""
+  kind: CollectionKind!
+
+  """The description for the collection."""
+  about: String
+
+  """
+  The image url for the avatar of the collection. This is the profile picture.
+  """
+  avatarUrl: String
+
+  """The image url for the background of the collection."""
+  backgroundUrl: String
+
+  """The url for the website associated with this collection"""
+  websiteUrl: String
+
+  """The twitter handle associated with this collection, e.g. 'vibe-labs'"""
+  twitter: String
+
+  """The instagram handle associated with this collection, e.g. 'vibe-labs'"""
+  instagram: String
+
+  """The discord handle associated with this collection, e.g. 'vibe-labs"""
+  discord: String
+
+  """The tags associated with this organization."""
+  tags: [String!]
+
+  """The DateTime that this collection was published."""
+  publishedAt: DateTime
+
+  """
+  The DateTime that this collection was created(initially created as a draft).
+  """
+  createdAt: DateTime!
+
+  """The DateTime that this collection was last updated."""
+  updatedAt: DateTime!
+
+  """The wallet that created the collection."""
+  creatorId: String
+}
+
+enum CollectionKind {
+  edition
+  tiered
+  bulk
+  other
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Collaboration {
+  """The ID of the collaboration."""
+  id: String!
+
+  """The wallet of the collaboration."""
+  wallet: Wallet!
+
+  """The collection of the collaboration."""
+  collection: Collection!
+
+  """The address of the collaboration contract."""
+  address: String
+
+  """The address of the collaboration factory."""
+  factoryAddress: String
+
+  """The royalty rate of the collaboration."""
+  royaltyRate: Float!
+
+  """The created datetime of the collaboration."""
+  createdAt: DateTime!
+
+  """The updated datetime of the collaboration."""
+  updatedAt: DateTime!
+}
+
+type Tier {
+  """The id of the tier."""
+  id: String!
+
+  """The total number of mints for this tier."""
+  totalMints: Float!
+
+  """The name of the tier."""
+  name: String!
+
+  """The description of the tier."""
+  description: String!
+
+  """This is the URL to the image of the tier."""
+  image: String!
+
+  """
+  This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.
+  """
+  externalUrl: String!
+
+  """This is the URL to the animation of the tier."""
+  animationUrl: String!
+
+  """A JSON object containing the attributes of the tier."""
+  attributes: String!
+}
+
+type Organization {
+  id: ID!
+
+  """The unique URL-friendly identifier for a organization."""
+  name: String!
+
+  """The name that we display for the organization."""
+  displayName: String!
+
+  """The type of organization this is. e.g 'personal', 'general'."""
+  kind: Float!
+
+  """The description for the organization."""
+  about: String
+
+  """
+  The image url for the avatar of the organization. This is the profile picture.
+  """
+  avatarUrl: String!
+
+  """The image url for the background of the organization."""
+  backgroundUrl: String
+
+  """The url for the website associated with this organization"""
+  websiteUrl: String
+
+  """The twitter handle associated with this organization, e.g. 'vibe-labs'"""
+  twitter: String
+
+  """
+  The instagram handle associated with this organization, e.g. 'vibe-labs'
+  """
+  instagram: String
+
+  """The discord handle associated with this organization, e.g. 'vibe-labs"""
+  discord: String
+
+  """
+  The DateTime that this organization was created(initially created as a draft).
+  """
+  createdAt: DateTime!
+
+  """The DateTime that this organization was last updated."""
+  updatedAt: DateTime!
+}
+
+type Membership {
+  """The id of the membership."""
+  id: String!
+
+  """The user that is a member of this organization."""
+  user: User!
+
+  """The organization that this user is a member of."""
+  organization: Organization!
+
+  """Whether or not this user can edit."""
+  canEdit: Boolean!
+
+  """Whether or not this user can manage."""
+  canManage: Boolean!
+
+  """Whether or not this user can deploy a collection."""
+  canDeploy: Boolean!
 }
 
 type BasicPriceInfo {
@@ -282,19 +493,19 @@ type VCollectionActivityRspDto {
 type VSearchCollectionItem {
   name: String!
   image: String!
-  collection: EthereumAddress!
+  address: EthereumAddress!
   chainId: Float!
   itemsCount: Float!
+}
+
+type VSearchCollectionRsp {
+  data: [VSearchCollectionItem!]!
 }
 
 type VSearchAccountItem {
   name: String!
   avatar: String!
   address: EthereumAddress!
-}
-
-type VSearchCollectionRsp {
-  data: [VSearchCollectionItem!]!
 }
 
 type VSearchAccountRsp {
@@ -313,17 +524,132 @@ type Query {
   getHealth: String!
   getTxStatus(chain: String!, txHash: String!): Boolean!
   getFactoryConfig(chainId: Int = 0): FactoryConfigRspDto!
+
+  """Retrieves a wallet by its ethereum or EIP-3770 address."""
+  wallet(
+    """an ethereum or EIP-3770 address."""
+    address: String!
+  ): Wallet
+
+  """returns a collaboration for a given uuid"""
+  collaboration(id: String!): Collaboration
+
+  """Retrieve a membership by id."""
+  membership(id: String!): Membership
+
+  """Returns an organization for the given uuid"""
+  organization(id: String!): Organization
+
+  """Creates an organization."""
+  createOrganization(input: CreateOrganizationInput!): Organization!
+
+  """Update an organization."""
+  updateOrganization(input: UpdateOrganizationInput!): Organization!
+
+  """Delete an organization."""
+  deleteOrganization(input: DeleteOrganizationInput!): Boolean!
+
+  """Transfer an organization to another user."""
+  transferOrganization(input: TransferOrganizationInput!): Organization!
+
+  """returns a collection for a given uuid"""
+  collection(id: String!): Collection
+
+  """Get a specific tier by id."""
+  tier(id: String!): Tier
   getAddressInfo(address: EthereumAddress!): VUserWalletInfo!
   getUserFollowingList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowingListRspDto!
   getUserFollowerList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowerListRspDto!
+  getLandingPageCollections(skip: Int = 0, take: Int = 10, status: BasicCollectionStatus, type: BasicCollectionType, chainId: Int = 0): LandingPageCollectionRspDto!
+  getRankingOfCreators(skip: Int = 0, take: Int = 10, startTime: Int = 0, endTime: Int = 0, chainId: Int = 0): LandingPageRankingOfCreatorsRspDto!
+  getRankingOfItems(skip: Int = 0, take: Int = 10, chainId: Int = 0): LandingPageRankingOfItemsRspDto!
   getAddressHoldings(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VAddressHoldingRspDto!
   getAddressActivities(skip: Int = 0, take: Int = 10, address: EthereumAddress!, chainId: Int = 0): MarketAddressActivitiesRspDto!
   getAddressReleased(skip: Int = 0, take: Int = 10, address: EthereumAddress!, chainId: Int = 0): MarketAddressReleasedRspDto!
   getCollectionActivities(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VCollectionActivityRspDto!
-  search(searchTerm: String!, page: Float!, pageSize: Float!): VGlobalSearchRspDto!
-  getLandingPageCollections(skip: Int = 0, take: Int = 10, status: BasicCollectionStatus, type: BasicCollectionType, chainId: Int = 0): LandingPageCollectionRspDto!
-  getRankingOfCreators(skip: Int = 0, take: Int = 10, startTime: Int = 0, endTime: Int = 0, chainId: Int = 0): LandingPageRankingOfCreatorsRspDto!
-  getRankingOfItems(skip: Int = 0, take: Int = 10, chainId: Int = 0): LandingPageRankingOfItemsRspDto!
+  globalSearch(searchTerm: String!, page: Float!, pageSize: Float!): VGlobalSearchRspDto!
+}
+
+input CreateOrganizationInput {
+  """The unique URL-friendly identifier for a organization."""
+  name: String!
+
+  """The name that we display for the organization."""
+  displayName: String
+
+  """The description for the organization."""
+  about: String
+
+  """
+  The image url for the avatar of the organization. This is the profile picture.
+  """
+  avatarUrl: String!
+
+  """The image url for the background of the organization."""
+  backgroundUrl: String
+
+  """The url for the website associated with this organization"""
+  websiteUrl: String
+
+  """The twitter handle associated with this organization, e.g. 'vibe-labs'"""
+  twitter: String
+
+  """
+  The instagram handle associated with this organization, e.g. 'vibe-labs'
+  """
+  instagram: String
+
+  """The discord handle associated with this organization, e.g. 'vibe-labs"""
+  discord: String
+}
+
+input UpdateOrganizationInput {
+  """The id of the organization."""
+  id: String!
+
+  """The unique URL-friendly identifier for a organization."""
+  name: String
+
+  """The name that we display for the organization."""
+  displayName: String
+
+  """The description for the organization."""
+  about: String
+
+  """
+  The image url for the avatar of the organization. This is the profile picture.
+  """
+  avatarUrl: String
+
+  """The image url for the background of the organization."""
+  backgroundUrl: String
+
+  """The url for the website associated with this organization"""
+  websiteUrl: String
+
+  """The twitter handle associated with this organization, e.g. 'vibe-labs'"""
+  twitter: String
+
+  """
+  The instagram handle associated with this organization, e.g. 'vibe-labs'
+  """
+  instagram: String
+
+  """The discord handle associated with this organization, e.g. 'vibe-labs"""
+  discord: String
+}
+
+input DeleteOrganizationInput {
+  """The id of the organization."""
+  id: String!
+}
+
+input TransferOrganizationInput {
+  """The id of the organization."""
+  id: String!
+
+  """The new ownerId of the organization."""
+  ownerId: String!
 }
 
 enum BasicCollectionStatus {
@@ -339,8 +665,284 @@ enum BasicCollectionType {
 }
 
 type Mutation {
-  loginWithWallet(address: EthereumAddress!, message: String!, signature: String!): VLoginRspDto!
-  logoutWallet: Boolean!
+  loginWithWallet(input: LoginWithWalletInput!): LoginWithWalletResponse!
+  loginWithEmail(input: LoginWithEmailInput!): LoginWithEmailResponse!
+  logout(input: LogoutInput!): Boolean!
+  createUserWithEmail(input: CreateUserWithEmailInput!): LoginWithEmailResponse!
+
+  """create a collaboration"""
+  createCollaboration(input: CreateCollaborationInput!): Collaboration!
+
+  """Create a new membership."""
+  createMembership(input: CreateMembershipInput!): Membership!
+
+  """Update a membership."""
+  updateMembership(input: UpdateMembershipInput!): Membership!
+
+  """Deletes a membership."""
+  deleteMembership(input: DeleteMembershipInput!): Boolean!
+
+  """creates a collection"""
+  createCollection(input: CreateCollectionInput!): Collection!
+
+  """updates a collection"""
+  updateCollection(input: UpdateCollectionInput!): Boolean!
+
+  """publishes a collection"""
+  publishCollection(input: PublishCollectionInput!): Boolean!
+
+  """delete a unpublished collection"""
+  deleteCollection(input: DeleteCollectionInput!): Boolean!
+
+  """Create a new tier."""
+  createTier(input: CreateTierInput!): Tier!
+
+  """Update a tier."""
+  updateTier(input: UpdateTierInput!): Boolean!
+
+  """Delete a tier."""
+  deleteTier(input: DeleteTierInput!): Boolean!
   followUserWallet(address: EthereumAddress!, isFollowed: Boolean): Boolean!
   updateAddressInfo(name: String, avatar: String, customUrl: String, description: String, discordLink: String, facebookLink: String, twitterLink: String): Boolean!
+}
+
+input LoginWithWalletInput {
+  address: EthereumAddress!
+  message: String!
+  signature: String!
+}
+
+input LoginWithEmailInput {
+  email: String!
+  password: String!
+}
+
+input LogoutInput {
+  email: String
+  address: EthereumAddress
+}
+
+input CreateUserWithEmailInput {
+  email: String!
+  password: String!
+  username: String
+  name: String
+  avatarUrl: String
+}
+
+input CreateCollaborationInput {
+  """The address of the collaboration contract."""
+  address: String
+
+  """The address of the collaboration factory."""
+  factoryAddress: String
+
+  """The wallet of the collaboration."""
+  walletId: String!
+
+  """The collection of the collaboration."""
+  collectionId: String!
+
+  """The royalty rate of the collaboration."""
+  royaltyRate: Float!
+}
+
+input CreateMembershipInput {
+  """The user that is a member of this organization."""
+  userId: String!
+
+  """The organization that this user is a member of."""
+  organizationId: String!
+
+  """Whether or not this user can edit."""
+  canEdit: Boolean
+
+  """Whether or not this user can manage."""
+  canManage: Boolean
+
+  """Whether or not this user can deploy a collection."""
+  canDeploy: Boolean
+}
+
+input UpdateMembershipInput {
+  """The id for a membership."""
+  id: String!
+
+  """Whether or not this user can edit."""
+  canEdit: Boolean
+
+  """Whether or not this user can manage."""
+  canManage: Boolean
+
+  """Whether or not this user can deploy a collection."""
+  canDeploy: Boolean
+}
+
+input DeleteMembershipInput {
+  """The id for a membership."""
+  id: String!
+}
+
+input CreateCollectionInput {
+  """The unique URL-friendly identifier for a collection."""
+  name: String!
+
+  """The name that we display for the collection."""
+  displayName: String!
+
+  """The type of collection this is."""
+  kind: CollectionKind!
+
+  """The description for the collection."""
+  about: String
+
+  """
+  The image url for the avatar of the collection. This is the profile picture.
+  """
+  avatarUrl: String
+
+  """The image url for the background of the collection."""
+  backgroundUrl: String
+
+  """The url for the website associated with this collection"""
+  websiteUrl: String
+
+  """The twitter handle associated with this collection, e.g. 'vibe-labs'"""
+  twitter: String
+
+  """The instagram handle associated with this collection, e.g. 'vibe-labs'"""
+  instagram: String
+
+  """The discord handle associated with this collection, e.g. 'vibe-labs"""
+  discord: String
+
+  """The tags associated with this organization."""
+  tags: [String!]
+
+  """
+  The address of the collection, e.g. '0x6bf9ec331e083627b0f48332ece2d99a7eb7fb0c'
+  """
+  address: String
+
+  """The chainId of the collection."""
+  chainId: Int
+
+  """The description for the collection."""
+  creatorId: String
+}
+
+input UpdateCollectionInput {
+  """The id for a collection."""
+  id: String!
+
+  """The unique URL-friendly identifier for a collection."""
+  name: String
+
+  """The name that we display for the collection."""
+  displayName: String
+
+  """
+  The address of the collection, e.g. '0x6bf9ec331e083627b0f48332ece2d99a7eb7fb0c'
+  """
+  address: String
+
+  """The chainId of the collection."""
+  chainId: Int
+
+  """The description for the collection."""
+  about: String
+
+  """
+  The image url for the avatar of the collection. This is the profile picture.
+  """
+  avatarUrl: String
+
+  """The image url for the background of the collection."""
+  backgroundUrl: String
+
+  """The url for the website associated with this collection"""
+  websiteUrl: String
+
+  """The twitter handle associated with this collection, e.g. 'vibe-labs'"""
+  twitter: String
+
+  """The instagram handle associated with this collection, e.g. 'vibe-labs'"""
+  instagram: String
+
+  """The discord handle associated with this collection, e.g. 'vibe-labs"""
+  discord: String
+
+  """The tags associated with this organization."""
+  tags: [String!]
+}
+
+input PublishCollectionInput {
+  """The id for a collection."""
+  id: String!
+}
+
+input DeleteCollectionInput {
+  """The id for a collection."""
+  id: String!
+}
+
+input CreateTierInput {
+  """The collection associated with this tier."""
+  collectionId: String!
+
+  """The total number of mints for this tier."""
+  totalMints: Float!
+
+  """The name of the tier."""
+  name: String!
+
+  """The description of the tier."""
+  description: String
+
+  """This is the URL to the image of the tier."""
+  image: String
+
+  """
+  This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.
+  """
+  externalUrl: String
+
+  """This is the URL to the animation of the tier."""
+  animationUrl: String
+
+  """A JSON object containing the attributes of the tier."""
+  attributes: String
+}
+
+input UpdateTierInput {
+  """The id of the tier."""
+  id: String!
+
+  """The total number of mints for this tier."""
+  totalMints: Float
+
+  """The name of the tier."""
+  name: String
+
+  """The description of the tier."""
+  description: String
+
+  """This is the URL to the image of the tier."""
+  image: String
+
+  """
+  This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.
+  """
+  externalUrl: String
+
+  """This is the URL to the animation of the tier."""
+  animationUrl: String
+
+  """A JSON object containing the attributes of the tier."""
+  attributes: String
+}
+
+input DeleteTierInput {
+  """The id for a tier."""
+  id: String!
 }

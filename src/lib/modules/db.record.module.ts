@@ -102,16 +102,17 @@ export interface CollectionActivity {
 
 export interface SearchCollectionItem {
     name: string;
-    collection: string;
-    chain_id: number;
-    avatar?: string;
-    tiers: any[];
+    address: string;
+    chainId: number;
+    avatarUrl?: string;
+    tiers?: any[];
 }
 
 export interface SearchAccountItem {
-    name: string;
+    name?: string;
+    email?: string;
     address: string;
-    avatar?: string;
+    avatarUrl?: string;
 }
 
 export interface MetadataPollerItem {

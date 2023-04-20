@@ -1,5 +1,5 @@
 import { Args, Context, Query, Resolver } from '@nestjs/graphql';
-import { VAddressHoldingRspDto, VAddressHoldingReqDto, MarketAddressActivitiesRspDto, MarketAddressActivitiesReqDto, MarketAddressReleasedRspDto, MarketAddressReleasedReqDto, VCollectionActivityRspDto, VCollectionActivityReqDto, VGlobalSearchRspDto, VGlobalSearchReqDto } from '../dto/market.dto';
+import { VAddressHoldingRspDto, VAddressHoldingReqDto, MarketAddressActivitiesRspDto, MarketAddressActivitiesReqDto, MarketAddressReleasedRspDto, MarketAddressReleasedReqDto, VCollectionActivityRspDto, VCollectionActivityReqDto } from '../dto/market.dto';
 import { Public } from '../lib/decorators/public.decorator';
 import { JWTService } from '../services/jwt.service';
 import { MarketService } from '../services/market.service';
@@ -36,11 +36,4 @@ export class MarketResolver {
         return rsp;
     }
 
-    @Public()
-    @Query(() => VGlobalSearchRspDto)
-    public async search(@Context('req') req: any, @Args() args: VGlobalSearchReqDto): Promise<VGlobalSearchRspDto> {
-        const rsp = await this.marketService.executeSearch(args);
-        console.log('rsp', rsp);
-        return rsp;
-    }
 }

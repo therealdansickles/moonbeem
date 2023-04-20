@@ -1,0 +1,47 @@
+# .github/workflows/check.yml
+
+name: Publish Schema
+
+# Controls when the action will run. Triggers the workflow on push or pull request events
+on:
+  push:
+    branches:
+      - main
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # https://docs.github.com/en/actions/reference/environments
+    environment: apollo
+
+    # https://docs.github.com/en/actions/reference/encrypted-secrets
+    # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstepsenv
+    env:
+      APOLLO_KEY: ${{ secrets.APOLLO_API_KEY }}
+      APOLLO_VCS_COMMIT: ${{ github.event.pull_request.head.sha }}
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+
+      - name: Install Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: 'yarn'
+      - name: Install Rover
+        run: |
+          curl -sSL https://rover.apollo.dev/nix/v0.13.0 | sh
+
+          # Add Rover to the $GITHUB_PATH so it can be used in another step
+          # https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#adding-a-system-path
+          echo "$HOME/.rover/bin" >> $GITHUB_PATH
+
+      - name: Publish graph
+        run: |
+          rover graph publish V1-Staging-8tuw9f@current --schema ./schema.graphql

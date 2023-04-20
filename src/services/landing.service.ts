@@ -147,19 +147,19 @@ export class LandingService {
         if (args.status) {
             const currTime = Number(Date.now() / 1000);
             switch (args.status) {
-            case BasicCollectionStatus.Upcoming:
-                sqlStr = `${sqlStr} AND pm.begin_time >= ?`;
-                values.push(currTime);
-                break;
-            case BasicCollectionStatus.Live:
-                sqlStr = `${sqlStr} AND pm.begin_time <= ? AND ? <= pm.end_time`;
-                values.push(currTime);
-                values.push(currTime);
-                break;
-            case BasicCollectionStatus.Expired:
-                sqlStr = `${sqlStr} AND pm.end_time <= ?`;
-                values.push(currTime);
-                break;
+                case BasicCollectionStatus.Upcoming:
+                    sqlStr = `${sqlStr} AND pm.begin_time >= ?`;
+                    values.push(currTime);
+                    break;
+                case BasicCollectionStatus.Live:
+                    sqlStr = `${sqlStr} AND pm.begin_time <= ? AND ? <= pm.end_time`;
+                    values.push(currTime);
+                    values.push(currTime);
+                    break;
+                case BasicCollectionStatus.Expired:
+                    sqlStr = `${sqlStr} AND pm.end_time <= ?`;
+                    values.push(currTime);
+                    break;
             }
         }
         sqlStr += ' GROUP BY c.id,pm.payment_token,pm.id,uw.address,uw."name",uw.description,uw.avatar,uw."discordLink",uw."facebookLink",uw."twitterLink",uw."customUrl"';
@@ -238,19 +238,19 @@ export class LandingService {
         if (args.status) {
             const currTime = Number(Date.now() / 1000);
             switch (args.status) {
-            case BasicCollectionStatus.Upcoming:
-                sqlStr = `${sqlStr} AND pm.begin_time >= ?`;
-                values.push(currTime);
-                break;
-            case BasicCollectionStatus.Live:
-                sqlStr = `${sqlStr} AND pm.begin_time <= ? AND ? <= pm.end_time`;
-                values.push(currTime);
-                values.push(currTime);
-                break;
-            case BasicCollectionStatus.Expired:
-                sqlStr = `${sqlStr} AND pm.end_time <= ?`;
-                values.push(currTime);
-                break;
+                case BasicCollectionStatus.Upcoming:
+                    sqlStr = `${sqlStr} AND pm.begin_time >= ?`;
+                    values.push(currTime);
+                    break;
+                case BasicCollectionStatus.Live:
+                    sqlStr = `${sqlStr} AND pm.begin_time <= ? AND ? <= pm.end_time`;
+                    values.push(currTime);
+                    values.push(currTime);
+                    break;
+                case BasicCollectionStatus.Expired:
+                    sqlStr = `${sqlStr} AND pm.end_time <= ?`;
+                    values.push(currTime);
+                    break;
             }
         }
         const rsp = await this.pgClient.query<TotalRecord>(sqlStr, values);

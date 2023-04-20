@@ -10,15 +10,20 @@ services:
       - "3000:3000"
     environment:
       NODE_ENV: dev
+      V1_DATABASE_URL: postgresql://root:root@localhost:5432/platform_development?schema=public
       DATABASE_URL: postgres://root:root@postgres/vibe-server
       REDIS_URL: redis://default:redis@redis:6379
       MONGO_URL: mongodb://root:root@mongo:27017
       SESSION_SECRET: secretKey
-    networks:
-      vibe_net:
-        aliases:
-          - server-restful
 
-networks:
-  vibe_net:
-    external: true
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    volumes:
+      - /tmp/postgres-data:/var/lib/postgresql/data
+    ports:
+      - ${POSTGRES_PORT}:5432
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}

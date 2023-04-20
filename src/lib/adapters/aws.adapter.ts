@@ -11,9 +11,9 @@ export class AWSAdapter {
     private s3: S3;
     private cf: CloudFront;
     private bucket: string;
-    private metadataUri: string;
-    private mediaUri: string;
-    private baseUri: string;
+    private _metadataUri: string;
+    private _mediaUri: string;
+    private _baseUri: string;
 
     constructor() {
         // Verify that AccessKeyId or SecretAccessKey is provided
@@ -30,29 +30,41 @@ export class AWSAdapter {
 
         // Create s3 object
         this.bucket = bucket ? bucket : '';
-        this.metadataUri = metadataBaseuri && metadataBaseuri.endsWith('/') ? metadataBaseuri : metadataBaseuri + '/';
-        this.mediaUri = mediaBaseUri && mediaBaseUri.endsWith('/') ? mediaBaseUri : mediaBaseUri + '/';
-        this.baseUri = baseUri && baseUri.endsWith('/') ? baseUri : baseUri + '/';
+        this._metadataUri = metadataBaseuri && metadataBaseuri.endsWith('/') ? metadataBaseuri : metadataBaseuri + '/';
+        this._mediaUri = mediaBaseUri && mediaBaseUri.endsWith('/') ? mediaBaseUri : mediaBaseUri + '/';
+        this._baseUri = baseUri && baseUri.endsWith('/') ? baseUri : baseUri + '/';
         this.s3 = new S3({ region: region, accessKeyId: accessKeyId, secretAccessKey: secretAccessKey });
         this.cf = new CloudFront({ region: region, accessKeyId: accessKeyId, secretAccessKey: secretAccessKey });
+    }
+
+    get baseUri() {
+        return this._baseUri;
+    }
+
+    get mediaUri() {
+        return this._mediaUri;
+    }
+
+    get metadataUri() {
+        return this._metadataUri;
     }
 
     async s3PutData(data: Buffer, fileName: string, resourceType?: ResourceType, contentType?: string): Promise<string> {
         let url = '';
         switch (resourceType) {
-        case ResourceType.Metadata:
-            url = this.metadataUri + fileName;
-            fileName = `${ResourceType.Metadata}/${fileName}`;
-            if (!contentType) contentType = 'application/json';
-            break;
-        case ResourceType.Media:
-            url = this.mediaUri + fileName;
-            fileName = `${ResourceType.Media}/${fileName}`;
-            if (!contentType) contentType = 'image/jpeg';
-            break;
-        default:
-            url = this.baseUri + fileName;
-            if (!contentType) contentType = 'application/octet-stream';
+            case ResourceType.Metadata:
+                url = this._metadataUri + fileName;
+                fileName = `${ResourceType.Metadata}/${fileName}`;
+                if (!contentType) contentType = 'application/json';
+                break;
+            case ResourceType.Media:
+                url = this._mediaUri + fileName;
+                fileName = `${ResourceType.Media}/${fileName}`;
+                if (!contentType) contentType = 'image/jpeg';
+                break;
+            default:
+                url = this._baseUri + fileName;
+                if (!contentType) contentType = 'application/octet-stream';
         }
 
         const succ = await this.s3PutData_(data, fileName, contentType);

@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { VUserWalletInfo, VIPriceType } from '../dto/auth.dto';
+import { VUserWalletInfo, VIPriceType } from '../auth/auth.dto';
 import { VUpdateUserWalletReqDto, VUserFollowingListReqDto, VUserFollowingListRspDto } from '../dto/user.wallet.dto';
 import { PostgresAdapter } from '../lib/adapters/postgres.adapter';
 import { IAttribute } from '../lib/interfaces/main.interface';
 import { UserWalletFollowing, UserWallet, TbUserWallet, TbUserWalletFollowing, TbPreMintRecord, TbPreMint } from '../lib/modules/db.module';
 import { TotalRecord, UserFollowingRec, TokenPrice } from '../lib/modules/db.record.module';
 import { v4 as uuidV4 } from 'uuid';
-import { AuthPayload } from './auth.service';
+import { AuthPayload } from '../auth/auth.service';
 
 @Injectable()
 export class UserWalletService {

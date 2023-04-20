@@ -79,82 +79,82 @@ export class VUserWallet {
     @Field()
     @ApiProperty()
     @IsUUID()
-        id: string;
+    id: string;
 
     @Field(() => EthereumAddress)
     @ApiProperty()
     @IsEthereumAddress()
-        address: string;
+    address: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-        name: string;
+    name: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-        avatar: string;
+    avatar: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-        createdTime: string;
+    createdTime: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-        updatedTime: string;
+    updatedTime: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-        user: string;
+    user: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-        banner: string;
+    banner: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-        customUrl: string;
+    customUrl: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-        description: string;
+    description: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-        discordLink: string;
+    discordLink: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-        facebookLink: string;
+    facebookLink: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-        twitterLink: string;
+    twitterLink: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-        collection: string;
+    collection: string;
 
     @Field()
     @ApiProperty()
     @IsString()
-        walletType: string;
+    walletType: string;
 
     @Field()
     @ApiProperty()
     @IsBoolean()
-        visible: boolean;
+    visible: boolean;
 }
 
 @ArgsType()
@@ -213,7 +213,7 @@ export class VFollowingInfo {
     @Field({ nullable: true })
     @ApiProperty()
     @IsBoolean()
-        isFollowed?: boolean;
+    isFollowed?: boolean;
 }
 
 @ObjectType()
