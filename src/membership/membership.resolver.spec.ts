@@ -153,6 +153,7 @@ describe('MembershipResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.createMembership.id).toBeDefined();
+                    expect(body.data.createMembership.canEdit).toBeTruthy();
                 });
         });
     });
@@ -202,6 +203,93 @@ describe('MembershipResolver', () => {
                         id: expect.any(String),
                         canEdit: true,
                     });
+                });
+        });
+    });
+
+    describe('acceptMembership', () => {
+        it('should accept a membership request', async () => {
+            user = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
+            organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+            });
+
+            membership = await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
+
+            const query = gql`
+                mutation acceptMembership($input: MembershipRequestInput!) {
+                    acceptMembership(input: $input)
+                }
+            `;
+
+            const variables = {
+                input: {
+                    userId: user.id,
+                    organizationId: organization.id,
+                    inviteCode: membership.inviteCode,
+                },
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.acceptMembership).toBeTruthy();
+                });
+        });
+    });
+
+    describe('declineMembership', () => {
+        it('should accept a membership request', async () => {
+            user = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
+            organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+            });
+
+            membership = await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
+
+            const query = gql`
+                mutation declineMembership($input: MembershipRequestInput!) {
+                    declineMembership(input: $input)
+                }
+            `;
+            const variables = {
+                input: {
+                    userId: user.id,
+                    organizationId: organization.id,
+                    inviteCode: membership.inviteCode,
+                },
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.declineMembership).toBeTruthy();
                 });
         });
     });

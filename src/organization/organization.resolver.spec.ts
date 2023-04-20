@@ -95,7 +95,7 @@ describe('OrganizationResolver', () => {
     describe('createOrganization', () => {
         it('should create an organization', async () => {
             const query = gql`
-                query CreateOrganization($input: CreateOrganizationInput!) {
+                mutation CreateOrganization($input: CreateOrganizationInput!) {
                     createOrganization(input: $input) {
                         id
                         name
@@ -130,7 +130,7 @@ describe('OrganizationResolver', () => {
     describe('updateOrganization', () => {
         it('should update an organization', async () => {
             const query = gql`
-                query updateOrganization($input: UpdateOrganizationInput!) {
+                mutation updateOrganization($input: UpdateOrganizationInput!) {
                     updateOrganization(input: $input) {
                         displayName
                     }
@@ -157,7 +157,7 @@ describe('OrganizationResolver', () => {
     describe('deleteOrganization', () => {
         it('should delete an organization', async () => {
             const query = gql`
-                query deleteOrganization($input: DeleteOrganizationInput!) {
+                mutation deleteOrganization($input: DeleteOrganizationInput!) {
                     deleteOrganization(input: $input)
                 }
             `;

@@ -10,7 +10,6 @@ import { postgresConfig } from './lib/configs/db.config';
 import { appConfig } from './lib/configs/app.config';
 import { RavenModule, RavenInterceptor } from 'nest-raven';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-
 import { AppController } from './controllers/app.controller';
 import { AppResolver } from './resolvers/app.resolver';
 import { AppService } from './services/app.service';

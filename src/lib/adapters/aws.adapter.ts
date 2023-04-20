@@ -25,8 +25,10 @@ export class AWSAdapter {
         const mediaBaseUri = process.env.AWS_IMAGE_BASE_URI;
         const baseUri = process.env.AWS_BASE_URL;
 
-        if (!accessKeyId || !secretAccessKey || !bucket) console.log('Please provide AWS AccessKeyId or SecretAccessKey or bucket');
-        if (!metadataBaseuri || !mediaBaseUri || !baseUri) console.log('Please provide the metadata baseuri or media baseuri or baseuri');
+        if (!accessKeyId || !secretAccessKey || !bucket)
+            console.log('Please provide AWS AccessKeyId or SecretAccessKey or bucket');
+        if (!metadataBaseuri || !mediaBaseUri || !baseUri)
+            console.log('Please provide the metadata baseuri or media baseuri or baseuri');
 
         // Create s3 object
         this.bucket = bucket ? bucket : '';
@@ -49,7 +51,12 @@ export class AWSAdapter {
         return this._metadataUri;
     }
 
-    async s3PutData(data: Buffer, fileName: string, resourceType?: ResourceType, contentType?: string): Promise<string> {
+    async s3PutData(
+        data: Buffer,
+        fileName: string,
+        resourceType?: ResourceType,
+        contentType?: string
+    ): Promise<string> {
         let url = '';
         switch (resourceType) {
             case ResourceType.Metadata:
@@ -85,7 +92,11 @@ export class AWSAdapter {
             await this.s3.putObject(param).promise();
             return true;
         } catch (err) {
-            console.log(`s3PutData_ err, data length[${data.length}], fileName[${fileName}], contentType[${contentType}], msg: ${(err as Error).message}`);
+            console.log(
+                `s3PutData_ err, data length[${
+                    data.length
+                }], fileName[${fileName}], contentType[${contentType}], msg: ${(err as Error).message}`
+            );
             return false;
         }
     }

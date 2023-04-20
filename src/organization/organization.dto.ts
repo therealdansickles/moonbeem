@@ -90,12 +90,14 @@ export class CreateOrganizationInput {
     @ApiProperty()
     @IsString()
     @Field({ description: 'The name that we display for the organization.', nullable: true })
+    @IsOptional()
     readonly displayName?: string;
 
     @ApiProperty()
     @IsString()
     @ValidateIf((object, value) => value !== null)
     @Field({ description: 'The description for the organization.', nullable: true })
+    @IsOptional()
     readonly about?: string;
 
     @ApiProperty()
@@ -107,30 +109,35 @@ export class CreateOrganizationInput {
     @IsUrl()
     @ValidateIf((object, value) => value !== null)
     @Field({ description: 'The image url for the background of the organization.', nullable: true })
+    @IsOptional()
     readonly backgroundUrl?: string;
 
     @ApiProperty()
     @IsUrl()
     @ValidateIf((object, value) => value !== null)
     @Field({ description: 'The url for the website associated with this organization', nullable: true })
+    @IsOptional()
     readonly websiteUrl?: string;
 
     @ApiProperty()
     @IsString()
     @ValidateIf((object, value) => value !== null)
     @Field({ description: "The twitter handle associated with this organization, e.g. 'vibe-labs'", nullable: true })
+    @IsOptional()
     readonly twitter?: string;
 
     @ApiProperty()
     @IsString()
     @ValidateIf((object, value) => value !== null)
     @Field({ description: "The instagram handle associated with this organization, e.g. 'vibe-labs'", nullable: true })
+    @IsOptional()
     readonly instagram?: string;
 
     @ApiProperty()
     @IsString()
     @ValidateIf((object, value) => value !== null)
     @Field({ description: "The discord handle associated with this organization, e.g. 'vibe-labs", nullable: true })
+    @IsOptional()
     readonly discord?: string;
 
     //@ApiProperty()
@@ -164,7 +171,10 @@ export class UpdateOrganizationInput {
 
     @ApiProperty()
     @IsUrl()
-    @Field({ description: 'The image url for the avatar of the organization. This is the profile picture.', nullable: true })
+    @Field({
+        description: 'The image url for the avatar of the organization. This is the profile picture.',
+        nullable: true,
+    })
     readonly avatarUrl?: string;
 
     @ApiProperty()

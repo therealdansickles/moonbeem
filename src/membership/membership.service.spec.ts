@@ -83,13 +83,13 @@ describe('MembershipService', () => {
 
     describe('createMembership', () => {
         it('should create a membership', async () => {
-            let newUser = await userService.createUser({
+            const newUser = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
                 password: faker.internet.password(),
             });
 
-            let newOrganization = await organizationService.createOrganization({
+            const newOrganization = await organizationService.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
@@ -99,18 +99,20 @@ describe('MembershipService', () => {
             const result = await service.createMembership({
                 organizationId: newOrganization.id,
                 userId: newUser.id,
+                canDeploy: true,
             });
             expect(result.id).toBeDefined();
+            expect(result.canDeploy).toBeTruthy();
         });
 
         it('should prevent duplicate memberships', async () => {
-            let newUser = await userService.createUser({
+            const newUser = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
                 password: faker.internet.password(),
             });
 
-            let newOrganization = await organizationService.createOrganization({
+            const newOrganization = await organizationService.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
@@ -127,8 +129,134 @@ describe('MembershipService', () => {
 
     describe('updateMembership', () => {
         it('should update a membership', async () => {
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+            });
+
+            const membership = await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
+
             const result = await service.updateMembership(membership.id, { canEdit: true });
             expect(result.canEdit).toBeTruthy();
+        });
+    });
+
+    describe('acceptMembership', () => {
+        it('should accept a membership request', async () => {
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+            });
+
+            const membership = await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
+
+            const result = await service.acceptMembership({
+                userId: user.id,
+                organizationId: organization.id,
+                inviteCode: membership.inviteCode,
+            });
+
+            expect(result).toBeTruthy;
+        });
+
+        it('should fail and reject request without invite code', async () => {
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+            });
+
+            await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
+
+            await expect(async () => {
+                await service.acceptMembership({ userId: user.id, organizationId: organization.id, inviteCode: '' });
+            }).rejects.toThrow();
+        });
+    });
+
+    describe('declineMembership', () => {
+        it('should decline a membership request', async () => {
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+            });
+
+            const membership = await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
+
+            const result = await service.declineMembership({
+                userId: user.id,
+                organizationId: organization.id,
+                inviteCode: membership.inviteCode,
+            });
+
+            expect(result).toBeTruthy;
+        });
+
+        it('should fail and reject request without invite code', async () => {
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+            });
+
+            await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
+
+            await expect(async () => {
+                await service.declineMembership({ userId: user.id, organizationId: organization.id, inviteCode: '' });
+            }).rejects.toThrow();
         });
     });
 

@@ -2855,6 +2855,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@nextnm/nestjs-mailgun@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@nextnm/nestjs-mailgun@npm:3.0.0"
+  dependencies:
+    form-data: ^4.0.0
+    mailgun.js: ^8.0.6
+    reflect-metadata: ^0.1.13
+    rxjs: ^6.6.7
+  peerDependencies:
+    "@nestjs/common": ^7.0.7
+  checksum: a3b41bbae3c4af28c001d081cbfae49f573eb42a91d898a1f480dba690cb4c6734e298afa8b33599fa47688cb970b004f323cdb8f99d780f77a4dc190b46e098
+  languageName: node
+  linkType: hard
+
 "@nodelib/fs.scandir@npm:2.1.5":
   version: 2.1.5
   resolution: "@nodelib/fs.scandir@npm:2.1.5"
@@ -3526,6 +3540,13 @@ __metadata:
   version: 6.9.7
   resolution: "@types/qs@npm:6.9.7"
   checksum: 7fd6f9c25053e9b5bb6bc9f9f76c1d89e6c04f7707a7ba0e44cc01f17ef5284adb82f230f542c2d5557d69407c9a40f0f3515e8319afd14e1e16b5543ac6cdba
+  languageName: node
+  linkType: hard
+
+"@types/randomstring@npm:^1.1.8":
+  version: 1.1.8
+  resolution: "@types/randomstring@npm:1.1.8"
+  checksum: 22a9e4b09583ad8e7fa7ca214133abc014636d7d6eb49ca9ee671c09b241311107b0a6ea48205bf795ac61fbe5b185ac415aed2dd27c7f5806235bfea0e5532f
   languageName: node
   linkType: hard
 
@@ -4472,6 +4493,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"array-uniq@npm:1.0.2":
+  version: 1.0.2
+  resolution: "array-uniq@npm:1.0.2"
+  checksum: 8c4beb94aa183791da1e155935aba4df3fe2eeb6f491c69e666ca7351f897b9b260fa04d016e0ce766ae8280129c16f11071e17359c81c01741289009bb5ac6d
+  languageName: node
+  linkType: hard
+
 "asap@npm:^2.0.0":
   version: 2.0.6
   resolution: "asap@npm:2.0.6"
@@ -4502,9 +4530,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"aws-sdk@npm:^2.1353.0":
-  version: 2.1361.0
-  resolution: "aws-sdk@npm:2.1361.0"
+"aws-sdk@npm:^2.1322.0":
+  version: 2.1362.0
+  resolution: "aws-sdk@npm:2.1362.0"
   dependencies:
     buffer: 4.9.2
     events: 1.1.1
@@ -4516,7 +4544,7 @@ __metadata:
     util: ^0.12.4
     uuid: 8.0.0
     xml2js: 0.5.0
-  checksum: bbc75f97088ce88d2a086de6834a030751a35ed88226d0c175a1da4bf865bd7a1d0ad5d3c01ef71efb6ca4ba3994f512b26b573407d37ee7ef1b7ded32d574f1
+  checksum: 00f99fd47758a2beb51a695ca7fd5886a4f7f8ba7f58563289c41d0c7d85d253e58fa4520b6afbf536b666d438dff6ddcbcb18259aaded68ac86ecf3c9099d64
   languageName: node
   linkType: hard
 
@@ -6282,7 +6310,7 @@ __metadata:
 
 "fsevents@patch:fsevents@^2.3.2#~builtin<compat/fsevents>, fsevents@patch:fsevents@~2.3.2#~builtin<compat/fsevents>":
   version: 2.3.2
-  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=df0bf1"
+  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=18f3a7"
   dependencies:
     node-gyp: latest
   conditions: os=darwin
@@ -7878,7 +7906,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mailgun.js@npm:^8.2.1":
+"mailgun.js@npm:^8.0.6":
   version: 8.2.1
   resolution: "mailgun.js@npm:8.2.1"
   dependencies:
@@ -7946,11 +7974,11 @@ __metadata:
   linkType: hard
 
 "memfs@npm:^3.4.1":
-  version: 3.5.0
-  resolution: "memfs@npm:3.5.0"
+  version: 3.5.1
+  resolution: "memfs@npm:3.5.1"
   dependencies:
     fs-monkey: ^1.0.3
-  checksum: 8427db6c3644eeb9119b7a74b232d9a6178d018878acce6f05bd89d95e28b1073c9eeb00127131b0613b07a003e2e7b15b482f9004e548fe06a0aba7aa02515c
+  checksum: fcd037566a4bbb00d61dc991858395ccc06267ab5fe9471aeff28433f2a210bf5dd999e64e8b5473f8244f00dfb7ff3221b5c2fe41ff98af1439e5e2168fc410
   languageName: node
   linkType: hard
 
@@ -9073,12 +9101,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"randombytes@npm:2.0.3":
+  version: 2.0.3
+  resolution: "randombytes@npm:2.0.3"
+  checksum: 13e1abd143404dd87024bf345fb1a446b2e2ee46d8e1a5a073e8370c9b1e58000d81a97d4327ba7089087213eb6d8c77fa67ab4e91aa00605126d634fcccb9d4
+  languageName: node
+  linkType: hard
+
 "randombytes@npm:^2.1.0":
   version: 2.1.0
   resolution: "randombytes@npm:2.1.0"
   dependencies:
     safe-buffer: ^5.1.0
   checksum: d779499376bd4cbb435ef3ab9a957006c8682f343f14089ed5f27764e4645114196e75b7f6abf1cbd84fd247c0cb0651698444df8c9bf30e62120fbbc52269d6
+  languageName: node
+  linkType: hard
+
+"randomstring@npm:^1.2.3":
+  version: 1.2.3
+  resolution: "randomstring@npm:1.2.3"
+  dependencies:
+    array-uniq: 1.0.2
+    randombytes: 2.0.3
+  bin:
+    randomstring: bin/randomstring
+  checksum: 9f201638d1a51091b0262fae062bec53a94636dd1f193c703245eaa7676ee8de22f6e7d35075cfe49ba446999f0d6f1032fb7a50a99a2a80d8c28145748a4d67
   languageName: node
   linkType: hard
 
@@ -9244,7 +9291,7 @@ __metadata:
 
 "resolve@patch:resolve@^1.1.6#~builtin<compat/resolve>, resolve@patch:resolve@^1.20.0#~builtin<compat/resolve>":
   version: 1.22.3
-  resolution: "resolve@patch:resolve@npm%3A1.22.3#~builtin<compat/resolve>::version=1.22.3&hash=c3c19d"
+  resolution: "resolve@patch:resolve@npm%3A1.22.3#~builtin<compat/resolve>::version=1.22.3&hash=07638b"
   dependencies:
     is-core-module: ^2.12.0
     path-parse: ^1.0.7
@@ -9331,7 +9378,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:6.6.7":
+"rxjs@npm:6.6.7, rxjs@npm:^6.6.7":
   version: 6.6.7
   resolution: "rxjs@npm:6.6.7"
   dependencies:
@@ -9542,6 +9589,7 @@ __metadata:
     "@nestjs/swagger": ^6.1.4
     "@nestjs/testing": ^9.0.0
     "@nestjs/typeorm": ^9.0.1
+    "@nextnm/nestjs-mailgun": ^3.0.0
     "@sentry/node": ^7.47.0
     "@types/cron": ^2.0.0
     "@types/express": ^4.17.13
@@ -9550,13 +9598,14 @@ __metadata:
     "@types/node": ^16.0.0
     "@types/passport-jwt": ^3.0.8
     "@types/passport-local": ^1.0.34
+    "@types/randomstring": ^1.1.8
     "@types/supertest": ^2.0.11
     "@typescript-eslint/eslint-plugin": ^5.55.0
     "@typescript-eslint/parser": ^5.0.1
     "@uploadcare/upload-client": ^6.2.1
     apollo-server-express: ^3.11.1
     argon2: ^0.30.3
-    aws-sdk: ^2.1353.0
+    aws-sdk: ^2.1322.0
     axios: ^1.3.5
     class-transformer: ^0.5.1
     class-validator: ^0.14.0
@@ -9569,7 +9618,6 @@ __metadata:
     graphql: ^16.6.0
     graphql-type-json: ^0.3.2
     jest: 28.1.3
-    mailgun.js: ^8.2.1
     mongodb: ^4.13.0
     nest-raven: ^9.2.0
     nftscan-api: ^1.6.1
@@ -9578,6 +9626,7 @@ __metadata:
     passport-local: ^1.0.0
     pg: ^8.10.0
     prettier: ^2.5.1
+    randomstring: ^1.2.3
     redis: ^4.5.0
     reflect-metadata: ^0.1.13
     rimraf: ^3.0.2
@@ -10454,11 +10503,11 @@ __metadata:
 
 "typescript@patch:typescript@4.9.5#~builtin<compat/typescript>, typescript@patch:typescript@^4.4.4#~builtin<compat/typescript>":
   version: 4.9.5
-  resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=23ec76"
+  resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=a1c5e5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: ab417a2f398380c90a6cf5a5f74badd17866adf57f1165617d6a551f059c3ba0a3e4da0d147b3ac5681db9ac76a303c5876394b13b3de75fdd5b1eaa06181c9d
+  checksum: 2eee5c37cad4390385db5db5a8e81470e42e8f1401b0358d7390095d6f681b410f2c4a0c496c6ff9ebd775423c7785cdace7bcdad76c7bee283df3d9718c0f20
   languageName: node
   linkType: hard
 

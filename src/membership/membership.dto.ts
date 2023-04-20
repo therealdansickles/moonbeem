@@ -14,12 +14,12 @@ export class Membership {
 
     @ApiProperty()
     @IsObject()
-    @Field({ description: 'The user that is a member of this organization.' })
+    @Field({ description: 'The user invited to this membership' })
     readonly user: User;
 
     @ApiProperty()
     @IsObject()
-    @Field({ description: 'The organization that this user is a member of.' })
+    @Field({ description: 'The organization that this membership is for' })
     readonly organization: Organization;
 
     @ApiProperty()
@@ -39,6 +39,24 @@ export class Membership {
 }
 
 @InputType()
+export class MembershipRequestInput {
+    @ApiProperty()
+    @IsString()
+    @Field({ description: 'The user that is a member of this organization.' })
+    readonly userId: string;
+
+    @ApiProperty()
+    @IsString()
+    @Field({ description: 'The organization that this user is a member of.' })
+    readonly organizationId: string;
+
+    @ApiProperty()
+    @IsString()
+    @Field({ description: 'The unique user invite code for the membership' })
+    readonly inviteCode: string;
+}
+
+@InputType()
 export class CreateMembershipInput {
     @ApiProperty()
     @IsString()
@@ -53,16 +71,19 @@ export class CreateMembershipInput {
     @ApiProperty()
     @IsBoolean()
     @Field((returns) => Boolean, { description: 'Whether or not this user can edit.', nullable: true })
+    @IsOptional()
     readonly canEdit?: boolean;
 
     @ApiProperty()
     @IsBoolean()
     @Field((returns) => Boolean, { description: 'Whether or not this user can manage.', nullable: true })
+    @IsOptional()
     readonly canManage?: boolean;
 
     @ApiProperty()
     @IsBoolean()
     @Field((returns) => Boolean, { description: 'Whether or not this user can deploy a collection.', nullable: true })
+    @IsOptional()
     readonly canDeploy?: boolean;
 }
 

@@ -8,9 +8,15 @@ import { OrganizationModule } from '../organization/organization.module';
 import { OrganizationService } from '../organization/organization.service';
 import { User } from '../user/user.entity';
 import { UserModule } from '../user/user.module';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Membership, Organization, User]), forwardRef(() => OrganizationModule), forwardRef(() => UserModule)],
+    imports: [
+        TypeOrmModule.forFeature([Membership, Organization, User]),
+        forwardRef(() => OrganizationModule),
+        forwardRef(() => UserModule),
+        MailModule,
+    ],
     exports: [MembershipModule],
     providers: [MembershipService, MembershipResolver, OrganizationService],
     controllers: [],

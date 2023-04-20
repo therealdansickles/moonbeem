@@ -1,14 +1,25 @@
 import { Public } from '../lib/decorators/public.decorator';
 import { Resolver, Query, Args, Mutation, ResolveField, Parent } from '@nestjs/graphql';
 
-import { Membership, CreateMembershipInput, UpdateMembershipInput, DeleteMembershipInput } from './membership.dto';
+import {
+    Membership,
+    CreateMembershipInput,
+    UpdateMembershipInput,
+    DeleteMembershipInput,
+    MembershipRequestInput,
+} from './membership.dto';
 import { MembershipService } from './membership.service';
 import { Organization } from '../organization/organization.dto';
 import { OrganizationService } from '../organization/organization.service';
+import { MailService } from '../mail/mail.service';
 
 @Resolver(() => Membership)
 export class MembershipResolver {
-    constructor(private readonly membershipService: MembershipService, private readonly organizationService: OrganizationService) {}
+    constructor(
+        private readonly membershipService: MembershipService,
+        private readonly organizationService: OrganizationService,
+        private mailService: MailService
+    ) {}
 
     @Public()
     @Query(() => Membership, { description: 'Retrieve a membership by id.', nullable: true })
@@ -20,6 +31,18 @@ export class MembershipResolver {
     @Mutation(() => Membership, { description: 'Create a new membership.' })
     async createMembership(@Args('input') input: CreateMembershipInput): Promise<Membership> {
         return await this.membershipService.createMembership(input);
+    }
+
+    @Public()
+    @Mutation(() => Boolean, { description: 'Accept a membership request.' })
+    async acceptMembership(@Args('input') input: MembershipRequestInput): Promise<boolean> {
+        return await this.membershipService.acceptMembership(input);
+    }
+
+    @Public()
+    @Mutation(() => Boolean, { description: 'Accept a membership request.' })
+    async declineMembership(@Args('input') input: MembershipRequestInput): Promise<boolean> {
+        return await this.membershipService.declineMembership(input);
     }
 
     @Public()

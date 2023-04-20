@@ -257,10 +257,10 @@ type Membership {
   """The id of the membership."""
   id: String!
 
-  """The user that is a member of this organization."""
+  """The user invited to this membership"""
   user: User!
 
-  """The organization that this user is a member of."""
+  """The organization that this membership is for"""
   organization: Organization!
 
   """Whether or not this user can edit."""
@@ -540,18 +540,6 @@ type Query {
   """Returns an organization for the given uuid"""
   organization(id: String!): Organization
 
-  """Creates an organization."""
-  createOrganization(input: CreateOrganizationInput!): Organization!
-
-  """Update an organization."""
-  updateOrganization(input: UpdateOrganizationInput!): Organization!
-
-  """Delete an organization."""
-  deleteOrganization(input: DeleteOrganizationInput!): Boolean!
-
-  """Transfer an organization to another user."""
-  transferOrganization(input: TransferOrganizationInput!): Organization!
-
   """returns a collection for a given uuid"""
   collection(id: String!): Collection
 
@@ -568,88 +556,6 @@ type Query {
   getAddressReleased(skip: Int = 0, take: Int = 10, address: EthereumAddress!, chainId: Int = 0): MarketAddressReleasedRspDto!
   getCollectionActivities(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VCollectionActivityRspDto!
   globalSearch(searchTerm: String!, page: Float!, pageSize: Float!): VGlobalSearchRspDto!
-}
-
-input CreateOrganizationInput {
-  """The unique URL-friendly identifier for a organization."""
-  name: String!
-
-  """The name that we display for the organization."""
-  displayName: String
-
-  """The description for the organization."""
-  about: String
-
-  """
-  The image url for the avatar of the organization. This is the profile picture.
-  """
-  avatarUrl: String!
-
-  """The image url for the background of the organization."""
-  backgroundUrl: String
-
-  """The url for the website associated with this organization"""
-  websiteUrl: String
-
-  """The twitter handle associated with this organization, e.g. 'vibe-labs'"""
-  twitter: String
-
-  """
-  The instagram handle associated with this organization, e.g. 'vibe-labs'
-  """
-  instagram: String
-
-  """The discord handle associated with this organization, e.g. 'vibe-labs"""
-  discord: String
-}
-
-input UpdateOrganizationInput {
-  """The id of the organization."""
-  id: String!
-
-  """The unique URL-friendly identifier for a organization."""
-  name: String
-
-  """The name that we display for the organization."""
-  displayName: String
-
-  """The description for the organization."""
-  about: String
-
-  """
-  The image url for the avatar of the organization. This is the profile picture.
-  """
-  avatarUrl: String
-
-  """The image url for the background of the organization."""
-  backgroundUrl: String
-
-  """The url for the website associated with this organization"""
-  websiteUrl: String
-
-  """The twitter handle associated with this organization, e.g. 'vibe-labs'"""
-  twitter: String
-
-  """
-  The instagram handle associated with this organization, e.g. 'vibe-labs'
-  """
-  instagram: String
-
-  """The discord handle associated with this organization, e.g. 'vibe-labs"""
-  discord: String
-}
-
-input DeleteOrganizationInput {
-  """The id of the organization."""
-  id: String!
-}
-
-input TransferOrganizationInput {
-  """The id of the organization."""
-  id: String!
-
-  """The new ownerId of the organization."""
-  ownerId: String!
 }
 
 enum BasicCollectionStatus {
@@ -676,11 +582,29 @@ type Mutation {
   """Create a new membership."""
   createMembership(input: CreateMembershipInput!): Membership!
 
+  """Accept a membership request."""
+  acceptMembership(input: MembershipRequestInput!): Boolean!
+
+  """Accept a membership request."""
+  declineMembership(input: MembershipRequestInput!): Boolean!
+
   """Update a membership."""
   updateMembership(input: UpdateMembershipInput!): Membership!
 
   """Deletes a membership."""
   deleteMembership(input: DeleteMembershipInput!): Boolean!
+
+  """Creates an organization."""
+  createOrganization(input: CreateOrganizationInput!): Organization!
+
+  """Update an organization."""
+  updateOrganization(input: UpdateOrganizationInput!): Organization!
+
+  """Delete an organization."""
+  deleteOrganization(input: DeleteOrganizationInput!): Boolean!
+
+  """Transfer an organization to another user."""
+  transferOrganization(input: TransferOrganizationInput!): Organization!
 
   """creates a collection"""
   createCollection(input: CreateCollectionInput!): Collection!
@@ -764,6 +688,17 @@ input CreateMembershipInput {
   canDeploy: Boolean
 }
 
+input MembershipRequestInput {
+  """The user that is a member of this organization."""
+  userId: String!
+
+  """The organization that this user is a member of."""
+  organizationId: String!
+
+  """The unique user invite code for the membership"""
+  inviteCode: String!
+}
+
 input UpdateMembershipInput {
   """The id for a membership."""
   id: String!
@@ -781,6 +716,88 @@ input UpdateMembershipInput {
 input DeleteMembershipInput {
   """The id for a membership."""
   id: String!
+}
+
+input CreateOrganizationInput {
+  """The unique URL-friendly identifier for a organization."""
+  name: String!
+
+  """The name that we display for the organization."""
+  displayName: String
+
+  """The description for the organization."""
+  about: String
+
+  """
+  The image url for the avatar of the organization. This is the profile picture.
+  """
+  avatarUrl: String!
+
+  """The image url for the background of the organization."""
+  backgroundUrl: String
+
+  """The url for the website associated with this organization"""
+  websiteUrl: String
+
+  """The twitter handle associated with this organization, e.g. 'vibe-labs'"""
+  twitter: String
+
+  """
+  The instagram handle associated with this organization, e.g. 'vibe-labs'
+  """
+  instagram: String
+
+  """The discord handle associated with this organization, e.g. 'vibe-labs"""
+  discord: String
+}
+
+input UpdateOrganizationInput {
+  """The id of the organization."""
+  id: String!
+
+  """The unique URL-friendly identifier for a organization."""
+  name: String
+
+  """The name that we display for the organization."""
+  displayName: String
+
+  """The description for the organization."""
+  about: String
+
+  """
+  The image url for the avatar of the organization. This is the profile picture.
+  """
+  avatarUrl: String
+
+  """The image url for the background of the organization."""
+  backgroundUrl: String
+
+  """The url for the website associated with this organization"""
+  websiteUrl: String
+
+  """The twitter handle associated with this organization, e.g. 'vibe-labs'"""
+  twitter: String
+
+  """
+  The instagram handle associated with this organization, e.g. 'vibe-labs'
+  """
+  instagram: String
+
+  """The discord handle associated with this organization, e.g. 'vibe-labs"""
+  discord: String
+}
+
+input DeleteOrganizationInput {
+  """The id of the organization."""
+  id: String!
+}
+
+input TransferOrganizationInput {
+  """The id of the organization."""
+  id: String!
+
+  """The new ownerId of the organization."""
+  ownerId: String!
 }
 
 input CreateCollectionInput {
