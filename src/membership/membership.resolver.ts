@@ -12,6 +12,8 @@ import { MembershipService } from './membership.service';
 import { Organization } from '../organization/organization.dto';
 import { OrganizationService } from '../organization/organization.service';
 import { MailService } from '../mail/mail.service';
+import { CurrenUser } from '../lib/decorators/curret-user.decorator';
+import { AuthPayload } from '../auth/auth.service';
 
 @Resolver(() => Membership)
 export class MembershipResolver {
@@ -29,7 +31,10 @@ export class MembershipResolver {
 
     @Public()
     @Mutation(() => Membership, { description: 'Create a new membership.' })
-    async createMembership(@Args('input') input: CreateMembershipInput): Promise<Membership> {
+    async createMembership(
+        @CurrenUser() user: AuthPayload,
+        @Args('input') input: CreateMembershipInput
+    ): Promise<Membership> {
         return await this.membershipService.createMembership(input);
     }
 

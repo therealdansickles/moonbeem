@@ -12,6 +12,8 @@ import { Organization } from './organization.entity';
 import { OrganizationModule } from './organization.module';
 import { OrganizationService } from './organization.service';
 import { CollaborationModule } from '../collaboration/collaboration.module';
+import { AuthService } from '../auth/auth.service';
+import { AuthModule } from '../auth/auth.module';
 
 export const gql = String.raw;
 
@@ -20,6 +22,7 @@ describe('OrganizationResolver', () => {
     let service: OrganizationService;
     let app: INestApplication;
     let organization: Organization;
+    let authService: AuthService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -36,16 +39,18 @@ describe('OrganizationResolver', () => {
                     logging: false,
                 }),
                 OrganizationModule,
+                AuthModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
-                    include: [OrganizationModule],
+                    include: [AuthModule, OrganizationModule],
                 }),
             ],
         }).compile();
 
         repository = module.get('OrganizationRepository');
         service = module.get<OrganizationService>(OrganizationService);
+        authService = module.get<AuthService>(AuthService);
         app = module.createNestApplication();
 
         organization = await service.createOrganization({
@@ -93,7 +98,46 @@ describe('OrganizationResolver', () => {
     });
 
     describe('createOrganization', () => {
-        it('should create an organization', async () => {
+        it('should allow authenticated users to create an organization', async () => {
+            const credentials = await authService.createUserWithEmail({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const query = gql`
+                mutation CreateOrganization($input: CreateOrganizationInput!) {
+                    createOrganization(input: $input) {
+                        id
+                        name
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    name: faker.company.name(),
+                    displayName: faker.company.name(),
+                    about: faker.company.catchPhrase(),
+                    avatarUrl: faker.image.imageUrl(),
+                    backgroundUrl: faker.image.imageUrl(),
+                    websiteUrl: faker.internet.url(),
+                    twitter: faker.internet.userName(),
+                    instagram: faker.internet.userName(),
+                    discord: faker.internet.userName(),
+                },
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(credentials.sessionToken, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.createOrganization.name).toEqual(variables.input.name);
+                });
+        });
+
+        it('should not allow authenticated users to create an organization', async () => {
             const query = gql`
                 mutation CreateOrganization($input: CreateOrganizationInput!) {
                     createOrganization(input: $input) {
@@ -122,7 +166,8 @@ describe('OrganizationResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.data.createOrganization.name).toEqual(variables.input.name);
+                    expect(body.errors).toBeDefined();
+                    expect(body.errors[0].extensions.response.statusCode).toEqual(401);
                 });
         });
     });

@@ -1,7 +1,13 @@
 import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
 import { Public } from '../lib/decorators/public.decorator';
 import { CollectionService } from './collection.service';
-import { Collection, CreateCollectionInput, UpdateCollectionInput, PublishCollectionInput, DeleteCollectionInput } from './collection.dto';
+import {
+    Collection,
+    CreateCollectionInput,
+    UpdateCollectionInput,
+    PublishCollectionInput,
+    DeleteCollectionInput,
+} from './collection.dto';
 
 @Resolver('Collection')
 export class CollectionResolver {
@@ -13,7 +19,6 @@ export class CollectionResolver {
         return this.collectionService.getCollection(id);
     }
 
-    @Public()
     @Mutation(() => Collection, { description: 'creates a collection' })
     async createCollection(@Args('input') input: CreateCollectionInput): Promise<Collection> {
         return this.collectionService.createCollection(input);

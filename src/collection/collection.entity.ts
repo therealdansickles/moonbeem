@@ -1,4 +1,14 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, BaseEntity, ManyToOne, OneToOne, OneToMany } from 'typeorm';
+import {
+    Entity,
+    Column,
+    PrimaryGeneratedColumn,
+    CreateDateColumn,
+    UpdateDateColumn,
+    BaseEntity,
+    ManyToOne,
+    OneToOne,
+    OneToMany,
+} from 'typeorm';
 import { Exclude } from 'class-transformer';
 //import { Contract } from '../contract/contract.entity';
 //import { Wallet } from '../wallet/wallet.entity';
@@ -25,11 +35,16 @@ export class Collection extends BaseEntity {
     @Column({ length: 64, comment: 'The displayed name for the collection.' })
     displayName: string;
 
-    @Column({ type: 'enum', enum: CollectionKind, default: CollectionKind.other, comment: 'The type of collection that this is.' })
+    @Column({
+        type: 'enum',
+        enum: CollectionKind,
+        default: CollectionKind.other,
+        comment: 'The type of collection that this is.',
+    })
     kind: CollectionKind;
 
-    @Column({ comment: 'The collection address' })
-    address: string;
+    @Column({ nullable: true, comment: 'The collection address' })
+    address?: string;
 
     @Column({ nullable: true, comment: 'The description for the collection.' })
     about?: string;
@@ -40,7 +55,12 @@ export class Collection extends BaseEntity {
     @Column({ nullable: true, comment: "The URL pointing to the collection's background." })
     backgroundUrl?: string;
 
-    @Column('text', { default: [], array: true, comment: 'This is going to change later as a stronger, association betwen our `User`. The list of artists attached to the collection.' })
+    @Column('text', {
+        default: [],
+        array: true,
+        comment:
+            'This is going to change later as a stronger, association betwen our `User`. The list of artists attached to the collection.',
+    })
     artists: string[];
 
     @Column('text', { default: [], array: true, comment: 'The list of associated tags for the collection.' })

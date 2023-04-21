@@ -11,6 +11,8 @@ import { postgresConfig } from '../lib/configs/db.config';
 import { Collection, CollectionKind } from './collection.entity';
 import { CollectionModule } from './collection.module';
 import { CollectionService } from './collection.service';
+import { AuthService } from '../auth/auth.service';
+import { AuthModule } from '../auth/auth.module';
 
 export const gql = String.raw;
 
@@ -18,6 +20,7 @@ describe('CollectionResolver', () => {
     let repository: Repository<Collection>;
     let service: CollectionService;
     let app: INestApplication;
+    let authService: AuthService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -33,17 +36,19 @@ describe('CollectionResolver', () => {
                     synchronize: true,
                     logging: false,
                 }),
+                AuthModule,
                 CollectionModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
-                    include: [CollectionModule],
+                    include: [AuthModule, CollectionModule],
                 }),
             ],
         }).compile();
 
         repository = module.get('CollectionRepository');
         service = module.get<CollectionService>(CollectionService);
+        authService = module.get<AuthService>(AuthService);
         app = module.createNestApplication();
         await app.init();
     });
@@ -88,7 +93,7 @@ describe('CollectionResolver', () => {
     });
 
     describe('createCollection', () => {
-        it('should create a collection', async () => {
+        it('should not allow unauthenticated users to create a collection', async () => {
             const query = gql`
                 mutation CreateCollection($input: CreateCollectionInput!) {
                     createCollection(input: $input) {
@@ -111,6 +116,43 @@ describe('CollectionResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.errors).toBeDefined();
+                    expect(body.errors[0].extensions.response.statusCode).toEqual(401);
+                });
+        });
+
+        it('should allow authenticated users to create a collection', async () => {
+            const credentials = await authService.createUserWithEmail({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const query = gql`
+                mutation CreateCollection($input: CreateCollectionInput!) {
+                    createCollection(input: $input) {
+                        name
+                        displayName
+                        kind
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    name: faker.company.name(),
+                    displayName: 'The best collection',
+                    about: 'The best collection ever',
+                    kind: CollectionKind.edition,
+                    address: faker.finance.ethereumAddress(),
+                },
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(credentials.sessionToken, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {

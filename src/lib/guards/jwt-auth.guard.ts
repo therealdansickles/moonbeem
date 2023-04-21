@@ -12,12 +12,16 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     }
 
     canActivate(context: ExecutionContext) {
-        const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [context.getHandler(), context.getClass()]);
+        const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+            context.getHandler(),
+            context.getClass(),
+        ]);
         if (isPublic) {
             return true;
         }
 
         if (context.getType() == 'http') {
+            // rest
             return super.canActivate(context);
         } else {
             // graphql
@@ -28,7 +32,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     }
 
     handleRequest(err, user) {
-        if (err || !user) throw err || new UnauthorizedException();
+        if (err || !user) {
+            throw err || new UnauthorizedException();
+        }
         return user;
     }
 }
