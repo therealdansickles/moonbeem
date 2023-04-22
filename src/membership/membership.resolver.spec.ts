@@ -344,14 +344,16 @@ describe('MembershipResolver', () => {
                 },
             };
 
-            return request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query, variables })
-                //.expect(200)
-                .expect(({ body }) => {
-                    console.log(body);
-                    expect(body.data.deleteMembership).toBeTruthy();
-                });
+            return (
+                request(app.getHttpServer())
+                    .post('/graphql')
+                    .send({ query, variables })
+                    //.expect(200)
+                    .expect(({ body }) => {
+                        console.log(body);
+                        expect(body.data.deleteMembership).toBeTruthy();
+                    })
+            );
         });
     });
 });

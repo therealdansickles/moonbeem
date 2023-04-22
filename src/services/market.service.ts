@@ -1,17 +1,47 @@
 import { Injectable } from '@nestjs/common';
-import { BasicAttributeInfo, BasicCollectionInfo, BasicErc721Info, BasicPriceInfo, BasicTierInfo } from '../dto/basic.dto';
-import { MarketAddressActivitiesReqDto, MarketAddressActivitiesRspDto, MarketAddressReleasedRspDto, MarketAddressReleasedReqDto, VCollectionActivityRspDto, MarketAddressActivityStatus, VICollectionType, VCoin, VITierAttr, VAddressHoldingRspDto, VSecondaryMarketView } from '../dto/market.dto';
+import {
+    BasicAttributeInfo,
+    BasicCollectionInfo,
+    BasicErc721Info,
+    BasicPriceInfo,
+    BasicTierInfo,
+} from '../dto/basic.dto';
+import {
+    MarketAddressActivitiesReqDto,
+    MarketAddressActivitiesRspDto,
+    MarketAddressReleasedRspDto,
+    MarketAddressReleasedReqDto,
+    VCollectionActivityRspDto,
+    MarketAddressActivityStatus,
+    VICollectionType,
+    VCoin,
+    VITierAttr,
+    VAddressHoldingRspDto,
+    VSecondaryMarketView,
+} from '../dto/market.dto';
 import { MongoAdapter } from '../lib/adapters/mongo.adapter';
 import { PostgresAdapter } from '../lib/adapters/postgres.adapter';
 import { IPreMint, ITier } from '../lib/interfaces/main.interface';
 import { IRowCount } from '../lib/modules/db.module';
 import { IMetadata } from '../lib/modules/db.mongo.module';
-import { CollectionActivity, AddressReleased, AddressActivity, AddressHolding, TotalRecord, SearchCollectionItem, SearchAccountItem } from '../lib/modules/db.record.module';
+import {
+    CollectionActivity,
+    AddressReleased,
+    AddressActivity,
+    AddressHolding,
+    TotalRecord,
+    SearchCollectionItem,
+    SearchAccountItem,
+} from '../lib/modules/db.record.module';
 import { UserWalletService } from './user.wallet.service';
 
 @Injectable()
 export class MarketService {
-    constructor(private readonly pgClient: PostgresAdapter, private readonly userWallet: UserWalletService, private readonly mongoClient: MongoAdapter) {}
+    constructor(
+        private readonly pgClient: PostgresAdapter,
+        private readonly userWallet: UserWalletService,
+        private readonly mongoClient: MongoAdapter
+    ) {}
 
     // services: controller
     async getCollectionActivities(args: MarketAddressActivitiesReqDto) {
@@ -106,7 +136,12 @@ export class MarketService {
                 owner: item.owner,
             };
 
-            const tier: BasicTierInfo = await this.matchCollectionTier(item.address, item.chain_id ?? 0, item.tier_id, item.tiers);
+            const tier: BasicTierInfo = await this.matchCollectionTier(
+                item.address,
+                item.chain_id ?? 0,
+                item.tier_id,
+                item.tiers
+            );
 
             const secondary: VSecondaryMarketView = await this.getSecondaryMarketView();
 
@@ -178,7 +213,8 @@ export class MarketService {
         values.push(address);
         values.push(chainId);
 
-        sqlStr += ' GROUP BY c.id,pm.payment_token,pm.begin_time,pm.end_time,pmr.contract,pmr.token_id,pmr.recipient,pmr.price,pmr.tier';
+        sqlStr +=
+            ' GROUP BY c.id,pm.payment_token,pm.begin_time,pm.end_time,pmr.contract,pmr.token_id,pmr.recipient,pmr.price,pmr.tier';
 
         if (offset) {
             sqlStr = `${sqlStr} OFFSET ${offset}`;
@@ -294,7 +330,12 @@ export class MarketService {
                 endTime: item.end_time,
             };
 
-            const tier: BasicTierInfo = await this.matchCollectionTier(item.address, item.chain_id ?? 0, item.tier_id, item.tiers);
+            const tier: BasicTierInfo = await this.matchCollectionTier(
+                item.address,
+                item.chain_id ?? 0,
+                item.tier_id,
+                item.tiers
+            );
 
             const currentPrice: BasicPriceInfo = {
                 price: item.price,
@@ -543,7 +584,10 @@ export class MarketService {
 
     async getMetadataFromMongo(collectionId: string, tierId: number): Promise<IMetadata> {
         const metaCol = this.mongoClient.db.collection('metadata');
-        const r = (await metaCol.findOne({ 'vibe_properties.collection': collectionId, 'vibe_properties.tier_id': tierId })) as unknown as IMetadata | null;
+        const r = (await metaCol.findOne({
+            'vibe_properties.collection': collectionId,
+            'vibe_properties.tier_id': tierId,
+        })) as unknown as IMetadata | null;
         return r;
     }
 }

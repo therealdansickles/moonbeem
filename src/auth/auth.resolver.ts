@@ -1,5 +1,12 @@
 import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
-import { LoginWithWalletResponse, LoginWithWalletInput, LoginWithEmailResponse, CreateUserWithEmailInput, LogoutInput, LoginWithEmailInput } from './auth.dto';
+import {
+    LoginWithWalletResponse,
+    LoginWithWalletInput,
+    LoginWithEmailResponse,
+    CreateUserWithEmailInput,
+    LogoutInput,
+    LoginWithEmailInput,
+} from './auth.dto';
 import { Public } from '../lib/decorators/public.decorator';
 import { AuthService } from './auth.service';
 import { Request } from 'express';

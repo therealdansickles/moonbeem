@@ -8,20 +8,25 @@ export class WalletResolver {
     constructor(private readonly walletService: WalletService) {}
 
     @Public()
-    @Query((returns) => Wallet, { description: 'Retrieves a wallet by its ethereum or EIP-3770 address.', nullable: true })
-    async wallet(@Args('address', { description: 'an ethereum or EIP-3770 address.' }) address: string): Promise<Wallet> {
+    @Query((returns) => Wallet, {
+        description: 'Retrieves a wallet by its ethereum or EIP-3770 address.',
+        nullable: true,
+    })
+    async wallet(
+        @Args('address', { description: 'an ethereum or EIP-3770 address.' }) address: string
+    ): Promise<Wallet> {
         return await this.walletService.getWalletByAddress(address);
     }
 
     //@Public()
     //@Mutation((returns) => Wallet, { description: 'Binds a wallet to the current user.' })
     //async bindWallet(@Args('input') input: BindWalletInput): Promise<Wallet> {
-        //return await this.walletService.bindWallet(input);
+    //return await this.walletService.bindWallet(input);
     //}
 
     //@Public()
     //@Mutation((returns) => Wallet, { description: 'Unbinds a wallet from the current user.' })
     //async unbindWallet(@Args('input') input: UnbindWalletInput): Promise<Wallet> {
-        //return await this.walletService.unbindWallet(input);
+    //return await this.walletService.unbindWallet(input);
     //}
 }

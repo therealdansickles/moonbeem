@@ -172,7 +172,7 @@ describe.only('OrganizationService', () => {
                 owner: owner,
             });
 
-            const result = await service.transferOrganization(organization.id, user.id)
+            const result = await service.transferOrganization(organization.id, user.id);
             expect(result.owner.id).toEqual(user.id);
         });
 
@@ -195,7 +195,9 @@ describe.only('OrganizationService', () => {
                 owner: owner,
             });
 
-            expect(() => service.transferOrganization(organization.id, faker.datatype.uuid())).rejects.toThrow("doesn't exist")
+            expect(() => service.transferOrganization(organization.id, faker.datatype.uuid())).rejects.toThrow(
+                "doesn't exist"
+            );
         });
     });
 });

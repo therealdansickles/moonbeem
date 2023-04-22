@@ -2,7 +2,14 @@ import { Controller, Req, Post, Body } from '@nestjs/common';
 import { Request } from 'express';
 import { ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { AuthPayload, AuthService } from './auth.service';
-import { CreateUserWithEmailInput, LoginWithEmailInput, LoginWithEmailResponse, LoginWithWalletInput, LoginWithWalletResponse, LogoutInput } from './auth.dto';
+import {
+    CreateUserWithEmailInput,
+    LoginWithEmailInput,
+    LoginWithEmailResponse,
+    LoginWithWalletInput,
+    LoginWithWalletResponse,
+    LogoutInput,
+} from './auth.dto';
 import { IResponse, ResponseInternalError, ResponseSucc } from '../lib/interfaces/response.interface';
 import { Public } from '../lib/decorators/public.decorator';
 
@@ -23,7 +30,11 @@ export class AuthController {
     @Post('loginWithWallet')
     public async loginWithWallet(@Body() login: LoginWithWalletInput): Promise<IResponse> {
         try {
-            const rsp = await this.authService.loginWithWallet(login.address.toLowerCase(), login.message, login.signature);
+            const rsp = await this.authService.loginWithWallet(
+                login.address.toLowerCase(),
+                login.message,
+                login.signature
+            );
             return new ResponseSucc(rsp);
         } catch (error) {
             return new ResponseInternalError((error as Error).message);

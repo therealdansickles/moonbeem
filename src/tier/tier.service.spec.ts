@@ -38,7 +38,6 @@ describe('TierService', () => {
             ],
         }).compile();
 
-
         repository = module.get('TierRepository');
         service = module.get<TierService>(TierService);
         collectionService = module.get<CollectionService>(CollectionService);

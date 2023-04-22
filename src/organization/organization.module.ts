@@ -10,13 +10,9 @@ import { UserModule } from '../user/user.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([
-            Membership,
-            Organization,
-            User,
-        ]),
-        forwardRef(()=> MembershipModule),
-        forwardRef(()=> UserModule),
+        TypeOrmModule.forFeature([Membership, Organization, User]),
+        forwardRef(() => MembershipModule),
+        forwardRef(() => UserModule),
     ],
     exports: [OrganizationModule],
     providers: [OrganizationService, OrganizationResolver],

@@ -141,7 +141,7 @@ describe('OrganizationResolver', () => {
                     instagram: faker.internet.userName(),
                     discord: faker.internet.userName(),
                     owner: {
-                        id: owner.id
+                        id: owner.id,
                     },
                 },
             };
@@ -182,7 +182,7 @@ describe('OrganizationResolver', () => {
                     twitter: faker.internet.userName(),
                     instagram: faker.internet.userName(),
                     discord: faker.internet.userName(),
-                    owner: { id: owner.id},
+                    owner: { id: owner.id },
                 },
             };
 
@@ -282,22 +282,23 @@ describe('OrganizationResolver', () => {
                             id
                         }
                     }
-                }`;
+                }
+            `;
 
             const variables = {
                 input: {
                     id: transferedOrganization.id,
                     ownerId: newOwner.id,
-                }
+                },
             };
 
-        return request(app.getHttpServer())
-            .post('/graphql')
+            return request(app.getHttpServer())
+                .post('/graphql')
                 .send({ query, variables })
-                    .expect(200)
-                        .expect(({ body }) => {
-                            expect(body.data.transferOrganization.owner.id).toEqual(newOwner.id);
-                        });
-                    });
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.transferOrganization.owner.id).toEqual(newOwner.id);
                 });
         });
+    });
+});

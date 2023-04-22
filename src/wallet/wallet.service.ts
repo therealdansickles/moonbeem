@@ -75,10 +75,10 @@ export class WalletService {
      * @returns The wallet that was bound to the user.
      */
     //async bindWallet(data: BindWalletInput): Promise<Wallet> {
-        //const { address, ownerId } = data;
-        //const wallet = await this.walletRespository.findOneBy({ address, owner: { id: this.unOwnedId } });
-        //if (!wallet) throw new Error("Wallet doesn't exist.");
-        //return this.walletRespository.save({ ...wallet, ownerId: ownerId });
+    //const { address, ownerId } = data;
+    //const wallet = await this.walletRespository.findOneBy({ address, owner: { id: this.unOwnedId } });
+    //if (!wallet) throw new Error("Wallet doesn't exist.");
+    //return this.walletRespository.save({ ...wallet, ownerId: ownerId });
     //}
 
     /**
@@ -89,10 +89,10 @@ export class WalletService {
      * @returns The wallet that was bound to the user.
      */
     //async unbindWallet(data: BindWalletInput): Promise<Wallet> {
-        //const { address, ownerId } = data;
-        //const wallet = await this.walletRespository.findOneBy({ address, owner: { id: this.unOwnedId } });
-        //if (!wallet) throw new Error("Wallet doesn't exist.");
-        //return this.walletRespository.save({ ...wallet, ownerId: this.unOwnedId });
+    //const { address, ownerId } = data;
+    //const wallet = await this.walletRespository.findOneBy({ address, owner: { id: this.unOwnedId } });
+    //if (!wallet) throw new Error("Wallet doesn't exist.");
+    //return this.walletRespository.save({ ...wallet, ownerId: this.unOwnedId });
     //}
 
     /**

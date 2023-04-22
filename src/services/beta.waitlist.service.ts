@@ -64,7 +64,9 @@ export class BetaWaitlistService {
         const percentage = 10 + ((position - 1) / (sqlStr.length - 1)) * 90;
         const leaderboardText = percentage <= 10 ? 'top 10%' : percentage <= 50 ? 'top 50%' : 'bottom 50%';
 
-        console.log(`[${reqId}] - returning a score of ${points} with position of ${position + 1} for address ${address}`);
+        console.log(
+            `[${reqId}] - returning a score of ${points} with position of ${position + 1} for address ${address}`
+        );
 
         return {
             points,

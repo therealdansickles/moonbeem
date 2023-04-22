@@ -1,10 +1,31 @@
 import { Injectable } from '@nestjs/common';
-import { BasicWalletInfo, BasicCollectionInfo, BasicCollectionRoyaltyInfo, BasicFloorPriceInfo, BasicTierInfo, BasicAttributeInfo, BasicCollectionStatus, BasicPriceInfo } from '../dto/basic.dto';
-import { LandingPageCollectionReqDto, LandingPageCollectionRspDto, LandingPageRankingOfCreatorsReqDto, LandingPageRankingOfCreatorsRspDto, LandingPageRankingOfItemsReqDto, LandingPageRankingOfItemsRspDto } from '../dto/landing.dto';
+import {
+    BasicWalletInfo,
+    BasicCollectionInfo,
+    BasicCollectionRoyaltyInfo,
+    BasicFloorPriceInfo,
+    BasicTierInfo,
+    BasicAttributeInfo,
+    BasicCollectionStatus,
+    BasicPriceInfo,
+} from '../dto/basic.dto';
+import {
+    LandingPageCollectionReqDto,
+    LandingPageCollectionRspDto,
+    LandingPageRankingOfCreatorsReqDto,
+    LandingPageRankingOfCreatorsRspDto,
+    LandingPageRankingOfItemsReqDto,
+    LandingPageRankingOfItemsRspDto,
+} from '../dto/landing.dto';
 import { MongoAdapter } from '../lib/adapters/mongo.adapter';
 import { PostgresAdapter } from '../lib/adapters/postgres.adapter';
 import { ITier, IPreMint, IAttributeOverview } from '../lib/interfaces/main.interface';
-import { LandingPageCollectionItem, TotalRecord, LandingPageRankingOfCreatorItem, LandingPageRankingOfItemItem } from '../lib/modules/db.record.module';
+import {
+    LandingPageCollectionItem,
+    TotalRecord,
+    LandingPageRankingOfCreatorItem,
+    LandingPageRankingOfItemItem,
+} from '../lib/modules/db.record.module';
 
 @Injectable()
 export class LandingService {
@@ -56,7 +77,11 @@ export class LandingService {
                 chainId: item.chain_id ?? 0,
             };
 
-            const tiers: BasicTierInfo[] = await this.matchCollectionTiers(item.address, item.chain_id ?? 0, item.tiers);
+            const tiers: BasicTierInfo[] = await this.matchCollectionTiers(
+                item.address,
+                item.chain_id ?? 0,
+                item.tiers
+            );
 
             const att = await this.getAttributeOverview(item.id);
 
@@ -162,7 +187,8 @@ export class LandingService {
                     break;
             }
         }
-        sqlStr += ' GROUP BY c.id,pm.payment_token,pm.id,uw.address,uw."name",uw.description,uw.avatar,uw."discordLink",uw."facebookLink",uw."twitterLink",uw."customUrl"';
+        sqlStr +=
+            ' GROUP BY c.id,pm.payment_token,pm.id,uw.address,uw."name",uw.description,uw.avatar,uw."discordLink",uw."facebookLink",uw."twitterLink",uw."customUrl"';
 
         if (args.skip) {
             sqlStr = `${sqlStr} OFFSET ${args.skip}`;
@@ -322,7 +348,8 @@ export class LandingService {
             values.push(args.chainId);
         }
 
-        sqlStr += ' GROUP BY uw.address,uw."name",uw.description,uw.avatar,uw."discordLink",uw."facebookLink",uw."twitterLink",uw."customUrl",pmr.payment_token,pmr.chain_id';
+        sqlStr +=
+            ' GROUP BY uw.address,uw."name",uw.description,uw.avatar,uw."discordLink",uw."facebookLink",uw."twitterLink",uw."customUrl",pmr.payment_token,pmr.chain_id';
         sqlStr += ' ORDER BY total_price DESC';
 
         if (args.skip) {
@@ -456,7 +483,8 @@ export class LandingService {
             values.push(args.chainId);
         }
 
-        sqlStr += ' GROUP BY c.id,pm.payment_token,pm.begin_time,pm.end_time,pm.tier,pm.start_id,pm.end_id,pm.current_id,pm.price';
+        sqlStr +=
+            ' GROUP BY c.id,pm.payment_token,pm.begin_time,pm.end_time,pm.tier,pm.start_id,pm.end_id,pm.current_id,pm.price';
         sqlStr += ' ORDER BY pm.current_id - pm.start_id DESC';
         if (args.skip) {
             sqlStr = `${sqlStr} OFFSET ${args.skip}`;

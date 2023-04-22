@@ -9,7 +9,12 @@ import { MetadataUploadPoller } from '../pollers/metadata.poller';
 
 @Injectable()
 export class PollerService {
-    constructor(private readonly pgClient: PostgresAdapter, private readonly redisClient: RedisAdapter, private readonly aws: AWSAdapter, private readonly mongoClient: MongoAdapter) {}
+    constructor(
+        private readonly pgClient: PostgresAdapter,
+        private readonly redisClient: RedisAdapter,
+        private readonly aws: AWSAdapter,
+        private readonly mongoClient: MongoAdapter
+    ) {}
 
     @Cron('0 * * * * *', {
         disabled: appConfig.cron.disabled,

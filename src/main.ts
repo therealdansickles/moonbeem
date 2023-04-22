@@ -61,7 +61,9 @@ async function bootstrap() {
     await app.listen(appConfig.global.port);
     // print some log
     console.log(`Server Starting on http://localhost:${appConfig.global.port}`);
-    appConfig.global.debug ? console.log(`Swagger Starting on http://localhost:${appConfig.global.port}/${appConfig.swagger.route}`) : '';
+    appConfig.global.debug
+        ? console.log(`Swagger Starting on http://localhost:${appConfig.global.port}/${appConfig.swagger.route}`)
+        : '';
     appConfig.global.debug ? console.log(`GraphQL Starting on http://localhost:${appConfig.global.port}/graphql`) : '';
 }
 

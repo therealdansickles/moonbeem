@@ -6,7 +6,7 @@ import { faker } from '@faker-js/faker';
 import { AppModule } from '../app.module';
 import { UploadController } from './upload.controller';
 import { UploadService } from '../services/upload.service';
-import { AppController } from './app.controller'
+import { AppController } from './app.controller';
 import { AWSAdapter } from '../lib/adapters/aws.adapter';
 import { AppService } from '../services/app.service';
 import { RpcClient } from '../lib/adapters/eth.client.adapter';
@@ -15,7 +15,7 @@ import { PostgresAdapter } from '../lib/adapters/postgres.adapter';
 
 describe('UploadController', () => {
     let app: INestApplication;
-    let appController: AppController
+    let appController: AppController;
     let uploadService: UploadService;
     let uploadController: UploadController;
 

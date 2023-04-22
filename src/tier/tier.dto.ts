@@ -38,7 +38,10 @@ export class Tier {
 
     @ApiProperty()
     @IsString()
-    @Field({ description: "This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site." })
+    @Field({
+        description:
+            "This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.",
+    })
     readonly externalUrl?: string;
 
     @ApiProperty()
@@ -81,7 +84,11 @@ export class CreateTierInput {
 
     @ApiProperty()
     @IsString()
-    @Field({ nullable: true, description: "This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site." })
+    @Field({
+        nullable: true,
+        description:
+            "This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.",
+    })
     readonly externalUrl?: string;
 
     @ApiProperty()
@@ -124,7 +131,11 @@ export class UpdateTierInput {
 
     @ApiProperty()
     @IsString()
-    @Field({ nullable: true, description: "This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site." })
+    @Field({
+        nullable: true,
+        description:
+            "This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.",
+    })
     readonly externalUrl?: string;
 
     @ApiProperty()

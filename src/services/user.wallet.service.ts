@@ -3,7 +3,14 @@ import { VUserWalletInfo, VIPriceType } from '../auth/auth.dto';
 import { VUpdateUserWalletReqDto, VUserFollowingListReqDto, VUserFollowingListRspDto } from '../dto/user.wallet.dto';
 import { PostgresAdapter } from '../lib/adapters/postgres.adapter';
 import { IAttribute } from '../lib/interfaces/main.interface';
-import { UserWalletFollowing, UserWallet, TbUserWallet, TbUserWalletFollowing, TbPreMintRecord, TbPreMint } from '../lib/modules/db.module';
+import {
+    UserWalletFollowing,
+    UserWallet,
+    TbUserWallet,
+    TbUserWalletFollowing,
+    TbPreMintRecord,
+    TbPreMint,
+} from '../lib/modules/db.module';
 import { TotalRecord, UserFollowingRec, TokenPrice } from '../lib/modules/db.record.module';
 import { v4 as uuidV4 } from 'uuid';
 import { AuthPayload } from '../auth/auth.service';
@@ -133,7 +140,10 @@ export class UserWalletService {
         return true;
     }
 
-    async getUserFollowingList(args: VUserFollowingListReqDto, payload?: AuthPayload): Promise<VUserFollowingListRspDto> {
+    async getUserFollowingList(
+        args: VUserFollowingListReqDto,
+        payload?: AuthPayload
+    ): Promise<VUserFollowingListRspDto> {
         const userWallet = await this.findOne(args.address.toLocaleLowerCase());
         if (!userWallet) throw new Error('address not found');
 
@@ -164,7 +174,10 @@ export class UserWalletService {
         return rsp;
     }
 
-    async getUserFollowerList(args: VUserFollowingListReqDto, payload?: AuthPayload): Promise<VUserFollowingListRspDto> {
+    async getUserFollowerList(
+        args: VUserFollowingListReqDto,
+        payload?: AuthPayload
+    ): Promise<VUserFollowingListRspDto> {
         const userWallet = await this.findOne(args.address.toLocaleLowerCase());
         if (!userWallet) throw new Error('address not found');
 

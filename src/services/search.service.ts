@@ -1,6 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PostgresAdapter } from '../lib/adapters/postgres.adapter';
-import { VGlobalSearchReqDto, VGlobalSearchRspDto, VSearchAccountItem, VSearchAccountRsp, VSearchCollectionItem, VSearchCollectionRsp } from '../dto/search.dto';
+import {
+    VGlobalSearchReqDto,
+    VGlobalSearchRspDto,
+    VSearchAccountItem,
+    VSearchAccountRsp,
+    VSearchCollectionItem,
+    VSearchCollectionRsp,
+} from '../dto/search.dto';
 import { IRowCount } from '../lib/modules/db.module';
 import { SearchAccountItem, SearchCollectionItem } from '../lib/modules/db.record.module';
 

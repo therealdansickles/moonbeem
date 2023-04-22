@@ -33,7 +33,7 @@ describe('WalletService', () => {
             ],
         }).compile();
 
-        address = `matic:${faker.finance.ethereumAddress()}`
+        address = `matic:${faker.finance.ethereumAddress()}`;
         repository = module.get('WalletRepository');
         service = module.get<WalletService>(WalletService);
     });
@@ -68,73 +68,75 @@ describe('WalletService', () => {
 
         it('should error if the wallet already exists', async () => {
             const wallet = await service.createWallet(address);
-            expect(async () => { await service.createWallet(address) });
+            expect(async () => {
+                await service.createWallet(address);
+            });
         });
     });
 
     //describe('bindWallet', () => {
-        //let unboundWallet: Wallet;
-        //let eipAddress: string;
-        //let ownerId: string;
+    //let unboundWallet: Wallet;
+    //let eipAddress: string;
+    //let ownerId: string;
 
-        //beforeEach(async () => {
-            //const owner = await userService.createUser({ email: faker.internet.email() });
+    //beforeEach(async () => {
+    //const owner = await userService.createUser({ email: faker.internet.email() });
 
-            //ownerId = owner.id;
-            //unboundWallet = await service.createWallet(`matic:${faker.finance.ethereumAddress()}`);
-            //// eipAddress = `${unboundWallet.network}:${unboundWallet.address}`;
-        //});
+    //ownerId = owner.id;
+    //unboundWallet = await service.createWallet(`matic:${faker.finance.ethereumAddress()}`);
+    //// eipAddress = `${unboundWallet.network}:${unboundWallet.address}`;
+    //});
 
-        //it('should handle an EIP-3770 address', async () => {
-            //const data = { address: `arb:${unboundWallet.address}`, ownerId };
-            //const result = await service.bindWallet(data);
-            //expect(result.owner).toEqual(ownerId);
-        //});
+    //it('should handle an EIP-3770 address', async () => {
+    //const data = { address: `arb:${unboundWallet.address}`, ownerId };
+    //const result = await service.bindWallet(data);
+    //expect(result.owner).toEqual(ownerId);
+    //});
 
-        //it('should handle an existing address', async () => {
-            //const data = { address: eipAddress, ownerId };
-            //const result = await service.bindWallet(data);
-            //expect(result.owner).toEqual(ownerId);
-        //});
+    //it('should handle an existing address', async () => {
+    //const data = { address: eipAddress, ownerId };
+    //const result = await service.bindWallet(data);
+    //expect(result.owner).toEqual(ownerId);
+    //});
 
-        //it('should throw an error if the wallet is already bound', async () => {
-            //const data = { address: eipAddress, ownerId };
-            //await service.bindWallet(data);
-            //await expect(() => service.bindWallet(data)).rejects.toThrow();
-        //});
+    //it('should throw an error if the wallet is already bound', async () => {
+    //const data = { address: eipAddress, ownerId };
+    //await service.bindWallet(data);
+    //await expect(() => service.bindWallet(data)).rejects.toThrow();
+    //});
     //});
 
     //describe('unbindWallet', () => {
-        //let boundWallet: Wallet;
+    //let boundWallet: Wallet;
 
-        //beforeEach(async () => {
-            //const owner = await userService.createUser({ email: faker.internet.email() });
-            //boundWallet = await service.createWallet(faker.finance.ethereumAddress());
-        //});
+    //beforeEach(async () => {
+    //const owner = await userService.createUser({ email: faker.internet.email() });
+    //boundWallet = await service.createWallet(faker.finance.ethereumAddress());
+    //});
 
-        //// NB: We don't test for a regular address because that defaults to ethereum.
-        //// You can only use an EIP-3770 address if you are on another chain.
-        //it('should handle an EIP-3770 address', async () => {
-            //const data = { address: `matic:${boundWallet.address}`, ownerId: boundWallet.owner.id };
-            //const result = await service.unbindWallet(data);
-            //expect(result.owner).not.toEqual(boundWallet.owner);
-            //expect(result.address).toEqual(boundWallet.address);
-            //// expect(result.chainId).toEqual(boundWallet.chainId);
-        //});
+    //// NB: We don't test for a regular address because that defaults to ethereum.
+    //// You can only use an EIP-3770 address if you are on another chain.
+    //it('should handle an EIP-3770 address', async () => {
+    //const data = { address: `matic:${boundWallet.address}`, ownerId: boundWallet.owner.id };
+    //const result = await service.unbindWallet(data);
+    //expect(result.owner).not.toEqual(boundWallet.owner);
+    //expect(result.address).toEqual(boundWallet.address);
+    //// expect(result.chainId).toEqual(boundWallet.chainId);
+    //});
 
-        //it('should return a new unbound wallet if it the wallet does not exist', async () => {
-            //const data = { address: `arb:${boundWallet.address}`, ownerId: boundWallet.owner.id };
-            //const result = await service.unbindWallet(data);
-            //expect(result.owner).not.toEqual(boundWallet.owner);
-            //expect(result.address).toEqual(boundWallet.address);
-            //// expect(result.chainId).toEqual(42161);
-        //});
+    //it('should return a new unbound wallet if it the wallet does not exist', async () => {
+    //const data = { address: `arb:${boundWallet.address}`, ownerId: boundWallet.owner.id };
+    //const result = await service.unbindWallet(data);
+    //expect(result.owner).not.toEqual(boundWallet.owner);
+    //expect(result.address).toEqual(boundWallet.address);
+    //// expect(result.chainId).toEqual(42161);
+    //});
 
-        //it('should throw an error if the wallet is not bound to the user', async () => {
-            //const nonOwner = await userService.createUser({ email: faker.internet.email() });
-            //const data = { address: `matic:${boundWallet.address}`, ownerId: nonOwner.id };
-            //await expect(() => service.unbindWallet(data)).rejects.toThrow();
-        //});
+    //it('should throw an error if the wallet is not bound to the user', async () => {
+    //const nonOwner = await userService.createUser({ email: faker.internet.email() });
+    //const data = { address: `matic:${boundWallet.address}`, ownerId: nonOwner.id };
+    //await expect(() => service.unbindWallet(data)).rejects.toThrow();
+    //});
     //});
 
     describe('parseEIP3770Address', () => {

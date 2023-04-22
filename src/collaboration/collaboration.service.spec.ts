@@ -103,12 +103,11 @@ describe('CollaborationService', () => {
                     await service.createCollaboration({
                         walletId: freshNewWallet.id,
                         collectionId: freshNewCollection.id,
-                        royaltyRate: 1
-                    })
-                }())
-            ).rejects.toThrowError(GraphQLError)
-        })
-
+                        royaltyRate: 1,
+                    });
+                })()
+            ).rejects.toThrowError(GraphQLError);
+        });
 
         it('should throw error if royalty out of bound', async () => {
             const newCollection = await collectionService.createCollection({
@@ -147,8 +146,8 @@ describe('CollaborationService', () => {
                 collectionId: anotherCollection.id,
                 royaltyRate: 1,
             });
-            expect(collaborationForAnotherCollection.wallet).toEqual(wallet1.id)
-            expect(collaborationForAnotherCollection.collection).toEqual(anotherCollection.id)
+            expect(collaborationForAnotherCollection.wallet).toEqual(wallet1.id);
+            expect(collaborationForAnotherCollection.collection).toEqual(anotherCollection.id);
             // would fail
             const wallet3 = await walletService.createWallet(`arb:${faker.finance.ethereumAddress()}`);
             expect(
@@ -156,11 +155,11 @@ describe('CollaborationService', () => {
                     await service.createCollaboration({
                         walletId: wallet3.id,
                         collectionId: newCollection.id,
-                        royaltyRate: 1
-                    })
-                }())
-            ).rejects.toThrowError(GraphQLError)
-        })
+                        royaltyRate: 1,
+                    });
+                })()
+            ).rejects.toThrowError(GraphQLError);
+        });
     });
 
     describe('getCollaboration', () => {

@@ -7,7 +7,7 @@ export const redisConfig = {
 
 export const onChainConfig = {
     url: process.env.DATABASE_URL,
-}
+};
 
 export const postgresConfig = {
     url: process.env.V1_DATABASE_URL,

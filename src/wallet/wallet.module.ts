@@ -11,7 +11,11 @@ import { User } from '../user/user.entity';
 import { UserModule } from '../user/user.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Wallet, Collaboration, User]), forwardRef(() => CollaborationModule), forwardRef(() => UserModule)],
+    imports: [
+        TypeOrmModule.forFeature([Wallet, Collaboration, User]),
+        forwardRef(() => CollaborationModule),
+        forwardRef(() => UserModule),
+    ],
     exports: [WalletModule],
     providers: [WalletService, WalletResolver, CollaborationService, CollaborationResolver],
     controllers: [],

@@ -19,7 +19,10 @@ export class BetaWaitlistController {
         type: VBetaWaitlistLeaderboardRsp,
     })
     @Get('/leaderboard')
-    async getLeaderboard(@Query('page', new DefaultValuePipe(0), ParseIntPipe) page: number, @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number) {
+    async getLeaderboard(
+        @Query('page', new DefaultValuePipe(0), ParseIntPipe) page: number,
+        @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number
+    ) {
         return this.betaWaitlistService.getLeaderboard(page, pageSize);
     }
 

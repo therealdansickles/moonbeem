@@ -10,7 +10,10 @@ export class SearchResolver {
 
     @Public()
     @Query(() => VGlobalSearchRspDto)
-    public async globalSearch(@Context('req') req: any, @Args() args: VGlobalSearchReqDto): Promise<VGlobalSearchRspDto> {
+    public async globalSearch(
+        @Context('req') req: any,
+        @Args() args: VGlobalSearchReqDto
+    ): Promise<VGlobalSearchRspDto> {
         const rsp = await this.searchService.executeGlobalSearch(args);
         return rsp;
     }

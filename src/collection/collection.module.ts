@@ -10,13 +10,9 @@ import { TierModule } from '../tier/tier.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([
-            Collaboration,
-            Collection,
-            Tier,
-        ]),
-        forwardRef((() => CollaborationModule)),
-        forwardRef((() => TierModule)),
+        TypeOrmModule.forFeature([Collaboration, Collection, Tier]),
+        forwardRef(() => CollaborationModule),
+        forwardRef(() => TierModule),
     ],
     exports: [CollectionModule],
     providers: [CollectionService, CollectionResolver],

@@ -141,7 +141,9 @@ describe('AuthResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.errors[0].message).toBe('Verification failed. Please check your username or password again.');
+                    expect(body.errors[0].message).toBe(
+                        'Verification failed. Please check your username or password again.'
+                    );
                     expect(body.errors[0].extensions.exception.status).toBe(403);
                 });
         });

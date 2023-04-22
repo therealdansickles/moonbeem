@@ -13,7 +13,15 @@ import { Wallet } from '../wallet/wallet.entity';
 import { WalletModule } from '../wallet/wallet.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User, Wallet]), forwardRef(() => UserModule), forwardRef(() => WalletModule), SharedModule, UserWalletModule, PassportModule, JWTModule],
+    imports: [
+        TypeOrmModule.forFeature([User, Wallet]),
+        forwardRef(() => UserModule),
+        forwardRef(() => WalletModule),
+        SharedModule,
+        UserWalletModule,
+        PassportModule,
+        JWTModule,
+    ],
     providers: [AuthService, AuthResolver],
     controllers: [AuthController],
     exports: [],

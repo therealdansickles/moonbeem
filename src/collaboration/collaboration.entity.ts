@@ -1,9 +1,19 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, BaseEntity, ManyToOne, JoinColumn, Index } from 'typeorm';
+import {
+    Entity,
+    Column,
+    PrimaryGeneratedColumn,
+    CreateDateColumn,
+    UpdateDateColumn,
+    BaseEntity,
+    ManyToOne,
+    JoinColumn,
+    Index,
+} from 'typeorm';
 import { Collection } from '../collection/collection.entity';
 import { Wallet } from '../wallet/wallet.entity';
 
 @Entity({ name: 'Collaboration' })
-@Index(["wallet.id", "collection.id"], { unique: true })
+@Index(['wallet.id', 'collection.id'], { unique: true })
 export class Collaboration extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;

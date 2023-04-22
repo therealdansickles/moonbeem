@@ -1,4 +1,16 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, BaseEntity, OneToMany, ManyToMany, ManyToOne, RelationId, JoinColumn } from 'typeorm';
+import {
+    Entity,
+    Column,
+    PrimaryGeneratedColumn,
+    CreateDateColumn,
+    UpdateDateColumn,
+    BaseEntity,
+    OneToMany,
+    ManyToMany,
+    ManyToOne,
+    RelationId,
+    JoinColumn,
+} from 'typeorm';
 import { Collection } from '../collection/collection.entity';
 import { Membership } from '../membership/membership.entity';
 import { User } from '../user/user.entity';
@@ -8,7 +20,7 @@ export enum OrganizationKind {
     General,
 }
 
-@Entity({ name: "Organization" })
+@Entity({ name: 'Organization' })
 export class Organization extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -23,7 +35,13 @@ export class Organization extends BaseEntity {
     @Column({ comment: 'The displayed name for the organization.' })
     displayName: string;
 
-    @Column({ type: 'enum', enum: OrganizationKind, default: OrganizationKind.General, comment: 'The type of organization that this is. * `personal` - default organization with your account. * `general` - Bulk generation of NFTs.' })
+    @Column({
+        type: 'enum',
+        enum: OrganizationKind,
+        default: OrganizationKind.General,
+        comment:
+            'The type of organization that this is. * `personal` - default organization with your account. * `general` - Bulk generation of NFTs.',
+    })
     kind?: OrganizationKind;
 
     @Column({ nullable: true, comment: 'The description for the organization.' })

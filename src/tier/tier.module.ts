@@ -7,14 +7,8 @@ import { TierService } from './tier.service';
 import { TierResolver } from './tier.resolver';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([
-      Collection,
-      Tier,
-    ]),
-    forwardRef(() => CollectionModule),
-  ],
-  exports: [TierModule],
-  providers: [TierService, TierResolver],
+    imports: [TypeOrmModule.forFeature([Collection, Tier]), forwardRef(() => CollectionModule)],
+    exports: [TierModule],
+    providers: [TierService, TierResolver],
 })
 export class TierModule {}

@@ -6,7 +6,12 @@ import { MetadataPollerItem } from '../lib/modules/db.record.module';
 import { IMetadata } from '../lib/modules/db.mongo.module';
 
 export class MetadataUploadPoller {
-    constructor(private readonly pgClient: PostgresAdapter, private readonly redisClient: RedisAdapter, private readonly aws: AWSAdapter, private readonly mongoClient: MongoAdapter) {
+    constructor(
+        private readonly pgClient: PostgresAdapter,
+        private readonly redisClient: RedisAdapter,
+        private readonly aws: AWSAdapter,
+        private readonly mongoClient: MongoAdapter
+    ) {
         console.log(`Metadata Poller Start On ${Date.now()}`);
     }
 
@@ -53,7 +58,10 @@ export class MetadataUploadPoller {
 
     async getMetadata(collectionId: string, tierId: number): Promise<IMetadata> {
         const metaCol = this.mongoClient.db.collection('metadata');
-        const r = (await metaCol.findOne({ 'vibe_properties.collection': collectionId, 'vibe_properties.tier_id': tierId })) as unknown as IMetadata | null;
+        const r = (await metaCol.findOne({
+            'vibe_properties.collection': collectionId,
+            'vibe_properties.tier_id': tierId,
+        })) as unknown as IMetadata | null;
         return r;
     }
 

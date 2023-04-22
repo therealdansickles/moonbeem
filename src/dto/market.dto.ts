@@ -483,5 +483,3 @@ export class VCollectionActivityRspDto {
     @IsNumber()
     readonly total: number;
 }
-
-

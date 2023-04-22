@@ -1,4 +1,15 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, BaseEntity, OneToMany, ManyToOne, RelationId, JoinColumn } from 'typeorm';
+import {
+    Entity,
+    Column,
+    PrimaryGeneratedColumn,
+    CreateDateColumn,
+    UpdateDateColumn,
+    BaseEntity,
+    OneToMany,
+    ManyToOne,
+    RelationId,
+    JoinColumn,
+} from 'typeorm';
 import { Collection } from '../collection/collection.entity';
 import { User } from '../user/user.entity';
 import { Collaboration } from '../collaboration/collaboration.entity';

@@ -1,6 +1,11 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ethers } from 'ethers';
-import { LoginWithEmailResponse, CreateUserWithEmailInput, LoginWithWalletResponse, LoginWithEmailInput } from './auth.dto';
+import {
+    LoginWithEmailResponse,
+    CreateUserWithEmailInput,
+    LoginWithWalletResponse,
+    LoginWithEmailInput,
+} from './auth.dto';
 import { RedisAdapter } from '../lib/adapters/redis.adapter';
 import { JWTService } from '../services/jwt.service';
 import { UserWalletService } from '../services/user.wallet.service';
@@ -14,7 +19,12 @@ export const SESSION_PERFIX = 'login_session';
 
 @Injectable()
 export class AuthService {
-    constructor(private readonly jwtService: JWTService, private readonly redisClient: RedisAdapter, @InjectRepository(User) private userRepository: Repository<User>, @InjectRepository(Wallet) private walletRepository: Repository<Wallet>) {}
+    constructor(
+        private readonly jwtService: JWTService,
+        private readonly redisClient: RedisAdapter,
+        @InjectRepository(User) private userRepository: Repository<User>,
+        @InjectRepository(Wallet) private walletRepository: Repository<Wallet>
+    ) {}
 
     /**
      * login with wallet, needs to signature
@@ -134,12 +144,18 @@ export class AuthService {
         });
 
         if (!user) {
-            throw new HttpException('Verification failed. Please check your username or password again.', HttpStatus.FORBIDDEN);
+            throw new HttpException(
+                'Verification failed. Please check your username or password again.',
+                HttpStatus.FORBIDDEN
+            );
         }
 
         const pwMatches = await argon.verify(user.password, data.password);
         if (!pwMatches) {
-            throw new HttpException('Verification failed. Please check your username or password again.', HttpStatus.FORBIDDEN);
+            throw new HttpException(
+                'Verification failed. Please check your username or password again.',
+                HttpStatus.FORBIDDEN
+            );
         }
 
         const authPayload: AuthPayload = {
