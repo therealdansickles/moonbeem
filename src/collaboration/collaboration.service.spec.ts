@@ -3,6 +3,7 @@ import { Repository } from 'typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { faker } from '@faker-js/faker';
+import { GraphQLError } from 'graphql';
 import { postgresConfig } from '../lib/configs/db.config';
 
 import { Collaboration } from './collaboration.entity';
@@ -80,6 +81,86 @@ describe('CollaborationService', () => {
             expect(result.wallet).toEqual(wallet.id);
             expect(result.collection).toEqual(collection.id);
         });
+
+        it('should throw error if wallet-collection pair is already existed', async () => {
+            const freshNewWallet = await walletService.createWallet(`eth:${faker.finance.ethereumAddress()}`);
+            const freshNewCollection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: faker.finance.accountName(),
+                about: faker.finance.accountName(),
+                chainId: 1,
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+            });
+            const collaboration1 = await service.createCollaboration({
+                walletId: freshNewWallet.id,
+                collectionId: freshNewCollection.id,
+                royaltyRate: 98,
+            });
+            expect(
+                (async function () {
+                    await service.createCollaboration({
+                        walletId: freshNewWallet.id,
+                        collectionId: freshNewCollection.id,
+                        royaltyRate: 1
+                    })
+                }())
+            ).rejects.toThrowError(GraphQLError)
+        })
+
+
+        it('should throw error if royalty out of bound', async () => {
+            const newCollection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: faker.finance.accountName(),
+                about: faker.finance.accountName(),
+                chainId: 1,
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+            });
+            const wallet1 = await walletService.createWallet(`arb:${faker.finance.ethereumAddress()}`);
+            const collaboration1 = await service.createCollaboration({
+                walletId: wallet1.id,
+                collectionId: newCollection.id,
+                royaltyRate: 98,
+            });
+            const wallet2 = await walletService.createWallet(`arb:${faker.finance.ethereumAddress()}`);
+            const collaboration2 = await service.createCollaboration({
+                walletId: wallet2.id,
+                collectionId: newCollection.id,
+                royaltyRate: 2,
+            });
+            const anotherCollection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: faker.finance.accountName(),
+                about: faker.finance.accountName(),
+                chainId: 1,
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+            });
+            // this should work as it's another collection
+            const collaborationForAnotherCollection = await service.createCollaboration({
+                walletId: wallet1.id,
+                collectionId: anotherCollection.id,
+                royaltyRate: 1,
+            });
+            expect(collaborationForAnotherCollection.wallet).toEqual(wallet1.id)
+            expect(collaborationForAnotherCollection.collection).toEqual(anotherCollection.id)
+            // would fail
+            const wallet3 = await walletService.createWallet(`arb:${faker.finance.ethereumAddress()}`);
+            expect(
+                (async function () {
+                    await service.createCollaboration({
+                        walletId: wallet3.id,
+                        collectionId: newCollection.id,
+                        royaltyRate: 1
+                    })
+                }())
+            ).rejects.toThrowError(GraphQLError)
+        })
     });
 
     describe('getCollaboration', () => {

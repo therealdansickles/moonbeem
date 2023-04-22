@@ -17,11 +17,11 @@ export class Collaboration extends BaseEntity {
     @Column({ default: 100, comment: 'The royalty rate in percentage.' })
     royaltyRate: number;
 
-    @ManyToOne(() => Collection, (collection) => collection.collaborations, { lazy: true })
+    @ManyToOne(() => Collection, (collection) => collection.collaborations)
     @JoinColumn()
     collection: Collection;
 
-    @ManyToOne(() => Wallet, (wallet) => wallet.collaborations, { lazy: true })
+    @ManyToOne(() => Wallet, (wallet) => wallet.collaborations)
     @JoinColumn()
     wallet: Wallet;
 

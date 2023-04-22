@@ -9,7 +9,7 @@ import { Wallet } from '../wallet/wallet.entity';
 
 @Injectable()
 export class CollaborationService {
-    constructor(@InjectRepository(Collaboration) private collaborationRepository: Repository<Collaboration>) {}
+    constructor(@InjectRepository(Collaboration) private collaborationRepository: Repository<Collaboration>) { }
 
     /**
      * Retrieves the collaboration associated with the given id.
@@ -28,16 +28,22 @@ export class CollaborationService {
      * @returns The newly created collaboration
      */
     async createCollaboration(data: CreateCollaborationInput): Promise<Collaboration> {
-        try {
-            const dd = data as unknown as Collaboration;
-            dd.collection = data.collectionId as unknown as Collection;
-            dd.wallet = data.walletId as unknown as Wallet;
-            return await this.collaborationRepository.save(dd);
-        } catch (e) {
-            // FIXME: This ain't always true :issou:
-            // Add Sentry capture here.
-            console.log(e);
-            throw new GraphQLError(`wallet ${data.walletId} is already collaborating with collection ${data.collectionId}`);
-        }
+        // check if wallet-collection pair is unique
+        const uniqueCheck = await this.collaborationRepository.findOne({
+            where: {
+                collection: { id: data.collectionId },
+                wallet: { id: data.walletId }
+            }
+        })
+        if (uniqueCheck) throw new GraphQLError(`wallet ${data.walletId} is already collaborating with collection ${data.collectionId}`)
+        // get existed collaboration within the same collection
+        // if sum of royalty from existed + new one > 100 wouldn't pass the validation
+        const existedCollaborations = await this.collaborationRepository.find({ where: { collection: { id: data.collectionId } } })
+        const sumOfExistedRoyalty = existedCollaborations.reduce((sum, c) => c.royaltyRate + sum, 0)
+        if (sumOfExistedRoyalty + data.royaltyRate > 100) throw new GraphQLError(`collection ${data.collectionId} royalty out of bound`)
+        const dd = data as unknown as Collaboration;
+        dd.collection = data.collectionId as unknown as Collection;
+        dd.wallet = data.walletId as unknown as Wallet;
+        return await this.collaborationRepository.save(dd);
     }
 }
