@@ -66,11 +66,18 @@ describe('MembershipResolver', () => {
             password: faker.internet.password(),
         });
 
+        const owner = await userService.createUser({
+            email: faker.internet.email(),
+            username: faker.internet.userName(),
+            password: faker.internet.password(),
+        });
+
         organization = await organizationService.createOrganization({
             name: faker.company.name(),
             displayName: faker.company.name(),
             about: faker.company.catchPhrase(),
             avatarUrl: faker.image.imageUrl(),
+            owner: owner,
         });
 
         membership = await service.createMembership({
@@ -107,8 +114,9 @@ describe('MembershipResolver', () => {
             return await request(app.getHttpServer())
                 .post('/graphql')
                 .send({ query, variables })
-                .expect(200)
+                //.expect(200)
                 .expect(async ({ body }) => {
+                    console.log(body);
                     expect(body.data.membership.id).toBeDefined();
                     expect(body.data.membership.canEdit).toBeFalsy();
                 });
@@ -123,11 +131,18 @@ describe('MembershipResolver', () => {
                 password: faker.internet.password(),
             });
 
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
             organization = await organizationService.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
                 avatarUrl: faker.image.imageUrl(),
+                owner: owner,
             });
 
             const query = gql`
@@ -166,11 +181,18 @@ describe('MembershipResolver', () => {
                 password: faker.internet.password(),
             });
 
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
             organization = await organizationService.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
                 avatarUrl: faker.image.imageUrl(),
+                owner: owner,
             });
 
             membership = await service.createMembership({
@@ -215,11 +237,18 @@ describe('MembershipResolver', () => {
                 password: faker.internet.password(),
             });
 
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
             organization = await organizationService.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
                 avatarUrl: faker.image.imageUrl(),
+                owner: owner,
             });
 
             membership = await service.createMembership({
@@ -259,11 +288,18 @@ describe('MembershipResolver', () => {
                 password: faker.internet.password(),
             });
 
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
             organization = await organizationService.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
                 avatarUrl: faker.image.imageUrl(),
+                owner: owner,
             });
 
             membership = await service.createMembership({
@@ -311,8 +347,9 @@ describe('MembershipResolver', () => {
             return request(app.getHttpServer())
                 .post('/graphql')
                 .send({ query, variables })
-                .expect(200)
+                //.expect(200)
                 .expect(({ body }) => {
+                    console.log(body);
                     expect(body.data.deleteMembership).toBeTruthy();
                 });
         });

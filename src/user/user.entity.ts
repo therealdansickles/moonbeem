@@ -29,9 +29,8 @@ export class User extends BaseEntity {
     @OneToMany(() => Membership, (membership) => membership.user, { lazy: true })
     memberships: Membership[];
 
-    //@ManyToOne(() => Organization, (organization) => organization.owner, { lazy: true })
-    //@JoinColumn({ name: 'organizations' })
-    //organizations: Organization[];
+    @OneToMany(() => Organization, (organization) => organization.owner)
+    ownedOrganizations: Organization[];
 
     @CreateDateColumn()
     createdAt: Date;

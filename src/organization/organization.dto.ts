@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsString, IsDateString, IsUrl, ValidateIf, IsEnum, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 import { OrganizationKind } from './organization.entity';
+import { User, UserInput } from '../user/user.dto';
 
 @ObjectType('Organization')
 export class Organization {
@@ -10,6 +11,11 @@ export class Organization {
     @IsString()
     @Field((returns) => ID!)
     readonly id: string;
+
+    @ApiProperty()
+    @IsString()
+    @Field(() => User, { description: 'The owner of the organization.' })
+    readonly owner: User;
 
     @ApiProperty()
     @IsString()
@@ -89,6 +95,11 @@ export class CreateOrganizationInput {
 
     @ApiProperty()
     @IsString()
+    @Field(() => UserInput, { description: 'The owner of the organization.' })
+    readonly owner: UserInput;
+
+    @ApiProperty()
+    @IsString()
     @Field({ description: 'The name that we display for the organization.', nullable: true })
     @IsOptional()
     readonly displayName?: string;
@@ -139,11 +150,6 @@ export class CreateOrganizationInput {
     @Field({ description: "The discord handle associated with this organization, e.g. 'vibe-labs", nullable: true })
     @IsOptional()
     readonly discord?: string;
-
-    //@ApiProperty()
-    //@IsString()
-    //@Field((type) => ID, { description: 'The owner of the organization.' })
-    //readonly ownerId: string;
 }
 
 @InputType()

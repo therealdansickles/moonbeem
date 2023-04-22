@@ -13,8 +13,9 @@ export class Organization extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    //@OneToMany(() => User, (user) => user.organizations)
-    //owner: User;
+    @ManyToOne(() => User, (user) => user.ownedOrganizations)
+    @JoinColumn()
+    owner: User;
 
     @Column({ unique: true, comment: 'The unique URL-friendly name of the organization.' })
     name: string;

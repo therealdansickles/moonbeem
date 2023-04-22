@@ -15,11 +15,15 @@ import { CollaborationModule } from '../collaboration/collaboration.module';
 import { AuthService } from '../auth/auth.service';
 import { AuthModule } from '../auth/auth.module';
 
+import { User } from '../user/user.dto';
+import { UserService } from '../user/user.service';
+
 export const gql = String.raw;
 
 describe('OrganizationResolver', () => {
     let repository: Repository<Organization>;
     let service: OrganizationService;
+    let userService: UserService;
     let app: INestApplication;
     let organization: Organization;
     let authService: AuthService;
@@ -50,8 +54,14 @@ describe('OrganizationResolver', () => {
 
         repository = module.get('OrganizationRepository');
         service = module.get<OrganizationService>(OrganizationService);
+        userService = module.get<UserService>(UserService);
         authService = module.get<AuthService>(AuthService);
         app = module.createNestApplication();
+
+        const owner = await userService.createUser({
+            email: faker.internet.email(),
+            password: faker.internet.password(),
+        });
 
         organization = await service.createOrganization({
             name: faker.company.name(),
@@ -63,6 +73,7 @@ describe('OrganizationResolver', () => {
             twitter: faker.internet.userName(),
             instagram: faker.internet.userName(),
             discord: faker.internet.userName(),
+            owner: owner,
         });
 
         await app.init();
@@ -113,6 +124,11 @@ describe('OrganizationResolver', () => {
                 }
             `;
 
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
             const variables = {
                 input: {
                     name: faker.company.name(),
@@ -124,6 +140,9 @@ describe('OrganizationResolver', () => {
                     twitter: faker.internet.userName(),
                     instagram: faker.internet.userName(),
                     discord: faker.internet.userName(),
+                    owner: {
+                        id: owner.id
+                    },
                 },
             };
 
@@ -147,6 +166,11 @@ describe('OrganizationResolver', () => {
                 }
             `;
 
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
             const variables = {
                 input: {
                     name: faker.company.name(),
@@ -158,6 +182,7 @@ describe('OrganizationResolver', () => {
                     twitter: faker.internet.userName(),
                     instagram: faker.internet.userName(),
                     discord: faker.internet.userName(),
+                    owner: { id: owner.id},
                 },
             };
 
@@ -223,30 +248,56 @@ describe('OrganizationResolver', () => {
         });
     });
 
-    //describe('transferOrganization', () => {
-    //it('should transfer an organization', async () => {
-    //const newOwner = await userRepository.create({ email: faker.internet.email() });
-    //const query = gql`
-    //query transferOrganization($id: String!, $ownerId: String!) {
-    //transferOrganization(id: $id, ownerId: $ownerId) {
-    //ownerId
-    //}
-    //}
-    //`;
+    describe('transferOrganization', () => {
+        it('should transfer an organization', async () => {
+            const oldOwner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
 
-    //const variables = {
-    //// FIXME: need to move to single input graphql mutations
-    //id: organization.id,
-    //ownerId: newOwner.id,
-    //};
+            const newOwner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
 
-    //return request(app.getHttpServer())
-    //.post('/graphql')
-    //.send({ query, variables })
-    //.expect(200)
-    //.expect(({ body }) => {
-    //expect(body.data.transferOrganization.ownerId).toEqual(newOwner.id);
-    //});
-    //});
-    //});
-});
+            const transferedOrganization = await service.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: {
+                    id: oldOwner.id,
+                },
+            });
+
+            const query = gql`
+                mutation transferOrganization($input: TransferOrganizationInput!) {
+                    transferOrganization(input: $input) {
+                        owner {
+                            id
+                        }
+                    }
+                }`;
+
+            const variables = {
+                input: {
+                    id: transferedOrganization.id,
+                    ownerId: newOwner.id,
+                }
+            };
+
+        return request(app.getHttpServer())
+            .post('/graphql')
+                .send({ query, variables })
+                    .expect(200)
+                        .expect(({ body }) => {
+                            expect(body.data.transferOrganization.owner.id).toEqual(newOwner.id);
+                        });
+                    });
+                });
+        });

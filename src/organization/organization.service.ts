@@ -3,10 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Organization } from './organization.entity';
 import { CreateOrganizationInput, UpdateOrganizationInput } from './organization.dto';
+import { User } from '../user/user.entity';
 
 @Injectable()
 export class OrganizationService {
-    constructor(@InjectRepository(Organization) private organizationRepository: Repository<Organization>) {}
+    constructor(
+        @InjectRepository(Organization) private organizationRepository: Repository<Organization>,
+        @InjectRepository(User) private userRepository: Repository<User>
+    ) {}
 
     /**
      * Retrieve an organization by id.
@@ -64,6 +68,11 @@ export class OrganizationService {
     async transferOrganization(id: string, ownerId: string): Promise<Organization> {
         const organization = await this.organizationRepository.findOneBy({ id });
         if (!organization) throw new Error(`Organization with id ${id} doesn't exist.`);
-        return this.organizationRepository.save({ ...organization, ownerId });
+
+        const owner = await this.userRepository.findOneBy({ id: ownerId });
+        if (!owner) throw new Error(`User with id ${id} doesn't exist.`);
+
+        organization.owner = owner;
+        return this.organizationRepository.save(organization);
     }
 }

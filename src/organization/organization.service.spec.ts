@@ -7,10 +7,14 @@ import { Organization } from './organization.entity';
 import { OrganizationModule } from './organization.module';
 import { OrganizationService } from './organization.service';
 import { CreateOrganizationInput } from './organization.dto';
+import { User } from '../user/user.entity';
+import { UserModule } from '../user/user.module';
+import { UserService } from '../user/user.service';
 
 describe.only('OrganizationService', () => {
     let repository: Repository<Organization>;
     let service: OrganizationService;
+    let userService: UserService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -27,19 +31,27 @@ describe.only('OrganizationService', () => {
                     logging: false,
                 }),
                 OrganizationModule,
+                UserModule,
             ],
         }).compile();
 
         repository = module.get('OrganizationRepository');
         service = module.get<OrganizationService>(OrganizationService);
+        userService = module.get<UserService>(UserService);
     });
 
     afterAll(async () => {
+        await repository.query('TRUNCATE TABLE "User" CASCADE');
         await repository.query('TRUNCATE TABLE "Organization" CASCADE');
     });
 
     describe('getOrganization', () => {
         it('should get an organization', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
             const organization = await service.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
@@ -50,6 +62,7 @@ describe.only('OrganizationService', () => {
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
                 discord: faker.internet.userName(),
+                owner: owner,
             });
 
             const result = await service.getOrganization(organization.id);
@@ -59,6 +72,11 @@ describe.only('OrganizationService', () => {
 
     describe('createOrganization', () => {
         it('should create an organization', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
             const organization = await service.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
@@ -69,6 +87,7 @@ describe.only('OrganizationService', () => {
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
                 discord: faker.internet.userName(),
+                owner: owner,
             });
 
             expect(organization.id).toBeDefined();
@@ -77,6 +96,11 @@ describe.only('OrganizationService', () => {
 
     describe('updateOrganization', () => {
         it('should update an organization', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
             const organization = await service.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
@@ -87,6 +111,7 @@ describe.only('OrganizationService', () => {
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
                 discord: faker.internet.userName(),
+                owner: owner,
             });
 
             const result = await service.updateOrganization(organization.id, {
@@ -99,6 +124,11 @@ describe.only('OrganizationService', () => {
 
     describe('deleteOrganization', () => {
         it('should delete an organization', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
             const organization = await service.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
@@ -109,10 +139,63 @@ describe.only('OrganizationService', () => {
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
                 discord: faker.internet.userName(),
+                owner: owner,
             });
 
             const result = await service.deleteOrganization(organization.id);
             expect(result).toBeTruthy();
+        });
+    });
+
+    describe('transferOrganization', () => {
+        it('should transfer an organization', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await service.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const result = await service.transferOrganization(organization.id, user.id)
+            expect(result.owner.id).toEqual(user.id);
+        });
+
+        it('should throw an error if the user does not exist', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await service.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            expect(() => service.transferOrganization(organization.id, faker.datatype.uuid())).rejects.toThrow("doesn't exist")
         });
     });
 });

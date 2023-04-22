@@ -35,3 +35,11 @@ export class User {
     @IsOptional()
     avatarUrl?: string;
 }
+
+@InputType('UserInput')
+export class UserInput {
+    @ApiProperty()
+    @IsString()
+    @Field((returns) => ID!)
+    id: string;
+}
