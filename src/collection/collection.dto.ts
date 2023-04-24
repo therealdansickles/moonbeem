@@ -34,6 +34,14 @@ export class Collection {
     readonly about?: string;
 
     @ApiProperty()
+    @Field({
+        description: "The address of the collection, e.g. '0x6bf9ec331e083627b0f48332ece2d99a7eb7fb0c'",
+        nullable: true,
+    })
+    @IsOptional()
+    readonly address?: string;
+
+    @ApiProperty()
     @IsUrl()
     @Field({
         description: 'The image url for the avatar of the collection. This is the profile picture.',

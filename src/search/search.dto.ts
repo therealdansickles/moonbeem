@@ -1,33 +1,38 @@
-import { ArgsType, Field, ObjectType } from '@nestjs/graphql';
+import { ArgsType, Field, InputType, Int, ObjectType } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsEthereumAddress, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 import { EthereumAddress } from '../lib/scalars/eth.scalar';
 
 @ObjectType()
-export class VSearchCollectionItem {
-    @Field()
+export class CollectionSearchResult {
+    @Field({ description: 'The collection name' })
     @ApiProperty()
     @IsString()
     name: string;
 
-    @Field()
+    @Field({
+        nullable: true,
+        description: 'The image url for the avatar of the collection. This is the profile picture.',
+    })
     @ApiProperty()
     @IsString()
     @IsOptional()
-    image: string;
+    image?: string;
 
-    @Field(() => EthereumAddress)
+    @Field(() => EthereumAddress, {
+        description: "The address of the collection, e.g. '0x6bf9ec331e083627b0f48332ece2d99a7eb7fb0c'",
+    })
     @ApiProperty()
     @IsEthereumAddress()
     address: string;
 
-    @Field()
+    @Field((type) => Int!, { description: 'The chainId of the collection.' })
     @ApiProperty()
     @IsNumber()
     chainId: number;
 
-    @Field()
+    @Field({ description: 'The total number of items in this collection' })
     @ApiProperty()
     @IsNumber()
     @IsOptional()
@@ -35,56 +40,60 @@ export class VSearchCollectionItem {
 }
 
 @ObjectType()
-export class VSearchCollectionRsp {
-    @Field(() => [VSearchCollectionItem])
+export class CollectionSearchResults {
+    @Field(() => [CollectionSearchResult], { description: 'An array of collections that fits the search query' })
     @ApiProperty({
-        type: [VSearchCollectionItem],
+        type: [CollectionSearchResult],
     })
     @IsOptional()
-    data: VSearchCollectionItem[];
+    data: CollectionSearchResult[];
 
     @ApiProperty()
     @IsBoolean()
+    @Field({ description: 'A boolean indicating wether this is the last page of the pagination' })
     isLastPage: boolean;
 
     @ApiProperty()
     @IsNumber()
     @Type(() => Number)
+    @Field({ description: 'The total number of items that fits the search query' })
     total: number;
 }
 
 @ObjectType()
-export class VSearchAccountItem {
-    @Field()
+export class UserSearchResult {
+    @Field({ description: "The user's name" })
     @ApiProperty()
     @IsString()
     name: string;
 
-    @Field()
+    @Field({ nullable: true, description: "The user's avatar" })
     @ApiProperty()
     @IsString()
     @IsOptional()
-    avatar: string;
+    avatar?: string;
 
-    @Field(() => EthereumAddress)
+    @Field(() => EthereumAddress, { description: "The user's wallet address" })
     @ApiProperty()
     @IsEthereumAddress()
     address: string;
 }
 
 @ObjectType()
-export class VSearchAccountRsp {
-    @Field(() => [VSearchAccountItem])
+export class UserSearchResults {
+    @Field(() => [UserSearchResult], { description: 'An array of users that fits the search query' })
     @ApiProperty({
-        type: [VSearchAccountItem],
+        type: [UserSearchResult],
     })
     @IsOptional()
-    data: VSearchAccountItem[];
+    data: UserSearchResult[];
 
     @ApiProperty()
     @IsBoolean()
+    @Field({ description: 'A boolean indicating wether this is the last page of the pagination' })
     isLastPage: boolean;
 
+    @Field({ description: 'The total number of items that fits the search query' })
     @ApiProperty()
     @IsNumber()
     @Type(() => Number)
@@ -92,23 +101,24 @@ export class VSearchAccountRsp {
 }
 
 @ObjectType()
-export class VGlobalSearchRspDto {
-    @Field(() => VSearchCollectionRsp)
-    @ApiProperty({
-        type: [VSearchCollectionRsp],
+export class GlobalSearchResult {
+    @Field(() => CollectionSearchResults, {
+        description: 'The data object of the collections that fit the search query',
     })
-    collections: VSearchCollectionRsp;
+    @ApiProperty({
+        type: [CollectionSearchResults],
+    })
+    collections: CollectionSearchResults;
 
-    @Field(() => VSearchAccountRsp)
+    @Field(() => UserSearchResults, { description: 'The data object of the users that fit the search query' })
     @ApiProperty({
-        type: [VSearchAccountRsp],
+        type: [UserSearchResults],
     })
-    accounts: VSearchAccountRsp;
+    users: UserSearchResults;
 }
 
-@ArgsType()
-@ObjectType()
-export class VGlobalSearchReqDto {
+@InputType('GloablSearchInput')
+export class GloablSearchInput {
     @Field()
     @ApiProperty()
     @IsString()

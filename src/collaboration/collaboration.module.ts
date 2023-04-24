@@ -5,11 +5,8 @@ import { CollaborationService } from './collaboration.service';
 import { CollaborationResolver } from './collaboration.resolver';
 import { Collection } from '../collection/collection.entity';
 import { CollectionModule } from '../collection/collection.module';
-import { CollectionService } from '../collection/collection.service';
 import { Wallet } from '../wallet/wallet.entity';
 import { WalletModule } from '../wallet/wallet.module';
-import { WalletResolver } from '../wallet/wallet.resolver';
-import { WalletService } from '../wallet/wallet.service';
 
 @Module({
     imports: [
@@ -17,7 +14,7 @@ import { WalletService } from '../wallet/wallet.service';
         forwardRef(() => WalletModule),
         forwardRef(() => CollectionModule),
     ],
-    providers: [CollaborationService, CollaborationResolver, WalletService, WalletResolver],
+    providers: [CollaborationService, CollaborationResolver],
     controllers: [],
     exports: [],
 })

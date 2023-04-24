@@ -60,7 +60,7 @@ describe('CollaborationService', () => {
             tags: [],
         });
 
-        wallet = await walletService.createWallet(`arb:${faker.finance.ethereumAddress()}`);
+        wallet = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
     });
 
     afterAll(async () => {
@@ -83,7 +83,9 @@ describe('CollaborationService', () => {
         });
 
         it('should throw error if wallet-collection pair is already existed', async () => {
-            const freshNewWallet = await walletService.createWallet(`eth:${faker.finance.ethereumAddress()}`);
+            const freshNewWallet = await walletService.createWallet({
+                address: `eth:${faker.finance.ethereumAddress()}`,
+            });
             const freshNewCollection = await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: faker.finance.accountName(),
@@ -119,13 +121,13 @@ describe('CollaborationService', () => {
                 artists: [],
                 tags: [],
             });
-            const wallet1 = await walletService.createWallet(`arb:${faker.finance.ethereumAddress()}`);
+            const wallet1 = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
             const collaboration1 = await service.createCollaboration({
                 walletId: wallet1.id,
                 collectionId: newCollection.id,
                 royaltyRate: 98,
             });
-            const wallet2 = await walletService.createWallet(`arb:${faker.finance.ethereumAddress()}`);
+            const wallet2 = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
             const collaboration2 = await service.createCollaboration({
                 walletId: wallet2.id,
                 collectionId: newCollection.id,
@@ -149,7 +151,7 @@ describe('CollaborationService', () => {
             expect(collaborationForAnotherCollection.wallet).toEqual(wallet1.id);
             expect(collaborationForAnotherCollection.collection).toEqual(anotherCollection.id);
             // would fail
-            const wallet3 = await walletService.createWallet(`arb:${faker.finance.ethereumAddress()}`);
+            const wallet3 = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
             expect(
                 (async function () {
                     await service.createCollaboration({

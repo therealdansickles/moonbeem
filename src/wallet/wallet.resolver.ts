@@ -1,5 +1,5 @@
 import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
-import { Wallet, BindWalletInput, UnbindWalletInput } from './wallet.dto';
+import { Wallet, BindWalletInput, UnbindWalletInput, CreateWalletInput } from './wallet.dto';
 import { Public } from '../lib/decorators/public.decorator';
 import { WalletService } from './wallet.service';
 
@@ -16,6 +16,12 @@ export class WalletResolver {
         @Args('address', { description: 'an ethereum or EIP-3770 address.' }) address: string
     ): Promise<Wallet> {
         return await this.walletService.getWalletByAddress(address);
+    }
+
+    @Public()
+    @Mutation(() => Wallet, { description: 'creates a wallet' })
+    async createWallet(@Args('input') input: CreateWalletInput): Promise<Wallet> {
+        return this.walletService.createWallet(input);
     }
 
     //@Public()

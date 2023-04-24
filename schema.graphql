@@ -32,7 +32,7 @@ type Wallet {
   address: String!
 
   """The owner of the wallet."""
-  owner: String
+  owner: User
 }
 
 type VIPriceType {
@@ -102,6 +102,11 @@ type Collection {
 
   """The description for the collection."""
   about: String
+
+  """
+  The address of the collection, e.g. '0x6bf9ec331e083627b0f48332ece2d99a7eb7fb0c'
+  """
+  address: String
 
   """
   The image url for the avatar of the collection. This is the profile picture.
@@ -493,31 +498,66 @@ type VCollectionActivityRspDto {
   total: Int!
 }
 
-type VSearchCollectionItem {
+type CollectionSearchResult {
+  """The collection name"""
   name: String!
-  image: String!
+
+  """
+  The image url for the avatar of the collection. This is the profile picture.
+  """
+  image: String
+
+  """
+  The address of the collection, e.g. '0x6bf9ec331e083627b0f48332ece2d99a7eb7fb0c'
+  """
   address: EthereumAddress!
-  chainId: Float!
+
+  """The chainId of the collection."""
+  chainId: Int!
+
+  """The total number of items in this collection"""
   itemsCount: Float!
 }
 
-type VSearchCollectionRsp {
-  data: [VSearchCollectionItem!]!
+type CollectionSearchResults {
+  """An array of collections that fits the search query"""
+  data: [CollectionSearchResult!]!
+
+  """A boolean indicating wether this is the last page of the pagination"""
+  isLastPage: Boolean!
+
+  """The total number of items that fits the search query"""
+  total: Float!
 }
 
-type VSearchAccountItem {
+type UserSearchResult {
+  """The user's name"""
   name: String!
-  avatar: String!
+
+  """The user's avatar"""
+  avatar: String
+
+  """The user's wallet address"""
   address: EthereumAddress!
 }
 
-type VSearchAccountRsp {
-  data: [VSearchAccountItem!]!
+type UserSearchResults {
+  """An array of users that fits the search query"""
+  data: [UserSearchResult!]!
+
+  """A boolean indicating wether this is the last page of the pagination"""
+  isLastPage: Boolean!
+
+  """The total number of items that fits the search query"""
+  total: Float!
 }
 
-type VGlobalSearchRspDto {
-  collections: VSearchCollectionRsp!
-  accounts: VSearchAccountRsp!
+type GlobalSearchResult {
+  """The data object of the collections that fit the search query"""
+  collections: CollectionSearchResults!
+
+  """The data object of the users that fit the search query"""
+  users: UserSearchResults!
 }
 
 type Waitlist {
@@ -544,14 +584,14 @@ type Query {
     address: String!
   ): Wallet
 
-  """returns a collaboration for a given uuid"""
-  collaboration(id: String!): Collaboration
-
   """Retrieve a membership by id."""
   membership(id: String!): Membership
 
   """Returns an organization for the given uuid"""
   organization(id: String!): Organization
+
+  """returns a collaboration for a given uuid"""
+  collaboration(id: String!): Collaboration
 
   """returns a collection for a given uuid"""
   collection(id: String!): Collection
@@ -568,8 +608,8 @@ type Query {
   getAddressActivities(skip: Int = 0, take: Int = 10, address: EthereumAddress!, chainId: Int = 0): MarketAddressActivitiesRspDto!
   getAddressReleased(skip: Int = 0, take: Int = 10, address: EthereumAddress!, chainId: Int = 0): MarketAddressReleasedRspDto!
   getCollectionActivities(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VCollectionActivityRspDto!
-  globalSearch(searchTerm: String!, page: Float!, pageSize: Float!): VGlobalSearchRspDto!
-  globalSearchV1(searchTerm: String!, page: Float!, pageSize: Float!): VGlobalSearchRspDto!
+  globalSearch(input: GloablSearchInput!): GlobalSearchResult!
+  globalSearchV1(input: GloablSearchInput!): GlobalSearchResult!
 
   """returns a waitlist for a given email"""
   getWaitlist(email: String!): Waitlist
@@ -587,14 +627,20 @@ enum BasicCollectionType {
   Custom
 }
 
+input GloablSearchInput {
+  searchTerm: String!
+  page: Float!
+  pageSize: Float!
+}
+
 type Mutation {
   loginWithWallet(input: LoginWithWalletInput!): LoginWithWalletResponse!
   loginWithEmail(input: LoginWithEmailInput!): LoginWithEmailResponse!
   logout(input: LogoutInput!): Boolean!
   createUserWithEmail(input: CreateUserWithEmailInput!): LoginWithEmailResponse!
 
-  """create a collaboration"""
-  createCollaboration(input: CreateCollaborationInput!): Collaboration!
+  """creates a wallet"""
+  createWallet(input: CreateWalletInput!): Wallet!
 
   """Create a new membership."""
   createMembership(input: CreateMembershipInput!): Membership!
@@ -622,6 +668,9 @@ type Mutation {
 
   """Transfer an organization to another user."""
   transferOrganization(input: TransferOrganizationInput!): Organization!
+
+  """create a collaboration"""
+  createCollaboration(input: CreateCollaborationInput!): Collaboration!
 
   """creates a collection"""
   createCollection(input: CreateCollectionInput!): Collection!
@@ -674,21 +723,12 @@ input CreateUserWithEmailInput {
   avatarUrl: String
 }
 
-input CreateCollaborationInput {
-  """The address of the collaboration contract."""
-  address: String
+input CreateWalletInput {
+  """The address for a wallet."""
+  address: String!
 
-  """The address of the collaboration factory."""
-  factoryAddress: String
-
-  """The wallet of the collaboration."""
-  walletId: String!
-
-  """The collection of the collaboration."""
-  collectionId: String!
-
-  """The royalty rate of the collaboration."""
-  royaltyRate: Float!
+  """The id for the owner."""
+  ownerId: String
 }
 
 input CreateMembershipInput {
@@ -825,6 +865,23 @@ input TransferOrganizationInput {
 
   """The new ownerId of the organization."""
   ownerId: String!
+}
+
+input CreateCollaborationInput {
+  """The address of the collaboration contract."""
+  address: String
+
+  """The address of the collaboration factory."""
+  factoryAddress: String
+
+  """The wallet of the collaboration."""
+  walletId: String!
+
+  """The collection of the collaboration."""
+  collectionId: String!
+
+  """The royalty rate of the collaboration."""
+  royaltyRate: Float!
 }
 
 input CreateCollectionInput {

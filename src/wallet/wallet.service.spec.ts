@@ -6,8 +6,7 @@ import { postgresConfig } from '../lib/configs/db.config';
 import { Wallet } from './wallet.entity';
 import { WalletModule } from './wallet.module';
 import { WalletService } from './wallet.service';
-import { WalletCreateInput } from './wallet.dto';
-import { CollaborationModule } from '../collaboration/collaboration.module';
+import { CreateWalletInput } from './wallet.dto';
 
 describe('WalletService', () => {
     let repository: Repository<Wallet>;
@@ -29,7 +28,6 @@ describe('WalletService', () => {
                     logging: false,
                 }),
                 WalletModule,
-                CollaborationModule,
             ],
         }).compile();
 
@@ -44,7 +42,7 @@ describe('WalletService', () => {
 
     describe('getWallet', () => {
         it('should return a wallet by id', async () => {
-            const wallet = await service.createWallet(`arb:${faker.finance.ethereumAddress()}`);
+            const wallet = await service.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
             const result = await service.getWallet(wallet.id);
             expect(result.id).toBeDefined();
         });
@@ -52,7 +50,7 @@ describe('WalletService', () => {
 
     describe('getWalletByAddress', () => {
         it('should return a wallet by address', async () => {
-            const wallet = await service.createWallet(`arb:${faker.finance.ethereumAddress()}`);
+            const wallet = await service.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
             const result = await service.getWalletByAddress(wallet.address);
             expect(result.address).toEqual(wallet.address);
         });
@@ -61,15 +59,15 @@ describe('WalletService', () => {
     describe('createWallet', () => {
         it('should create a wallet', async () => {
             const walletAddress = `matic:${faker.finance.ethereumAddress()}`;
-            const result = await service.createWallet(walletAddress);
+            const result = await service.createWallet({ address: walletAddress });
             expect(result.id).toBeDefined();
             expect(result.address).toEqual(walletAddress);
         });
 
         it('should error if the wallet already exists', async () => {
-            const wallet = await service.createWallet(address);
+            const wallet = await service.createWallet({ address: address });
             expect(async () => {
-                await service.createWallet(address);
+                await service.createWallet({ address: address });
             });
         });
     });

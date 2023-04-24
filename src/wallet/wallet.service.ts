@@ -1,14 +1,18 @@
 import { Injectable } from '@nestjs/common';
 // import { Wallet as WalletModel, Prisma } from '@prisma/client';
-import { BindWalletInput, WalletCreateInput } from './wallet.dto';
+import { BindWalletInput, CreateWalletInput } from './wallet.dto';
 import { Wallet } from './wallet.entity';
 import { GraphQLError } from 'graphql';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { User } from '../user/user.entity';
 
 @Injectable()
 export class WalletService {
-    constructor(@InjectRepository(Wallet) private walletRespository: Repository<Wallet>) {}
+    constructor(
+        @InjectRepository(Wallet) private walletRespository: Repository<Wallet>,
+        @InjectRepository(User) private userRepository: Repository<User>
+    ) {}
 
     /**
      * This is the uuid for the ownerId for all unbound wallets, e.g the blackhole.
@@ -56,11 +60,17 @@ export class WalletService {
      * @param address The address of the wallet to create.
      * @returns The newly created wallet.
      */
-    async createWallet(address: string): Promise<Wallet> {
+    async createWallet(input: CreateWalletInput): Promise<Wallet> {
         try {
+            let owner;
+            if (input.ownerId) {
+                owner = await this.userRepository.findOneBy({ id: input.ownerId });
+                if (!owner) throw new Error(`User with id ${input.ownerId} doesn't exist.`);
+            }
+
             return this.walletRespository.save({
-                address,
-                //owner: { id: this.unOwnedId },
+                address: input.address,
+                owner: owner,
             });
         } catch (e) {
             throw new GraphQLError(e.message);

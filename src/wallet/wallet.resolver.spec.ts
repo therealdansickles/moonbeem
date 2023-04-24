@@ -11,13 +11,17 @@ import { postgresConfig } from '../lib/configs/db.config';
 import { Wallet } from './wallet.entity';
 import { WalletModule } from './wallet.module';
 import { WalletService } from './wallet.service';
+import { AuthService } from '../auth/auth.service';
+import { AuthModule } from '../auth/auth.module';
 import { CollaborationModule } from '../collaboration/collaboration.module';
+import { UserModule } from '../user/user.module';
 
 export const gql = String.raw;
 
 describe('WalletResolver', () => {
     let repository: Repository<Wallet>;
     let service: WalletService;
+    let authService: AuthService;
     let app: INestApplication;
 
     beforeAll(async () => {
@@ -35,17 +39,18 @@ describe('WalletResolver', () => {
                     logging: false,
                 }),
                 WalletModule,
-                CollaborationModule,
+                AuthModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
-                    include: [WalletModule],
+                    include: [AuthModule, WalletModule],
                 }),
             ],
         }).compile();
 
         repository = module.get('WalletRepository');
         service = module.get<WalletService>(WalletService);
+        authService = module.get<AuthService>(AuthService);
         app = module.createNestApplication();
         await app.init();
     });
@@ -58,8 +63,7 @@ describe('WalletResolver', () => {
     describe('wallet', () => {
         it('should get a wallet', async () => {
             const address = faker.finance.ethereumAddress();
-            await service.createWallet(address);
-
+            await service.createWallet({ address });
             const query = gql`
                 query GetWallet($address: String!) {
                     wallet(address: $address) {
@@ -67,15 +71,50 @@ describe('WalletResolver', () => {
                     }
                 }
             `;
-
             const variables = { address };
-
             return request(app.getHttpServer())
                 .post('/graphql')
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.wallet.address).toEqual(address);
+                });
+        });
+
+        it('should create a wallet', async () => {
+            const address = faker.finance.ethereumAddress();
+            const user = await authService.createUserWithEmail({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const query = gql`
+                mutation CreateWallet($input: CreateWalletInput!) {
+                    createWallet(input: $input) {
+                        id
+                        address
+                        owner {
+                            email
+                            id
+                        }
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    address,
+                    ownerId: user.user.id,
+                },
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.createWallet.address).toEqual(address);
+                    expect(body.data.createWallet.owner.id).toEqual(user.user.id);
                 });
         });
     });

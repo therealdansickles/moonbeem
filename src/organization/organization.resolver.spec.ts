@@ -11,11 +11,9 @@ import { postgresConfig } from '../lib/configs/db.config';
 import { Organization } from './organization.entity';
 import { OrganizationModule } from './organization.module';
 import { OrganizationService } from './organization.service';
-import { CollaborationModule } from '../collaboration/collaboration.module';
 import { AuthService } from '../auth/auth.service';
 import { AuthModule } from '../auth/auth.module';
 
-import { User } from '../user/user.dto';
 import { UserService } from '../user/user.service';
 
 export const gql = String.raw;

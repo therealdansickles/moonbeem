@@ -17,16 +17,21 @@ export class Wallet {
 
     @ApiProperty()
     @IsObject()
-    @Field((type) => String, { description: 'The owner of the wallet.', nullable: true })
+    @Field((type) => User, { description: 'The owner of the wallet.', nullable: true })
     readonly owner?: User;
 }
 
 @InputType()
-export class WalletCreateInput {
+export class CreateWalletInput {
     @ApiProperty()
     @IsString() // we can use IsEthereumAddress() here, but we want to support EIP-3770 address format.
     @Field({ description: 'The address for a wallet.' })
     readonly address: string;
+
+    @ApiProperty()
+    @IsString() // we can use IsEthereumAddress() here, but we want to support EIP-3770 address format.
+    @Field({ description: 'The id for the owner.', nullable: true })
+    readonly ownerId?: string;
 }
 
 @InputType('BindWalletInput')

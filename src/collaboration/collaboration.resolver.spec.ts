@@ -60,7 +60,7 @@ describe('CollaborationResolver', () => {
         walletService = module.get<WalletService>(WalletService);
         collectionService = module.get<CollectionService>(CollectionService);
 
-        wallet = await walletService.createWallet(`arb:${faker.finance.ethereumAddress()}`);
+        wallet = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
 
         collection = await collectionService.createCollection({
             name: faker.company.name(),
