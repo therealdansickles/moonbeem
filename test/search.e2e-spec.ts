@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver } from '@nestjs/apollo';
 import { faker } from '@faker-js/faker';
-import { SearchModule } from '../src/modules/search.module';
+import { SearchModule } from '../src/search/search.module';
 import { CollectionService } from '../src/collection/collection.service';
 import { WalletService } from '../src/wallet/wallet.service';
 import { PrismaService } from '../src/prisma/prisma.service';

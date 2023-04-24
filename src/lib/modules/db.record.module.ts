@@ -100,7 +100,7 @@ export interface CollectionActivity {
     tx_time: number;
 }
 
-export interface SearchCollectionItem {
+export interface SearchCollectionItemV1 {
     name: string;
     address: string;
     chainId: number;
@@ -108,11 +108,26 @@ export interface SearchCollectionItem {
     tiers?: any[];
 }
 
-export interface SearchAccountItem {
+export interface SearchCollectionItem {
+    name: string;
+    collection: string;
+    chain_id: number;
+    avatar?: string;
+    tiers?: any[];
+}
+
+export interface SearchAccountItemV1 {
     name?: string;
     email?: string;
     address: string;
     avatarUrl?: string;
+}
+
+export interface SearchAccountItem {
+    name?: string;
+    email?: string;
+    address: string;
+    avatar?: string;
 }
 
 export interface MetadataPollerItem {

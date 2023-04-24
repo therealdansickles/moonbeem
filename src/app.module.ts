@@ -27,7 +27,7 @@ import { PollerModule } from './modules/poller.module';
 import { PostgresAdapter } from './lib/adapters/postgres.adapter';
 import { RedisAdapter } from './lib/adapters/redis.adapter';
 import { RpcClient } from './lib/adapters/eth.client.adapter';
-import { SearchModule } from './modules/search.module';
+import { SearchModule } from './search/search.module';
 import { UploadModule } from './modules/upload.module';
 import { UserModule } from './user/user.module';
 import { UserWalletModule } from './modules/user.wallet.module';

@@ -210,6 +210,9 @@ type Tier {
 type Organization {
   id: ID!
 
+  """The owner of the organization."""
+  owner: User!
+
   """The unique URL-friendly identifier for a organization."""
   name: String!
 
@@ -556,6 +559,7 @@ type Query {
   getAddressReleased(skip: Int = 0, take: Int = 10, address: EthereumAddress!, chainId: Int = 0): MarketAddressReleasedRspDto!
   getCollectionActivities(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VCollectionActivityRspDto!
   globalSearch(searchTerm: String!, page: Float!, pageSize: Float!): VGlobalSearchRspDto!
+  globalSearchV1(searchTerm: String!, page: Float!, pageSize: Float!): VGlobalSearchRspDto!
 }
 
 enum BasicCollectionStatus {
@@ -722,6 +726,9 @@ input CreateOrganizationInput {
   """The unique URL-friendly identifier for a organization."""
   name: String!
 
+  """The owner of the organization."""
+  owner: UserInput!
+
   """The name that we display for the organization."""
   displayName: String
 
@@ -749,6 +756,10 @@ input CreateOrganizationInput {
 
   """The discord handle associated with this organization, e.g. 'vibe-labs"""
   discord: String
+}
+
+input UserInput {
+  id: ID!
 }
 
 input UpdateOrganizationInput {
