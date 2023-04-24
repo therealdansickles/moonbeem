@@ -33,6 +33,7 @@ import { UserModule } from './user/user.module';
 import { UserWalletModule } from './modules/user.wallet.module';
 import { UserWalletService } from './services/user.wallet.service';
 import { WalletModule } from './wallet/wallet.module';
+import { WaitlistModule } from './waitlist/waitlist.module';
 
 @Module({
     imports: [
@@ -51,6 +52,7 @@ import { WalletModule } from './wallet/wallet.module';
         UserModule,
         UserWalletModule,
         WalletModule,
+        WaitlistModule,
         // integration graphql
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver, // GraphQL server adapter

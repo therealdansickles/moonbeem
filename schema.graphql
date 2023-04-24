@@ -520,6 +520,16 @@ type VGlobalSearchRspDto {
   accounts: VSearchAccountRsp!
 }
 
+type Waitlist {
+  id: ID!
+  email: String!
+
+  """The address for a wallet."""
+  address: String!
+  seatNumber: Float!
+  twitter: String!
+}
+
 """Ethereum Address custom scalar type"""
 scalar EthereumAddress
 
@@ -560,6 +570,9 @@ type Query {
   getCollectionActivities(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VCollectionActivityRspDto!
   globalSearch(searchTerm: String!, page: Float!, pageSize: Float!): VGlobalSearchRspDto!
   globalSearchV1(searchTerm: String!, page: Float!, pageSize: Float!): VGlobalSearchRspDto!
+
+  """returns a waitlist for a given email"""
+  getWaitlist(email: String!): Waitlist
 }
 
 enum BasicCollectionStatus {
@@ -632,6 +645,9 @@ type Mutation {
   deleteTier(input: DeleteTierInput!): Boolean!
   followUserWallet(address: EthereumAddress!, isFollowed: Boolean): Boolean!
   updateAddressInfo(name: String, avatar: String, customUrl: String, description: String, discordLink: String, facebookLink: String, twitterLink: String): Boolean!
+
+  """creates a waitlist item"""
+  createWaitlist(input: CreateWaitlistInput!): Waitlist!
 }
 
 input LoginWithWalletInput {
@@ -973,4 +989,15 @@ input UpdateTierInput {
 input DeleteTierInput {
   """The id for a tier."""
   id: String!
+}
+
+input CreateWaitlistInput {
+  """The email of the user"""
+  email: String!
+
+  """The address for a wallet."""
+  address: String!
+
+  """The email of the user"""
+  twitter: String
 }
