@@ -27,11 +27,7 @@ describe('CollectionResolver', () => {
             imports: [
                 TypeOrmModule.forRoot({
                     type: 'postgres',
-                    host: postgresConfig.host,
-                    port: postgresConfig.port,
-                    username: postgresConfig.username,
-                    password: postgresConfig.password,
-                    database: postgresConfig.database,
+                    url: postgresConfig.url,
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,

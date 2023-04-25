@@ -11,11 +11,6 @@ export const onChainConfig = {
 
 export const postgresConfig = {
     url: process.env.V1_DATABASE_URL,
-    host: process.env.V1_DATABASE_HOST,
-    port: process.env.V1_DATABASE_PORT ? parseInt(process.env.V1_DATABASE_PORT) : 5432,
-    username: process.env.V1_DATABASE_USERNAME,
-    password: process.env.V1_DATABASE_PASSWORD,
-    database: process.env.V1_DATABASE_NAME,
 };
 
 export const mongoConfig = {
