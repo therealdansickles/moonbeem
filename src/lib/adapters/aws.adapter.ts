@@ -1,4 +1,4 @@
-import { S3, CloudFront } from 'aws-sdk';
+import { S3Client, PutObjectCommand, PutObjectCommandInput } from '@aws-sdk/client-s3';
 import { randomString } from '../utils';
 
 export enum ResourceType {
@@ -8,8 +8,8 @@ export enum ResourceType {
 }
 
 export class AWSAdapter {
-    private s3: S3;
-    private cf: CloudFront;
+    private s3: S3Client;
+    // private cf: CloudFront;
     private bucket: string;
     private _metadataUri: string;
     private _mediaUri: string;
@@ -35,8 +35,8 @@ export class AWSAdapter {
         this._metadataUri = metadataBaseuri && metadataBaseuri.endsWith('/') ? metadataBaseuri : metadataBaseuri + '/';
         this._mediaUri = mediaBaseUri && mediaBaseUri.endsWith('/') ? mediaBaseUri : mediaBaseUri + '/';
         this._baseUri = baseUri && baseUri.endsWith('/') ? baseUri : baseUri + '/';
-        this.s3 = new S3({ region: region, accessKeyId: accessKeyId, secretAccessKey: secretAccessKey });
-        this.cf = new CloudFront({ region: region, accessKeyId: accessKeyId, secretAccessKey: secretAccessKey });
+        this.s3 = new S3Client({ region: region, credentials: { accessKeyId, secretAccessKey } });
+        // this.cf = new CloudFront({ region: region, accessKeyId: accessKeyId, secretAccessKey: secretAccessKey });
     }
 
     get baseUri() {
@@ -74,43 +74,82 @@ export class AWSAdapter {
                 if (!contentType) contentType = 'application/octet-stream';
         }
 
-        const succ = await this.s3PutData_(data, fileName, contentType);
+        const succ = await this.putData(data, fileName, contentType);
 
         return succ ? url : '';
     }
 
-    async s3PutData_(data: Buffer, fileName: string, contentType: string) {
+    /**
+     * upload implementation for @aws-sdk/s3-client
+     * @param data 
+     * @param fileName 
+     * @param contentType 
+     * @returns 
+     */
+    private async putData(data: Buffer, fileName: string, contentType: string) {
         try {
-            const param: S3.PutObjectRequest = {
+            const param: PutObjectCommandInput = {
                 Body: data,
                 Bucket: this.bucket,
                 Key: fileName,
                 ContentType: contentType,
                 CacheControl: 'public, max-age=86400', // default cache control
-            };
-
-            await this.s3.putObject(param).promise();
-            return true;
+            }
+            const command = new PutObjectCommand(param)
+            await this.s3.send(command)
+            return true
         } catch (err) {
             console.log(
-                `s3PutData_ err, data length[${
-                    data.length
+                `putData err, data length[${data.length
                 }], fileName[${fileName}], contentType[${contentType}], msg: ${(err as Error).message}`
             );
             return false;
         }
     }
 
-    async refreshCDN() {
-        const id = process.env.AWS_CLOUDFRONT_ID;
-        if (!id) return;
 
-        const param: CloudFront.CreateInvalidationRequest = {
-            DistributionId: id,
-            InvalidationBatch: { Paths: { Quantity: 1, Items: ['/*'] }, CallerReference: getCallerReference() },
-        };
-        await this.cf.createInvalidation(param).promise();
-    }
+    /**
+     * DEPRECATED
+     * legacy upload implementation for s3 client @ 2.x.y
+     * @deprecated
+     * @param data
+     * @param fileName
+     * @param contentType
+     * @returns 
+     */
+    // async s3PutData_(data: Buffer, fileName: string, contentType: string) {
+    //     try {
+    //         const param: S3.PutObjectRequest = {
+    //             Body: data,
+    //             Bucket: this.bucket,
+    //             Key: fileName,
+    //             ContentType: contentType,
+    //             CacheControl: 'public, max-age=86400', // default cache control
+    //         };
+
+    //         await this.s3.putObject(param).promise();
+    //         return true;
+    //     } catch (err) {
+    //         console.log(
+    //             `s3PutData_ err, data length[${data.length
+    //             }], fileName[${fileName}], contentType[${contentType}], msg: ${(err as Error).message}`
+    //         );
+    //         return false;
+    //     }
+    // }
+
+    // as didn't find any reference for this function
+    // commented first for migration to @aws-sdk/s3-client
+    // async refreshCDN() {
+    //     const id = process.env.AWS_CLOUDFRONT_ID;
+    //     if (!id) return;
+
+    //     const param: CloudFront.CreateInvalidationRequest = {
+    //         DistributionId: id,
+    //         InvalidationBatch: { Paths: { Quantity: 1, Items: ['/*'] }, CallerReference: getCallerReference() },
+    //     };
+    //     await this.cf.createInvalidation(param).promise();
+    // }
 }
 
 function getCallerReference(): string {

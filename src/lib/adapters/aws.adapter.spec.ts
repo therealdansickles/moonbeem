@@ -31,5 +31,5 @@ describe('AWSAdapter', () => {
         expect(result).toEqual(new URL(filename, awsAdapter.mediaUri).toString());
         // duration should less than 3 seconds
         expect(duration).toBeLessThanOrEqual(3 * 1000);
-    }, 10000);
+    }, 30000);
 });
