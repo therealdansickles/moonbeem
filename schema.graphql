@@ -642,6 +642,12 @@ type Mutation {
   """creates a wallet"""
   createWallet(input: CreateWalletInput!): Wallet!
 
+  """Binds a wallet to the current user."""
+  bindWallet(input: BindWalletInput!): Wallet!
+
+  """Unbinds a wallet from the current user."""
+  unbindWallet(input: UnbindWalletInput!): Wallet!
+
   """Create a new membership."""
   createMembership(input: CreateMembershipInput!): Membership!
 
@@ -731,6 +737,26 @@ input CreateWalletInput {
   ownerId: String
 }
 
+input BindWalletInput {
+  """an ethereum or EIP-3770 address."""
+  address: String!
+
+  """the owner uuid of the wallet."""
+  owner: UserInput!
+}
+
+input UserInput {
+  id: ID!
+}
+
+input UnbindWalletInput {
+  """an ethereum or EIP-3770 address."""
+  address: String!
+
+  """the owner uuid of the wallet."""
+  owner: UserInput!
+}
+
 input CreateMembershipInput {
   """The user that is a member of this organization."""
   userId: String!
@@ -812,10 +838,6 @@ input CreateOrganizationInput {
 
   """The discord handle associated with this organization, e.g. 'vibe-labs"""
   discord: String
-}
-
-input UserInput {
-  id: ID!
 }
 
 input UpdateOrganizationInput {

@@ -1,7 +1,7 @@
 import { ArgsType, Field, Int, ObjectType, InputType, ID } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsString, IsDateString, IsEthereumAddress, IsUrl, ValidateIf, IsObject } from 'class-validator';
-import { User } from '../user/user.dto';
+import { User, UserInput } from '../user/user.dto';
 
 @ObjectType('Wallet')
 export class Wallet {
@@ -17,7 +17,7 @@ export class Wallet {
 
     @ApiProperty()
     @IsObject()
-    @Field((type) => User, { description: 'The owner of the wallet.', nullable: true })
+    @Field({ description: 'The owner of the wallet.', nullable: true })
     readonly owner?: User;
 }
 
@@ -43,8 +43,8 @@ export class BindWalletInput {
 
     @ApiProperty()
     @IsString()
-    @Field({ description: 'the owner uuid of the wallet.' })
-    readonly ownerId: string;
+    @Field((type) => UserInput, { description: 'the owner uuid of the wallet.' })
+    readonly owner: UserInput;
 }
 
 @InputType('UnbindWalletInput')
@@ -56,6 +56,6 @@ export class UnbindWalletInput {
 
     @ApiProperty()
     @IsString()
-    @Field({ description: 'the owner uuid of the wallet.' })
-    readonly ownerId: string;
+    @Field((type) => UserInput, { description: 'the owner uuid of the wallet.' })
+    readonly owner: UserInput;
 }

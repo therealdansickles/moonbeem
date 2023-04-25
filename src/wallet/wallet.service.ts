@@ -66,11 +66,11 @@ export class WalletService {
             if (input.ownerId) {
                 owner = await this.userRepository.findOneBy({ id: input.ownerId });
                 if (!owner) throw new Error(`User with id ${input.ownerId} doesn't exist.`);
-            }
+            } else owner = { id: this.unOwnedId };
 
             return this.walletRespository.save({
-                address: input.address,
                 owner: owner,
+                address: input.address,
             });
         } catch (e) {
             throw new GraphQLError(e.message);
@@ -84,12 +84,20 @@ export class WalletService {
      * @param data The data to use when binding a wallet.
      * @returns The wallet that was bound to the user.
      */
-    //async bindWallet(data: BindWalletInput): Promise<Wallet> {
-    //const { address, ownerId } = data;
-    //const wallet = await this.walletRespository.findOneBy({ address, owner: { id: this.unOwnedId } });
-    //if (!wallet) throw new Error("Wallet doesn't exist.");
-    //return this.walletRespository.save({ ...wallet, ownerId: ownerId });
-    //}
+    async bindWallet(data: BindWalletInput): Promise<Wallet> {
+        const { address, owner } = data;
+        const wallet = await this.walletRespository.findOne({
+            where: { address },
+            relations: ['owner'],
+        });
+        if (!wallet) throw new Error("Wallet doesn't exist.");
+        if (wallet.owner && wallet.owner.id) throw new Error('Wallet is already bound.');
+        await this.walletRespository.save({ ...wallet, owner });
+        return this.walletRespository.findOne({
+            where: { address, owner },
+            relations: ['owner'],
+        });
+    }
 
     /**
      * Unbinds the wallet for the given address.
@@ -98,12 +106,20 @@ export class WalletService {
      * @param data The data to use when unbinding a wallet.
      * @returns The wallet that was bound to the user.
      */
-    //async unbindWallet(data: BindWalletInput): Promise<Wallet> {
-    //const { address, ownerId } = data;
-    //const wallet = await this.walletRespository.findOneBy({ address, owner: { id: this.unOwnedId } });
-    //if (!wallet) throw new Error("Wallet doesn't exist.");
-    //return this.walletRespository.save({ ...wallet, ownerId: this.unOwnedId });
-    //}
+    async unbindWallet(data: BindWalletInput): Promise<Wallet> {
+        const { address } = data;
+        let wallet = await this.walletRespository.findOne({
+            where: { address },
+            relations: ['owner'],
+        });
+        if (!wallet) {
+            wallet = new Wallet();
+            wallet.address = address;
+        }
+        if (wallet?.owner && wallet?.owner?.id !== data.owner.id)
+            throw new Error("Wallet doesn't belong to the given user.");
+        return this.walletRespository.save({ ...wallet, owner: { id: this.unOwnedId } });
+    }
 
     /**
      * Parses out the given EIP-3770 address into the network and chainId information, if possible.

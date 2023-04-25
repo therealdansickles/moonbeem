@@ -15,6 +15,7 @@ import { AuthService } from '../auth/auth.service';
 import { AuthModule } from '../auth/auth.module';
 import { CollaborationModule } from '../collaboration/collaboration.module';
 import { UserModule } from '../user/user.module';
+import { UserService } from '../user/user.service';
 
 export const gql = String.raw;
 
@@ -22,7 +23,9 @@ describe('WalletResolver', () => {
     let repository: Repository<Wallet>;
     let service: WalletService;
     let authService: AuthService;
+    let userService: UserService;
     let app: INestApplication;
+    let address: string;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -40,6 +43,8 @@ describe('WalletResolver', () => {
                 }),
                 WalletModule,
                 AuthModule,
+                CollaborationModule,
+                UserModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
@@ -51,6 +56,7 @@ describe('WalletResolver', () => {
         repository = module.get('WalletRepository');
         service = module.get<WalletService>(WalletService);
         authService = module.get<AuthService>(AuthService);
+        userService = module.get<UserService>(UserService);
         app = module.createNestApplication();
         await app.init();
     });
@@ -82,7 +88,7 @@ describe('WalletResolver', () => {
         });
 
         it('should create a wallet', async () => {
-            const address = faker.finance.ethereumAddress();
+            address = faker.finance.ethereumAddress();
             const user = await authService.createUserWithEmail({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
@@ -119,60 +125,90 @@ describe('WalletResolver', () => {
         });
     });
 
-    //describe('bindWallet', () => {
-    //it('should bind a wallet', async () => {
-    //const owner = await userService.createUser({ email: faker.internet.email() });
+    describe('bindWallet', () => {
+        it('should bind a wallet', async () => {
+            const name = faker.internet.userName();
+            const email = faker.internet.email();
+            const password = faker.internet.password();
+            const owner = await userService.createUser({
+                name,
+                email,
+                password,
+            });
+            const credentials = await authService.createUserWithEmail({
+                email,
+                password,
+            });
+            const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
 
-    //const query = gql`
-    //mutation BindWallet($address: String!, $ownerId: String!) {
-    //bindWallet(address: $address, ownerId: $ownerId) {
-    //address
-    //ownerId
-    //}
-    //}
-    //`;
+            const query = gql`
+                mutation BindWallet($input: BindWalletInput!) {
+                    bindWallet(input: $input) {
+                        address
+                        owner {
+                            id
+                        }
+                    }
+                }
+            `;
 
-    //const variables = {
-    //address: `arb:${faker.finance.ethereumAddress()}`,
-    //ownerId: owner.id,
-    //};
+            const variables = {
+                input: {
+                    address: wallet.address,
+                    owner: { id: owner.id },
+                },
+            };
 
-    //return request(app.getHttpServer())
-    //.post('/graphql')
-    //.send({ query, variables })
-    //.expect(200)
-    //.expect(({ body }) => {
-    //expect(body.data.bindWallet.ownerId).toEqual(variables.ownerId);
-    //});
-    //});
-    //});
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .auth(credentials.sessionToken, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.bindWallet.owner.id).toEqual(variables.input.owner.id);
+                });
+        });
+    });
 
-    //describe('unbindWallet', () => {
-    //it('should unbind a wallet', async () => {
-    //const owner = await userService.createUser({ email: faker.internet.email() });
-    //const boundWallet = await service.bindWallet({ address: faker.finance.ethereumAddress(), ownerId: owner.id });
+    describe('unbindWallet', () => {
+        it('should unbind a wallet', async () => {
+            const owner = await userService.createUser({
+                name: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+            const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
+            await service.bindWallet({
+                address: wallet.address,
+                owner: { id: owner.id },
+            });
 
-    //const query = gql`
-    //mutation UnbindWallet($address: String!, $ownerId: String!) {
-    //unbindWallet(address: $address, ownerId: $ownerId) {
-    //address
-    //ownerId
-    //}
-    //}
-    //`;
+            const query = gql`
+                mutation UnbindWallet($input: UnbindWalletInput!) {
+                    unbindWallet(input: $input) {
+                        address
+                        owner {
+                            id
+                        }
+                    }
+                }
+            `;
 
-    //const variables = {
-    //address: boundWallet.address,
-    //ownerId: owner.id,
-    //};
+            const variables = {
+                input: {
+                    address: wallet.address,
+                    owner: { id: owner.id },
+                },
+            };
 
-    //return request(app.getHttpServer())
-    //.post('/graphql')
-    //.send({ query, variables })
-    //.expect(200)
-    //.expect(({ body }) => {
-    //expect(body.data.unbindWallet.ownerId).not.toEqual(owner.id);
-    //});
-    //});
-    //});
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.unbindWallet.owner.id).not.toEqual(owner.id);
+                    expect(body.data.unbindWallet.owner.id).toEqual('00000000-0000-0000-0000-000000000000');
+                });
+        });
+    });
 });
