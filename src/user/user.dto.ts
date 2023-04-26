@@ -10,14 +10,14 @@ export class User {
     id: string;
 
     @ApiProperty()
+    @Field({ nullable: true })
     @IsString()
-    @Field()
     @IsOptional()
     username?: string;
 
     @ApiProperty()
+    @Field({ nullable: true })
     @IsString()
-    @Field()
     @IsOptional()
     name?: string;
 
@@ -25,12 +25,12 @@ export class User {
     @IsString()
     email: string;
 
-    @Field()
+    @Field({ nullable: true })
     @IsString()
     password?: string;
 
-    @Field()
     @ApiProperty()
+    @Field({ nullable: true })
     @IsString()
     @IsOptional()
     avatarUrl?: string;

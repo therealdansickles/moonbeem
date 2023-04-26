@@ -17,11 +17,11 @@ type FactoryConfigRspDto {
 
 type User {
   id: ID!
-  username: String!
-  name: String!
+  username: String
+  name: String
   email: String!
-  password: String!
-  avatarUrl: String!
+  password: String
+  avatarUrl: String
 }
 
 type Wallet {
