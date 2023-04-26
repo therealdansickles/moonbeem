@@ -8,6 +8,7 @@ import { Membership } from '../membership/membership.entity';
 import { MembershipModule } from '../membership/membership.module';
 import { Organization } from '../organization/organization.entity';
 import { OrganizationModule } from '../organization/organization.module';
+import { UserResolver } from './user.resolver';
 
 @Module({
     imports: [
@@ -17,6 +18,6 @@ import { OrganizationModule } from '../organization/organization.module';
         forwardRef(() => OrganizationModule),
     ],
     exports: [UserService],
-    providers: [UserService],
+    providers: [UserService, UserResolver],
 })
 export class UserModule {}

@@ -639,6 +639,9 @@ type Mutation {
   logout(input: LogoutInput!): Boolean!
   createUserWithEmail(input: CreateUserWithEmailInput!): LoginWithEmailResponse!
 
+  """update the given user."""
+  updateUser(input: UpdateUserInput!): User!
+
   """creates a wallet"""
   createWallet(input: CreateWalletInput!): Wallet!
 
@@ -726,6 +729,15 @@ input CreateUserWithEmailInput {
   password: String!
   username: String
   name: String
+  avatarUrl: String
+}
+
+input UpdateUserInput {
+  id: String!
+  username: String
+  name: String
+  email: String
+  password: String
   avatarUrl: String
 }
 

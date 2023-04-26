@@ -1,6 +1,6 @@
-import { ArgsType, Field, Int, ObjectType, InputType, ID } from '@nestjs/graphql';
+import { Field, ObjectType, InputType, ID } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString, IsDateString, IsUrl, ValidateIf, IsOptional } from 'class-validator';
+import { IsString, IsOptional } from 'class-validator';
 
 @ObjectType('User')
 export class User {
@@ -42,4 +42,36 @@ export class UserInput {
     @IsString()
     @Field((returns) => ID!)
     id: string;
+}
+
+@InputType('UpdateUserInput')
+export class UpdateUserInput {
+    @ApiProperty()
+    @IsString()
+    @Field()
+    readonly id: string;
+
+    @ApiProperty()
+    @Field({ nullable: true })
+    @IsString()
+    @IsOptional()
+    readonly username?: string;
+
+    @ApiProperty()
+    @Field({ nullable: true })
+    @IsString()
+    @IsOptional()
+    readonly name?: string;
+
+    @ApiProperty()
+    @Field({ nullable: true })
+    @IsString()
+    @IsOptional()
+    readonly email?: string;
+
+    @ApiProperty()
+    @Field({ nullable: true })
+    @IsString()
+    @IsOptional()
+    readonly avatarUrl?: string;
 }
