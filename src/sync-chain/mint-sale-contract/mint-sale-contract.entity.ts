@@ -60,6 +60,12 @@ export class MintSaleContract extends BaseEntity {
     @Column({ comment: 'The token address(erc721 address) of the collection' })
     tokenAddress: string;
 
+    @Column({ default: '', comment: 'The id of the collection in the core database' })
+    collectionId?: string;
+
+    @Column({ default: '', comment: 'The merkleRoot for each tier, if whitelisting' })
+    merkleRoot?: string;
+
     @Column({ default: 1, comment: 'The chain id for the MintSale.' })
     chainId?: number;
 

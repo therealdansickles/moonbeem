@@ -27,7 +27,7 @@ export class SystemConfig {
     @ApiProperty()
     @IsString()
     @Field({ description: 'Config comment.' })
-    readonly comment: string;
+    readonly comment?: string;
 
     @ApiProperty()
     @IsNumber()

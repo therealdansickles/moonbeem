@@ -15,8 +15,8 @@ export class SystemConfig extends BaseEntity {
     @Column({ comment: 'Type of config value. int64/string/int128' })
     kind: string;
 
-    @Column({ comment: 'Config comment.' })
-    comment: string;
+    @Column({ default: '', comment: 'Config comment.' })
+    comment?: string;
 
     @Column({ default: 1, comment: 'The chain id for the config.' })
     chainId?: number;
