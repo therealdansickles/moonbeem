@@ -29,6 +29,9 @@ export class Waitlist extends BaseEntity {
     @Column({ nullable: true, comment: 'The twitter handle for the user.' })
     twitter?: string;
 
+    @Column({ nullable: true, comment: 'The date the user was tweeted at' })
+    tweetedAt?: string;
+
     @CreateDateColumn()
     createdAt: Date;
 
