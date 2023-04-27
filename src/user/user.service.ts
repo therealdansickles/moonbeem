@@ -6,7 +6,16 @@ import { User } from './user.entity';
 
 @Injectable()
 export class UserService {
-    constructor(@InjectRepository(User) private userRepository: Repository<User>) { }
+    constructor(@InjectRepository(User) private userRepository: Repository<User>) {}
+
+    /**
+     * Retrieve an user by id.
+     * @param id
+     * @returns
+     */
+    async getUser(id: string): Promise<User> {
+        return await this.userRepository.findOneBy({ id });
+    }
 
     /**
      * Creates a new user with the given data.
@@ -22,6 +31,12 @@ export class UserService {
         }
     }
 
+    /**
+     *
+     * @param id
+     * @param payload
+     * @returns
+     */
     async updateUser(id: string, payload: Partial<Omit<User, 'id | createdAt | updatedAt'>>): Promise<User> {
         const user = await this.userRepository.findOneBy({ id });
         if (!user) throw new Error(`User with id ${id} doesn't exist.`);

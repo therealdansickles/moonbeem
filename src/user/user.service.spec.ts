@@ -33,6 +33,19 @@ describe('UserService', () => {
         await repository.query('TRUNCATE TABLE "User" CASCADE');
     });
 
+    describe('getUser', () => {
+        it('should return user info', async () => {
+            const user = await repository.save({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+            const result = await service.getUser(user.id);
+            expect(result.username).toEqual(user.username);
+            expect(result.email).toEqual(user.email);
+        });
+    });
+
     describe('updateUser', () => {
         it('should update user info', async () => {
             const user = await repository.save({

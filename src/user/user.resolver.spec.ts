@@ -55,13 +55,43 @@ describe('UserResolver', () => {
         await app.close();
     });
 
+    describe('getUser', () => {
+        it('should get an user', async () => {
+            const credentials = await authService.createUserWithEmail({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+            const user = credentials.user;
+            const query = gql`
+                query GetUser($id: String!) {
+                    user(id: $id) {
+                        id
+                        email
+                    }
+                }
+            `;
+
+            const variables = { id: user.id };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(credentials.sessionToken, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.user.id).toEqual(user.id);
+                    expect(body.data.user.email).toEqual(user.email);
+                });
+        });
+    });
+
     describe('updateUser', () => {
         it('should update an user', async () => {
             const credentials = await authService.createUserWithEmail({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
-            const user = credentials.user
+            const user = credentials.user;
             const query = gql`
                 mutation updateUser($input: UpdateUserInput!) {
                     updateUser(input: $input) {
