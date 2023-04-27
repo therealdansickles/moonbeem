@@ -10,27 +10,27 @@ export class User {
     id: string;
 
     @ApiProperty()
-    @Field({ nullable: true })
+    @Field({ description: 'The username of the user.', nullable: true })
     @IsString()
     @IsOptional()
     username?: string;
 
     @ApiProperty()
-    @Field({ nullable: true })
+    @Field({ description: 'The name of the user.', nullable: true })
     @IsString()
     @IsOptional()
     name?: string;
 
-    @Field()
+    @Field({ description: 'The email of the user.' })
     @IsString()
     email: string;
 
-    @Field({ nullable: true })
+    @Field({ description: 'The password of the user.', nullable: true })
     @IsString()
     password?: string;
 
     @ApiProperty()
-    @Field({ nullable: true })
+    @Field({ description: 'The avatarUrl of the user.', nullable: true })
     @IsString()
     @IsOptional()
     avatarUrl?: string;
@@ -48,29 +48,29 @@ export class UserInput {
 export class UpdateUserInput {
     @ApiProperty()
     @IsString()
-    @Field()
+    @Field({ description: 'The unique uuid of the user.' })
     readonly id: string;
 
     @ApiProperty()
-    @Field({ nullable: true })
+    @Field({ description: 'The username of the user.', nullable: true })
     @IsString()
     @IsOptional()
     readonly username?: string;
 
     @ApiProperty()
-    @Field({ nullable: true })
+    @Field({ description: 'The name of the user.', nullable: true })
     @IsString()
     @IsOptional()
     readonly name?: string;
 
     @ApiProperty()
-    @Field({ nullable: true })
+    @Field({ description: 'The email of the user.', nullable: true })
     @IsString()
     @IsOptional()
     readonly email?: string;
 
     @ApiProperty()
-    @Field({ nullable: true })
+    @Field({ description: 'The avatarUrl of the user.', nullable: true })
     @IsString()
     @IsOptional()
     readonly avatarUrl?: string;
