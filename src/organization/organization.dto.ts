@@ -1,6 +1,6 @@
 import { ArgsType, Field, Int, ObjectType, InputType, ID } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString, IsDateString, IsUrl, ValidateIf, IsEnum, IsOptional } from 'class-validator';
+import { IsNumber, IsString, IsDateString, IsUrl, ValidateIf, IsEnum, IsOptional, IsObject } from 'class-validator';
 import { Type } from 'class-transformer';
 import { OrganizationKind } from './organization.entity';
 import { User, UserInput } from '../user/user.dto';
@@ -94,7 +94,7 @@ export class CreateOrganizationInput {
     readonly name: string;
 
     @ApiProperty()
-    @IsString()
+    @IsObject()
     @Field(() => UserInput, { description: 'The owner of the organization.' })
     readonly owner: UserInput;
 

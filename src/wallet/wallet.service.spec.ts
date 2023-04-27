@@ -9,6 +9,7 @@ import { WalletService } from './wallet.service';
 import { CollaborationModule } from '../collaboration/collaboration.module';
 import { UserModule } from '../user/user.module';
 import { UserService } from '../user/user.service';
+import { ethers } from 'ethers';
 
 describe('WalletService', () => {
     let repository: Repository<Wallet>;
@@ -78,6 +79,9 @@ describe('WalletService', () => {
         let unboundWallet: Wallet;
         let eipAddress: string;
         let ownerId: string;
+        let wallet: ethers.Wallet;
+        let message: string;
+        let signature: string;
 
         beforeEach(async () => {
             const owner = await userService.createUser({
@@ -85,25 +89,29 @@ describe('WalletService', () => {
                 password: faker.internet.password(),
             });
 
+            wallet = ethers.Wallet.createRandom();
+            message = 'Hi from tests!';
+            signature = await wallet.signMessage(message);
+
             ownerId = owner.id;
-            const unboundWallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
+            const unboundWallet = await service.createWallet({ address: wallet.address });
             eipAddress = unboundWallet.address;
         });
 
         it.skip('should handle an EIP-3770 address', async () => {
-            const data = { address: unboundWallet.address, owner: { id: ownerId } };
+            const data = { address: unboundWallet.address, owner: { id: ownerId }, message, signature };
             const result = await service.bindWallet(data);
             expect(result.owner).toEqual(ownerId);
         });
 
         it('should handle an existing address', async () => {
-            const data = { address: eipAddress, owner: { id: ownerId } };
+            const data = { address: eipAddress, owner: { id: ownerId }, message, signature };
             const result = await service.bindWallet(data);
             expect(result.owner.id).toEqual(ownerId);
         });
 
         it('should throw an error if the wallet is already bound', async () => {
-            const data = { address: eipAddress, owner: { id: ownerId } };
+            const data = { address: eipAddress, owner: { id: ownerId }, message, signature };
             await service.bindWallet(data);
             await expect(() => service.bindWallet(data)).rejects.toThrow();
         });
@@ -111,13 +119,22 @@ describe('WalletService', () => {
 
     describe('unbindWallet', () => {
         let boundWallet: Wallet;
-        let address = faker.finance.ethereumAddress();
+        let address: string;
+        let wallet: ethers.Wallet;
+        let message: string;
+        let signature: string;
 
         beforeEach(async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
+
+            wallet = ethers.Wallet.createRandom();
+            message = 'Hi from tests!';
+            signature = await wallet.signMessage(message);
+            address = wallet.address;
+
             boundWallet = await service.createWallet({ address });
         });
 
@@ -152,10 +169,17 @@ describe('WalletService', () => {
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
-            const newAddress = faker.finance.ethereumAddress();
-            await service.createWallet({ address: newAddress });
-            await service.bindWallet({ address: newAddress, owner: { id: owner.id } });
-            const data = { address: newAddress, owner: { id: nonOwner.id } };
+            const newWallet = ethers.Wallet.createRandom();
+            const newSignature = await newWallet.signMessage(message);
+
+            await service.createWallet({ address: newWallet.address });
+            await service.bindWallet({
+                address: newWallet.address,
+                owner: { id: owner.id },
+                message,
+                signature: newSignature,
+            });
+            const data = { address: newWallet.address, owner: { id: nonOwner.id } };
             await expect(() => service.unbindWallet(data)).rejects.toThrow();
         });
     });

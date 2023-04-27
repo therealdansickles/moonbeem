@@ -1,11 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 // import { Wallet as WalletModel, Prisma } from '@prisma/client';
-import { BindWalletInput, CreateWalletInput } from './wallet.dto';
+import { BindWalletInput, CreateWalletInput, UnbindWalletInput } from './wallet.dto';
 import { Wallet } from './wallet.entity';
 import { GraphQLError } from 'graphql';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../user/user.entity';
+import { ethers } from 'ethers';
 
 @Injectable()
 export class WalletService {
@@ -86,6 +87,12 @@ export class WalletService {
      */
     async bindWallet(data: BindWalletInput): Promise<Wallet> {
         const { address, owner } = data;
+
+        const verifiedAddress = ethers.utils.verifyMessage(data.message, data.signature);
+        if (data.address.toLowerCase() !== verifiedAddress.toLocaleLowerCase()) {
+            throw new HttpException('signature verification failure', HttpStatus.BAD_REQUEST);
+        }
+
         const wallet = await this.walletRespository.findOne({
             where: { address },
             relations: ['owner'],
@@ -106,7 +113,7 @@ export class WalletService {
      * @param data The data to use when unbinding a wallet.
      * @returns The wallet that was bound to the user.
      */
-    async unbindWallet(data: BindWalletInput): Promise<Wallet> {
+    async unbindWallet(data: UnbindWalletInput): Promise<Wallet> {
         const { address } = data;
         let wallet = await this.walletRespository.findOne({
             where: { address },

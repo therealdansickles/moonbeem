@@ -16,6 +16,7 @@ import { AuthModule } from '../auth/auth.module';
 import { CollaborationModule } from '../collaboration/collaboration.module';
 import { UserModule } from '../user/user.module';
 import { UserService } from '../user/user.service';
+import { ethers } from 'ethers';
 
 export const gql = String.raw;
 
@@ -123,6 +124,10 @@ describe('WalletResolver', () => {
 
     describe('bindWallet', () => {
         it('should bind a wallet', async () => {
+            const randomWallet = ethers.Wallet.createRandom();
+            const message = 'Hi from tests!';
+            const signature = await randomWallet.signMessage(message);
+
             const name = faker.internet.userName();
             const email = faker.internet.email();
             const password = faker.internet.password();
@@ -135,7 +140,7 @@ describe('WalletResolver', () => {
                 email,
                 password,
             });
-            const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
+            const wallet = await service.createWallet({ address: randomWallet.address });
 
             const query = gql`
                 mutation BindWallet($input: BindWalletInput!) {
@@ -152,6 +157,8 @@ describe('WalletResolver', () => {
                 input: {
                     address: wallet.address,
                     owner: { id: owner.id },
+                    message,
+                    signature,
                 },
             };
 
@@ -168,15 +175,29 @@ describe('WalletResolver', () => {
 
     describe('unbindWallet', () => {
         it('should unbind a wallet', async () => {
+            const email = faker.internet.email();
+            const password = faker.internet.password();
+
+            const credentials = await authService.createUserWithEmail({
+                email,
+                password,
+            });
+
+            const randomWallet = ethers.Wallet.createRandom();
+            const message = 'Hi from tests!';
+            const signature = await randomWallet.signMessage(message);
+
             const owner = await userService.createUser({
                 name: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
-            const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
+            const wallet = await service.createWallet({ address: randomWallet.address });
             await service.bindWallet({
                 address: wallet.address,
                 owner: { id: owner.id },
+                message,
+                signature,
             });
 
             const query = gql`
@@ -199,6 +220,7 @@ describe('WalletResolver', () => {
 
             return request(app.getHttpServer())
                 .post('/graphql')
+                .auth(credentials.sessionToken, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {

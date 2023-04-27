@@ -17,10 +17,20 @@ type FactoryConfigRspDto {
 
 type User {
   id: ID!
+
+  """The username of the user."""
   username: String
+
+  """The name of the user."""
   name: String
+
+  """The email of the user."""
   email: String!
+
+  """The password of the user."""
   password: String
+
+  """The avatarUrl of the user."""
   avatarUrl: String
 }
 
@@ -1142,10 +1152,19 @@ input CreateUserWithEmailInput {
 }
 
 input UpdateUserInput {
+  """The unique uuid of the user."""
   id: String!
+
+  """The username of the user."""
   username: String
+
+  """The name of the user."""
   name: String
+
+  """The email of the user."""
   email: String
+
+  """The avatarUrl of the user."""
   avatarUrl: String
 }
 
@@ -1496,7 +1515,11 @@ input CreateWaitlistInput {
 
   """The address for a wallet."""
   address: String!
+
+  """The signing message"""
   message: String!
+
+  """The signature from the front-end to verify"""
   signature: String!
 
   """The email of the user"""

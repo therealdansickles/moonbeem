@@ -41,8 +41,18 @@ export class BindWalletInput {
     @Field({ description: 'an ethereum or EIP-3770 address.' })
     readonly address: string;
 
+    @Field({ description: 'The signing message' })
     @ApiProperty()
     @IsString()
+    readonly message: string;
+
+    @Field({ description: 'The signature from the front-end to verify' })
+    @ApiProperty()
+    @IsString()
+    readonly signature: string;
+
+    @ApiProperty()
+    @IsObject()
     @Field((type) => UserInput, { description: 'the owner uuid of the wallet.' })
     readonly owner: UserInput;
 }
@@ -55,7 +65,7 @@ export class UnbindWalletInput {
     readonly address: string;
 
     @ApiProperty()
-    @IsString()
+    @IsObject()
     @Field((type) => UserInput, { description: 'the owner uuid of the wallet.' })
     readonly owner: UserInput;
 }

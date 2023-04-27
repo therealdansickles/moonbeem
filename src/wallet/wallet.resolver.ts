@@ -29,7 +29,6 @@ export class WalletResolver {
         return await this.walletService.bindWallet(input);
     }
 
-    @Public()
     @Mutation((returns) => Wallet, { description: 'Unbinds a wallet from the current user.' })
     async unbindWallet(@Args('input') input: UnbindWalletInput): Promise<Wallet> {
         return await this.walletService.unbindWallet(input);
