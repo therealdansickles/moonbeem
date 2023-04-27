@@ -54,6 +54,7 @@ describe.only('CoinResolver', () => {
             decimals: 6,
             derivedETH: faker.random.numeric(5),
             derivedUSDC: faker.random.numeric(5),
+            chainId: 1,
         });
 
         await app.init();
@@ -85,6 +86,39 @@ describe.only('CoinResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.coin.id).toEqual(coin.id);
+                });
+        });
+
+        it('should return coin list', async () => {
+            const coin2 = await service.createCoin({
+                address: faker.finance.ethereumAddress(),
+                name: 'Tether USD',
+                symbol: 'USDT',
+                decimals: 6,
+                derivedETH: faker.random.numeric(5),
+                derivedUSDC: faker.random.numeric(5),
+                chainId: 1,
+            });
+
+            const query = gql`
+                query GetCoins($chainId: Int!) {
+                    coins(chainId: $chainId) {
+                        id
+                        chainId
+                    }
+                }
+            `;
+
+            const variables = {
+                chainId: 1,
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.coins.length).toEqual(2);
                 });
         });
     });

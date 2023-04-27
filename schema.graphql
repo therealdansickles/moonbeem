@@ -1005,6 +1005,9 @@ type Query {
   """returns coin for a given uuid"""
   coin(id: String!): Coin!
 
+  """returns coin list for a given chainId"""
+  coins(chainId: Int!, enable: Boolean): [Coin!]!
+
   """returns config for a given uuid"""
   config(id: String!): SystemConfig!
 

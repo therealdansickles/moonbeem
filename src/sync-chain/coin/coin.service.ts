@@ -14,4 +14,8 @@ export class CoinService {
     async getCoin(id: string): Promise<Coin> {
         return await this.coinRepository.findOneBy({ id });
     }
+
+    async getCoins(data: any): Promise<Coin[]> {
+        return await this.coinRepository.find({ where: data });
+    }
 }

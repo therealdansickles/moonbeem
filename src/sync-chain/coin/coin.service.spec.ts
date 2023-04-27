@@ -47,10 +47,27 @@ describe.only('CoinService', () => {
                 decimals: 6,
                 derivedETH: faker.random.numeric(5),
                 derivedUSDC: faker.random.numeric(5),
+                chainId: 1,
             });
 
             const result = await service.getCoin(coin.id);
             expect(result.id).toEqual(coin.id);
+        });
+
+        it('should get coin list', async () => {
+            const coin = await service.createCoin({
+                address: faker.finance.ethereumAddress(),
+                name: 'Tether USD',
+                symbol: 'USDT',
+                decimals: 6,
+                derivedETH: faker.random.numeric(5),
+                derivedUSDC: faker.random.numeric(5),
+                chainId: 1,
+            });
+
+            const data = { chainId: 1 };
+            const result = await service.getCoins(data);
+            expect(result.length).toEqual(2);
         });
     });
 });
