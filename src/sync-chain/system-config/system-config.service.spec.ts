@@ -51,4 +51,11 @@ describe.only('SystemConfigService', () => {
             expect(result.id).toEqual(config.id);
         });
     });
+
+    describe('getSystemConfigs', () => {
+        it('should be return config list', async () => {
+            const result = await service.getConfigs();
+            expect(result).toBeDefined();
+        });
+    });
 });

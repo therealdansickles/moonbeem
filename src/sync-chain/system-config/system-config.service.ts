@@ -16,4 +16,8 @@ export class SystemConfigService {
     async getConfig(id: string): Promise<SystemConfig> {
         return await this.systemConfigRepository.findOneBy({ id });
     }
+
+    async getConfigs(chainId?: number): Promise<SystemConfig[]> {
+        return this.systemConfigRepository.find({ where: { chainId: chainId } });
+    }
 }

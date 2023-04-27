@@ -85,4 +85,26 @@ describe.only('SystemConfigResolver', () => {
                 });
         });
     });
+
+    describe('getSystemConfigs', () => {
+        it('should be return config list', async () => {
+            const query = gql`
+                query GetConfigs($chainId: Int) {
+                    configs(chainId: $chainId) {
+                        id
+                    }
+                }
+            `;
+
+            const variables = {};
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.configs).toBeDefined();
+                });
+        });
+    });
 });

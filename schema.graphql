@@ -1024,6 +1024,9 @@ type Query {
   """returns config for a given uuid"""
   config(id: String!): SystemConfig!
 
+  """returns config for a given uuid"""
+  configs(chainId: Int): [SystemConfig!]!
+
   """returns a contract for a given uuid"""
   mintSaleContract(id: String!): MintSaleContract!
 
