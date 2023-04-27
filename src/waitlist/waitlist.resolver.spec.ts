@@ -65,8 +65,8 @@ describe('WaitlistResolver', () => {
             });
 
             const query = gql`
-                query getWaitlist($email: String!) {
-                    getWaitlist(email: $email) {
+                query getWaitlist($input: GetWaitlistInput!) {
+                    getWaitlist(input: $input) {
                         id
                         email
                         seatNumber
@@ -75,7 +75,51 @@ describe('WaitlistResolver', () => {
                 }
             `;
 
-            const variables = { email };
+            const variables = {
+                input: {
+                    email,
+                },
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.getWaitlist.email).toEqual(email);
+                    expect(body.data.getWaitlist.address).toEqual(randomWallet.address);
+                });
+        });
+
+        it('should get a waitlist item by address', async () => {
+            const email = faker.internet.email();
+            const randomWallet = ethers.Wallet.createRandom();
+            const message = 'Hi from tests!';
+            const signature = await randomWallet.signMessage(message);
+
+            await service.createWaitlist({
+                email,
+                address: randomWallet.address,
+                message,
+                signature,
+            });
+
+            const query = gql`
+                query getWaitlist($input: GetWaitlistInput!) {
+                    getWaitlist(input: $input) {
+                        id
+                        email
+                        seatNumber
+                        address
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    address: randomWallet.address,
+                },
+            };
 
             return await request(app.getHttpServer())
                 .post('/graphql')

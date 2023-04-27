@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Waitlist } from './waitlist.entity';
 import { Repository, UpdateResult } from 'typeorm';
-import { CreateWaitlistInput } from './waitlist.dto';
+import { CreateWaitlistInput, GetWaitlistInput } from './waitlist.dto';
 import { ethers } from 'ethers';
 
 @Injectable()
@@ -15,8 +15,11 @@ export class WaitlistService {
      * @param email The email of the user to retrieve.
      * @returns The waitlist item associated with the given email.
      */
-    async getWaitlist(email: string): Promise<Waitlist | null> {
-        return this.waitlistRepository.findOneBy({ email });
+    async getWaitlist(input: GetWaitlistInput): Promise<Waitlist | null> {
+        if (!input.email && !input.address) {
+            return null;
+        }
+        return this.waitlistRepository.findOne({ where: [{ email: input.email }, { address: input.address }] });
     }
 
     /**

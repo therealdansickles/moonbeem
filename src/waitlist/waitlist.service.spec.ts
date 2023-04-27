@@ -41,7 +41,17 @@ describe('CollectionService', () => {
                 address: faker.finance.ethereumAddress(),
             });
 
-            const result = await service.getWaitlist(waitlist.email);
+            const result = await service.getWaitlist({ email: waitlist.email });
+            expect(result.id).toBeDefined();
+        });
+
+        it('should get a waitlist item by address', async () => {
+            const waitlist = await repository.save({
+                email: faker.internet.email(),
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const result = await service.getWaitlist({ address: waitlist.address });
             expect(result.id).toBeDefined();
         });
     });

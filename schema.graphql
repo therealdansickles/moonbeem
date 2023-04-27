@@ -1034,7 +1034,7 @@ type Query {
   transaction(id: String!): MintSaleTransaction!
 
   """returns a waitlist for a given email"""
-  getWaitlist(email: String!): Waitlist
+  getWaitlist(input: GetWaitlistInput!): Waitlist
 }
 
 enum BasicCollectionStatus {
@@ -1053,6 +1053,14 @@ input GloablSearchInput {
   searchTerm: String!
   page: Float!
   pageSize: Float!
+}
+
+input GetWaitlistInput {
+  """The email of the user"""
+  email: String
+
+  """The address for a wallet."""
+  address: String
 }
 
 type Mutation {

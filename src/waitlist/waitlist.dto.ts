@@ -28,6 +28,21 @@ export class Waitlist {
     twitter?: string;
 }
 
+@InputType('GetWaitlistInput')
+export class GetWaitlistInput {
+    @ApiProperty()
+    @IsString()
+    @Field({ description: 'The email of the user', nullable: true })
+    @IsOptional()
+    readonly email?: string;
+
+    @ApiProperty()
+    @IsEthereumAddress() // we can use IsEthereumAddress() here, but we want to support EIP-3770 address format.
+    @Field({ description: 'The address for a wallet.', nullable: true })
+    @IsOptional()
+    readonly address?: string;
+}
+
 @InputType('CreateWaitlistInput')
 export class CreateWaitlistInput {
     @ApiProperty()
