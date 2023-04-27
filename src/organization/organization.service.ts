@@ -29,7 +29,11 @@ export class OrganizationService {
      * @returns The created organization..
      */
     async createOrganization(data: CreateOrganizationInput): Promise<Organization> {
-        return await this.organizationRepository.save(data);
+        const organization = await this.organizationRepository.save(data);
+        return await this.organizationRepository.findOne({
+            where: { id: organization.id },
+            relations: ['owner'],
+        });
     }
 
     /**
@@ -42,7 +46,11 @@ export class OrganizationService {
     async updateOrganization(id: string, data: Omit<UpdateOrganizationInput, 'id'>): Promise<Organization> {
         const organization = await this.organizationRepository.findOneBy({ id });
         if (!organization) throw new Error(`Organization with id ${id} doesn't exist.`);
-        return this.organizationRepository.save({ ...organization, ...data });
+        await this.organizationRepository.save({ ...organization, ...data });
+        return await this.organizationRepository.findOne({
+            where: { id: organization.id },
+            relations: ['owner'],
+        });
     }
 
     /**

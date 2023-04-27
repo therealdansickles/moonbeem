@@ -87,6 +87,8 @@ describe.only('OrganizationService', () => {
             });
 
             expect(organization.id).toBeDefined();
+            expect(organization.owner.id).toEqual(owner.id);
+            expect(organization.owner.email).toEqual(owner.email);
         });
     });
 
@@ -115,6 +117,8 @@ describe.only('OrganizationService', () => {
             });
 
             expect(result.displayName).toEqual('The best organization');
+            expect(result.owner.id).toEqual(owner.id);
+            expect(result.owner.email).toEqual(owner.email);
         });
     });
 
