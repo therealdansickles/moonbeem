@@ -30,6 +30,16 @@ export class WaitlistService {
         if (input.address.toLowerCase() !== verifiedAddress.toLocaleLowerCase()) {
             throw new HttpException('signature verification failure', HttpStatus.BAD_REQUEST);
         }
-        return await this.waitlistRepository.save(input);
+
+        try {
+            return await this.waitlistRepository.save(input);
+        } catch (e) {
+            if (e.routine === '_bt_check_unique') {
+                throw new HttpException('Email or wallet address already exists', HttpStatus.BAD_REQUEST);
+            } else {
+                console.error(e);
+                throw new HttpException('Unknown error saving waitlist', HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
     }
 }
