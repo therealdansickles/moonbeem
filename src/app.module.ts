@@ -33,6 +33,7 @@ import { UserModule } from './user/user.module';
 import { UserWalletModule } from './modules/user.wallet.module';
 import { UserWalletService } from './services/user.wallet.service';
 import { WalletModule } from './wallet/wallet.module';
+import { SyncChainModule } from './sync-chain/sync-chain.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 
 @Module({
@@ -52,6 +53,7 @@ import { WaitlistModule } from './waitlist/waitlist.module';
         UserModule,
         UserWalletModule,
         WalletModule,
+        SyncChainModule,
         WaitlistModule,
         // integration graphql
         GraphQLModule.forRoot<ApolloDriverConfig>({
@@ -62,6 +64,7 @@ import { WaitlistModule } from './waitlist/waitlist.module';
         }),
         ScheduleModule.forRoot(),
         TypeOrmModule.forRoot({
+            name: 'default',
             type: 'postgres',
             url: postgresConfig.url,
             autoLoadEntities: true,

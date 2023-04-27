@@ -560,6 +560,381 @@ type GlobalSearchResult {
   users: UserSearchResults!
 }
 
+type Factory {
+  id: ID!
+
+  """Block height of transaction."""
+  height: Float!
+
+  """Transaction hash of transaction."""
+  txHash: String!
+
+  """Transaction time of transaction."""
+  txTime: Float!
+
+  """Transaction sender of transaction."""
+  sender: String!
+
+  """The contract address."""
+  address: String!
+
+  """The master contract address."""
+  masterAddress: String!
+
+  """The type of Contract."""
+  kind: ContractType!
+
+  """The chain id for the factory"""
+  chainId: Float!
+
+  """
+  The DateTime that this organization was created(initially created as a draft).
+  """
+  createdAt: DateTime!
+
+  """The DateTime that this organization was last updated."""
+  updatedAt: DateTime!
+}
+
+enum ContractType {
+  factory
+  erc20
+  erc721
+  simpleFactory
+  royaltyReceiver
+  mintSale
+  mintSaleMultiple
+  mintSaleWhitelisting
+  mintSaleMultipleWhitelisting
+  unknown
+}
+
+type Royalty {
+  id: ID!
+
+  """Block height of transaction."""
+  height: Float!
+
+  """Transaction hash of transaction."""
+  txHash: String!
+
+  """Transaction time of transaction."""
+  txTime: String!
+
+  """Transaction sender of transaction."""
+  sender: String!
+
+  """The contract address."""
+  address: String!
+
+  """The master contract address."""
+  userAddress: String!
+
+  """The chain id for the factory"""
+  userRate: Float!
+
+  """The chain id for the factory"""
+  chainId: Float!
+
+  """
+  The DateTime that this organization was created(initially created as a draft).
+  """
+  createdAt: DateTime!
+
+  """The DateTime that this organization was last updated."""
+  updatedAt: DateTime!
+}
+
+type Asset721 {
+  id: ID!
+
+  """Block height of transaction."""
+  height: Float!
+
+  """Transaction hash of transaction."""
+  txHash: String!
+
+  """Transaction time of transaction."""
+  txTime: Float!
+
+  """The contract address."""
+  address: String!
+
+  """The token id of contract."""
+  tokenId: String!
+
+  """The owner of token id."""
+  owner: String!
+
+  """The chain id for the transaction"""
+  chainId: Float!
+
+  """
+  The DateTime that this organization was created(initially created as a draft).
+  """
+  createdAt: DateTime!
+
+  """The DateTime that this organization was last updated."""
+  updatedAt: DateTime!
+}
+
+type History721 {
+  id: ID!
+
+  """Block height of transaction."""
+  height: Float!
+
+  """Transaction hash of transaction."""
+  txHash: String!
+
+  """Transaction time of transaction."""
+  txTime: Float!
+
+  """The contract address."""
+  address: String!
+
+  """The token id of contract."""
+  tokenId: String!
+
+  """The owner of token id."""
+  receiver: String!
+
+  """Transaction type."""
+  kind: History721Type!
+
+  """The chain id for the transaction"""
+  chainId: Float!
+
+  """
+  The DateTime that this organization was created(initially created as a draft).
+  """
+  createdAt: DateTime!
+
+  """The DateTime that this organization was last updated."""
+  updatedAt: DateTime!
+}
+
+enum History721Type {
+  unknown
+  mint
+  transfer
+  burn
+}
+
+type Coin {
+  id: ID!
+
+  """The coin address."""
+  address: String!
+
+  """The name of coin."""
+  name: String!
+
+  """The symbol of coin."""
+  symbol: String!
+
+  """The decimals of coin."""
+  decimals: Float!
+
+  """Price of tokens converted to ETH. Required decimals are 18"""
+  derivedETH: String!
+
+  """Price of tokens converted to USDC. Required decimals are 18"""
+  derivedUSDC: String!
+
+  """Is this token address a native token"""
+  native: Boolean!
+
+  """Whether this token is open for use"""
+  enable: Boolean!
+
+  """The chain id for the coin."""
+  chainId: Float!
+
+  """The created time."""
+  createdAt: DateTime!
+
+  """The DateTime that this coin was last updated."""
+  updatedAt: DateTime!
+}
+
+type SystemConfig {
+  id: ID!
+
+  """Config name."""
+  name: String!
+
+  """Config value."""
+  value: String!
+
+  """Type of config value. int64/string/int128"""
+  kind: String!
+
+  """Config comment."""
+  comment: String!
+
+  """The chain id for the config."""
+  chainId: Float!
+
+  """The created time."""
+  createdAt: DateTime!
+
+  """The DateTime that this config was last updated."""
+  updatedAt: DateTime!
+}
+
+type MintSaleTransaction {
+  id: ID!
+
+  """Block height of transaction."""
+  height: Float!
+
+  """Transaction hash of transaction."""
+  txHash: String!
+
+  """Transaction time of transaction."""
+  txTime: Float!
+
+  """Transaction sender of transaction."""
+  sender: String!
+
+  """NFT Recipient of current transaction."""
+  recipient: String!
+
+  """The contract address"""
+  address: String!
+
+  """The tier id for the collection."""
+  tierId: Float!
+
+  """Collection associated token contract address, Erc721 contract"""
+  tokenAddress: String!
+
+  """The token id received by the user"""
+  tokenId: String!
+
+  """The tier price"""
+  price: String!
+
+  """The payment token address"""
+  paymentToken: String!
+
+  """The chain id for the transaction"""
+  chainId: Float!
+
+  """The created time."""
+  createdAt: DateTime!
+
+  """The DateTime that this transaction was last updated."""
+  updatedAt: DateTime!
+}
+
+type MintSaleContract {
+  id: ID!
+
+  """Block height of transaction."""
+  height: Float!
+
+  """Transaction hash of transaction."""
+  txHash: String!
+
+  """Transaction time of transaction."""
+  txTime: Float!
+
+  """Transaction sender of transaction."""
+  sender: String!
+
+  """The contract address."""
+  address: String!
+
+  """The royalty contract of MintSale"""
+  royaltyReceiver: String!
+
+  """The royalty rate of MintSale"""
+  royaltyRate: Float!
+
+  """The derivative royalty rate of MintSale"""
+  derivativeRoyaltyRate: Float!
+
+  """Means whether this nft supports derivative royalty"""
+  isDerivativeAllowed: Boolean!
+
+  """The begin time of the MintSale"""
+  beginTime: Float!
+
+  """The end time of the MintSale"""
+  endTime: Float!
+
+  """The tier id of the MintSale"""
+  tierId: Float!
+
+  """The price of the tier"""
+  price: String!
+
+  """The payment token of the collection"""
+  paymentToken: String!
+
+  """The start id of the tier"""
+  startId: Float!
+
+  """The end id of the tier"""
+  endId: Float!
+
+  """The current id of the tier"""
+  currentId: Float!
+
+  """The token address(erc721 address) of the collection"""
+  tokenAddress: String!
+
+  """The chain id for the transaction"""
+  chainId: Float!
+
+  """The DateTime of create."""
+  createdAt: DateTime!
+
+  """The DateTime that this contract was last updated."""
+  updatedAt: DateTime!
+}
+
+type Record721 {
+  id: ID!
+
+  """Block height of transaction."""
+  height: Float!
+
+  """Transaction hash of transaction."""
+  txHash: String!
+
+  """Transaction time of transaction."""
+  txTime: Float!
+
+  """The contract address."""
+  address: String!
+
+  """The name of contract."""
+  name: String!
+
+  """The symbol of contract."""
+  symbol: String!
+
+  """The base uri of contract."""
+  baseUri: String!
+
+  """The owner of contract."""
+  owner: String!
+
+  """The chain id for the contract."""
+  chainId: Float!
+
+  """
+  The DateTime that this contract record was created(initially created as a draft).
+  """
+  createdAt: DateTime!
+
+  """The DateTime that this record was last updated."""
+  updatedAt: DateTime!
+}
+
 type Waitlist {
   id: ID!
   email: String!
@@ -610,6 +985,34 @@ type Query {
   getCollectionActivities(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VCollectionActivityRspDto!
   globalSearch(input: GloablSearchInput!): GlobalSearchResult!
   globalSearchV1(input: GloablSearchInput!): GlobalSearchResult!
+
+  """returns a factory contract for a given uuid"""
+  factory(id: String!): Factory!
+
+  """returns a factory list for a given chain id"""
+  factories(chainId: Int!): [Factory!]!
+  royalty(id: String!): Royalty!
+
+  """returns a asset for a given uuid"""
+  asset721(id: String!): Asset721!
+
+  """returns erc721 contract for a given uuid"""
+  record721(id: String!): Record721!
+
+  """returns a asset for a given uuid"""
+  history721(id: String!): History721!
+
+  """returns coin for a given uuid"""
+  coin(id: String!): Coin!
+
+  """returns config for a given uuid"""
+  config(id: String!): SystemConfig!
+
+  """returns a contract for a given uuid"""
+  mintSaleContract(id: String!): MintSaleContract!
+
+  """returns transaction for a given uuid"""
+  transaction(id: String!): MintSaleTransaction!
 
   """returns a waitlist for a given email"""
   getWaitlist(email: String!): Waitlist
@@ -737,7 +1140,6 @@ input UpdateUserInput {
   username: String
   name: String
   email: String
-  password: String
   avatarUrl: String
 }
 
