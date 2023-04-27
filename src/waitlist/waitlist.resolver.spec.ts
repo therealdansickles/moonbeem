@@ -11,6 +11,7 @@ import { postgresConfig } from '../lib/configs/db.config';
 import { Waitlist } from './waitlist.entity';
 import { WaitlistService } from './waitlist.service';
 import { WaitlistModule } from './waitlist.module';
+import { ethers } from 'ethers';
 
 export const gql = String.raw;
 
@@ -52,11 +53,15 @@ describe('WaitlistResolver', () => {
     describe('getWaitlist', () => {
         it('should get a waitlist item by email', async () => {
             const email = faker.internet.email();
-            const address = faker.finance.ethereumAddress();
+            const randomWallet = ethers.Wallet.createRandom();
+            const message = 'Hi from tests!';
+            const signature = await randomWallet.signMessage(message);
 
             await service.createWaitlist({
                 email,
-                address,
+                address: randomWallet.address,
+                message,
+                signature,
             });
 
             const query = gql`
@@ -78,7 +83,7 @@ describe('WaitlistResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.getWaitlist.email).toEqual(email);
-                    expect(body.data.getWaitlist.address).toEqual(address);
+                    expect(body.data.getWaitlist.address).toEqual(randomWallet.address);
                 });
         });
     });
@@ -86,7 +91,9 @@ describe('WaitlistResolver', () => {
     describe('createWaitlist', () => {
         it('should create a waitlist item by email', async () => {
             const email = faker.internet.email();
-            const address = faker.finance.ethereumAddress();
+            const randomWallet = ethers.Wallet.createRandom();
+            const message = 'Hi from tests!';
+            const signature = await randomWallet.signMessage(message);
 
             const query = gql`
                 mutation CreateWaitlist($input: CreateWaitlistInput!) {
@@ -101,7 +108,9 @@ describe('WaitlistResolver', () => {
             const variables = {
                 input: {
                     email,
-                    address,
+                    address: randomWallet.address,
+                    message,
+                    signature,
                 },
             };
 
@@ -113,6 +122,43 @@ describe('WaitlistResolver', () => {
                     expect(body.data.createWaitlist.email).toEqual(email);
                     expect(body.data.createWaitlist.id).toBeDefined();
                     expect(body.data.createWaitlist.seatNumber).toBeDefined();
+                });
+        });
+
+        it('should not create a waitlist item with wrong signature', async () => {
+            const email = faker.internet.email();
+            const randomWallet = ethers.Wallet.createRandom();
+            const randomWallet2 = ethers.Wallet.createRandom();
+            const message = 'Hi from tests!';
+            const signature = await randomWallet.signMessage(message);
+
+            const query = gql`
+                mutation CreateWaitlist($input: CreateWaitlistInput!) {
+                    createWaitlist(input: $input) {
+                        id
+                        email
+                        seatNumber
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    email,
+                    address: randomWallet2.address,
+                    message,
+                    signature,
+                },
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.errors).toBeDefined();
+                    expect(body.errors[0].extensions.exception.status).toEqual(400);
+                    expect(body.errors[0].message).toEqual('signature verification failure');
                 });
         });
     });

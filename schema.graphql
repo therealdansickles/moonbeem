@@ -953,6 +953,9 @@ type Query {
   getTxStatus(chain: String!, txHash: String!): Boolean!
   getFactoryConfig(chainId: Int = 0): FactoryConfigRspDto!
 
+  """Returns an user for the given id"""
+  user(id: String!): User
+
   """Retrieves a wallet by its ethereum or EIP-3770 address."""
   wallet(
     """an ethereum or EIP-3770 address."""
@@ -1493,6 +1496,8 @@ input CreateWaitlistInput {
 
   """The address for a wallet."""
   address: String!
+  message: String!
+  signature: String!
 
   """The email of the user"""
   twitter: String

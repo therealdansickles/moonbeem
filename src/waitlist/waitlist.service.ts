@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Waitlist } from './waitlist.entity';
 import { Repository, UpdateResult } from 'typeorm';
 import { CreateWaitlistInput } from './waitlist.dto';
+import { ethers } from 'ethers';
 
 @Injectable()
 export class WaitlistService {
@@ -25,6 +26,10 @@ export class WaitlistService {
      * @returns The created waitlist item.
      */
     async createWaitlist(input: CreateWaitlistInput): Promise<Waitlist> {
+        const verifiedAddress = ethers.utils.verifyMessage(input.message, input.signature);
+        if (input.address.toLowerCase() !== verifiedAddress.toLocaleLowerCase()) {
+            throw new HttpException('signature verification failure', HttpStatus.BAD_REQUEST);
+        }
         return await this.waitlistRepository.save(input);
     }
 }

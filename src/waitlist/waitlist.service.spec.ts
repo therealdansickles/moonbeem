@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { postgresConfig } from '../lib/configs/db.config';
 import { WaitlistModule } from './waitlist.module';
 import { faker } from '@faker-js/faker';
+import { ethers } from 'ethers';
 
 describe('CollectionService', () => {
     let repository: Repository<Waitlist>;
@@ -48,18 +49,22 @@ describe('CollectionService', () => {
     describe('createWaitlist', () => {
         it('should create a collection', async () => {
             const email = faker.internet.email();
-            const address = faker.finance.ethereumAddress();
+            const randomWallet = ethers.Wallet.createRandom();
+            const message = 'Hi from tests!';
+            const signature = await randomWallet.signMessage(message);
             const twitter = `@${faker.name.firstName()}`;
 
             const waitlist = await service.createWaitlist({
                 email,
-                address,
+                address: randomWallet.address,
                 twitter,
+                signature,
+                message,
             });
 
             expect(waitlist).toBeDefined();
             expect(waitlist.email).toEqual(email);
-            expect(waitlist.address).toEqual(address);
+            expect(waitlist.address).toEqual(randomWallet.address);
             expect(waitlist.twitter).toEqual(twitter);
         });
     });

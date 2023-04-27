@@ -40,6 +40,16 @@ export class CreateWaitlistInput {
     @Field({ description: 'The address for a wallet.' })
     readonly address: string;
 
+    @Field({ description: 'The signing message' })
+    @ApiProperty()
+    @IsString()
+    readonly message: string;
+
+    @Field({ description: 'The signature from the front-end to verify' })
+    @ApiProperty()
+    @IsString()
+    readonly signature: string;
+
     @ApiProperty()
     @IsString()
     @Field({ description: 'The email of the user', nullable: true })
