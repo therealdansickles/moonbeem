@@ -127,6 +127,14 @@ describe('CollaborationResolver', () => {
                 walletId: wallet.id,
                 collectionId: collection.id,
                 royaltyRate: 12,
+                collaborators: [
+                    {
+                        address: faker.finance.ethereumAddress(),
+                        role: faker.finance.accountName(),
+                        name: faker.finance.accountName(),
+                        rate: parseInt(faker.random.numeric(2)),
+                    },
+                ],
             });
 
             const query = gql`

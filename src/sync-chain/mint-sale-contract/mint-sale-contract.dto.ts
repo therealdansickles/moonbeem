@@ -136,12 +136,12 @@ export class CreateMerkleRootInput {
 export class CreateMerkleRootData {
     @ApiProperty()
     @IsString()
-    @Field({ description: 'Address added to merekleTree' })
+    @Field({ description: 'Address added to merkleTree' })
     readonly address: string;
 
     @ApiProperty()
     @IsNumberString()
-    @Field({ description: 'Amount available, using string, the metkleTree can be expanded to erc20 tokens' })
+    @Field({ description: 'Amount available, using string, the merkleTree can be expanded to erc20 tokens' })
     readonly amount: string;
 }
 

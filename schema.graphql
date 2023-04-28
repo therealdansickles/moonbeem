@@ -1597,11 +1597,11 @@ input CreateMerkleRootInput {
 }
 
 input CreateMerkleRootData {
-  """Address added to merekleTree"""
+  """Address added to merkleTree"""
   address: String!
 
   """
-  Amount available, using string, the metkleTree can be expanded to erc20 tokens
+  Amount available, using string, the merkleTree can be expanded to erc20 tokens
   """
   amount: String!
 }
