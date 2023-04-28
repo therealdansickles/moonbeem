@@ -67,13 +67,15 @@ describe.only('OrganizationService', () => {
     });
 
     describe('createOrganization', () => {
+        let organization: Organization;
+        let owner: User;
+
         it('should create an organization', async () => {
-            const owner = await userService.createUser({
+            owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
-
-            const organization = await service.createOrganization({
+            organization = await service.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
@@ -90,16 +92,36 @@ describe.only('OrganizationService', () => {
             expect(organization.owner.id).toEqual(owner.id);
             expect(organization.owner.email).toEqual(owner.email);
         });
+
+        it('should throw an error when create a organization with an existed name', async () => {
+            await expect(() =>
+                service.createOrganization({
+                    name: organization.name,
+                    displayName: faker.company.name(),
+                    about: faker.company.catchPhrase(),
+                    avatarUrl: faker.image.imageUrl(),
+                    backgroundUrl: faker.image.imageUrl(),
+                    websiteUrl: faker.internet.url(),
+                    twitter: faker.internet.userName(),
+                    instagram: faker.internet.userName(),
+                    discord: faker.internet.userName(),
+                    owner: owner,
+                })
+            ).rejects.toThrow();
+        });
     });
 
     describe('updateOrganization', () => {
+        let organization: Organization;
+        let owner: User;
+
         it('should update an organization', async () => {
-            const owner = await userService.createUser({
+            owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
 
-            const organization = await service.createOrganization({
+            organization = await service.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
@@ -119,6 +141,27 @@ describe.only('OrganizationService', () => {
             expect(result.displayName).toEqual('The best organization');
             expect(result.owner.id).toEqual(owner.id);
             expect(result.owner.email).toEqual(owner.email);
+        });
+
+        it('should throw an error when update an organization with an existed name', async () => {
+            const anotherOrganization = await service.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            await expect(() =>
+                service.updateOrganization(anotherOrganization.id, {
+                    name: organization.name,
+                })
+            ).rejects.toThrow();
         });
     });
 

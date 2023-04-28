@@ -29,6 +29,8 @@ export class OrganizationService {
      * @returns The created organization..
      */
     async createOrganization(data: CreateOrganizationInput): Promise<Organization> {
+        const orgWithSameName = await this.organizationRepository.findOneBy({ name: data.name });
+        if (orgWithSameName) throw new Error(`Organization with name ${data.name} already existed.`);
         const organization = await this.organizationRepository.save(data);
         return await this.organizationRepository.findOne({
             where: { id: organization.id },
@@ -46,6 +48,11 @@ export class OrganizationService {
     async updateOrganization(id: string, data: Omit<UpdateOrganizationInput, 'id'>): Promise<Organization> {
         const organization = await this.organizationRepository.findOneBy({ id });
         if (!organization) throw new Error(`Organization with id ${id} doesn't exist.`);
+        // if name is need to be updated, then check if it's uniqueness first
+        if (data.name) {
+            const orgWithSameName = await this.organizationRepository.findOneBy({ name: data.name });
+            if (orgWithSameName) throw new Error(`Organization with name ${data.name} already existed.`);
+        }
         await this.organizationRepository.save({ ...organization, ...data });
         return await this.organizationRepository.findOne({
             where: { id: organization.id },
