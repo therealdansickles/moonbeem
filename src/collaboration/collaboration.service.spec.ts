@@ -171,5 +171,11 @@ describe('CollaborationService', () => {
             const result = await service.getCollaboration(faker.datatype.uuid());
             expect(result).toBeNull();
         });
+
+        it('should return a collaboration with its wallet and collection', async () => {
+            const result = await service.getCollaboration(collaboration.id);
+            expect(result.wallet).toBeDefined();
+            expect(result.collection).toBeDefined();
+        });
     });
 });

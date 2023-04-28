@@ -17,7 +17,17 @@ export class CollectionService {
      * @returns The collection associated with the given id.
      */
     async getCollection(id: string): Promise<Collection | null> {
-        return this.collectionRepository.findOneBy({ id });
+        return this.collectionRepository.findOne({ where: { id }, relations: ['organization'] });
+    }
+
+    /**
+     * Retrieves the collection associated with the given organization.
+     *
+     * @param organizationId The id of the organization to retrieve.
+     * @returns The collection associated with the given organization.
+     */
+    async getCollectionsByOrganizationId(organizationId: string): Promise<Collection[]> {
+        return this.collectionRepository.find({ where: { organization: { id: organizationId } } });
     }
 
     /**

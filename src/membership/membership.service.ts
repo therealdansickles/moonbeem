@@ -25,10 +25,10 @@ export class MembershipService {
      * @returns The membership.
      */
     async getMembership(id: string): Promise<Membership> {
-        return await this.membershipRepository.findOne({
-            where: { id },
-            relations: { user: true, organization: true },
-        });
+        return await this.membershipRepository.findOneBy({ id });
+        //where: { id },
+        //relations: { user: true, organization: true },
+        //});
     }
 
     /**
@@ -67,7 +67,6 @@ export class MembershipService {
         } catch (e) {
             // FIXME: This ain't always true :issou:
             // Add Sentry capture here.
-            console.log('e', e);
             throw new GraphQLError(`user ${data.userId} is already a member of organization ${data.organizationId}`);
         }
     }

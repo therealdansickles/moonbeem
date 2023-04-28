@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsString, IsDateString, IsUrl, ValidateIf, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CollectionKind } from './collection.entity';
+import { Organization } from '../organization/organization.dto';
 
 registerEnumType(CollectionKind, { name: 'CollectionKind' });
 
@@ -103,6 +104,11 @@ export class Collection {
     @IsString()
     @Field({ description: 'The wallet that created the collection.', nullable: true })
     readonly creatorId?: string;
+
+    @ApiProperty()
+    @IsString()
+    @Field(() => Organization, { description: 'The wallet that created the collection.', nullable: true })
+    readonly organization: Organization;
 }
 
 @InputType()

@@ -29,9 +29,10 @@ describe('MembershipResolver', () => {
     let organizationService: OrganizationService;
     let user: User;
     let userService: UserService;
+    let module: TestingModule;
 
-    beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
+    beforeEach(async () => {
+        module = await Test.createTestingModule({
             imports: [
                 TypeOrmModule.forRoot({
                     type: 'postgres',
@@ -85,7 +86,7 @@ describe('MembershipResolver', () => {
         await app.init();
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
         await repository.query('TRUNCATE TABLE "User" CASCADE');
         await repository.query('TRUNCATE TABLE "Organization" CASCADE');
         await repository.query('TRUNCATE TABLE "Membership" CASCADE');
@@ -99,6 +100,14 @@ describe('MembershipResolver', () => {
                     membership(id: $id) {
                         id
                         canEdit
+
+                        user {
+                            id
+                        }
+
+                        organization {
+                            id
+                        }
                     }
                 }
             `;
@@ -110,11 +119,12 @@ describe('MembershipResolver', () => {
             return await request(app.getHttpServer())
                 .post('/graphql')
                 .send({ query, variables })
-                //.expect(200)
+                .expect(200)
                 .expect(async ({ body }) => {
-                    console.log(body);
-                    expect(body.data.membership.id).toBeDefined();
+                    expect(body.data.membership.id).not.toBeNull();
                     expect(body.data.membership.canEdit).toBeFalsy();
+                    expect(body.data.membership.user.id).not.toBeNull();
+                    expect(body.data.membership.organization.id).not.toBeNull();
                 });
         });
     });
@@ -340,16 +350,13 @@ describe('MembershipResolver', () => {
                 },
             };
 
-            return (
-                request(app.getHttpServer())
-                    .post('/graphql')
-                    .send({ query, variables })
-                    //.expect(200)
-                    .expect(({ body }) => {
-                        console.log(body);
-                        expect(body.data.deleteMembership).toBeTruthy();
-                    })
-            );
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.deleteMembership).toBeTruthy();
+                });
         });
     });
 });

@@ -18,7 +18,7 @@ export class CollaborationService {
      * @returns The collaboration associated with the given id.
      */
     async getCollaboration(id: string): Promise<Collaboration> {
-        return await this.collaborationRepository.findOneBy({ id });
+        return await this.collaborationRepository.findOne({ where: { id }, relations: ['collection', 'wallet'] });
     }
 
     /**

@@ -5,7 +5,6 @@ import { History721Type } from './history721.entity';
 
 registerEnumType(History721Type, { name: 'History721Type' });
 
-
 @ObjectType('History721')
 export class History721 {
     @ApiProperty()

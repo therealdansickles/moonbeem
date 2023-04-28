@@ -84,6 +84,10 @@ describe('OrganizationResolver', () => {
                 query GetOrg($id: String!) {
                     organization(id: $id) {
                         id
+
+                        collections {
+                            id
+                        }
                     }
                 }
             `;
@@ -98,6 +102,7 @@ describe('OrganizationResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.organization.id).toEqual(organization.id);
+                    expect(body.data.organization.collections).toBeDefined();
                 });
         });
     });

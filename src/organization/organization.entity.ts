@@ -68,8 +68,8 @@ export class Organization extends BaseEntity {
     @ManyToOne(() => Membership, (membership) => membership.organization)
     memberships: Membership[];
 
-    //@OneToMany(() => Collection, (collection) => collection.organization)
-    //collections: Collection[];
+    @OneToMany(() => Collection, (collection) => collection.organization)
+    collections: Collection[];
 
     @CreateDateColumn()
     createdAt: Date;

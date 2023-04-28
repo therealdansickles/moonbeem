@@ -81,10 +81,10 @@ export class AWSAdapter {
 
     /**
      * upload implementation for @aws-sdk/s3-client
-     * @param data 
-     * @param fileName 
-     * @param contentType 
-     * @returns 
+     * @param data
+     * @param fileName
+     * @param contentType
+     * @returns
      */
     private async putData(data: Buffer, fileName: string, contentType: string) {
         try {
@@ -94,19 +94,19 @@ export class AWSAdapter {
                 Key: fileName,
                 ContentType: contentType,
                 CacheControl: 'public, max-age=86400', // default cache control
-            }
-            const command = new PutObjectCommand(param)
-            await this.s3.send(command)
-            return true
+            };
+            const command = new PutObjectCommand(param);
+            await this.s3.send(command);
+            return true;
         } catch (err) {
             console.log(
-                `putData err, data length[${data.length
-                }], fileName[${fileName}], contentType[${contentType}], msg: ${(err as Error).message}`
+                `putData err, data length[${data.length}], fileName[${fileName}], contentType[${contentType}], msg: ${
+                    (err as Error).message
+                }`
             );
             return false;
         }
     }
-
 
     /**
      * DEPRECATED
@@ -115,7 +115,7 @@ export class AWSAdapter {
      * @param data
      * @param fileName
      * @param contentType
-     * @returns 
+     * @returns
      */
     // async s3PutData_(data: Buffer, fileName: string, contentType: string) {
     //     try {

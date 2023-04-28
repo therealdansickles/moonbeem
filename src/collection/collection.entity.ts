@@ -8,11 +8,12 @@ import {
     ManyToOne,
     OneToOne,
     OneToMany,
+    JoinColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 //import { Contract } from '../contract/contract.entity';
 //import { Wallet } from '../wallet/wallet.entity';
-//import { Organization } from '../organization/organization.entity';
+import { Organization } from '../organization/organization.entity';
 import { Collaboration } from '../collaboration/collaboration.entity';
 import { Tier } from '../tier/tier.entity';
 
@@ -81,8 +82,12 @@ export class Collection extends BaseEntity {
     //@ManyToOne(() => Wallet, (wallet) => wallet.createdCollections)
     //creator: Wallet;
 
-    //@ManyToOne(() => Organization, (organization) => organization.collections)
-    //organization: Organization;
+    @ManyToOne(() => Organization, (organization) => organization.collections, {
+        eager: true,
+        createForeignKeyConstraints: false,
+    })
+    @JoinColumn()
+    organization: Organization;
 
     @OneToMany(() => Tier, (tier) => tier.collection)
     tiers: Tier[];

@@ -1,4 +1,4 @@
-import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
+import { Resolver, Query, Args, Mutation, ResolveField, Parent } from '@nestjs/graphql';
 import { Public } from '../lib/decorators/public.decorator';
 import {
     Organization,
@@ -8,10 +8,15 @@ import {
     TransferOrganizationInput,
 } from './organization.dto';
 import { OrganizationService } from './organization.service';
+import { Collection } from '../collection/collection.dto';
+import { CollectionService } from '../collection/collection.service';
 
-@Resolver('Organization')
+@Resolver(() => Organization)
 export class OrganizationResolver {
-    constructor(private readonly organizationService: OrganizationService) {}
+    constructor(
+        private readonly organizationService: OrganizationService,
+        private readonly collectionService: CollectionService
+    ) {}
 
     @Public()
     @Query(() => Organization, { description: 'Returns an organization for the given uuid', nullable: true })
@@ -43,5 +48,11 @@ export class OrganizationResolver {
     async transferOrganization(@Args('input') input: TransferOrganizationInput): Promise<Organization> {
         const { id, ownerId } = input;
         return await this.organizationService.transferOrganization(id, ownerId);
+    }
+
+    @Public()
+    @ResolveField(() => [Collection], { description: 'Returns the collections for the given organization' })
+    async collections(@Parent() organization: Organization): Promise<Collection[]> {
+        return await this.collectionService.getCollectionsByOrganizationId(organization.id);
     }
 }

@@ -8,11 +8,15 @@ import { faker } from '@faker-js/faker';
 import { Repository } from 'typeorm';
 import { postgresConfig } from '../lib/configs/db.config';
 
+import { AuthModule } from '../auth/auth.module';
+import { AuthService } from '../auth/auth.service';
 import { Collection, CollectionKind } from './collection.entity';
 import { CollectionModule } from './collection.module';
 import { CollectionService } from './collection.service';
-import { AuthService } from '../auth/auth.service';
-import { AuthModule } from '../auth/auth.module';
+import { Organization } from '../organization/organization.entity';
+import { OrganizationService } from '../organization/organization.service';
+import { User } from '../user/user.entity';
+import { UserService } from '../user/user.service';
 
 export const gql = String.raw;
 
@@ -21,6 +25,8 @@ describe('CollectionResolver', () => {
     let service: CollectionService;
     let app: INestApplication;
     let authService: AuthService;
+    let organizationService: OrganizationService;
+    let userService: UserService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -45,17 +51,39 @@ describe('CollectionResolver', () => {
         repository = module.get('CollectionRepository');
         service = module.get<CollectionService>(CollectionService);
         authService = module.get<AuthService>(AuthService);
+        organizationService = module.get<OrganizationService>(OrganizationService);
+        userService = module.get<UserService>(UserService);
         app = module.createNestApplication();
         await app.init();
     });
 
     afterAll(async () => {
+        await repository.query('TRUNCATE TABLE "User" CASCADE');
+        await repository.query('TRUNCATE TABLE "Organization" CASCADE');
         await repository.query('TRUNCATE TABLE "Collection" CASCADE');
         await app.close();
     });
 
     describe('collection', () => {
         it('should get a collection by id', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
             const collection = await service.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
@@ -63,6 +91,7 @@ describe('CollectionResolver', () => {
                 address: faker.finance.ethereumAddress(),
                 artists: [],
                 tags: [],
+                organization: organization,
             });
 
             const query = gql`
@@ -71,6 +100,10 @@ describe('CollectionResolver', () => {
                         name
                         displayName
                         kind
+
+                        organization {
+                            name
+                        }
                     }
                 }
             `;
@@ -84,6 +117,7 @@ describe('CollectionResolver', () => {
                 .expect(({ body }) => {
                     expect(body.data.collection.name).toEqual(collection.name);
                     expect(body.data.collection.displayName).toEqual(collection.displayName);
+                    expect(body.data.collection.organization.name).toEqual(organization.name);
                 });
         });
     });

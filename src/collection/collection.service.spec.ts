@@ -7,10 +7,15 @@ import { postgresConfig } from '../lib/configs/db.config';
 import { Collection } from './collection.entity';
 import { CollectionService } from './collection.service';
 import { CollectionModule } from './collection.module';
+import { Organization } from '../organization/organization.entity';
+import { OrganizationService } from '../organization/organization.service';
+import { UserService } from '../user/user.service';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
     let service: CollectionService;
+    let organizationService: OrganizationService;
+    let userService: UserService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -28,6 +33,8 @@ describe('CollectionService', () => {
 
         repository = module.get('CollectionRepository');
         service = module.get<CollectionService>(CollectionService);
+        organizationService = module.get<OrganizationService>(OrganizationService);
+        userService = module.get<UserService>(UserService);
     });
 
     afterAll(async () => {
@@ -36,6 +43,24 @@ describe('CollectionService', () => {
 
     describe('getCollection', () => {
         it('should get a collection by id', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
             const collection = await repository.save({
                 name: faker.company.name(),
                 displayName: 'The best collection',
@@ -43,9 +68,46 @@ describe('CollectionService', () => {
                 address: faker.finance.ethereumAddress(),
                 artists: [],
                 tags: [],
+                organization: organization,
             });
             const result = await service.getCollection(collection.id);
-            expect(result.id).toBeDefined();
+            expect(result.id).not.toBeNull();
+            expect(result.organization.name).not.toBeNull();
+        });
+    });
+
+    describe('getCollectionsByOrganizationId', () => {
+        it('should get collections by organization', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const collection = await repository.save({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+            });
+            const result = await service.getCollectionsByOrganizationId(organization.id);
+            expect(result[0].id).not.toBeNull();
+            expect(result[0].organization.name).not.toBeNull();
         });
     });
 

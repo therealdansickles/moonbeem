@@ -11,12 +11,12 @@ export class CollaborationResolver {
     @Public()
     @Query(() => Collaboration, { description: 'returns a collaboration for a given uuid', nullable: true })
     async collaboration(@Args('id') id: string): Promise<Collaboration> {
-        return this.collaborationService.getCollaboration(id);
+        return await this.collaborationService.getCollaboration(id);
     }
 
     @Public()
     @Mutation(() => Collaboration, { description: 'create a collaboration' })
     async createCollaboration(@Args('input') input: CreateCollaborationInput): Promise<Collaboration> {
-        return this.collaborationService.createCollaboration(input);
+        return await this.collaborationService.createCollaboration(input);
     }
 }

@@ -23,7 +23,7 @@ export const postgresConfig = {
         username: process.env.SYNC_CHAIN_DATABASE_USERNAME,
         password: process.env.SYNC_CHAIN_DATABASE_PASSWORD,
         database: process.env.SYNC_CHAIN_DATABASE_NAME,
-    }
+    },
 };
 
 export const mongoConfig = {

@@ -110,11 +110,26 @@ describe('CollaborationResolver', () => {
 
     describe('getCollaboration', () => {
         it('should get a collaboration if we had right id', async () => {
+            wallet = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
+            collaboration = await service.createCollaboration({
+                walletId: wallet.id,
+                collectionId: collection.id,
+                royaltyRate: 12,
+            });
+
             const query = gql`
                 query Collaboration($id: String!) {
                     collaboration(id: $id) {
                         id
                         royaltyRate
+
+                        wallet {
+                            address
+                        }
+
+                        collection {
+                            name
+                        }
                     }
                 }
             `;
@@ -123,12 +138,15 @@ describe('CollaborationResolver', () => {
                 id: collaboration.id,
             };
 
+            // FIXME: This is flakey sometimes. Unique index contraint issues?
             return request(app.getHttpServer())
                 .post('/graphql')
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.collaboration.id).toEqual(variables.id);
+                    expect(body.data.collaboration.wallet.address).not.toBeNull();
+                    expect(body.data.collaboration.collection.name).not.toBeNull();
                 });
         });
     });

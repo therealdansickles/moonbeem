@@ -63,12 +63,4 @@ export class MembershipResolver {
         const { id } = input;
         return await this.membershipService.deleteMembership(id);
     }
-
-    @Public()
-    @ResolveField(() => Organization, { description: 'The organization the membership belongs to.' })
-    async organization(@Parent() membership: Membership): Promise<Organization> {
-        console.log(membership);
-        const { organization } = membership;
-        return await this.organizationService.getOrganization(organization.id);
-    }
 }

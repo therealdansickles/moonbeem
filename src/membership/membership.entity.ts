@@ -18,11 +18,14 @@ export class Membership extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @ManyToOne(() => User, (user) => user.memberships)
+    @ManyToOne(() => User, (user) => user.memberships, { eager: true, createForeignKeyConstraints: false })
     @JoinColumn()
     user: User;
 
-    @ManyToOne(() => Organization, (organization) => organization.memberships)
+    @ManyToOne(() => Organization, (organization) => organization.memberships, {
+        eager: true,
+        createForeignKeyConstraints: false,
+    })
     @JoinColumn()
     organization: Organization;
 

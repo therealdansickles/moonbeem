@@ -5,13 +5,16 @@ import { CollaborationModule } from '../collaboration/collaboration.module';
 import { Collection } from './collection.entity';
 import { CollectionService } from './collection.service';
 import { CollectionResolver } from './collection.resolver';
+import { Organization } from '../organization/organization.entity';
+import { OrganizationModule } from '../organization/organization.module';
 import { Tier } from '../tier/tier.entity';
 import { TierModule } from '../tier/tier.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Collaboration, Collection, Tier]),
+        TypeOrmModule.forFeature([Collaboration, Collection, Organization, Tier]),
         forwardRef(() => CollaborationModule),
+        forwardRef(() => OrganizationModule),
         forwardRef(() => TierModule),
     ],
     exports: [CollectionModule],

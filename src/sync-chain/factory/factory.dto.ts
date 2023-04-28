@@ -5,7 +5,6 @@ import { ContractType } from './factory.entity';
 
 registerEnumType(ContractType, { name: 'ContractType' });
 
-
 @ObjectType('Factory')
 export class Factory {
     @ApiProperty()

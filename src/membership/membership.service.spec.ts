@@ -81,6 +81,8 @@ describe('MembershipService', () => {
         it('should return a membership', async () => {
             const result = await service.getMembership(membership.id);
             expect(result.id).toEqual(membership.id);
+            expect(result.user.id).toEqual(user.id);
+            expect(result.organization.id).toEqual(organization.id);
         });
     });
 
