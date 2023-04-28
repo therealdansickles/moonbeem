@@ -65,4 +65,24 @@ describe.only('MintSaleContractService', () => {
             expect(result.id).toEqual(contract.id);
         });
     });
+    describe('MerkleTree', () => {
+        const amount = faker.random.numeric(3);
+        const address = faker.finance.ethereumAddress();
+        let merkleRoot = '';
+        it('should create merkle tree', async () => {
+            const result = await service.createMerkleRoot({
+                data: [{ address: address, amount: amount }],
+            });
+            merkleRoot = result.merkleRoot;
+            expect(result.merkleRoot).toBeDefined();
+        });
+        it('should get merkle proof', async () => {
+            const result = await service.getMerkleProof(address, merkleRoot);
+
+            expect(result).toBeDefined();
+            expect(result.address.toLowerCase()).toBe(address.toLowerCase());
+            expect(result.amount).toBe(amount);
+            expect(result.proof).toBeDefined();
+        });
+    });
 });

@@ -1,6 +1,7 @@
-import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { ObjectType, Field, ID, InputType } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsDateString, IsNumber, IsBoolean } from 'class-validator';
+import { IsString, IsDateString, IsNumber, IsBoolean, IsNumberString, IsObject, IsArray } from 'class-validator';
+import { OrganizationInput } from '../../organization/organization.dto';
 
 @ObjectType('MintSaleContract')
 export class MintSaleContract {
@@ -113,4 +114,69 @@ export class MintSaleContract {
     @IsDateString()
     @Field({ description: 'The DateTime that this contract was last updated.' })
     readonly updatedAt: Date;
+}
+
+@InputType('CreateMerkleRootInput')
+export class CreateMerkleRootInput {
+    @ApiProperty()
+    @IsArray()
+    @Field((type) => [CreateMerkleRootData], { description: 'Create data for merkle.' })
+    readonly data: CreateMerkleRootData[];
+
+    @ApiProperty()
+    @IsObject()
+    @Field((type) => OrganizationInput, {
+        nullable: true,
+        description: 'MerkleRoot association to collection.',
+    })
+    readonly organization?: OrganizationInput;
+}
+
+@InputType('CreateMerkleRootData')
+export class CreateMerkleRootData {
+    @ApiProperty()
+    @IsString()
+    @Field({ description: 'Address added to merekleTree' })
+    readonly address: string;
+
+    @ApiProperty()
+    @IsNumberString()
+    @Field({ description: 'Amount available, using string, the metkleTree can be expanded to erc20 tokens' })
+    readonly amount: string;
+}
+
+@ObjectType()
+export class CreateMerkleRootOutput {
+    @ApiProperty()
+    @IsBoolean()
+    @Field({ description: 'Status' })
+    success: boolean;
+
+    @ApiProperty()
+    @IsString()
+    @Field({ description: 'MerkleTree' })
+    merkleRoot: string;
+}
+
+@ObjectType()
+export class GetMerkleProofOutput {
+    @ApiProperty()
+    @IsString()
+    @Field({ description: 'User Address' })
+    address: string;
+
+    @ApiProperty()
+    @IsString()
+    @Field({ description: 'Available Amount' })
+    amount: string;
+
+    @ApiProperty()
+    @IsString()
+    @Field((type) => [String], { description: 'Merkle Proof' })
+    proof: string[];
+
+    @ApiProperty()
+    @IsBoolean()
+    @Field({ description: 'Status' })
+    success: boolean;
 }

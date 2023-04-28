@@ -100,4 +100,61 @@ describe.only('MintSaleContractResolver', () => {
                 });
         });
     });
+
+    describe('MetkleTree', () => {
+        const amount = faker.random.numeric(3);
+        const address = faker.finance.ethereumAddress();
+        let merkleRoot = '';
+        it('should create merkle tree', async () => {
+            const query = gql`
+                mutation CreateMerkleRoot($input: CreateMerkleRootInput!) {
+                    createMerkleRoot(input: $input) {
+                        success
+                        merkleRoot
+                    }
+                }
+            `;
+            const variables = {
+                input: {
+                    data: [{ address: address, amount: amount }],
+                },
+            };
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    merkleRoot = body.data.createMerkleRoot.merkleRoot;
+                    expect(body.data.createMerkleRoot.merkleRoot).toBeDefined();
+                });
+        });
+
+        it('should create merkle tree', async () => {
+            const query = gql`
+                query GetMerkleProof($address: String!, $merkleRoot: String!) {
+                    getMerkleProof(address: $address, merkleRoot: $merkleRoot) {
+                        address
+                        amount
+                        proof
+                        success
+                    }
+                }
+            `;
+            const variables = {
+                address: address,
+                merkleRoot: merkleRoot,
+            };
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    const result = body.data.getMerkleProof;
+                    expect(result).toBeDefined();
+                    expect(result.address.toLowerCase()).toBe(address.toLowerCase());
+                    expect(result.amount).toBe(amount);
+                    expect(result.proof).toBeDefined();
+                });
+        });
+    });
 });

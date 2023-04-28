@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ArrayContains, Repository } from 'typeorm';
 import { GraphQLError } from 'graphql';
 import { CreateCollaborationInput } from './collaboration.dto';
 import { Collaboration } from './collaboration.entity';
@@ -52,4 +52,12 @@ export class CollaborationService {
         dd.wallet = data.walletId as unknown as Wallet;
         return await this.collaborationRepository.save(dd);
     }
+
+    // Example: query a nested field
+    // async getCollaborations(id: string) {
+        // const result = await this.collaborationRepository
+        //     .createQueryBuilder('collaboration')
+        //     .where('collaboration.collaborators->>"role" = :role', { role: 'test' })
+        //     .getMany();
+    // }
 }

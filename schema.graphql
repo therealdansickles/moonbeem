@@ -97,6 +97,63 @@ type VUserFollowerListRspDto {
   total: Float!
 }
 
+type Organization {
+  id: ID!
+
+  """The owner of the organization."""
+  owner: User!
+
+  """The unique URL-friendly identifier for a organization."""
+  name: String!
+
+  """The name that we display for the organization."""
+  displayName: String!
+
+  """The type of organization this is. e.g 'personal', 'general'."""
+  kind: Float!
+
+  """The description for the organization."""
+  about: String
+
+  """
+  The image url for the avatar of the organization. This is the profile picture.
+  """
+  avatarUrl: String!
+
+  """The image url for the background of the organization."""
+  backgroundUrl: String
+
+  """The url for the website associated with this organization"""
+  websiteUrl: String
+
+  """The twitter handle associated with this organization, e.g. 'vibe-labs'"""
+  twitter: String
+
+  """
+  The instagram handle associated with this organization, e.g. 'vibe-labs'
+  """
+  instagram: String
+
+  """The discord handle associated with this organization, e.g. 'vibe-labs"""
+  discord: String
+
+  """
+  The DateTime that this organization was created(initially created as a draft).
+  """
+  createdAt: DateTime!
+
+  """The DateTime that this organization was last updated."""
+  updatedAt: DateTime!
+
+  """Returns the collections for the given organization"""
+  collections: [Collection!]!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
 type Collection {
   """The ID for a collection"""
   id: String!
@@ -154,6 +211,9 @@ type Collection {
 
   """The wallet that created the collection."""
   creatorId: String
+
+  """The wallet that created the collection."""
+  organization: Organization
 }
 
 enum CollectionKind {
@@ -162,11 +222,6 @@ enum CollectionKind {
   bulk
   other
 }
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
 
 type Collaboration {
   """The ID of the collaboration."""
@@ -181,8 +236,8 @@ type Collaboration {
   """The address of the collaboration contract."""
   address: String
 
-  """The address of the collaboration factory."""
-  factoryAddress: String
+  """All collaborators of this collaboration"""
+  collaborators: [CollaboratorOutput!]!
 
   """The royalty rate of the collaboration."""
   royaltyRate: Float!
@@ -192,6 +247,40 @@ type Collaboration {
 
   """The updated datetime of the collaboration."""
   updatedAt: DateTime!
+}
+
+type CollaboratorOutput {
+  """The collaborator role of the collaboration."""
+  role: String!
+
+  """The collaborator name of the collaboration."""
+  name: String!
+
+  """The user address of the collaboration."""
+  address: String!
+
+  """The royalty rate of the collaboration."""
+  rate: Int!
+}
+
+type Membership {
+  """The id of the membership."""
+  id: String!
+
+  """The user invited to this membership"""
+  user: User!
+
+  """The organization that this membership is for"""
+  organization: Organization!
+
+  """Whether or not this user can edit."""
+  canEdit: Boolean!
+
+  """Whether or not this user can manage."""
+  canManage: Boolean!
+
+  """Whether or not this user can deploy a collection."""
+  canDeploy: Boolean!
 }
 
 type Tier {
@@ -220,75 +309,6 @@ type Tier {
 
   """A JSON object containing the attributes of the tier."""
   attributes: String!
-}
-
-type Organization {
-  id: ID!
-
-  """The owner of the organization."""
-  owner: User!
-
-  """The unique URL-friendly identifier for a organization."""
-  name: String!
-
-  """The name that we display for the organization."""
-  displayName: String!
-
-  """The type of organization this is. e.g 'personal', 'general'."""
-  kind: Float!
-
-  """The description for the organization."""
-  about: String
-
-  """
-  The image url for the avatar of the organization. This is the profile picture.
-  """
-  avatarUrl: String!
-
-  """The image url for the background of the organization."""
-  backgroundUrl: String
-
-  """The url for the website associated with this organization"""
-  websiteUrl: String
-
-  """The twitter handle associated with this organization, e.g. 'vibe-labs'"""
-  twitter: String
-
-  """
-  The instagram handle associated with this organization, e.g. 'vibe-labs'
-  """
-  instagram: String
-
-  """The discord handle associated with this organization, e.g. 'vibe-labs"""
-  discord: String
-
-  """
-  The DateTime that this organization was created(initially created as a draft).
-  """
-  createdAt: DateTime!
-
-  """The DateTime that this organization was last updated."""
-  updatedAt: DateTime!
-}
-
-type Membership {
-  """The id of the membership."""
-  id: String!
-
-  """The user invited to this membership"""
-  user: User!
-
-  """The organization that this membership is for"""
-  organization: Organization!
-
-  """Whether or not this user can edit."""
-  canEdit: Boolean!
-
-  """Whether or not this user can manage."""
-  canManage: Boolean!
-
-  """Whether or not this user can deploy a collection."""
-  canDeploy: Boolean!
 }
 
 type BasicPriceInfo {
@@ -906,6 +926,28 @@ type MintSaleContract {
   updatedAt: DateTime!
 }
 
+type CreateMerkleRootOutput {
+  """Status"""
+  success: Boolean!
+
+  """MerkleTree"""
+  merkleRoot: String!
+}
+
+type GetMerkleProofOutput {
+  """User Address"""
+  address: String!
+
+  """Available Amount"""
+  amount: String!
+
+  """Merkle Proof"""
+  proof: [String!]!
+
+  """Status"""
+  success: Boolean!
+}
+
 type Record721 {
   id: ID!
 
@@ -978,11 +1020,11 @@ type Query {
   """Returns an organization for the given uuid"""
   organization(id: String!): Organization
 
-  """returns a collaboration for a given uuid"""
-  collaboration(id: String!): Collaboration
-
   """returns a collection for a given uuid"""
   collection(id: String!): Collection
+
+  """returns a collaboration for a given uuid"""
+  collaboration(id: String!): Collaboration
 
   """Get a specific tier by id."""
   tier(id: String!): Tier
@@ -1029,6 +1071,9 @@ type Query {
 
   """returns a contract for a given uuid"""
   mintSaleContract(id: String!): MintSaleContract!
+
+  """Merkle Tree Verify"""
+  getMerkleProof(address: String!, merkleRoot: String!): GetMerkleProofOutput
 
   """returns transaction for a given uuid"""
   transaction(id: String!): MintSaleTransaction!
@@ -1108,9 +1153,6 @@ type Mutation {
   """Transfer an organization to another user."""
   transferOrganization(input: TransferOrganizationInput!): Organization!
 
-  """create a collaboration"""
-  createCollaboration(input: CreateCollaborationInput!): Collaboration!
-
   """creates a collection"""
   createCollection(input: CreateCollectionInput!): Collection!
 
@@ -1123,6 +1165,9 @@ type Mutation {
   """delete a unpublished collection"""
   deleteCollection(input: DeleteCollectionInput!): Boolean!
 
+  """create a collaboration"""
+  createCollaboration(input: CreateCollaborationInput!): Collaboration!
+
   """Create a new tier."""
   createTier(input: CreateTierInput!): Tier!
 
@@ -1133,6 +1178,9 @@ type Mutation {
   deleteTier(input: DeleteTierInput!): Boolean!
   followUserWallet(address: EthereumAddress!, isFollowed: Boolean): Boolean!
   updateAddressInfo(name: String, avatar: String, customUrl: String, description: String, discordLink: String, facebookLink: String, twitterLink: String): Boolean!
+
+  """Create merekleTree"""
+  createMerkleRoot(input: CreateMerkleRootInput!): CreateMerkleRootOutput!
 
   """creates a waitlist item"""
   createWaitlist(input: CreateWaitlistInput!): Waitlist!
@@ -1345,23 +1393,6 @@ input TransferOrganizationInput {
   ownerId: String!
 }
 
-input CreateCollaborationInput {
-  """The address of the collaboration contract."""
-  address: String
-
-  """The address of the collaboration factory."""
-  factoryAddress: String
-
-  """The wallet of the collaboration."""
-  walletId: String!
-
-  """The collection of the collaboration."""
-  collectionId: String!
-
-  """The royalty rate of the collaboration."""
-  royaltyRate: Float!
-}
-
 input CreateCollectionInput {
   """The unique URL-friendly identifier for a collection."""
   name: String!
@@ -1465,6 +1496,37 @@ input DeleteCollectionInput {
   id: String!
 }
 
+input CreateCollaborationInput {
+  """The address of the collaboration contract."""
+  address: String
+
+  """The wallet of the collaboration."""
+  walletId: String!
+
+  """The collection of the collaboration."""
+  collectionId: String!
+
+  """The royalty rate of the collaboration."""
+  royaltyRate: Int!
+
+  """All collaborators of this collaboration."""
+  collaborators: [CollaboratorInput!]!
+}
+
+input CollaboratorInput {
+  """The collaborator role of the collaboration."""
+  role: String!
+
+  """The collaborator name of the collaboration."""
+  name: String!
+
+  """The user address of the collaboration."""
+  address: String!
+
+  """All collaborators of this collaboration."""
+  rate: Int!
+}
+
 input CreateTierInput {
   """The collection associated with this tier."""
   collectionId: String!
@@ -1523,6 +1585,29 @@ input UpdateTierInput {
 
 input DeleteTierInput {
   """The id for a tier."""
+  id: String!
+}
+
+input CreateMerkleRootInput {
+  """Create data for merkle."""
+  data: [CreateMerkleRootData!]!
+
+  """MerkleRoot association to collection."""
+  organization: OrganizationInput
+}
+
+input CreateMerkleRootData {
+  """Address added to merekleTree"""
+  address: String!
+
+  """
+  Amount available, using string, the metkleTree can be expanded to erc20 tokens
+  """
+  amount: String!
+}
+
+input OrganizationInput {
+  """The id of the organization."""
   id: String!
 }
 

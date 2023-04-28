@@ -77,3 +77,19 @@ export class MintSaleContract extends BaseEntity {
     @Exclude()
     updatedAt: Date;
 }
+
+export class MerkleTree {
+    root: string;
+    data: StandardMerkleTreeData<string[]>;
+    organizationId?: string;
+}
+
+export class StandardMerkleTreeData<T extends any[]> {
+    format: 'standard-v1';
+    tree: string[];
+    values: {
+        value: T;
+        treeIndex: number;
+    }[];
+    leafEncoding: string[];
+}

@@ -223,6 +223,14 @@ export class DeleteOrganizationInput {
 }
 
 @InputType()
+export class OrganizationInput {
+    @ApiProperty()
+    @IsString()
+    @Field({ description: 'The id of the organization.' })
+    readonly id: string;
+}
+
+@InputType()
 export class TransferOrganizationInput {
     @ApiProperty()
     @IsString()

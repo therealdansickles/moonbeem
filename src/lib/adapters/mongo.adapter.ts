@@ -5,10 +5,10 @@ export class MongoAdapter {
     public db: Db;
 
     constructor() {
-        this.getPGConnection();
+        this.getMongoConnection();
     }
 
-    private async getPGConnection() {
+    private async getMongoConnection() {
         const client = new MongoClient(mongoConfig.url);
         await client.connect();
         this.db = client.db(mongoConfig.db);

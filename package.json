@@ -36,6 +36,7 @@
     "@nestjs/swagger": "^6.1.4",
     "@nestjs/typeorm": "^9.0.1",
     "@nextnm/nestjs-mailgun": "^3.0.0",
+    "@openzeppelin/merkle-tree": "^1.0.4",
     "@sentry/node": "^7.47.0",
     "@uploadcare/upload-client": "^6.2.1",
     "apollo-server-express": "^3.11.1",

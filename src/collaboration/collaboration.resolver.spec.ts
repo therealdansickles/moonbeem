@@ -85,6 +85,10 @@ describe('CollaborationResolver', () => {
                     createCollaboration(input: $input) {
                         id
                         royaltyRate
+                        collaborators {
+                            name
+                            role
+                        }
                     }
                 }
             `;
@@ -94,6 +98,14 @@ describe('CollaborationResolver', () => {
                     walletId: wallet.id,
                     collectionId: collection.id,
                     royaltyRate: 9,
+                    collaborators: [
+                        {
+                            address: faker.finance.ethereumAddress(),
+                            role: faker.finance.accountName(),
+                            name: faker.finance.accountName(),
+                            rate: parseInt(faker.random.numeric(2)),
+                        },
+                    ],
                 },
             };
 

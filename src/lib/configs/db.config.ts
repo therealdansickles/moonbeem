@@ -28,5 +28,5 @@ export const postgresConfig = {
 
 export const mongoConfig = {
     url: process.env.MONGO_URL,
-    db: process.env.MONGO_DATABASE || 'keystone',
+    db: process.env.MONGO_DATABASE || 'platform',
 };

@@ -21,9 +21,6 @@ export class Collaboration extends BaseEntity {
     @Column({ nullable: true, length: 64, unique: true, comment: 'The Ethereum address' })
     address?: string;
 
-    @Column({ nullable: true, length: 64 })
-    factoryAddress?: string;
-
     @Column({ default: 100, comment: 'The royalty rate in percentage.' })
     royaltyRate: number;
 
@@ -35,9 +32,19 @@ export class Collaboration extends BaseEntity {
     @JoinColumn()
     wallet: Wallet;
 
+    @Column({ comment: 'All collaborators of this collaboration', type: 'jsonb' })
+    collaborators?: Collaborator[];
+
     @CreateDateColumn()
     createdAt: Date;
 
     @UpdateDateColumn()
     updatedAt: Date;
+}
+
+export class Collaborator{
+    role: string;
+    name: string;
+    address: string;
+    rate: number;
 }
