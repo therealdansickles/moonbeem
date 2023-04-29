@@ -21,6 +21,16 @@ export class CollectionService {
     }
 
     /**
+     * Retrieves the collection associated with the given address.
+     *
+     * @param address The address of the collection to retrieve.
+     * @returns The collection associated with the given address.
+     */
+    async getCollectionByAddress(address: string): Promise<Collection | null> {
+        return this.collectionRepository.findOne({ where: { address }, relations: ['organization'] });
+    }
+
+    /**
      * Retrieves the collection associated with the given organization.
      *
      * @param organizationId The id of the organization to retrieve.
@@ -29,18 +39,6 @@ export class CollectionService {
     async getCollectionsByOrganizationId(organizationId: string): Promise<Collection[]> {
         return this.collectionRepository.find({ where: { organization: { id: organizationId } } });
     }
-
-    /**
-     * Retrieves the collection associated with the given name.
-     *
-     * @param name The name of the collection to retrieve.
-     * @returns The collection associated with the given name.
-     */
-    //async getCollectionByName(name: string): Promise<Collection | null> {
-    //return this.prisma.collection.findUnique({
-    //where: { name },
-    //});
-    //}
 
     /**
      * Creates a new collection with the given data.
@@ -73,20 +71,6 @@ export class CollectionService {
         const result: UpdateResult = await this.collectionRepository.update(id, { publishedAt: new Date() });
         return result.affected > 0;
     }
-
-    /**
-     * Transfers the ownership of a collection to the given user id.
-     *
-     * @param id The id of the collection to transfer.
-     * @param ownerId The id of the user to transfer the collection to.
-     * @returns The collection that was transferred.
-     */
-    //async transferCollection(id: string, ownerId: string): Promise<Collection> {
-    //return this.prisma.collection.update({
-    //data: { ownerId },
-    //where: { id },
-    //});
-    //}
 
     /**
      * TODO: Fix this and make it a soft deletion.

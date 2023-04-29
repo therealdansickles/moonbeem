@@ -42,7 +42,7 @@ export class Collaboration extends BaseEntity {
     updatedAt: Date;
 }
 
-export class Collaborator{
+export class Collaborator {
     role: string;
     name: string;
     address: string;

@@ -106,8 +106,7 @@ export class Collection {
     readonly creatorId?: string;
 
     @ApiProperty()
-    @IsString()
-    @Field(() => Organization, { description: 'The wallet that created the collection.', nullable: true })
+    @Field(() => Organization, { description: 'The organization that owns the collection.', nullable: true })
     readonly organization: Organization;
 }
 

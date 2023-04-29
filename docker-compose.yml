@@ -44,8 +44,13 @@ services:
       POSTGRES_PORT: 5432
   redis:
     image: redis:latest
+    container_name: redis
+    restart: always
+    command: redis-server --save 20 1 --loglevel warning --requirepass ${REDIS_PASSWORD}
     ports:
       - 6379:6379
+    environment:
+      REDIS_PASSWORD: redis
   mongo:
     image: mongo:latest
     container_name: mongo

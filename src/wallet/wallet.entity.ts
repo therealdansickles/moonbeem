@@ -13,7 +13,6 @@ import {
 import { Collection } from '../collection/collection.entity';
 import { User } from '../user/user.entity';
 import { Collaboration } from '../collaboration/collaboration.entity';
-import { Field } from '@nestjs/graphql';
 
 @Entity({ name: 'Wallet' })
 export class Wallet extends BaseEntity {
@@ -31,7 +30,6 @@ export class Wallet extends BaseEntity {
 
     // "The entity that owns the wallet. This can be reset by binding / unbinding. * The default uuid(blackhole) is for all unbound wallets. * the entity currently is a user. But this can change to an organization. * that's why there isn't a set relation here",
     @ManyToOne(() => User, (user) => user.wallets, { createForeignKeyConstraints: false })
-    @Field(() => User, { nullable: true })
     owner?: User;
 
     @CreateDateColumn()

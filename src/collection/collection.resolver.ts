@@ -15,8 +15,11 @@ export class CollectionResolver {
 
     @Public()
     @Query(() => Collection, { description: 'returns a collection for a given uuid', nullable: true })
-    async collection(@Args('id') id: string): Promise<Collection> {
-        return this.collectionService.getCollection(id);
+    async collection(
+        @Args({ name: 'id', nullable: true }) id: string,
+        @Args({ name: 'address', nullable: true }) address: string
+    ): Promise<Collection> {
+        return id ? this.collectionService.getCollection(id) : this.collectionService.getCollectionByAddress(address);
     }
 
     @Mutation(() => Collection, { description: 'creates a collection' })

@@ -17,7 +17,7 @@ export class Wallet {
 
     @ApiProperty()
     @IsObject()
-    @Field({ description: 'The owner of the wallet.', nullable: true })
+    @Field(() => User, { description: 'The owner of the wallet.', nullable: true })
     readonly owner?: User;
 }
 

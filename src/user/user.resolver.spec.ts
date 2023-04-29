@@ -67,6 +67,16 @@ describe('UserResolver', () => {
                     user(id: $id) {
                         id
                         email
+                        avatarUrl
+                        backgroundUrl
+                        websiteUrl
+                        twitter
+                        instagram
+                        discord
+
+                        wallets {
+                            id
+                        }
                     }
                 }
             `;
@@ -81,6 +91,14 @@ describe('UserResolver', () => {
                 .expect(({ body }) => {
                     expect(body.data.user.id).toEqual(user.id);
                     expect(body.data.user.email).toEqual(user.email);
+                    expect(body.data.user.avatarUrl).toBeDefined();
+                    expect(body.data.user.avatarUrl).toBeDefined();
+                    expect(body.data.user.backgroundUrl).toBeDefined();
+                    expect(body.data.user.websiteUrl).toBeDefined();
+                    expect(body.data.user.twitter).toBeDefined();
+                    expect(body.data.user.instagram).toBeDefined();
+                    expect(body.data.user.discord).toBeDefined();
+                    expect(body.data.user.wallets).toBeDefined();
                 });
         });
     });

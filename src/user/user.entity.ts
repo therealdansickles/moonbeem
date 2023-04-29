@@ -33,7 +33,25 @@ export class User extends BaseEntity {
     @Column({ nullable: true, comment: "The URL pointing to the user's avatar." })
     avatarUrl?: string;
 
-    @OneToMany(() => Wallet, (wallet) => wallet.owner)
+    @Column({ nullable: true, comment: 'The description for the user.' })
+    about?: string;
+
+    @Column({ nullable: true, comment: "The URL pointing to the user's background." })
+    backgroundUrl?: string;
+
+    @Column({ nullable: true, comment: "The url of the user's website." })
+    websiteUrl?: string;
+
+    @Column({ nullable: true, comment: 'The twitter handle for the user.' })
+    twitter?: string;
+
+    @Column({ nullable: true, comment: 'The instagram handle for the user.' })
+    instagram?: string;
+
+    @Column({ nullable: true, comment: 'The discord handle for the user.' })
+    discord?: string;
+
+    @OneToMany(() => Wallet, (wallet) => wallet.owner, { eager: true })
     wallets: Wallet[];
 
     @OneToMany(() => Membership, (membership) => membership.user, { lazy: true })

@@ -120,6 +120,62 @@ describe('CollectionResolver', () => {
                     expect(body.data.collection.organization.name).toEqual(organization.name);
                 });
         });
+
+        it('should get a collection by address', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const collection = await service.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+            });
+
+            const query = gql`
+                query GetCollection($address: String!) {
+                    collection(address: $address) {
+                        name
+                        displayName
+                        kind
+
+                        organization {
+                            name
+                        }
+                    }
+                }
+            `;
+
+            const variables = { address: collection.address };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.collection.name).toEqual(collection.name);
+                    expect(body.data.collection.displayName).toEqual(collection.displayName);
+                    expect(body.data.collection.organization.name).toEqual(organization.name);
+                });
+        });
     });
 
     describe('createCollection', () => {

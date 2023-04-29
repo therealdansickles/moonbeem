@@ -55,9 +55,9 @@ export class CollaborationService {
 
     // Example: query a nested field
     // async getCollaborations(id: string) {
-        // const result = await this.collaborationRepository
-        //     .createQueryBuilder('collaboration')
-        //     .where('collaboration.collaborators->>"role" = :role', { role: 'test' })
-        //     .getMany();
+    // const result = await this.collaborationRepository
+    //     .createQueryBuilder('collaboration')
+    //     .where('collaboration.collaborators->>"role" = :role', { role: 'test' })
+    //     .getMany();
     // }
 }
