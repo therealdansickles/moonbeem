@@ -15,7 +15,7 @@ import { MailModule } from '../mail/mail.module';
         TypeOrmModule.forFeature([Membership, Organization, User]),
         forwardRef(() => OrganizationModule),
         forwardRef(() => UserModule),
-        MailModule,
+        forwardRef(() => MailModule),
     ],
     exports: [MembershipModule],
     providers: [MembershipService, MembershipResolver, OrganizationService],

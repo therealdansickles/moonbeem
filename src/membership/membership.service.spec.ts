@@ -86,6 +86,16 @@ describe('MembershipService', () => {
         });
     });
 
+    describe('getMembershipsByOrganizationId', () => {
+        it('should return memberships', async () => {
+            const result = await service.getMembershipsByOrganizationId(organization.id);
+            expect(result.length).toEqual(1);
+            expect(result[0].id).toEqual(membership.id);
+            expect(result[0].user.id).toEqual(user.id);
+            expect(result[0].organization.id).toEqual(organization.id);
+        });
+    });
+
     describe('createMembership', () => {
         it('should create a membership', async () => {
             const newUser = await userService.createUser({

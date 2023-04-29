@@ -10,12 +10,15 @@ import {
 import { OrganizationService } from './organization.service';
 import { Collection } from '../collection/collection.dto';
 import { CollectionService } from '../collection/collection.service';
+import { Membership } from '../membership/membership.dto';
+import { MembershipService } from '../membership/membership.service';
 
 @Resolver(() => Organization)
 export class OrganizationResolver {
     constructor(
         private readonly organizationService: OrganizationService,
-        private readonly collectionService: CollectionService
+        private readonly collectionService: CollectionService,
+        private readonly membershipService: MembershipService
     ) {}
 
     @Public()
@@ -54,5 +57,11 @@ export class OrganizationResolver {
     @ResolveField(() => [Collection], { description: 'Returns the collections for the given organization' })
     async collections(@Parent() organization: Organization): Promise<Collection[]> {
         return await this.collectionService.getCollectionsByOrganizationId(organization.id);
+    }
+
+    @Public()
+    @ResolveField(() => [Membership], { description: 'Returns the members for the given organization' })
+    async memberships(@Parent() organization: Organization): Promise<Membership[]> {
+        return await this.membershipService.getMembershipsByOrganizationId(organization.id);
     }
 }
