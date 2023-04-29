@@ -55,7 +55,7 @@ describe('WalletService', () => {
         it('should return a wallet by address', async () => {
             const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
             const result = await service.getWalletByAddress(wallet.address);
-            expect(result.address).toEqual(wallet.address);
+            expect(result.address).toEqual(wallet.address.toLowerCase());
         });
     });
 
@@ -64,13 +64,13 @@ describe('WalletService', () => {
             const walletAddress = faker.finance.ethereumAddress();
             const result = await service.createWallet({ address: walletAddress });
             expect(result.id).toBeDefined();
-            expect(result.address).toEqual(walletAddress);
+            expect(result.address).toEqual(walletAddress.toLowerCase());
         });
 
         it('should error if the wallet already exists', async () => {
-            const wallet = await service.createWallet({ address: address });
+            const wallet = await service.createWallet({ address });
             expect(async () => {
-                await service.createWallet({ address: address });
+                await service.createWallet({ address });
             });
         });
     });
@@ -94,8 +94,8 @@ describe('WalletService', () => {
             signature = await wallet.signMessage(message);
 
             ownerId = owner.id;
-            const unboundWallet = await service.createWallet({ address: wallet.address });
-            eipAddress = unboundWallet.address;
+            const unboundWallet = await service.createWallet({ address: wallet.address.toLowerCase() });
+            eipAddress = unboundWallet.address.toLowerCase();
         });
 
         it.skip('should handle an EIP-3770 address', async () => {
@@ -133,7 +133,7 @@ describe('WalletService', () => {
             wallet = ethers.Wallet.createRandom();
             message = 'Hi from tests!';
             signature = await wallet.signMessage(message);
-            address = wallet.address;
+            address = wallet.address.toLowerCase();
 
             boundWallet = await service.createWallet({ address });
         });
@@ -148,7 +148,7 @@ describe('WalletService', () => {
             const data = { address, owner: { id: boundWallet.owner.id } };
             const result = await service.unbindWallet(data);
             expect(result.owner).not.toEqual(boundWallet.owner);
-            expect(result.address).toEqual(boundWallet.address);
+            expect(result.address).toEqual(boundWallet.address.toLowerCase());
             // expect(result.chainId).toEqual(boundWallet.chainId);
         });
 
@@ -156,7 +156,7 @@ describe('WalletService', () => {
             const data = { address, owner: { id: boundWallet.owner.id } };
             const result = await service.unbindWallet(data);
             expect(result.owner.id).not.toEqual(boundWallet.owner);
-            expect(result.address).toEqual(address);
+            expect(result.address).toEqual(address.toLowerCase());
             // expect(result.chainId).toEqual(42161);
         });
 

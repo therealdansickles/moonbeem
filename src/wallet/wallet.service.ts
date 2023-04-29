@@ -13,7 +13,7 @@ export class WalletService {
     constructor(
         @InjectRepository(Wallet) private walletRespository: Repository<Wallet>,
         @InjectRepository(User) private userRepository: Repository<User>
-    ) {}
+    ) { }
 
     /**
      * This is the uuid for the ownerId for all unbound wallets, e.g the blackhole.
@@ -52,7 +52,7 @@ export class WalletService {
      * @returns The wallet associated with the given address.
      */
     async getWalletByAddress(address: string): Promise<Wallet> {
-        return this.walletRespository.findOneBy({ address });
+        return this.walletRespository.findOneBy({ address: address.toLowerCase() });
     }
 
     /**
@@ -71,7 +71,7 @@ export class WalletService {
 
             return this.walletRespository.save({
                 owner: owner,
-                address: input.address,
+                address: input.address.toLowerCase(),
             });
         } catch (e) {
             throw new GraphQLError(e.message);
@@ -94,7 +94,7 @@ export class WalletService {
         }
 
         const wallet = await this.walletRespository.findOne({
-            where: { address },
+            where: { address: address.toLowerCase() },
             relations: ['owner'],
         });
         if (!wallet) throw new Error("Wallet doesn't exist.");
@@ -116,7 +116,7 @@ export class WalletService {
     async unbindWallet(data: UnbindWalletInput): Promise<Wallet> {
         const { address } = data;
         let wallet = await this.walletRespository.findOne({
-            where: { address },
+            where: { address: address.toLowerCase() },
             relations: ['owner'],
         });
         if (!wallet) {
