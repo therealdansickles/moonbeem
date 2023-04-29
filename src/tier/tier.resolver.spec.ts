@@ -72,7 +72,7 @@ describe('TierResolver', () => {
             });
             tier = await service.createTier({
                 name: faker.company.name(),
-                collectionId: collection.id,
+                collection: { id: collection.id },
                 totalMints: 10,
             });
 
@@ -96,6 +96,56 @@ describe('TierResolver', () => {
                 .expect(({ body }) => {
                     expect(body.data.tier.id).toBe(tier.id);
                     expect(body.data.tier.name).toBe(tier.name);
+                });
+        });
+    });
+
+    describe('tiers', () => {
+        it('should return tiers by collection id', async () => {
+            collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+            });
+            await service.createTier({
+                name: faker.company.name(),
+                collection: { id: collection.id },
+                totalMints: 10,
+            });
+
+            await service.createTier({
+                name: faker.company.name(),
+                collection: { id: collection.id },
+                totalMints: 10,
+            });
+
+            const query = gql`
+                query getTiersByCollection($collectionId: String!) {
+                    tiers(collectionId: $collectionId) {
+                        id
+                        name
+                        collection {
+                            id
+                            name
+                        }
+                    }
+                }
+            `;
+
+            const variables = {
+                collectionId: collection.id,
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.tiers.length).toBe(2);
                 });
         });
     });

@@ -1,7 +1,8 @@
 import { ArgsType, Field, Int, ObjectType, InputType, ID } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString, IsDateString, IsUrl, ValidateIf } from 'class-validator';
+import { IsNumber, IsString, IsDateString, IsUrl, ValidateIf, IsObject, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
+import { Collection, CollectionInput } from '../collection/collection.dto';
 
 export class Attribute {
     display_type?: string;
@@ -27,13 +28,18 @@ export class Tier {
     readonly name: string;
 
     @ApiProperty()
+    @Field(() => Collection, { description: 'The collection associated with this tier.' })
+    readonly collection: Collection;
+
+    @ApiProperty()
     @IsString()
-    @Field({ description: 'The description of the tier.' })
+    @Field({ description: 'The description of the tier.', nullable: true })
     readonly description?: string;
 
     @ApiProperty()
     @IsString()
-    @Field({ description: 'This is the URL to the image of the tier.' })
+    @Field({ description: 'This is the URL to the image of the tier.', nullable: true })
+    @IsOptional()
     readonly image?: string;
 
     @ApiProperty()
@@ -41,26 +47,30 @@ export class Tier {
     @Field({
         description:
             "This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.",
+        nullable: true,
     })
+    @IsOptional()
     readonly externalUrl?: string;
 
     @ApiProperty()
     @IsString()
-    @Field({ description: 'This is the URL to the animation of the tier.' })
+    @Field({ description: 'This is the URL to the animation of the tier.', nullable: true })
+    @IsOptional()
     readonly animationUrl?: string;
 
     @ApiProperty()
     @IsString()
-    @Field({ description: 'A JSON object containing the attributes of the tier.' })
+    @Field({ description: 'A JSON object containing the attributes of the tier.', nullable: true })
+    @IsOptional()
     readonly attributes?: string;
 }
 
 @InputType()
 export class CreateTierInput {
     @ApiProperty()
-    @IsString()
-    @Field({ description: 'The collection associated with this tier.' })
-    readonly collectionId: string;
+    @IsObject()
+    @Field(() => CollectionInput, { description: 'The collection associated with this tier.' })
+    readonly collection: CollectionInput;
 
     @ApiProperty()
     @IsNumber()
@@ -75,11 +85,13 @@ export class CreateTierInput {
     @ApiProperty()
     @IsString()
     @Field({ nullable: true, description: 'The description of the tier.' })
+    @IsOptional()
     readonly description?: string;
 
     @ApiProperty()
     @IsString()
     @Field({ nullable: true, description: 'This is the URL to the image of the tier.' })
+    @IsOptional()
     readonly image?: string;
 
     @ApiProperty()
@@ -89,16 +101,19 @@ export class CreateTierInput {
         description:
             "This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.",
     })
+    @IsOptional()
     readonly externalUrl?: string;
 
     @ApiProperty()
     @IsString()
     @Field({ nullable: true, description: 'This is the URL to the animation of the tier.' })
+    @IsOptional()
     readonly animationUrl?: string;
 
     @ApiProperty()
     @IsString()
     @Field({ nullable: true, description: 'A JSON object containing the attributes of the tier.' })
+    @IsOptional()
     readonly attributes?: string;
 }
 
@@ -122,11 +137,13 @@ export class UpdateTierInput {
     @ApiProperty()
     @IsString()
     @Field({ nullable: true, description: 'The description of the tier.' })
+    @IsOptional()
     readonly description?: string;
 
     @ApiProperty()
     @IsString()
     @Field({ nullable: true, description: 'This is the URL to the image of the tier.' })
+    @IsOptional()
     readonly image?: string;
 
     @ApiProperty()
@@ -136,16 +153,19 @@ export class UpdateTierInput {
         description:
             "This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.",
     })
+    @IsOptional()
     readonly externalUrl?: string;
 
     @ApiProperty()
     @IsString()
     @Field({ nullable: true, description: 'This is the URL to the animation of the tier.' })
+    @IsOptional()
     readonly animationUrl?: string;
 
     @ApiProperty()
     @IsString()
     @Field({ nullable: true, description: 'A JSON object containing the attributes of the tier.' })
+    @IsOptional()
     readonly attributes?: string;
 }
 

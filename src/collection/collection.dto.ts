@@ -1,8 +1,9 @@
-import { ArgsType, Field, Int, ObjectType, InputType, registerEnumType } from '@nestjs/graphql';
+import { ArgsType, Field, Int, ObjectType, InputType, registerEnumType, ID } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString, IsDateString, IsUrl, ValidateIf, IsOptional } from 'class-validator';
+import { IsNumber, IsString, IsDateString, IsUrl, ValidateIf, IsOptional, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CollectionKind } from './collection.entity';
+import { Tier } from '../tier/tier.dto';
 import { Organization } from '../organization/organization.dto';
 
 registerEnumType(CollectionKind, { name: 'CollectionKind' });
@@ -84,6 +85,11 @@ export class Collection {
     @IsString()
     @Field((type) => [String], { description: 'The tags associated with this organization.', nullable: true })
     readonly tags: string[];
+
+    @ApiProperty()
+    @Field((type) => [Tier], { description: 'The collection tiers', nullable: true })
+    @IsArray()
+    readonly tiers: Tier[];
 
     @ApiProperty()
     @IsDateString()
@@ -295,4 +301,12 @@ export class DeleteCollectionInput {
     @IsString()
     @Field({ description: 'The id for a collection.' })
     readonly id: string;
+}
+
+@InputType('CollectionInput')
+export class CollectionInput {
+    @ApiProperty()
+    @IsString()
+    @Field((returns) => ID!)
+    id: string;
 }

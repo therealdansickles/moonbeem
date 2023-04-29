@@ -115,6 +115,37 @@ type VUserFollowerListRspDto {
   total: Float!
 }
 
+type Tier {
+  """The id of the tier."""
+  id: String!
+
+  """The total number of mints for this tier."""
+  totalMints: Float!
+
+  """The name of the tier."""
+  name: String!
+
+  """The collection associated with this tier."""
+  collection: Collection!
+
+  """The description of the tier."""
+  description: String
+
+  """This is the URL to the image of the tier."""
+  image: String
+
+  """
+  This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.
+  """
+  externalUrl: String
+
+  """This is the URL to the animation of the tier."""
+  animationUrl: String
+
+  """A JSON object containing the attributes of the tier."""
+  attributes: String
+}
+
 type Organization {
   id: ID!
 
@@ -216,6 +247,9 @@ type Collection {
   """The tags associated with this organization."""
   tags: [String!]
 
+  """The collection tiers"""
+  tiers: [Tier!]
+
   """The DateTime that this collection was published."""
   publishedAt: DateTime
 
@@ -299,34 +333,6 @@ type Membership {
 
   """Whether or not this user can deploy a collection."""
   canDeploy: Boolean!
-}
-
-type Tier {
-  """The id of the tier."""
-  id: String!
-
-  """The total number of mints for this tier."""
-  totalMints: Float!
-
-  """The name of the tier."""
-  name: String!
-
-  """The description of the tier."""
-  description: String!
-
-  """This is the URL to the image of the tier."""
-  image: String!
-
-  """
-  This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.
-  """
-  externalUrl: String!
-
-  """This is the URL to the animation of the tier."""
-  animationUrl: String!
-
-  """A JSON object containing the attributes of the tier."""
-  attributes: String!
 }
 
 type BasicPriceInfo {
@@ -1046,6 +1052,9 @@ type Query {
 
   """Get a specific tier by id."""
   tier(id: String!): Tier
+
+  """Get tiers by collection id"""
+  tiers(collectionId: String!): [Tier!]
   getAddressInfo(address: EthereumAddress!): VUserWalletInfo!
   getUserFollowingList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowingListRspDto!
   getUserFollowerList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowerListRspDto!
@@ -1561,7 +1570,7 @@ input CollaboratorInput {
 
 input CreateTierInput {
   """The collection associated with this tier."""
-  collectionId: String!
+  collection: CollectionInput!
 
   """The total number of mints for this tier."""
   totalMints: Float!
@@ -1585,6 +1594,10 @@ input CreateTierInput {
 
   """A JSON object containing the attributes of the tier."""
   attributes: String
+}
+
+input CollectionInput {
+  id: ID!
 }
 
 input UpdateTierInput {

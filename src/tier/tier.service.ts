@@ -24,6 +24,20 @@ export class TierService {
     }
 
     /**
+     * Get the tiers belonging to a specific collection
+     *
+     * @param collectionId The id of the collection
+     * @returns Array of tiers
+     */
+    async getTiersByCollection(collectionId: string): Promise<Tier[]> {
+        const tiers = await this.tierRepository.find({
+            where: { collection: { id: collectionId } },
+            relations: { collection: true },
+        });
+        return tiers;
+    }
+
+    /**
      * Create a new tier.
      *
      * @param data The data for the new tier.
@@ -31,7 +45,7 @@ export class TierService {
      */
     async createTier(data: CreateTierInput): Promise<Tier> {
         const dd = data as unknown as Tier;
-        dd.collection = data.collectionId as unknown as Collection;
+        dd.collection = data.collection as unknown as Collection;
         return await this.tierRepository.save(dd);
     }
 

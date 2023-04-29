@@ -10,12 +10,15 @@ import { CollectionModule } from './collection.module';
 import { Organization } from '../organization/organization.entity';
 import { OrganizationService } from '../organization/organization.service';
 import { UserService } from '../user/user.service';
+import { TierService } from '../tier/tier.service';
+import { TierModule } from '../tier/tier.module';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
     let service: CollectionService;
     let organizationService: OrganizationService;
     let userService: UserService;
+    let tierService: TierService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -35,6 +38,7 @@ describe('CollectionService', () => {
         service = module.get<CollectionService>(CollectionService);
         organizationService = module.get<OrganizationService>(OrganizationService);
         userService = module.get<UserService>(UserService);
+        tierService = module.get<TierService>(TierService);
     });
 
     afterAll(async () => {
@@ -73,6 +77,54 @@ describe('CollectionService', () => {
             const result = await service.getCollection(collection.id);
             expect(result.id).not.toBeNull();
             expect(result.organization.name).not.toBeNull();
+        });
+
+        it('should get a collection by id with tiers', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const collection = await repository.save({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+            });
+
+            await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+            });
+
+            await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 200,
+                collection: { id: collection.id },
+            });
+
+            const result = await service.getCollection(collection.id);
+            expect(result.id).not.toBeNull();
+            expect(result.organization.name).not.toBeNull();
+            expect(result.tiers).not.toBeNull();
+            expect(result.tiers.some((tier) => tier.totalMints === 200)).toBeTruthy();
         });
     });
 
@@ -143,6 +195,54 @@ describe('CollectionService', () => {
             const result = await service.getCollectionsByOrganizationId(organization.id);
             expect(result[0].id).not.toBeNull();
             expect(result[0].organization.name).not.toBeNull();
+        });
+
+        it('should get collections by organization with tiers', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const collection = await repository.save({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+            });
+
+            await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+            });
+
+            await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 200,
+                collection: { id: collection.id },
+            });
+
+            const result = await service.getCollectionsByOrganizationId(organization.id);
+            expect(result[0].id).not.toBeNull();
+            expect(result[0].organization.name).not.toBeNull();
+            expect(result[0].tiers).not.toBeNull();
+            expect(result[0].tiers.some((tier) => tier.totalMints === 200)).toBeTruthy();
         });
     });
 

@@ -14,6 +14,11 @@ export class TierResolver {
         return await this.tierService.getTier(id);
     }
 
+    @Query(() => [Tier], { description: 'Get tiers by collection id', nullable: true })
+    async tiers(@Args('collectionId') collectionId: string): Promise<Tier[]> {
+        return await this.tierService.getTiersByCollection(collectionId);
+    }
+
     @Public()
     @Mutation(() => Tier, { description: 'Create a new tier.' })
     async createTier(@Args('input') input: CreateTierInput): Promise<Tier> {

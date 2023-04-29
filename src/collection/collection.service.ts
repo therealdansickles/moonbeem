@@ -17,7 +17,7 @@ export class CollectionService {
      * @returns The collection associated with the given id.
      */
     async getCollection(id: string): Promise<Collection | null> {
-        return this.collectionRepository.findOne({ where: { id }, relations: ['organization'] });
+        return this.collectionRepository.findOne({ where: { id }, relations: ['organization', 'tiers'] });
     }
 
     /**
@@ -37,7 +37,10 @@ export class CollectionService {
      * @returns The collection associated with the given organization.
      */
     async getCollectionsByOrganizationId(organizationId: string): Promise<Collection[]> {
-        return this.collectionRepository.find({ where: { organization: { id: organizationId } } });
+        return this.collectionRepository.find({
+            where: { organization: { id: organizationId } },
+            relations: ['organization', 'tiers'],
+        });
     }
 
     /**

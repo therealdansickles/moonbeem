@@ -59,10 +59,42 @@ describe('TierService', () => {
             tier = await service.createTier({
                 name: faker.company.name(),
                 totalMints: 100,
-                collectionId: collection.id,
+                collection: { id: collection.id },
             });
 
             expect(tier).toBeDefined();
+        });
+    });
+
+    describe('getTiersByCollection', () => {
+        it('should get tiers based on collection id', async () => {
+            collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+            });
+
+            await service.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+            });
+
+            await service.createTier({
+                name: faker.company.name(),
+                totalMints: 200,
+                collection: { id: collection.id },
+            });
+
+            const result = await service.getTiersByCollection(collection.id);
+            expect(result.length).toBe(2);
+
+            const specificTier = result.find((tier) => tier.totalMints === 200);
+            expect(specificTier).toBeDefined();
         });
     });
 
@@ -81,7 +113,7 @@ describe('TierService', () => {
             tier = await service.createTier({
                 name: faker.company.name(),
                 totalMints: 100,
-                collectionId: collection.id,
+                collection: { id: collection.id },
             });
 
             let result = await service.updateTier(tier.id, {
@@ -107,7 +139,7 @@ describe('TierService', () => {
             tier = await service.createTier({
                 name: faker.company.name(),
                 totalMints: 100,
-                collectionId: collection.id,
+                collection: { id: collection.id },
             });
 
             let result = await service.deleteTier(tier.id);
