@@ -15,6 +15,17 @@ type FactoryConfigRspDto {
   total: Int!
 }
 
+type Wallet {
+  """The id for a wallet."""
+  id: ID!
+
+  """The address for a wallet."""
+  address: String!
+
+  """The owner of the wallet."""
+  owner: User
+}
+
 type User {
   id: ID!
 
@@ -32,17 +43,24 @@ type User {
 
   """The avatarUrl of the user."""
   avatarUrl: String
-}
 
-type Wallet {
-  """The id for a wallet."""
-  id: ID!
+  """The URL pointing to the user's background."""
+  backgroundUrl: String
 
-  """The address for a wallet."""
-  address: String!
+  """The url of the user's website."""
+  websiteUrl: String
 
-  """The owner of the wallet."""
-  owner: User
+  """The twitter handle for the user."""
+  twitter: String
+
+  """The instagram handle for the user."""
+  instagram: String
+
+  """The discord handle for the user."""
+  discord: String
+
+  """The wallets of the user."""
+  wallets: [Wallet!]!
 }
 
 type VIPriceType {
@@ -212,7 +230,7 @@ type Collection {
   """The wallet that created the collection."""
   creatorId: String
 
-  """The wallet that created the collection."""
+  """The organization that owns the collection."""
   organization: Organization
 }
 
@@ -1021,7 +1039,7 @@ type Query {
   organization(id: String!): Organization
 
   """returns a collection for a given uuid"""
-  collection(id: String!): Collection
+  collection(id: String, address: String): Collection
 
   """returns a collaboration for a given uuid"""
   collaboration(id: String!): Collaboration
@@ -1211,8 +1229,7 @@ input CreateUserWithEmailInput {
 }
 
 input UpdateUserInput {
-  """The unique uuid of the user."""
-  id: String!
+  id: ID
 
   """The username of the user."""
   username: String
@@ -1225,6 +1242,21 @@ input UpdateUserInput {
 
   """The avatarUrl of the user."""
   avatarUrl: String
+
+  """The URL pointing to the user's background."""
+  backgroundUrl: String
+
+  """The url of the user's website."""
+  websiteUrl: String
+
+  """The twitter handle for the user."""
+  twitter: String
+
+  """The instagram handle for the user."""
+  instagram: String
+
+  """The discord handle for the user."""
+  discord: String
 }
 
 input CreateWalletInput {

@@ -15,7 +15,6 @@ export class Wallet {
     @Field({ description: 'The address for a wallet.' })
     readonly address: string;
 
-    @ApiProperty()
     @IsObject()
     @Field(() => User, { description: 'The owner of the wallet.', nullable: true })
     readonly owner?: User;
@@ -64,8 +63,6 @@ export class UnbindWalletInput {
     @Field({ description: 'an ethereum or EIP-3770 address.' })
     readonly address: string;
 
-    @ApiProperty()
-    @IsObject()
     @Field((type) => UserInput, { description: 'the owner uuid of the wallet.' })
     readonly owner: UserInput;
 }

@@ -12,8 +12,6 @@ export class Organization {
     @Field((returns) => ID!)
     readonly id: string;
 
-    @ApiProperty()
-    @IsString()
     @Field(() => User, { description: 'The owner of the organization.' })
     readonly owner: User;
 
@@ -93,7 +91,6 @@ export class CreateOrganizationInput {
     @Field({ description: 'The unique URL-friendly identifier for a organization.' })
     readonly name: string;
 
-    @ApiProperty()
     @IsObject()
     @Field(() => UserInput, { description: 'The owner of the organization.' })
     readonly owner: UserInput;
