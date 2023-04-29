@@ -5,6 +5,7 @@ import { Repository, DeleteResult, UpdateResult } from 'typeorm';
 import { Collection } from '../collection/collection.entity';
 import { Tier } from './tier.entity';
 import { CreateTierInput, UpdateTierInput } from './tier.dto';
+import { GraphQLError } from 'graphql';
 
 @Injectable()
 export class TierService {
@@ -46,7 +47,13 @@ export class TierService {
     async createTier(data: CreateTierInput): Promise<Tier> {
         const dd = data as unknown as Tier;
         dd.collection = data.collection as unknown as Collection;
-        return await this.tierRepository.save(dd);
+        try {
+            return await this.tierRepository.save(dd);
+        } catch (e) {
+            throw new GraphQLError(`Failed to create tier ${data.name}`, {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
+        }
     }
 
     /**
@@ -57,8 +64,14 @@ export class TierService {
      * @returns True if the tier was updated.
      */
     async updateTier(id: string, data: Omit<UpdateTierInput, 'id'>): Promise<boolean> {
-        const result: UpdateResult = await this.tierRepository.update(id, data);
-        return result.affected > 0;
+        try {
+            const result: UpdateResult = await this.tierRepository.update(id, data);
+            return result.affected > 0;
+        } catch (e) {
+            throw new GraphQLError(`Failed to update tier ${id}`, {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
+        }
     }
 
     /**
@@ -68,7 +81,13 @@ export class TierService {
      * @returns True if the tier was deleted.
      */
     async deleteTier(id: string): Promise<boolean> {
-        const result: DeleteResult = await this.tierRepository.delete({ id });
-        return result.affected > 0;
+        try {
+            const result: DeleteResult = await this.tierRepository.delete({ id });
+            return result.affected > 0;
+        } catch (e) {
+            throw new GraphQLError(`Failed to delete tier ${id}`, {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
+        }
     }
 }

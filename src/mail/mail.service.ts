@@ -26,7 +26,9 @@ export class MailService {
                 await this.mailgunService.createEmail(mailgunConfig.DOMAIN, options);
             }
         } catch (e) {
-            console.log('mailgun api error:', e);
+            // This service is not exposed to GraphQL thus it doesnt need to throw GraphQL error.
+            // It should silently error.
+            console.error('Mailgun service error:', e);
         }
     }
 

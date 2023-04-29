@@ -4,6 +4,7 @@ import { Waitlist } from './waitlist.entity';
 import { Repository, UpdateResult } from 'typeorm';
 import { CreateWaitlistInput, GetWaitlistInput } from './waitlist.dto';
 import { ethers } from 'ethers';
+import { GraphQLError } from 'graphql';
 
 @Injectable()
 export class WaitlistService {
@@ -31,17 +32,23 @@ export class WaitlistService {
     async createWaitlist(input: CreateWaitlistInput): Promise<Waitlist> {
         const verifiedAddress = ethers.utils.verifyMessage(input.message, input.signature);
         if (input.address.toLowerCase() !== verifiedAddress.toLocaleLowerCase()) {
-            throw new HttpException('signature verification failure', HttpStatus.BAD_REQUEST);
+            throw new GraphQLError(`signature verification failure`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
         }
 
         try {
             return await this.waitlistRepository.save(input);
         } catch (e) {
             if (e.routine === '_bt_check_unique') {
-                throw new HttpException('Email or wallet address already exists', HttpStatus.BAD_REQUEST);
+                throw new GraphQLError(`Email or wallet address already exists`, {
+                    extensions: { code: 'BAD_REQUEST' },
+                });
             } else {
                 console.error(e);
-                throw new HttpException('Unknown error saving waitlist', HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new GraphQLError(`Failed to create waitlist item`, {
+                    extensions: { code: 'INTERNAL_SERVER_ERROR' },
+                });
             }
         }
     }

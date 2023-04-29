@@ -14,6 +14,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../user/user.entity';
 import { Repository } from 'typeorm';
 import { Wallet } from '../wallet/wallet.entity';
+import { GraphQLError } from 'graphql';
 
 export const SESSION_PERFIX = 'login_session';
 
@@ -37,7 +38,7 @@ export class AuthService {
         // verify message
         const _address = ethers.utils.verifyMessage(message, signature);
         if (address.toLowerCase() !== _address.toLocaleLowerCase()) {
-            throw new HttpException('signature verification failure', HttpStatus.BAD_REQUEST);
+            throw new GraphQLError('Signature verification failed.', { extensions: { code: 'BAD_REQUEST' } });
         }
 
         // check address exists
@@ -50,7 +51,9 @@ export class AuthService {
             wallet = await this.walletRepository.save(walletPayload);
         }
 
-        if (wallet.address != address) throw new HttpException('address not found', HttpStatus.SERVICE_UNAVAILABLE);
+        if (wallet.address !== address.toLowerCase()) {
+            throw new GraphQLError('Address not found.', { extensions: { code: 'BAD_REQUEST' } });
+        }
 
         // generate token and save token
         const authPayload: AuthPayload = {
@@ -79,7 +82,7 @@ export class AuthService {
      */
     async logout(identifier: string): Promise<boolean> {
         if (!identifier) {
-            throw new HttpException('No identifier found', HttpStatus.BAD_REQUEST);
+            throw new GraphQLError('No identifier found.', { extensions: { code: 'BAD_REQUEST' } });
         }
 
         const _key = this.redisClient.getKey(identifier.toLocaleLowerCase(), SESSION_PERFIX);
@@ -107,6 +110,7 @@ export class AuthService {
                 username: data.username,
                 avatarUrl: data.avatarUrl,
             } as unknown as User;
+
             const user = await this.userRepository.save(userPayload);
 
             // return the saved user
@@ -126,7 +130,9 @@ export class AuthService {
                 user: returnUser,
             };
         } catch (e) {
-            throw new BadRequestException();
+            throw new GraphQLError('Failed to create user.', {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
         }
     }
 
@@ -144,18 +150,16 @@ export class AuthService {
         });
 
         if (!user) {
-            throw new HttpException(
-                'Verification failed. Please check your username or password again.',
-                HttpStatus.FORBIDDEN
-            );
+            throw new GraphQLError('Verification failed. Please check your username or password and try again.', {
+                extensions: { code: 'UNAUTHORIZED' },
+            });
         }
 
         const pwMatches = await argon.verify(user.password, data.password);
         if (!pwMatches) {
-            throw new HttpException(
-                'Verification failed. Please check your username or password again.',
-                HttpStatus.FORBIDDEN
-            );
+            throw new GraphQLError('Verification failed. Please check your username or password and try again.', {
+                extensions: { code: 'UNAUTHORIZED' },
+            });
         }
 
         const authPayload: AuthPayload = {

@@ -201,7 +201,6 @@ describe('WaitlistResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.errors).toBeDefined();
-                    expect(body.errors[0].extensions.exception.status).toEqual(400);
                     expect(body.errors[0].message).toEqual('signature verification failure');
                 });
         });

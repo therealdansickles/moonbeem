@@ -53,12 +53,14 @@ export class MembershipService {
         try {
             const user = await this.userRepository.findOneBy({ id: data.userId });
             if (!user) {
-                throw new GraphQLError(`user ${data.userId} does not exist`);
+                throw new GraphQLError(`user ${data.userId} does not exist`, { extensions: { code: 'BAD_REQUEST' } });
             }
 
             const organization = await this.organizationRepository.findOneBy({ id: data.organizationId });
             if (!organization) {
-                throw new GraphQLError(`organization ${data.userId} does not exist`);
+                throw new GraphQLError(`organization ${data.userId} does not exist`, {
+                    extensions: { code: 'BAD_REQUEST' },
+                });
             }
 
             // invite token
@@ -79,7 +81,9 @@ export class MembershipService {
         } catch (e) {
             // FIXME: This ain't always true :issou:
             // Add Sentry capture here.
-            throw new GraphQLError(`user ${data.userId} is already a member of organization ${data.organizationId}`);
+            throw new GraphQLError(`user ${data.userId} is already a member of organization ${data.organizationId}`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
         }
     }
 
@@ -91,7 +95,12 @@ export class MembershipService {
      */
     async updateMembership(id: string, data: Omit<UpdateMembershipInput, 'id'>): Promise<Membership> {
         const membership = await this.membershipRepository.findOneBy({ id });
-        if (!membership) throw new Error(`Membership with id ${id} doesn't exist.`);
+        if (!membership) {
+            throw new GraphQLError(`Membership with id ${id} doesn't exist.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
+        }
+
         return this.membershipRepository.save({ ...membership, ...data });
     }
 
@@ -123,8 +132,11 @@ export class MembershipService {
             },
         });
         if (!membership) {
-            throw new Error(
-                `Membership request for user ${input.userId} to organization ${input.organizationId} doesn't exist.`
+            throw new GraphQLError(
+                `Accept membership request for user ${input.userId} to organization ${input.organizationId} doesn't exist.`,
+                {
+                    extensions: { code: 'BAD_REQUEST' },
+                }
             );
         }
 
@@ -151,8 +163,11 @@ export class MembershipService {
             },
         });
         if (!membership) {
-            throw new Error(
-                `Membership request for user ${input.userId} to organization ${input.organizationId} doesn't exist.`
+            throw new GraphQLError(
+                `Decline membership request for user ${input.userId} to organization ${input.organizationId} doesn't exist.`,
+                {
+                    extensions: { code: 'BAD_REQUEST' },
+                }
             );
         }
 

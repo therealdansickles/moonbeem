@@ -66,15 +66,23 @@ export class WalletService {
             let owner;
             if (input.ownerId) {
                 owner = await this.userRepository.findOneBy({ id: input.ownerId });
-                if (!owner) throw new Error(`User with id ${input.ownerId} doesn't exist.`);
-            } else owner = { id: this.unOwnedId };
+                if (!owner) {
+                    throw new GraphQLError(`User with id ${input.ownerId} doesn't exist.`, {
+                        extensions: { code: 'BAD_REQUEST' },
+                    });
+                }
+            } else {
+                owner = { id: this.unOwnedId };
+            }
 
             return this.walletRespository.save({
                 owner: owner,
                 address: input.address.toLowerCase(),
             });
         } catch (e) {
-            throw new GraphQLError(e.message);
+            throw new GraphQLError(`Failed to create wallet ${input.address}`, {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
         }
     }
 
@@ -90,20 +98,38 @@ export class WalletService {
 
         const verifiedAddress = ethers.utils.verifyMessage(data.message, data.signature);
         if (data.address.toLowerCase() !== verifiedAddress.toLocaleLowerCase()) {
-            throw new HttpException('signature verification failure', HttpStatus.BAD_REQUEST);
+            throw new GraphQLError(`Signature verification failure`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
         }
 
         const wallet = await this.walletRespository.findOne({
             where: { address: address.toLowerCase() },
             relations: ['owner'],
         });
-        if (!wallet) throw new Error("Wallet doesn't exist.");
-        if (wallet.owner && wallet.owner.id) throw new Error('Wallet is already bound.');
-        await this.walletRespository.save({ ...wallet, owner });
-        return this.walletRespository.findOne({
-            where: { address, owner },
-            relations: ['owner'],
-        });
+        if (!wallet) {
+            throw new GraphQLError(`Wallet ${address} doesn't exist.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
+        }
+
+        if (wallet.owner && wallet.owner.id) {
+            throw new GraphQLError(`Wallet ${address} is already bound.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
+        }
+
+        try {
+            await this.walletRespository.save({ ...wallet, owner });
+            return this.walletRespository.findOne({
+                where: { address, owner },
+                relations: ['owner'],
+            });
+        } catch (e) {
+            throw new GraphQLError(`Failed to bind wallet ${address}`, {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
+        }
     }
 
     /**
@@ -123,9 +149,19 @@ export class WalletService {
             wallet = new Wallet();
             wallet.address = address;
         }
-        if (wallet?.owner && wallet?.owner?.id !== data.owner.id)
-            throw new Error("Wallet doesn't belong to the given user.");
-        return this.walletRespository.save({ ...wallet, owner: { id: this.unOwnedId } });
+        if (wallet?.owner && wallet?.owner?.id !== data.owner.id) {
+            throw new GraphQLError(`Wallet ${address} doesn't belong to the given user.`, {
+                extensions: { code: 'FORBIDDEN' },
+            });
+        }
+
+        try {
+            return this.walletRespository.save({ ...wallet, owner: { id: this.unOwnedId } });
+        } catch (e) {
+            throw new GraphQLError(`Failed to unbind wallet ${address}`, {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
+        }
     }
 
     /**
@@ -141,7 +177,9 @@ export class WalletService {
         const chainId = this.networkChainIdMap[network.toLowerCase()] || Number(network);
 
         if (isNaN(chainId)) {
-            throw new GraphQLError(`address ${eip3770Address} is not a valid ethereum or EIP-3770 address`);
+            throw new GraphQLError(`address ${eip3770Address} is not a valid ethereum or EIP-3770 address`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
         }
 
         return { address };

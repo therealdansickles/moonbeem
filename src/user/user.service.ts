@@ -27,7 +27,9 @@ export class UserService {
         try {
             return this.userRepository.save(payload);
         } catch (e) {
-            throw new GraphQLError(e.message);
+            throw new GraphQLError(`Failed to create user ${payload.name}`, {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
         }
     }
 
@@ -39,7 +41,18 @@ export class UserService {
      */
     async updateUser(id: string, payload: Partial<Omit<User, 'id | createdAt | updatedAt'>>): Promise<User> {
         const user = await this.userRepository.findOneBy({ id });
-        if (!user) throw new Error(`User with id ${id} doesn't exist.`);
-        return this.userRepository.save({ ...user, ...payload });
+        if (!user) {
+            throw new GraphQLError(`User with id ${id} doesn't exist.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
+        }
+
+        try {
+            return this.userRepository.save({ ...user, ...payload });
+        } catch (e) {
+            throw new GraphQLError(`Failed to update user ${id}`, {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
+        }
     }
 }

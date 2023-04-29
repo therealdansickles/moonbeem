@@ -138,9 +138,9 @@ describe('AuthResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.errors[0].message).toBe(
-                        'Verification failed. Please check your username or password again.'
+                        'Verification failed. Please check your username or password and try again.'
                     );
-                    expect(body.errors[0].extensions.exception.status).toBe(403);
+                    expect(body.errors[0].extensions.code).toBe('UNAUTHORIZED');
                 });
         });
     });

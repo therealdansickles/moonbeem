@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, UpdateResult, IsNull } from 'typeorm';
 import { Collection } from './collection.entity';
+import { GraphQLError } from 'graphql';
 
 @Injectable()
 export class CollectionService {
@@ -50,7 +51,13 @@ export class CollectionService {
      * @returns The newly created collection.
      */
     async createCollection(data: any): Promise<Collection> {
-        return this.collectionRepository.save(data);
+        try {
+            return this.collectionRepository.save(data);
+        } catch (e) {
+            throw new GraphQLError('Failed to create new collection.', {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
+        }
     }
 
     /**
@@ -60,8 +67,14 @@ export class CollectionService {
      * @returns A boolean if it updated succesfully.
      */
     async updateCollection(id: string, data: any): Promise<boolean> {
-        const result: UpdateResult = await this.collectionRepository.update(id, data);
-        return result.affected > 0;
+        try {
+            const result: UpdateResult = await this.collectionRepository.update(id, data);
+            return result.affected > 0;
+        } catch (e) {
+            throw new GraphQLError(`Failed to update collection ${id}.`, {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
+        }
     }
 
     /**
@@ -71,8 +84,14 @@ export class CollectionService {
      * @returns A boolean if it published successfully.
      */
     async publishCollection(id: string): Promise<boolean> {
-        const result: UpdateResult = await this.collectionRepository.update(id, { publishedAt: new Date() });
-        return result.affected > 0;
+        try {
+            const result: UpdateResult = await this.collectionRepository.update(id, { publishedAt: new Date() });
+            return result.affected > 0;
+        } catch (e) {
+            throw new GraphQLError(`Failed to publish collection ${id}.`, {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
+        }
     }
 
     /**
@@ -84,7 +103,13 @@ export class CollectionService {
      * @returns true if the collection was deleted, false otherwise.
      */
     async deleteCollection(id: string): Promise<boolean> {
-        const result = await this.collectionRepository.delete({ id, publishedAt: IsNull() });
-        return result.affected > 0;
+        try {
+            const result = await this.collectionRepository.delete({ id, publishedAt: IsNull() });
+            return result.affected > 0;
+        } catch (e) {
+            throw new GraphQLError(`Failed to delete collection ${id}.`, {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
+        }
     }
 }

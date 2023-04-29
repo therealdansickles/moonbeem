@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Organization } from './organization.entity';
 import { CreateOrganizationInput, UpdateOrganizationInput } from './organization.dto';
 import { User } from '../user/user.entity';
+import { GraphQLError } from 'graphql';
 
 @Injectable()
 export class OrganizationService {
@@ -30,7 +31,11 @@ export class OrganizationService {
      */
     async createOrganization(data: CreateOrganizationInput): Promise<Organization> {
         const orgWithSameName = await this.organizationRepository.findOneBy({ name: data.name });
-        if (orgWithSameName) throw new Error(`Organization with name ${data.name} already existed.`);
+        if (orgWithSameName) {
+            throw new GraphQLError(`Organization with name ${data.name} already existed.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
+        }
         const organization = await this.organizationRepository.save(data);
         return await this.organizationRepository.findOne({
             where: { id: organization.id },
@@ -47,17 +52,32 @@ export class OrganizationService {
      */
     async updateOrganization(id: string, data: Omit<UpdateOrganizationInput, 'id'>): Promise<Organization> {
         const organization = await this.organizationRepository.findOneBy({ id });
-        if (!organization) throw new Error(`Organization with id ${id} doesn't exist.`);
+        if (!organization) {
+            throw new GraphQLError(`Organization with id ${id} doesn't exist.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
+        }
         // if name is need to be updated, then check if it's uniqueness first
         if (data.name) {
             const orgWithSameName = await this.organizationRepository.findOneBy({ name: data.name });
-            if (orgWithSameName) throw new Error(`Organization with name ${data.name} already existed.`);
+            if (orgWithSameName) {
+                throw new GraphQLError(`Organization with name ${data.name} already existed.`, {
+                    extensions: { code: 'BAD_REQUEST' },
+                });
+            }
         }
-        await this.organizationRepository.save({ ...organization, ...data });
-        return await this.organizationRepository.findOne({
-            where: { id: organization.id },
-            relations: ['owner'],
-        });
+
+        try {
+            await this.organizationRepository.save({ ...organization, ...data });
+            return await this.organizationRepository.findOne({
+                where: { id: organization.id },
+                relations: ['owner'],
+            });
+        } catch (e) {
+            throw new GraphQLError(`Failed to update organization ${id}`, {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
+        }
     }
 
     /**
@@ -82,12 +102,27 @@ export class OrganizationService {
      */
     async transferOrganization(id: string, ownerId: string): Promise<Organization> {
         const organization = await this.organizationRepository.findOneBy({ id });
-        if (!organization) throw new Error(`Organization with id ${id} doesn't exist.`);
+        if (!organization) {
+            throw new GraphQLError(`Organization with id ${id} doesn't exist.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
+        }
 
         const owner = await this.userRepository.findOneBy({ id: ownerId });
-        if (!owner) throw new Error(`User with id ${id} doesn't exist.`);
+        if (!owner) {
+            throw new GraphQLError(`User with id ${ownerId} doesn't exist.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
+        }
 
         organization.owner = owner;
-        return this.organizationRepository.save(organization);
+
+        try {
+            return this.organizationRepository.save(organization);
+        } catch (e) {
+            throw new GraphQLError(`Failed to transfer organization ${id} to user ${ownerId}`, {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
+        }
     }
 }

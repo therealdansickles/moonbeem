@@ -37,7 +37,8 @@ export class CollaborationService {
         });
         if (uniqueCheck)
             throw new GraphQLError(
-                `wallet ${data.walletId} is already collaborating with collection ${data.collectionId}`
+                `wallet ${data.walletId} is already collaborating with collection ${data.collectionId}`,
+                { extensions: { code: 'BAD_REQUEST' } }
             );
         // get existed collaboration within the same collection
         // if sum of royalty from existed + new one > 100 wouldn't pass the validation
@@ -45,8 +46,11 @@ export class CollaborationService {
             where: { collection: { id: data.collectionId } },
         });
         const sumOfExistedRoyalty = existedCollaborations.reduce((sum, c) => c.royaltyRate + sum, 0);
-        if (sumOfExistedRoyalty + data.royaltyRate > 100)
-            throw new GraphQLError(`collection ${data.collectionId} royalty out of bound`);
+        if (sumOfExistedRoyalty + data.royaltyRate > 100) {
+            throw new GraphQLError(`collection ${data.collectionId} royalty out of bound`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
+        }
         const dd = data as unknown as Collaboration;
         dd.collection = data.collectionId as unknown as Collection;
         dd.wallet = data.walletId as unknown as Wallet;
