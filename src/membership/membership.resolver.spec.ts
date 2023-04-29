@@ -107,6 +107,10 @@ describe('MembershipResolver', () => {
 
                         organization {
                             id
+
+                            owner {
+                                id
+                            }
                         }
                     }
                 }
@@ -125,6 +129,7 @@ describe('MembershipResolver', () => {
                     expect(body.data.membership.canEdit).toBeFalsy();
                     expect(body.data.membership.user.id).not.toBeNull();
                     expect(body.data.membership.organization.id).not.toBeNull();
+                    expect(body.data.membership.organization.owner.id).not.toBeNull();
                 });
         });
     });

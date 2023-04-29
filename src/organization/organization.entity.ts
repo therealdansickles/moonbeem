@@ -25,7 +25,7 @@ export class Organization extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @ManyToOne(() => User, (user) => user.ownedOrganizations)
+    @ManyToOne(() => User, (user) => user.ownedOrganizations, { eager: true })
     @JoinColumn()
     owner: User;
 

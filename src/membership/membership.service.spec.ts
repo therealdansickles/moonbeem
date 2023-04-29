@@ -115,6 +115,9 @@ describe('MembershipService', () => {
             });
             expect(result.id).toBeDefined();
             expect(result.canDeploy).toBeTruthy();
+            expect(result.organization.id).toEqual(newOrganization.id);
+            expect(result.organization.owner.id).not.toBeNull();
+            expect(result.user.id).toEqual(newUser.id);
         });
 
         it('should prevent duplicate memberships', async () => {
