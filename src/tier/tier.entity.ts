@@ -106,6 +106,9 @@ export class Tier extends BaseEntity {
     })
     backgroundColor?: string;
 
+    @Column({ default: '', comment: 'If this is a whitelisted collection, then there will be merekleRoot here' })
+    merkleRoot?: string;
+
     @Column({ nullable: true, length: 500, comment: 'A URL to a multi-media attachment for the item.' })
     animationUrl?: string;
 }

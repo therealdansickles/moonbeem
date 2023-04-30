@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeleteResult, UpdateResult } from 'typeorm';
 
-import { Collection } from '../collection/collection.entity';
+import { Collection, CollectionKind } from '../collection/collection.entity';
 import { Tier } from './tier.entity';
 import { CreateTierInput, UpdateTierInput } from './tier.dto';
 import { GraphQLError } from 'graphql';
@@ -11,7 +11,9 @@ import { GraphQLError } from 'graphql';
 export class TierService {
     constructor(
         @InjectRepository(Tier)
-        private readonly tierRepository: Repository<Tier>
+        private readonly tierRepository: Repository<Tier>,
+        @InjectRepository(Collection)
+        private readonly collectionRepository: Repository<Collection>
     ) {}
 
     /**
@@ -45,6 +47,12 @@ export class TierService {
      * @returns The new tier.
      */
     async createTier(data: CreateTierInput): Promise<Tier> {
+        const kind = CollectionKind;
+        const collection = await this.collectionRepository.findOneBy({ id: data.collection.id });
+        if ([kind.whitelistEdition, kind.whitelistTiered, kind.whitelistBulk].indexOf(collection.kind) >= 0) {
+            if (!data.merkleRoot) throw new GraphQLError('Please provide merkleRoot for the whitelisting collection.');
+        }
+
         const dd = data as unknown as Tier;
         dd.collection = data.collection as unknown as Collection;
         try {

@@ -64,6 +64,25 @@ describe('TierService', () => {
 
             expect(tier).toBeDefined();
         });
+
+        it('Should create a new tier for whitelisting collection', async () => {
+            collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.whitelistEdition,
+                address: faker.finance.ethereumAddress(),
+            });
+
+            tier = await service.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                merkleRoot: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+            });
+        });
     });
 
     describe('getTiersByCollection', () => {

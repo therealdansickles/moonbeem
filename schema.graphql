@@ -142,6 +142,9 @@ type Tier {
   """This is the URL to the animation of the tier."""
   animationUrl: String
 
+  """This merekleRoot of tier"""
+  merkleRoot: String
+
   """A JSON object containing the attributes of the tier."""
   attributes: String
 }
@@ -196,6 +199,9 @@ type Organization {
 
   """Returns the collections for the given organization"""
   collections: [Collection!]!
+
+  """Returns the members for the given organization"""
+  memberships: [Membership!]!
 }
 
 """
@@ -273,6 +279,9 @@ enum CollectionKind {
   tiered
   bulk
   other
+  whitelistEdition
+  whitelistTiered
+  whitelistBulk
 }
 
 type Collaboration {
@@ -1594,6 +1603,9 @@ input CreateTierInput {
 
   """A JSON object containing the attributes of the tier."""
   attributes: String
+
+  """This merekleRoot of tier."""
+  merkleRoot: String
 }
 
 input CollectionInput {
@@ -1626,6 +1638,9 @@ input UpdateTierInput {
 
   """A JSON object containing the attributes of the tier."""
   attributes: String
+
+  """This merekleRoot of tier."""
+  merkleRoot: String
 }
 
 input DeleteTierInput {

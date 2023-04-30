@@ -23,6 +23,9 @@ export enum CollectionKind {
     tiered = 'tiered', // Multiple NFTs with different prices and attributes.
     bulk = 'bulk', // Bulk generation of NFTs.
     other = 'other', // unknow type
+    whitelistEdition = 'whitelistEdition',
+    whitelistTiered = 'whitelistTiered',
+    whitelistBulk = 'whitelistBulk',
 }
 
 @Entity({ name: 'Collection' })
