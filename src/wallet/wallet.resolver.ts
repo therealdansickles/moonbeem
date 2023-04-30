@@ -5,7 +5,7 @@ import { WalletService } from './wallet.service';
 
 @Resolver('Wallet')
 export class WalletResolver {
-    constructor(private readonly walletService: WalletService) {}
+    constructor(private readonly walletService: WalletService) { }
 
     @Public()
     @Query((returns) => Wallet, {

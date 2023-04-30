@@ -5,12 +5,10 @@ import { User, UserInput } from '../user/user.dto';
 
 @ObjectType('Wallet')
 export class Wallet {
-    @ApiProperty()
     @IsString()
     @Field((returns) => ID!, { description: 'The id for a wallet.' })
     readonly id: string;
 
-    @ApiProperty()
     @IsEthereumAddress()
     @Field({ description: 'The address for a wallet.' })
     readonly address: string;
@@ -22,12 +20,10 @@ export class Wallet {
 
 @InputType()
 export class CreateWalletInput {
-    @ApiProperty()
     @IsString() // we can use IsEthereumAddress() here, but we want to support EIP-3770 address format.
     @Field({ description: 'The address for a wallet.' })
     readonly address: string;
 
-    @ApiProperty()
     @IsString() // we can use IsEthereumAddress() here, but we want to support EIP-3770 address format.
     @Field({ description: 'The id for the owner.', nullable: true })
     readonly ownerId?: string;
@@ -35,22 +31,18 @@ export class CreateWalletInput {
 
 @InputType('BindWalletInput')
 export class BindWalletInput {
-    @ApiProperty()
     @IsString()
     @Field({ description: 'an ethereum or EIP-3770 address.' })
     readonly address: string;
 
     @Field({ description: 'The signing message' })
-    @ApiProperty()
     @IsString()
     readonly message: string;
 
     @Field({ description: 'The signature from the front-end to verify' })
-    @ApiProperty()
     @IsString()
     readonly signature: string;
 
-    @ApiProperty()
     @IsObject()
     @Field((type) => UserInput, { description: 'the owner uuid of the wallet.' })
     readonly owner: UserInput;
@@ -58,7 +50,6 @@ export class BindWalletInput {
 
 @InputType('UnbindWalletInput')
 export class UnbindWalletInput {
-    @ApiProperty()
     @IsString()
     @Field({ description: 'an ethereum or EIP-3770 address.' })
     readonly address: string;

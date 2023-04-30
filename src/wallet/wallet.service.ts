@@ -94,29 +94,28 @@ export class WalletService {
      * @returns The wallet that was bound to the user.
      */
     async bindWallet(data: BindWalletInput): Promise<Wallet> {
-        const { address, owner } = data;
+        const { address: rawAddress, owner } = data;
+        const address = rawAddress.toLowerCase()
 
         const verifiedAddress = ethers.utils.verifyMessage(data.message, data.signature);
-        if (data.address.toLowerCase() !== verifiedAddress.toLocaleLowerCase()) {
-            throw new GraphQLError(`Signature verification failure`, {
-                extensions: { code: 'BAD_REQUEST' },
-            });
+        if (address !== verifiedAddress.toLocaleLowerCase()) {
+            throw new HttpException('signature verification failure', HttpStatus.BAD_REQUEST);
         }
 
-        const wallet = await this.walletRespository.findOne({
-            where: { address: address.toLowerCase() },
+        let wallet = await this.walletRespository.findOne({
+            where: { address },
             relations: ['owner'],
         });
-        if (!wallet) {
-            throw new GraphQLError(`Wallet ${address} doesn't exist.`, {
-                extensions: { code: 'BAD_REQUEST' },
-            });
-        }
 
-        if (wallet.owner && wallet.owner.id) {
-            throw new GraphQLError(`Wallet ${address} is already bound.`, {
-                extensions: { code: 'BAD_REQUEST' },
-            });
+        // if wallet doesn't existed yet, create a new one and bind the owner on it
+        if (!wallet) {
+            wallet = { address, owner } as Wallet
+        } else {
+            if (wallet.owner && wallet.owner.id) {
+                throw new GraphQLError(`Wallet ${address} is already bound.`, {
+                    extensions: { code: 'BAD_REQUEST' },
+                });
+            }
         }
 
         try {
