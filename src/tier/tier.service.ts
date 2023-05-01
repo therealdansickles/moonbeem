@@ -6,6 +6,7 @@ import { Collection, CollectionKind } from '../collection/collection.entity';
 import * as tierEntity from './tier.entity';
 import { CreateTierInput, UpdateTierInput, Tier } from './tier.dto';
 import { GraphQLError } from 'graphql';
+import * as Sentry from '@sentry/node';
 
 @Injectable()
 export class TierService {
@@ -114,6 +115,7 @@ export class TierService {
             const result: DeleteResult = await this.tierRepository.delete({ id });
             return result.affected > 0;
         } catch (e) {
+            Sentry.captureException(e);
             throw new GraphQLError(`Failed to delete tier ${id}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
