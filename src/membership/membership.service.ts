@@ -44,6 +44,18 @@ export class MembershipService {
     }
 
     /**
+     * Retrieve a membership by user id.
+     *
+     * @param userId The id of the user to retrieve memberships for.
+     * @returns The memberships.
+     */
+    async getMembershipsByUserId(userId: string): Promise<Membership[]> {
+        return await this.membershipRepository.find({
+            where: { user: { id: userId } },
+        });
+    }
+
+    /**
      * Create a new membership.
      *
      * @param data The data to create the membership with.

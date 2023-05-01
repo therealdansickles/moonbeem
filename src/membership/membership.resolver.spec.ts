@@ -364,4 +364,89 @@ describe('MembershipResolver', () => {
                 });
         });
     });
+
+    describe('memberships', () => {
+        it('should get a membership list', async () => {
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
+            const anotherUser = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
+            const organization1 = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                owner: anotherUser,
+            });
+
+            const membership1 = await service.createMembership({
+                organizationId: organization1.id,
+                userId: user.id,
+                canDeploy: true,
+                canManage: true,
+            });
+
+            const organization2 = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                owner: user,
+            });
+
+            const membership2 = await service.createMembership({
+                organizationId: organization2.id,
+                userId: user.id,
+                canDeploy: true,
+                canManage: false,
+            });
+
+            const query = gql`
+                query memberships($userId: String!) {
+                    memberships(userId: $userId) {
+                        id
+                        canDeploy
+                        canManage
+
+                        organization {
+                            name
+                            displayName
+                            kind
+                        }
+                    }
+                }
+            `;
+
+            const variables = {
+                userId: user.id,
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.memberships.length).toEqual(2);
+                    const rs = body.data.memberships;
+                    const membershipForOrg1 = rs.find((item) => item.id === membership1.id);
+                    const membershipForOrg2 = rs.find((item) => item.id === membership2.id);
+                    expect(membershipForOrg1.canDeploy).toEqual(true);
+                    expect(membershipForOrg1.canManage).toEqual(true);
+                    expect(membershipForOrg1.organization.name).toEqual(organization1.name);
+                    expect(membershipForOrg1.organization.displayName).toEqual(organization1.displayName);
+                    expect(membershipForOrg1.organization.kind).toEqual(organization1.kind);
+                    expect(membershipForOrg2.canDeploy).toEqual(true);
+                    expect(membershipForOrg2.canManage).toEqual(false);
+                    expect(membershipForOrg2.organization.name).toEqual(organization2.name);
+                });
+        });
+    });
 });

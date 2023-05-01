@@ -63,4 +63,10 @@ export class MembershipResolver {
         const { id } = input;
         return await this.membershipService.deleteMembership(id);
     }
+
+    @Public()
+    @Query(() => [Membership])
+    async memberships(@Args('userId') userId: string): Promise<Membership[]> {
+        return await this.membershipService.getMembershipsByUserId(userId);
+    }
 }

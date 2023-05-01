@@ -13,7 +13,7 @@ export class WalletService {
     constructor(
         @InjectRepository(Wallet) private walletRespository: Repository<Wallet>,
         @InjectRepository(User) private userRepository: Repository<User>
-    ) {}
+    ) { }
 
     /**
      * This is the uuid for the ownerId for all unbound wallets, e.g the blackhole.

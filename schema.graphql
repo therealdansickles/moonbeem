@@ -1049,6 +1049,7 @@ type Query {
 
   """Retrieve a membership by id."""
   membership(id: String!): Membership
+  getMembershipByUserId(userId: String!): [Membership!]!
 
   """Returns an organization for the given uuid"""
   organization(id: String!): Organization
