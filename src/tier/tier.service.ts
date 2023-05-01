@@ -1,17 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeleteResult, UpdateResult } from 'typeorm';
-
+import { Coin } from '../sync-chain/coin/coin.entity';
 import { Collection, CollectionKind } from '../collection/collection.entity';
-import { Tier } from './tier.entity';
-import { CreateTierInput, UpdateTierInput } from './tier.dto';
+import * as tierEntity from './tier.entity';
+import { CreateTierInput, UpdateTierInput, Tier } from './tier.dto';
 import { GraphQLError } from 'graphql';
 
 @Injectable()
 export class TierService {
     constructor(
-        @InjectRepository(Tier)
-        private readonly tierRepository: Repository<Tier>,
+        @InjectRepository(tierEntity.Tier)
+        private readonly tierRepository: Repository<tierEntity.Tier>,
+        @InjectRepository(Coin, 'sync_chain')
+        private readonly coinRepository: Repository<Coin>,
         @InjectRepository(Collection)
         private readonly collectionRepository: Repository<Collection>
     ) {}
@@ -23,7 +25,13 @@ export class TierService {
      * @returns The tier.
      */
     async getTier(id: string): Promise<Tier> {
-        return await this.tierRepository.findOneBy({ id });
+        const tier = await this.tierRepository.findOne({ where: { id }, relations: { collection: true } });
+        const coin = await this.coinRepository.findOne({ where: { address: tier.paymentTokenAddress.toLowerCase() } });
+
+        return {
+            ...tier,
+            coin,
+        };
     }
 
     /**
@@ -33,11 +41,22 @@ export class TierService {
      * @returns Array of tiers
      */
     async getTiersByCollection(collectionId: string): Promise<Tier[]> {
+        const result: Tier[] = [];
         const tiers = await this.tierRepository.find({
             where: { collection: { id: collectionId } },
             relations: { collection: true },
         });
-        return tiers;
+
+        for (const tier of tiers) {
+            const coin = await this.coinRepository.findOne({
+                where: { address: tier.paymentTokenAddress.toLowerCase() },
+            });
+            result.push({
+                ...tier,
+                coin,
+            });
+        }
+        return result;
     }
 
     /**
@@ -53,8 +72,10 @@ export class TierService {
             if (!data.merkleRoot) throw new GraphQLError('Please provide merkleRoot for the whitelisting collection.');
         }
 
-        const dd = data as unknown as Tier;
+        const dd = data as unknown as tierEntity.Tier;
         dd.collection = data.collection as unknown as Collection;
+        const attributesJson = JSON.stringify(data.attributes);
+        dd.attributes = attributesJson;
         try {
             return await this.tierRepository.save(dd);
         } catch (e) {

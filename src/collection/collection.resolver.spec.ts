@@ -18,6 +18,8 @@ import { OrganizationService } from '../organization/organization.service';
 import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
 import { TierService } from '../tier/tier.service';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import { CoinModule } from '../sync-chain/coin/coin.module';
 
 export const gql = String.raw;
 
@@ -29,6 +31,7 @@ describe('CollectionResolver', () => {
     let organizationService: OrganizationService;
     let userService: UserService;
     let tierService: TierService;
+    let coinService: CoinService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -40,12 +43,25 @@ describe('CollectionResolver', () => {
                     synchronize: true,
                     logging: false,
                 }),
+                TypeOrmModule.forRoot({
+                    name: 'sync_chain',
+                    type: 'postgres',
+                    host: postgresConfig.syncChain.host,
+                    port: postgresConfig.syncChain.port,
+                    username: postgresConfig.syncChain.username,
+                    password: postgresConfig.syncChain.password,
+                    database: postgresConfig.syncChain.database,
+                    autoLoadEntities: true,
+                    synchronize: true,
+                    logging: false,
+                }),
+                CoinModule,
                 AuthModule,
                 CollectionModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
-                    include: [AuthModule, CollectionModule],
+                    include: [AuthModule, CollectionModule, CoinModule],
                 }),
             ],
         }).compile();
@@ -56,6 +72,8 @@ describe('CollectionResolver', () => {
         organizationService = module.get<OrganizationService>(OrganizationService);
         userService = module.get<UserService>(UserService);
         tierService = module.get<TierService>(TierService);
+        coinService = module.get<CoinService>(CoinService);
+
         app = module.createNestApplication();
         await app.init();
     });
@@ -209,16 +227,29 @@ describe('CollectionResolver', () => {
                 organization: organization,
             });
 
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
             await tierService.createTier({
                 name: faker.company.name(),
                 totalMints: 100,
                 collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
             });
 
             await tierService.createTier({
                 name: faker.company.name(),
                 totalMints: 200,
                 collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
             });
 
             const query = gql`

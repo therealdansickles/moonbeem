@@ -27,6 +27,18 @@ describe('WalletService', () => {
                     synchronize: true,
                     logging: false,
                 }),
+                TypeOrmModule.forRoot({
+                    name: 'sync_chain',
+                    type: 'postgres',
+                    host: postgresConfig.syncChain.host,
+                    port: postgresConfig.syncChain.port,
+                    username: postgresConfig.syncChain.username,
+                    password: postgresConfig.syncChain.password,
+                    database: postgresConfig.syncChain.database,
+                    autoLoadEntities: true,
+                    synchronize: true,
+                    logging: false,
+                }),
                 WalletModule,
                 CollaborationModule,
                 UserModule,
@@ -111,13 +123,13 @@ describe('WalletService', () => {
         });
 
         it('should create a new wallet with given owner', async () => {
-            const newWallet = ethers.Wallet.createRandom()
-            const newSignature = await newWallet.signMessage(message)
-            const data = { address: newWallet.address, owner: { id: ownerId }, message, signature: newSignature }
-            const result = await service.bindWallet(data)
-            expect(result.owner.id).toEqual(ownerId)
-            expect(result.address).toEqual(newWallet.address.toLowerCase())
-        })
+            const newWallet = ethers.Wallet.createRandom();
+            const newSignature = await newWallet.signMessage(message);
+            const data = { address: newWallet.address, owner: { id: ownerId }, message, signature: newSignature };
+            const result = await service.bindWallet(data);
+            expect(result.owner.id).toEqual(ownerId);
+            expect(result.address).toEqual(newWallet.address.toLowerCase());
+        });
 
         it('should throw an error if the wallet is already bound', async () => {
             const data = { address: eipAddress, owner: { id: ownerId }, message, signature };

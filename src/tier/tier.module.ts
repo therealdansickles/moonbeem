@@ -5,9 +5,16 @@ import { CollectionModule } from '../collection/collection.module';
 import { Tier } from './tier.entity';
 import { TierService } from './tier.service';
 import { TierResolver } from './tier.resolver';
+import { Coin } from '../sync-chain/coin/coin.entity';
+import { CoinModule } from '../sync-chain/coin/coin.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Collection, Tier]), forwardRef(() => CollectionModule)],
+    imports: [
+        TypeOrmModule.forFeature([Collection, Tier]),
+        TypeOrmModule.forFeature([Coin], 'sync_chain'),
+        forwardRef(() => CollectionModule),
+        forwardRef(() => CoinModule),
+    ],
     exports: [TierModule],
     providers: [TierService, TierResolver],
 })

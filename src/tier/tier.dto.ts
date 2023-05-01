@@ -1,12 +1,23 @@
 import { ArgsType, Field, Int, ObjectType, InputType, ID } from '@nestjs/graphql';
-import { IsNumber, IsString, IsDateString, IsUrl, ValidateIf, IsObject, IsOptional } from 'class-validator';
+import { IsNumber, IsString, IsDateString, IsUrl, ValidateIf, IsObject, IsOptional, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Collection, CollectionInput } from '../collection/collection.dto';
+import { Coin } from '../sync-chain/coin/coin.dto';
 
+@InputType()
 export class Attribute {
+    @IsString()
+    @Field({ description: 'The display type for the attribute', nullable: true })
+    @IsOptional()
     display_type?: string;
+
+    @IsString()
+    @Field({ description: 'The trait type of the attribute' })
     trait_type: string;
-    value: any;
+
+    @Field({ description: 'The value of the attribute' })
+    @IsString()
+    value: string;
 }
 
 @ObjectType()
@@ -58,6 +69,10 @@ export class Tier {
     @Field({ description: 'A JSON object containing the attributes of the tier.', nullable: true })
     @IsOptional()
     readonly attributes?: string;
+
+    @Field(() => Coin, { description: 'The tier coin', nullable: true })
+    @IsOptional()
+    readonly coin?: Coin;
 }
 
 @InputType()
@@ -73,6 +88,10 @@ export class CreateTierInput {
     @IsString()
     @Field({ description: 'The name of the tier.' })
     readonly name: string;
+
+    @Field({ description: 'the tier selected coin id' })
+    @IsString()
+    readonly paymentTokenAddress: string;
 
     @IsString()
     @Field({ nullable: true, description: 'The description of the tier.' })
@@ -98,10 +117,9 @@ export class CreateTierInput {
     @IsOptional()
     readonly animationUrl?: string;
 
-    @IsString()
-    @Field({ nullable: true, description: 'A JSON object containing the attributes of the tier.' })
-    @IsOptional()
-    readonly attributes?: string;
+    @Field((type) => [Attribute], { description: 'The tier attributes', nullable: true })
+    @IsArray()
+    readonly attributes?: Attribute[];
 
     @IsString()
     @Field({ nullable: true, description: 'This merekleRoot of tier.' })

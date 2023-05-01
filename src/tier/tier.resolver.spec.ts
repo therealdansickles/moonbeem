@@ -14,6 +14,9 @@ import { CollectionService } from '../collection/collection.service';
 import { Tier } from './tier.entity';
 import { TierModule } from './tier.module';
 import { TierService } from './tier.service';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import { CoinModule } from '../sync-chain/coin/coin.module';
+import { Coin } from 'src/sync-chain/coin/coin.entity';
 
 export const gql = String.raw;
 
@@ -23,7 +26,8 @@ describe('TierResolver', () => {
     let service: TierService;
     let collection: Collection;
     let collectionService: CollectionService;
-    let tier: Tier;
+    let coinService: CoinService;
+    let coin: Coin;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -35,12 +39,25 @@ describe('TierResolver', () => {
                     synchronize: true,
                     logging: false,
                 }),
+                TypeOrmModule.forRoot({
+                    name: 'sync_chain',
+                    type: 'postgres',
+                    host: postgresConfig.syncChain.host,
+                    port: postgresConfig.syncChain.port,
+                    username: postgresConfig.syncChain.username,
+                    password: postgresConfig.syncChain.password,
+                    database: postgresConfig.syncChain.database,
+                    autoLoadEntities: true,
+                    synchronize: true,
+                    logging: false,
+                }),
                 CollectionModule,
                 TierModule,
+                CoinModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
-                    include: [CollectionModule, TierModule],
+                    include: [CollectionModule, TierModule, CoinModule],
                 }),
             ],
         }).compile();
@@ -48,6 +65,18 @@ describe('TierResolver', () => {
         repository = module.get('TierRepository');
         service = module.get<TierService>(TierService);
         collectionService = module.get<CollectionService>(CollectionService);
+        coinService = module.get<CoinService>(CoinService);
+
+        coin = await coinService.createCoin({
+            address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+            name: 'Wrapped Ether',
+            symbol: 'WETH',
+            decimals: 18,
+            derivedETH: 1,
+            derivedUSDC: 1,
+            enabled: true,
+            chainId: 1,
+        });
 
         app = module.createNestApplication();
         await app.init();
@@ -70,10 +99,12 @@ describe('TierResolver', () => {
                 kind: CollectionKind.edition,
                 address: faker.finance.ethereumAddress(),
             });
-            tier = await service.createTier({
+
+            const tier = await service.createTier({
                 name: faker.company.name(),
                 collection: { id: collection.id },
                 totalMints: 10,
+                paymentTokenAddress: coin.address,
             });
 
             const query = gql`
@@ -81,6 +112,9 @@ describe('TierResolver', () => {
                     tier(id: $id) {
                         id
                         name
+                        coin {
+                            address
+                        }
                     }
                 }
             `;
@@ -96,6 +130,8 @@ describe('TierResolver', () => {
                 .expect(({ body }) => {
                     expect(body.data.tier.id).toBe(tier.id);
                     expect(body.data.tier.name).toBe(tier.name);
+                    expect(body.data.tier.coin).toBeDefined();
+                    expect(body.data.tier.coin.address).toEqual(coin.address);
                 });
         });
     });
@@ -111,16 +147,19 @@ describe('TierResolver', () => {
                 kind: CollectionKind.edition,
                 address: faker.finance.ethereumAddress(),
             });
+
             await service.createTier({
                 name: faker.company.name(),
                 collection: { id: collection.id },
                 totalMints: 10,
+                paymentTokenAddress: coin.address,
             });
 
             await service.createTier({
                 name: faker.company.name(),
                 collection: { id: collection.id },
                 totalMints: 10,
+                paymentTokenAddress: coin.address,
             });
 
             const query = gql`
@@ -131,6 +170,9 @@ describe('TierResolver', () => {
                         collection {
                             id
                             name
+                        }
+                        coin {
+                            id
                         }
                     }
                 }
@@ -152,6 +194,13 @@ describe('TierResolver', () => {
 
     describe('updateTier', () => {
         it('should update a tier', async () => {
+            const tier = await service.createTier({
+                name: faker.company.name(),
+                collection: { id: collection.id },
+                totalMints: 10,
+                paymentTokenAddress: coin.address,
+            });
+
             const query = gql`
                 mutation UpdateTier($input: UpdateTierInput!) {
                     updateTier(input: $input)
@@ -177,6 +226,13 @@ describe('TierResolver', () => {
 
     describe('deleteTier', () => {
         it('should delete a tier', async () => {
+            const tier = await service.createTier({
+                name: faker.company.name(),
+                collection: { id: collection.id },
+                totalMints: 10,
+                paymentTokenAddress: coin.address,
+            });
+
             const query = gql`
                 mutation DeleteTier($input: DeleteTierInput!) {
                     deleteTier(input: $input)

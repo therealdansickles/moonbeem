@@ -32,6 +32,18 @@ describe('UserResolver', () => {
                     synchronize: true,
                     logging: false,
                 }),
+                TypeOrmModule.forRoot({
+                    name: 'sync_chain',
+                    type: 'postgres',
+                    host: postgresConfig.syncChain.host,
+                    port: postgresConfig.syncChain.port,
+                    username: postgresConfig.syncChain.username,
+                    password: postgresConfig.syncChain.password,
+                    database: postgresConfig.syncChain.database,
+                    autoLoadEntities: true,
+                    synchronize: true,
+                    logging: false,
+                }),
                 UserModule,
                 AuthModule,
                 GraphQLModule.forRoot({

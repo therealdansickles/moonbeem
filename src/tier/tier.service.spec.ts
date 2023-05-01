@@ -11,13 +11,17 @@ import { TierService } from './tier.service';
 import { Collection, CollectionKind } from '../collection/collection.entity';
 import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import { CoinModule } from '../sync-chain/coin/coin.module';
+import { Coin } from '../sync-chain/coin/coin.entity';
 
 describe('TierService', () => {
     let repository: Repository<Tier>;
     let service: TierService;
-    let tier: Tier;
     let collection: Collection;
     let collectionService: CollectionService;
+    let coinService: CoinService;
+    let coin: Coin;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -29,14 +33,39 @@ describe('TierService', () => {
                     synchronize: true,
                     logging: false,
                 }),
+                TypeOrmModule.forRoot({
+                    name: 'sync_chain',
+                    type: 'postgres',
+                    host: postgresConfig.syncChain.host,
+                    port: postgresConfig.syncChain.port,
+                    username: postgresConfig.syncChain.username,
+                    password: postgresConfig.syncChain.password,
+                    database: postgresConfig.syncChain.database,
+                    autoLoadEntities: true,
+                    synchronize: true,
+                    logging: false,
+                }),
                 CollectionModule,
                 TierModule,
+                CoinModule,
             ],
         }).compile();
 
         repository = module.get('TierRepository');
         service = module.get<TierService>(TierService);
         collectionService = module.get<CollectionService>(CollectionService);
+        coinService = module.get<CoinService>(CoinService);
+
+        coin = await coinService.createCoin({
+            address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+            name: 'Wrapped Ether',
+            symbol: 'WETH',
+            decimals: 18,
+            derivedETH: 1,
+            derivedUSDC: 1,
+            enabled: true,
+            chainId: 1,
+        });
     });
 
     afterAll(async () => {
@@ -56,10 +85,11 @@ describe('TierService', () => {
                 address: faker.finance.ethereumAddress(),
             });
 
-            tier = await service.createTier({
+            const tier = await service.createTier({
                 name: faker.company.name(),
                 totalMints: 100,
                 collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
             });
 
             expect(tier).toBeDefined();
@@ -76,11 +106,12 @@ describe('TierService', () => {
                 address: faker.finance.ethereumAddress(),
             });
 
-            tier = await service.createTier({
+            const tier = await service.createTier({
                 name: faker.company.name(),
                 totalMints: 100,
                 collection: { id: collection.id },
                 merkleRoot: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                paymentTokenAddress: coin.address,
             });
         });
     });
@@ -101,12 +132,14 @@ describe('TierService', () => {
                 name: faker.company.name(),
                 totalMints: 100,
                 collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
             });
 
             await service.createTier({
                 name: faker.company.name(),
                 totalMints: 200,
                 collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
             });
 
             const result = await service.getTiersByCollection(collection.id);
@@ -129,10 +162,11 @@ describe('TierService', () => {
                 address: faker.finance.ethereumAddress(),
             });
 
-            tier = await service.createTier({
+            const tier = await service.createTier({
                 name: faker.company.name(),
-                totalMints: 100,
                 collection: { id: collection.id },
+                totalMints: 10,
+                paymentTokenAddress: coin.address,
             });
 
             let result = await service.updateTier(tier.id, {
@@ -155,10 +189,11 @@ describe('TierService', () => {
                 address: faker.finance.ethereumAddress(),
             });
 
-            tier = await service.createTier({
+            const tier = await service.createTier({
                 name: faker.company.name(),
                 totalMints: 100,
                 collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
             });
 
             let result = await service.deleteTier(tier.id);

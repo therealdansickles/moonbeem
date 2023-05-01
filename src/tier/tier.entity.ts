@@ -45,6 +45,9 @@ export class Tier extends BaseEntity {
     @Column({ comment: 'The total number of NFTs in this tier.' })
     totalMints: number;
 
+    @Column({ comment: 'The contract address for the payment token associated with purchase of this tier.' })
+    paymentTokenAddress: string;
+
     // NOTE: Keeping it consistent with the contract naming.
     // https://github.com/vibexyz/vibe-contract/blob/cd578e468362a6e6fc77537c99fd33573b80e0c4/contracts/mint/NFTMintSaleMultiple.sol#L28-L33
 

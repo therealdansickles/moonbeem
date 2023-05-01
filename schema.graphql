@@ -115,6 +115,48 @@ type VUserFollowerListRspDto {
   total: Float!
 }
 
+type Coin {
+  id: ID!
+
+  """The coin address."""
+  address: String!
+
+  """The name of coin."""
+  name: String!
+
+  """The symbol of coin."""
+  symbol: String!
+
+  """The decimals of coin."""
+  decimals: Float!
+
+  """Price of tokens converted to ETH. Required decimals are 18"""
+  derivedETH: String!
+
+  """Price of tokens converted to USDC. Required decimals are 18"""
+  derivedUSDC: String!
+
+  """Is this token address a native token"""
+  native: Boolean!
+
+  """Whether this token is open for use"""
+  enable: Boolean!
+
+  """The chain id for the coin."""
+  chainId: Float!
+
+  """The created time."""
+  createdAt: DateTime!
+
+  """The DateTime that this coin was last updated."""
+  updatedAt: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
 type Tier {
   """The id of the tier."""
   id: String!
@@ -147,6 +189,9 @@ type Tier {
 
   """A JSON object containing the attributes of the tier."""
   attributes: String
+
+  """The tier coin"""
+  coin: Coin
 }
 
 type Organization {
@@ -203,11 +248,6 @@ type Organization {
   """Returns the members for the given organization"""
   memberships: [Membership!]!
 }
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
 
 type Collection {
   """The ID for a collection"""
@@ -784,43 +824,6 @@ enum History721Type {
   burn
 }
 
-type Coin {
-  id: ID!
-
-  """The coin address."""
-  address: String!
-
-  """The name of coin."""
-  name: String!
-
-  """The symbol of coin."""
-  symbol: String!
-
-  """The decimals of coin."""
-  decimals: Float!
-
-  """Price of tokens converted to ETH. Required decimals are 18"""
-  derivedETH: String!
-
-  """Price of tokens converted to USDC. Required decimals are 18"""
-  derivedUSDC: String!
-
-  """Is this token address a native token"""
-  native: Boolean!
-
-  """Whether this token is open for use"""
-  enable: Boolean!
-
-  """The chain id for the coin."""
-  chainId: Float!
-
-  """The created time."""
-  createdAt: DateTime!
-
-  """The DateTime that this coin was last updated."""
-  updatedAt: DateTime!
-}
-
 type SystemConfig {
   id: ID!
 
@@ -1065,6 +1068,12 @@ type Query {
 
   """Get tiers by collection id"""
   tiers(collectionId: String!): [Tier!]
+
+  """returns coin for a given uuid"""
+  coin(id: String!): Coin!
+
+  """returns coin list for a given chainId"""
+  coins(chainId: Int!, enable: Boolean): [Coin!]!
   getAddressInfo(address: EthereumAddress!): VUserWalletInfo!
   getUserFollowingList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowingListRspDto!
   getUserFollowerList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowerListRspDto!
@@ -1093,12 +1102,6 @@ type Query {
 
   """returns a asset for a given uuid"""
   history721(id: String!): History721!
-
-  """returns coin for a given uuid"""
-  coin(id: String!): Coin!
-
-  """returns coin list for a given chainId"""
-  coins(chainId: Int!, enable: Boolean): [Coin!]!
 
   """returns config for a given uuid"""
   config(id: String!): SystemConfig!
@@ -1588,6 +1591,9 @@ input CreateTierInput {
   """The name of the tier."""
   name: String!
 
+  """the tier selected coin id"""
+  coinId: String!
+
   """The description of the tier."""
   description: String
 
@@ -1602,8 +1608,8 @@ input CreateTierInput {
   """This is the URL to the animation of the tier."""
   animationUrl: String
 
-  """A JSON object containing the attributes of the tier."""
-  attributes: String
+  """The tier attributes"""
+  attributes: [Attribute!]
 
   """This merekleRoot of tier."""
   merkleRoot: String
@@ -1611,6 +1617,17 @@ input CreateTierInput {
 
 input CollectionInput {
   id: ID!
+}
+
+input Attribute {
+  """The display type for the attribute"""
+  display_type: String
+
+  """The trait type of the attribute"""
+  trait_type: String!
+
+  """The value of the attribute"""
+  value: String!
 }
 
 input UpdateTierInput {
