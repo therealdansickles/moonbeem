@@ -1,7 +1,9 @@
-import { ArgsType, Field, Int, ObjectType, InputType, ID } from '@nestjs/graphql';
+import { ArgsType, Field, Int, ObjectType, InputType, ID, PickType } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsString, IsDateString, IsEthereumAddress, IsUrl, ValidateIf, IsObject } from 'class-validator';
 import { User, UserInput } from '../user/user.dto';
+import { Tier } from '../tier/tier.dto';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
 
 @ObjectType('Wallet')
 export class Wallet {
@@ -16,6 +18,20 @@ export class Wallet {
     @IsObject()
     @Field(() => User, { description: 'The owner of the wallet.', nullable: true })
     readonly owner?: User;
+}
+
+@ObjectType('Minted', { description: 'The NFT minted by a wallet.' })
+export class Minted extends PickType(MintSaleTransaction, [
+    'address',
+    'tokenAddress',
+    'paymentToken',
+    'tokenId',
+    'price',
+    'txTime',
+] as const) {
+    @IsObject()
+    @Field(() => Tier, { description: 'The tier of the minted token.' })
+    readonly tier: Tier;
 }
 
 @InputType()

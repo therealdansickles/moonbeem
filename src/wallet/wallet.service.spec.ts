@@ -3,19 +3,33 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../lib/configs/db.config';
+import { ethers } from 'ethers';
+
+import { CollaborationModule } from '../collaboration/collaboration.module';
+import { CollectionKind } from '../collection/collection.entity';
+import { CollectionInput } from '../collection/collection.dto';
+import { CollectionModule } from '../collection/collection.module';
+import { CollectionService } from '../collection/collection.service';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
+import { Tier } from '../tier/tier.entity';
+import { TierService } from '../tier/tier.service';
+import { TierModule } from '../tier/tier.module';
+import { UserModule } from '../user/user.module';
+import { UserService } from '../user/user.service';
 import { Wallet } from './wallet.entity';
 import { WalletModule } from './wallet.module';
 import { WalletService } from './wallet.service';
-import { CollaborationModule } from '../collaboration/collaboration.module';
-import { UserModule } from '../user/user.module';
-import { UserService } from '../user/user.service';
-import { ethers } from 'ethers';
 
 describe('WalletService', () => {
-    let repository: Repository<Wallet>;
-    let service: WalletService;
-    let userService: UserService;
     let address: string;
+    let repository: Repository<Wallet>;
+    let collectionService: CollectionService;
+    let mintSaleTransactionService: MintSaleTransactionService;
+    let service: WalletService;
+    let tierService: TierService;
+    let userService: UserService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -39,15 +53,21 @@ describe('WalletService', () => {
                     synchronize: true,
                     logging: false,
                 }),
-                WalletModule,
                 CollaborationModule,
+                CollectionModule,
+                MintSaleTransactionModule,
+                TierModule,
                 UserModule,
+                WalletModule,
             ],
         }).compile();
 
         address = faker.finance.ethereumAddress().toLowerCase();
         repository = module.get('WalletRepository');
         service = module.get<WalletService>(WalletService);
+        collectionService = module.get<CollectionService>(CollectionService);
+        mintSaleTransactionService = module.get<MintSaleTransactionService>(MintSaleTransactionService);
+        tierService = module.get<TierService>(TierService);
         userService = module.get<UserService>(UserService);
     });
 
@@ -242,6 +262,53 @@ describe('WalletService', () => {
             };
 
             expect(service.parseEIP3770Address(input)).toEqual(expected);
+        });
+    });
+    describe('getMintedByAddress', () => {
+        it('should return minted transactions by address', async () => {
+            const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                tierId: 1,
+                collection: { id: collection.id },
+                paymentTokenAddress: faker.finance.ethereumAddress(),
+            });
+
+            const transaction = await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: wallet.address,
+                address: collection.address,
+                tierId: tier.tierId,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
+            const [result, ...rest] = await service.getMintedByAddress(wallet.address);
+            expect(result.address).toEqual(transaction.address);
+            expect(result.tokenAddress).toEqual(transaction.tokenAddress);
+            expect(result.paymentToken).toEqual(transaction.paymentToken);
+            expect(result.tokenId).toEqual(transaction.tokenId);
+            expect(result.price).toEqual(transaction.price);
+            expect(result.txTime).toEqual(transaction.txTime);
+            expect(result.tier.id).toEqual(tier.id);
+            expect(result.tier.collection.id).toEqual(collection.id);
         });
     });
 });

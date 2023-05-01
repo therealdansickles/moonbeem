@@ -7,6 +7,7 @@ import { ApolloDriver } from '@nestjs/apollo';
 import { faker } from '@faker-js/faker';
 import { Repository } from 'typeorm';
 import { postgresConfig } from '../lib/configs/db.config';
+import { ethers } from 'ethers';
 
 import { Wallet } from './wallet.entity';
 import { WalletModule } from './wallet.module';
@@ -16,7 +17,15 @@ import { AuthModule } from '../auth/auth.module';
 import { CollaborationModule } from '../collaboration/collaboration.module';
 import { UserModule } from '../user/user.module';
 import { UserService } from '../user/user.service';
-import { ethers } from 'ethers';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
+
+import { TierService } from '../tier/tier.service';
+import { TierModule } from '../tier/tier.module';
+import { Collection, CollectionKind } from '../collection/collection.entity';
+import { CollectionService } from '../collection/collection.service';
+import { CollectionModule } from '../collection/collection.module';
 
 export const gql = String.raw;
 
@@ -24,6 +33,9 @@ describe('WalletResolver', () => {
     let repository: Repository<Wallet>;
     let service: WalletService;
     let authService: AuthService;
+    let collectionService: CollectionService;
+    let mintSaleTransactionService: MintSaleTransactionService;
+    let tierService: TierService;
     let userService: UserService;
     let app: INestApplication;
     let address: string;
@@ -53,6 +65,9 @@ describe('WalletResolver', () => {
                 WalletModule,
                 AuthModule,
                 CollaborationModule,
+                CollectionModule,
+                TierModule,
+                MintSaleTransactionModule,
                 UserModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
@@ -65,6 +80,9 @@ describe('WalletResolver', () => {
         repository = module.get('WalletRepository');
         service = module.get<WalletService>(WalletService);
         authService = module.get<AuthService>(AuthService);
+        collectionService = module.get<CollectionService>(CollectionService);
+        mintSaleTransactionService = module.get<MintSaleTransactionService>(MintSaleTransactionService);
+        tierService = module.get<TierService>(TierService);
         userService = module.get<UserService>(UserService);
         app = module.createNestApplication();
         await app.init();
@@ -238,6 +256,77 @@ describe('WalletResolver', () => {
                 .expect(({ body }) => {
                     expect(body.data.unbindWallet.owner.id).not.toEqual(owner.id);
                     expect(body.data.unbindWallet.owner.id).toEqual('00000000-0000-0000-0000-000000000000');
+                });
+        });
+    });
+
+    describe('minted', () => {
+        it('should get minted NFTs', async () => {
+            const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                tierId: 1,
+                collection: { id: collection.id },
+                paymentTokenAddress: faker.finance.ethereumAddress(),
+            });
+
+            let transaction = await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: wallet.address,
+                address: collection.address,
+                tierId: tier.tierId,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
+            const query = gql`
+                query MintedByWallet($address: String!) {
+                    wallet(address: $address) {
+                        minted {
+                            address
+
+                            tier {
+                                name
+
+                                collection {
+                                    name
+                                }
+                            }
+                        }
+                    }
+                }
+            `;
+
+            const variables = {
+                address: wallet.address,
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    const [firstMint, ..._rest] = body.data.wallet.minted;
+                    expect(firstMint.address).toEqual(collection.address); // NOTE: These horrible `address` namings, which one is it???
+                    expect(firstMint.tier.name).toEqual(tier.name);
+                    expect(firstMint.tier.collection.name).toEqual(collection.name);
                 });
         });
     });

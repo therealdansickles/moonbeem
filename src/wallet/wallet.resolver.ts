@@ -1,11 +1,11 @@
-import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
-import { Wallet, BindWalletInput, UnbindWalletInput, CreateWalletInput } from './wallet.dto';
+import { Resolver, Query, Args, Mutation, ResolveField, Parent } from '@nestjs/graphql';
+import { Wallet, BindWalletInput, UnbindWalletInput, CreateWalletInput, Minted } from './wallet.dto';
 import { Public } from '../lib/decorators/public.decorator';
 import { WalletService } from './wallet.service';
 
-@Resolver('Wallet')
+@Resolver(() => Wallet)
 export class WalletResolver {
-    constructor(private readonly walletService: WalletService) { }
+    constructor(private readonly walletService: WalletService) {}
 
     @Public()
     @Query((returns) => Wallet, {
@@ -32,5 +32,12 @@ export class WalletResolver {
     @Mutation((returns) => Wallet, { description: 'Unbinds a wallet from the current user.' })
     async unbindWallet(@Args('input') input: UnbindWalletInput): Promise<Wallet> {
         return await this.walletService.unbindWallet(input);
+    }
+
+    @Public()
+    @ResolveField(() => [Minted], { description: 'Retrieves the minted NFTs for the given wallet.' })
+    async minted(@Parent() wallet: Wallet): Promise<Minted[]> {
+        let minted = await this.walletService.getMintedByAddress(wallet.address);
+        return minted;
     }
 }

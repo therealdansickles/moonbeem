@@ -1,19 +1,24 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-// import { Wallet as WalletModel, Prisma } from '@prisma/client';
-import { BindWalletInput, CreateWalletInput, UnbindWalletInput } from './wallet.dto';
-import { Wallet } from './wallet.entity';
 import { GraphQLError } from 'graphql';
+import { HttpException, HttpStatus, Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '../user/user.entity';
 import { ethers } from 'ethers';
+
+import { BindWalletInput, CreateWalletInput, UnbindWalletInput, Minted } from './wallet.dto';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { User } from '../user/user.entity';
+import { Wallet } from './wallet.entity';
+import { Tier } from '../tier/tier.entity';
 
 @Injectable()
 export class WalletService {
     constructor(
         @InjectRepository(Wallet) private walletRespository: Repository<Wallet>,
-        @InjectRepository(User) private userRepository: Repository<User>
-    ) { }
+        @InjectRepository(User) private userRepository: Repository<User>,
+        @InjectRepository(Tier) private tierRepository: Repository<Tier>,
+        @InjectRepository(MintSaleTransaction, 'sync_chain')
+        private mintSaleTransactionRepository: Repository<MintSaleTransaction>
+    ) {}
 
     /**
      * This is the uuid for the ownerId for all unbound wallets, e.g the blackhole.
@@ -95,7 +100,7 @@ export class WalletService {
      */
     async bindWallet(data: BindWalletInput): Promise<Wallet> {
         const { address: rawAddress, owner } = data;
-        const address = rawAddress.toLowerCase()
+        const address = rawAddress.toLowerCase();
 
         const verifiedAddress = ethers.utils.verifyMessage(data.message, data.signature);
         if (address !== verifiedAddress.toLocaleLowerCase()) {
@@ -109,7 +114,7 @@ export class WalletService {
 
         // if wallet doesn't existed yet, create a new one and bind the owner on it
         if (!wallet) {
-            wallet = { address, owner } as Wallet
+            wallet = { address, owner } as Wallet;
         } else {
             if (wallet.owner && wallet.owner.id) {
                 throw new GraphQLError(`Wallet ${address} is already bound.`, {
@@ -182,5 +187,37 @@ export class WalletService {
         }
 
         return { address };
+    }
+
+    /**
+     * Retrieves the mint sale transactions associated with the given address.(from the sync-chain).
+     * `Minted` here is the actual NFT minted, which includes the the transaction details,
+     * the NFT details itself via the `tier` and the `collection` associated with it.
+     *
+     * @param address The address of the wallet to retrieve.
+     * @returns The `Minted` details + mint sale transactions associated with the given address.
+     */
+    async getMintedByAddress(address: string): Promise<any> {
+        const wallet = await this.getWalletByAddress(address);
+        if (!wallet) throw new Error(`Wallet with address ${address} doesn't exist.`);
+
+        // FIXME: Need to setup pagination for this.
+        const mintSaleTransactions = await this.mintSaleTransactionRepository.find({ where: { recipient: address } });
+
+        const minted = await Promise.all(
+            mintSaleTransactions.map(async (mintSaleTransaction) => {
+                const { tierId, address } = mintSaleTransaction;
+
+                let tier = await this.tierRepository
+                    .createQueryBuilder('tier')
+                    .leftJoinAndSelect('tier.collection', 'collection')
+                    .where('collection.address = :address', { address })
+                    .andWhere('tier.tierId = :tierId', { tierId })
+                    .getOne();
+
+                return { ...mintSaleTransaction, tier };
+            })
+        );
+        return minted;
     }
 }
