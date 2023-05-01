@@ -9,6 +9,7 @@ import { Organization } from '../organization/organization.entity';
 import { OrganizationModule } from '../organization/organization.module';
 import { Tier } from '../tier/tier.entity';
 import { TierModule } from '../tier/tier.module';
+import { TierService } from '../tier/tier.service';
 
 @Module({
     imports: [
@@ -18,7 +19,7 @@ import { TierModule } from '../tier/tier.module';
         forwardRef(() => TierModule),
     ],
     exports: [CollectionModule],
-    providers: [CollectionService, CollectionResolver],
+    providers: [CollectionService, CollectionResolver, TierService],
     controllers: [],
 })
 export class CollectionModule {}
