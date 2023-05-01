@@ -7,7 +7,6 @@ import {
     UpdateCollectionInput,
     PublishCollectionInput,
     DeleteCollectionInput,
-    CreateCollectionWithTiersInput,
 } from './collection.dto';
 
 @Resolver('Collection')
@@ -47,11 +46,5 @@ export class CollectionResolver {
     async deleteCollection(@Args('input') input: DeleteCollectionInput): Promise<boolean> {
         const { id } = input;
         return await this.collectionService.deleteCollection(id);
-    }
-
-    @Public()
-    @Mutation(() => Collection, { description: 'Create a collection with tiers' })
-    async createCollectionWithTiers(@Args('input') input: CreateCollectionWithTiersInput) {
-        return await this.collectionService.createCollectionWithTiers(input);
     }
 }

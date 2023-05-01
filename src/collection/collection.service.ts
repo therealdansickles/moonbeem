@@ -1,19 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, UpdateResult, IsNull } from 'typeorm';
-import { Collection, CollectionKind } from './collection.entity';
+import { Collection } from './collection.entity';
 import { GraphQLError } from 'graphql';
-import { CreateCollectionWithTiersInput } from './collection.dto';
-import { Tier } from '../tier/tier.entity';
 
 @Injectable()
 export class CollectionService {
     constructor(
         @InjectRepository(Collection)
-        private readonly collectionRepository: Repository<Collection>,
-
-        @InjectRepository(Tier)
-        private readonly tierRepository: Repository<Tier>
+        private readonly collectionRepository: Repository<Collection>
     ) {}
 
     /**
@@ -33,7 +28,7 @@ export class CollectionService {
      * @returns The collection associated with the given address.
      */
     async getCollectionByAddress(address: string): Promise<Collection | null> {
-        return this.collectionRepository.findOne({ where: { address }, relations: { organization: true } });
+        return this.collectionRepository.findOne({ where: { address }, relations: ['organization'] });
     }
 
     /**
@@ -116,32 +111,5 @@ export class CollectionService {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
         }
-    }
-
-    async createCollectionWithTiers(data: CreateCollectionWithTiersInput) {
-        console.log('data: ', data);
-        const { tiers, ...collection } = data;
-        const kind = CollectionKind;
-        if ([kind.whitelistEdition, kind.whitelistTiered, kind.whitelistBulk].indexOf(collection.kind) >= 0) {
-            tiers.forEach((tier) => {
-                if (!tier.merkleRoot)
-                    throw new GraphQLError('Please provide merkleRoot for the whitelisting collection.');
-            });
-        }
-
-        const createResult = await this.collectionRepository.save(collection as Collection);
-
-        tiers.forEach(async (tier) => {
-            const dd = tier as unknown as Tier;
-            dd.collection = createResult.id as unknown as Collection;
-            await this.tierRepository.save(dd);
-        });
-
-        const result = await this.collectionRepository.findOne({
-            where: { id: createResult.id },
-            relations: ['tiers'],
-        });
-
-        return result;
     }
 }

@@ -12,17 +12,14 @@ import { OrganizationService } from './organization.service';
 import { User } from '../user/user.entity';
 import { UserModule } from '../user/user.module';
 import { MailModule } from '../mail/mail.module';
-import { Tier } from '../tier/tier.entity';
-import { TierModule } from '../tier/tier.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Collection, Membership, Organization, User,Tier]),
+        TypeOrmModule.forFeature([Collection, Membership, Organization, User]),
         forwardRef(() => MembershipModule),
         forwardRef(() => UserModule),
         forwardRef(() => CollectionModule),
         forwardRef(() => MailModule),
-        forwardRef(() => TierModule),
     ],
     exports: [OrganizationModule],
     providers: [CollectionService, MembershipService, OrganizationService, OrganizationResolver],

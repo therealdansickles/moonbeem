@@ -1205,9 +1205,6 @@ type Mutation {
   """delete a unpublished collection"""
   deleteCollection(input: DeleteCollectionInput!): Boolean!
 
-  """Create a collection with tiers"""
-  createCollectionWithTiers(input: CreateCollectionWithTiersInput!): Collection!
-
   """create a collaboration"""
   createCollaboration(input: CreateCollaborationInput!): Collaboration!
 
@@ -1551,85 +1548,6 @@ input PublishCollectionInput {
 input DeleteCollectionInput {
   """The id for a collection."""
   id: String!
-}
-
-input CreateCollectionWithTiersInput {
-  """The unique URL-friendly identifier for a collection."""
-  name: String!
-
-  """The name that we display for the collection."""
-  displayName: String!
-
-  """The type of collection this is."""
-  kind: CollectionKind!
-
-  """The description for the collection."""
-  about: String
-
-  """
-  The image url for the avatar of the collection. This is the profile picture.
-  """
-  avatarUrl: String
-
-  """The image url for the background of the collection."""
-  backgroundUrl: String
-
-  """The url for the website associated with this collection"""
-  websiteUrl: String
-
-  """The twitter handle associated with this collection, e.g. 'vibe-labs'"""
-  twitter: String
-
-  """The instagram handle associated with this collection, e.g. 'vibe-labs'"""
-  instagram: String
-
-  """The discord handle associated with this collection, e.g. 'vibe-labs"""
-  discord: String
-
-  """The tags associated with this organization."""
-  tags: [String!]
-
-  """
-  The address of the collection, e.g. '0x6bf9ec331e083627b0f48332ece2d99a7eb7fb0c'
-  """
-  address: String
-
-  """The chainId of the collection."""
-  chainId: Int
-
-  """The description for the collection."""
-  creatorId: String
-
-  """This tiers for collection"""
-  tiers: [CreateTierInCollectionInput!]!
-}
-
-input CreateTierInCollectionInput {
-  """The total number of mints for this tier."""
-  totalMints: Int!
-
-  """The name of the tier."""
-  name: String!
-
-  """The description of the tier."""
-  description: String
-
-  """This is the URL to the image of the tier."""
-  image: String
-
-  """
-  This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.
-  """
-  externalUrl: String
-
-  """This is the URL to the animation of the tier."""
-  animationUrl: String
-
-  """A JSON object containing the attributes of the tier."""
-  attributes: String
-
-  """This merekleRoot of tier."""
-  merkleRoot: String
 }
 
 input CreateCollaborationInput {

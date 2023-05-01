@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../lib/configs/db.config';
-import { Collection, CollectionKind } from './collection.entity';
+import { Collection } from './collection.entity';
 import { CollectionService } from './collection.service';
 import { CollectionModule } from './collection.module';
 import { Organization } from '../organization/organization.entity';
@@ -293,29 +293,6 @@ describe('CollectionService', () => {
 
             expect(collection).toBeDefined();
             expect(collection.displayName).toEqual('The best collection');
-        });
-    });
-
-    describe('createCollectionWithTier', () => {
-        it('should create a collection with one tier', async () => {
-            const collection = await service.createCollectionWithTiers({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                address: faker.finance.ethereumAddress(),
-                tags: [],
-                kind: CollectionKind.edition,
-                tiers: [
-                    {
-                        name: faker.company.name(),
-                        totalMints: parseInt(faker.random.numeric(5)),
-                    },
-                ],
-            });
-
-            expect(collection).toBeDefined();
-            expect(collection.displayName).toEqual('The best collection');
-            expect(collection.tiers).toBeDefined();
         });
     });
 
