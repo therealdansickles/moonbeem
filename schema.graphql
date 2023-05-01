@@ -195,13 +195,13 @@ type Tier {
   totalMints: Float!
 
   """The tier id/index of the NFTs in this tier."""
-  tierId: Float!
+  tierId: Float
 
   """The starting id/index of the NFTs in this tier."""
-  beginId: Float!
+  beginId: Float
 
   """The ending id/index of the NFTs in this tier."""
-  endId: Float!
+  endId: Float
 
   """The name of the tier."""
   name: String!

@@ -31,13 +31,13 @@ export class Tier {
     readonly totalMints: number;
 
     @IsNumber()
-    @Field({ description: 'The tier id/index of the NFTs in this tier.' })
+    @Field({ description: 'The tier id/index of the NFTs in this tier.', nullable: true })
     readonly tierId?: number;
 
-    @Field({ description: 'The starting id/index of the NFTs in this tier.' })
+    @Field({ description: 'The starting id/index of the NFTs in this tier.', nullable: true })
     beginId?: number;
 
-    @Field({ description: 'The ending id/index of the NFTs in this tier.' })
+    @Field({ description: 'The ending id/index of the NFTs in this tier.', nullable: true })
     endId?: number;
 
     @IsString()
