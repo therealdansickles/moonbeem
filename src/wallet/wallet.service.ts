@@ -144,7 +144,7 @@ export class WalletService {
      * @returns The wallet that was bound to the user.
      */
     async unbindWallet(data: UnbindWalletInput): Promise<Wallet> {
-        const { address } = data;
+        const { address, owner } = data;
         let wallet = await this.walletRespository.findOne({
             where: { address: address.toLowerCase() },
             relations: ['owner'],
@@ -153,7 +153,7 @@ export class WalletService {
             wallet = new Wallet();
             wallet.address = address;
         }
-        if (wallet?.owner && wallet?.owner?.id !== data.owner.id) {
+        if (wallet?.owner && wallet?.owner?.id !== owner?.id) {
             throw new GraphQLError(`Wallet ${address} doesn't belong to the given user.`, {
                 extensions: { code: 'FORBIDDEN' },
             });

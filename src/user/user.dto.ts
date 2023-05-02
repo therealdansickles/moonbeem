@@ -75,7 +75,7 @@ export class User {
 }
 
 @InputType()
-export class UserInput extends PickType(User, ['id'] as const, InputType) { }
+export class UserInput extends PickType(User, ['id'] as const, InputType) {}
 
 @InputType()
-export class UpdateUserInput extends PartialType(OmitType(User, ['password', 'wallets'] as const), InputType) { }
+export class UpdateUserInput extends PartialType(OmitType(User, ['password', 'wallets'] as const), InputType) {}

@@ -26,7 +26,7 @@ export class AuthService {
         private readonly redisClient: RedisAdapter,
         @InjectRepository(User) private userRepository: Repository<User>,
         @InjectRepository(Wallet) private walletRepository: Repository<Wallet>
-    ) { }
+    ) {}
 
     /**
      * login with wallet, needs to signature
@@ -101,7 +101,7 @@ export class AuthService {
     async createUserWithEmail(data: CreateUserWithEmailInput): Promise<LoginWithEmailResponse> {
         // generate the password hash
         const hash = await argon.hash(data.password);
-        let user: User
+        let user: User;
 
         // save the new user to db
         try {
@@ -117,7 +117,7 @@ export class AuthService {
         } catch (e) {
             Sentry.captureException(e);
             throw new GraphQLError('Failed to create user.', {
-                extensions: { code: 'INTERNAL_SERVER_ERROR' }
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
         }
 
@@ -141,8 +141,8 @@ export class AuthService {
         } catch (e) {
             Sentry.captureException(e);
             throw new GraphQLError('Failed to create accessToken or save accessToken', {
-                extensions: { code: 'INTERNAL_SERVER_ERROR' }
-            })
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
         }
     }
 
