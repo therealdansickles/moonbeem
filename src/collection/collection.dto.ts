@@ -207,6 +207,10 @@ export class CreateCollectionInput {
     @Field({ description: 'The description for the collection.', nullable: true })
     @IsOptional()
     readonly creatorId?: string;
+
+    @IsArray()
+    @Field((type) => [CreateTierInCollectionInput], { nullable: true, description: 'This tiers for collection' })
+    readonly tiers?: CreateTierInCollectionInput[];
 }
 
 @InputType()
@@ -309,4 +313,49 @@ export class CollectionInput {
     @IsString()
     @Field((returns) => ID!)
     id: string;
+}
+
+@InputType('CreateTierInCollectionInput')
+export class CreateTierInCollectionInput {
+    @IsNumber()
+    @Field((type) => Int, { description: 'The total number of mints for this tier.' })
+    readonly totalMints: number;
+
+    @IsString()
+    @Field({ description: 'The name of the tier.' })
+    readonly name: string;
+
+    @IsString()
+    @Field({ nullable: true, description: 'The description of the tier.' })
+    @IsOptional()
+    readonly description?: string;
+
+    @IsString()
+    @Field({ nullable: true, description: 'This is the URL to the image of the tier.' })
+    @IsOptional()
+    readonly image?: string;
+
+    @IsString()
+    @Field({
+        nullable: true,
+        description:
+            "This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.",
+    })
+    @IsOptional()
+    readonly externalUrl?: string;
+
+    @IsString()
+    @Field({ nullable: true, description: 'This is the URL to the animation of the tier.' })
+    @IsOptional()
+    readonly animationUrl?: string;
+
+    @IsString()
+    @Field({ nullable: true, description: 'A JSON object containing the attributes of the tier.' })
+    @IsOptional()
+    readonly attributes?: string;
+
+    @IsString()
+    @Field({ nullable: true, description: 'This merekleRoot of tier.' })
+    @IsOptional()
+    readonly merkleRoot?: string;
 }

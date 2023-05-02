@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../lib/configs/db.config';
-import { Collection } from './collection.entity';
+import { Collection, CollectionKind } from './collection.entity';
 import { CollectionService } from './collection.service';
 import { CollectionModule } from './collection.module';
 import { Organization } from '../organization/organization.entity';
@@ -289,6 +289,12 @@ describe('CollectionService', () => {
                 address: faker.finance.ethereumAddress(),
                 artists: [],
                 tags: [],
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: parseInt(faker.random.numeric(5)),
+                    },
+                ],
             });
 
             expect(collection).toBeDefined();

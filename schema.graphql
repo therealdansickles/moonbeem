@@ -1531,6 +1531,37 @@ input CreateCollectionInput {
 
   """The description for the collection."""
   creatorId: String
+
+  """This tiers for collection"""
+  tiers: [CreateTierInCollectionInput!]
+}
+
+input CreateTierInCollectionInput {
+  """The total number of mints for this tier."""
+  totalMints: Int!
+
+  """The name of the tier."""
+  name: String!
+
+  """The description of the tier."""
+  description: String
+
+  """This is the URL to the image of the tier."""
+  image: String
+
+  """
+  This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.
+  """
+  externalUrl: String
+
+  """This is the URL to the animation of the tier."""
+  animationUrl: String
+
+  """A JSON object containing the attributes of the tier."""
+  attributes: String
+
+  """This merekleRoot of tier."""
+  merkleRoot: String
 }
 
 input UpdateCollectionInput {
