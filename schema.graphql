@@ -351,7 +351,7 @@ type User {
   discord: String
 
   """The wallets of the user."""
-  wallets: [Wallet!]!
+  wallets: [Wallet!]
 }
 
 type VIPriceType {

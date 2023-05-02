@@ -70,12 +70,12 @@ export class User {
     discord?: string;
 
     @ApiProperty()
-    @Field((returns) => [Wallet], { description: 'The wallets of the user.' })
-    wallets: Wallet[];
+    @Field((returns) => [Wallet], { description: 'The wallets of the user.', nullable: true })
+    wallets?: Wallet[];
 }
 
 @InputType()
-export class UserInput extends PickType(User, ['id'] as const, InputType) {}
+export class UserInput extends PickType(User, ['id'] as const, InputType) { }
 
 @InputType()
-export class UpdateUserInput extends PartialType(OmitType(User, ['password', 'wallets'] as const), InputType) {}
+export class UpdateUserInput extends PartialType(OmitType(User, ['password', 'wallets'] as const), InputType) { }
