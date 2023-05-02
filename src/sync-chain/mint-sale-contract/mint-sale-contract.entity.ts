@@ -78,13 +78,13 @@ export class MintSaleContract extends BaseEntity {
     updatedAt: Date;
 }
 
-export class MerkleTree {
+export class IMerkleTree {
     root: string;
-    data: StandardMerkleTreeData<string[]>;
+    data: IStandardMerkleTreeData<string[]>;
     organizationId?: string;
 }
 
-export class StandardMerkleTreeData<T extends any[]> {
+export class IStandardMerkleTreeData<T extends any[]> {
     format: 'standard-v1';
     tree: string[];
     values: {
