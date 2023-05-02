@@ -1543,6 +1543,9 @@ input CreateTierInCollectionInput {
   """The name of the tier."""
   name: String!
 
+  """the tier selected coin id"""
+  paymentTokenAddress: String!
+
   """The description of the tier."""
   description: String
 
@@ -1557,8 +1560,8 @@ input CreateTierInCollectionInput {
   """This is the URL to the animation of the tier."""
   animationUrl: String
 
-  """A JSON object containing the attributes of the tier."""
-  attributes: String
+  """The tier attributes"""
+  attributes: [Attribute!]
 
   """This merekleRoot of tier."""
   merkleRoot: String

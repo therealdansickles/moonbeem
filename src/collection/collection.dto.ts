@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsString, IsDateString, IsUrl, ValidateIf, IsOptional, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CollectionKind } from './collection.entity';
-import { Tier } from '../tier/tier.dto';
+import { Attribute, Tier } from '../tier/tier.dto';
 import { Organization } from '../organization/organization.dto';
 
 registerEnumType(CollectionKind, { name: 'CollectionKind' });
@@ -325,6 +325,10 @@ export class CreateTierInCollectionInput {
     @Field({ description: 'The name of the tier.' })
     readonly name: string;
 
+    @Field({ description: 'the tier selected coin id' })
+    @IsString()
+    readonly paymentTokenAddress: string;
+
     @IsString()
     @Field({ nullable: true, description: 'The description of the tier.' })
     @IsOptional()
@@ -349,10 +353,10 @@ export class CreateTierInCollectionInput {
     @IsOptional()
     readonly animationUrl?: string;
 
-    @IsString()
-    @Field({ nullable: true, description: 'A JSON object containing the attributes of the tier.' })
+    @Field((type) => [Attribute], { description: 'The tier attributes', nullable: true })
+    @IsArray()
     @IsOptional()
-    readonly attributes?: string;
+    readonly attributes?: Attribute[];
 
     @IsString()
     @Field({ nullable: true, description: 'This merekleRoot of tier.' })

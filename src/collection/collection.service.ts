@@ -134,7 +134,16 @@ export class CollectionService {
             tiers.forEach(async (tier) => {
                 const dd = tier as unknown as Tier;
                 dd.collection = createResult.id as unknown as Collection;
-                await this.tierRepository.save(dd);
+                const attributesJson = JSON.stringify(tier.attributes);
+                dd.attributes = attributesJson;
+
+                try {
+                    return await this.tierRepository.save(dd);
+                } catch (e) {
+                    throw new GraphQLError(`Failed to create tier ${data.name}`, {
+                        extensions: { code: 'INTERNAL_SERVER_ERROR' },
+                    });
+                }
             });
         }
 
