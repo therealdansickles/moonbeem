@@ -81,6 +81,18 @@ export class OrganizationService {
     }
 
     /**
+     * Retrieve organizations by owner id.
+     *
+     * @param ownerId The id of the user to retrieve owned organizations for.
+     * @returns The organizations.
+     */
+    async getOrganizationsByOwnerId(ownerId: string): Promise<Organization[]> {
+        return await this.organizationRepository.find({
+            where: { owner: { id: ownerId } },
+        });
+    }
+
+    /**
      * TODO: Fix this and make it a soft deletion.
      *
      * Deletes a organization if it is not published.

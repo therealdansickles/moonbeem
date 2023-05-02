@@ -24,7 +24,7 @@ import { TierModule } from '../tier/tier.module';
         forwardRef(() => MailModule),
         forwardRef(() => TierModule),
     ],
-    exports: [OrganizationModule],
+    exports: [OrganizationModule, OrganizationService],
     providers: [CollectionService, MembershipService, OrganizationService, OrganizationResolver],
     controllers: [],
 })

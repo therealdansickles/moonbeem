@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { GraphQLError } from 'graphql';
 import { CreateMembershipInput, MembershipRequestInput, UpdateMembershipInput } from './membership.dto';
 import { Membership } from './membership.entity';

@@ -352,6 +352,12 @@ type User {
 
   """The wallets of the user."""
   wallets: [Wallet!]
+
+  """Returns the memberships for the given user"""
+  memberships: [Membership!]!
+
+  """Returns the memberships for the given user"""
+  organizations: [Organization!]!
 }
 
 type VIPriceType {

@@ -9,6 +9,7 @@ import { MembershipModule } from '../membership/membership.module';
 import { Organization } from '../organization/organization.entity';
 import { OrganizationModule } from '../organization/organization.module';
 import { UserResolver } from './user.resolver';
+import { MembershipService } from 'src/membership/membership.service';
 
 @Module({
     imports: [

@@ -89,6 +89,14 @@ describe('UserResolver', () => {
                         wallets {
                             id
                         }
+
+                        organizations {
+                            id
+                        }
+
+                        memberships {
+                            id
+                        }
                     }
                 }
             `;
@@ -111,6 +119,8 @@ describe('UserResolver', () => {
                     expect(body.data.user.instagram).toBeDefined();
                     expect(body.data.user.discord).toBeDefined();
                     expect(body.data.user.wallets).toBeDefined();
+                    expect(body.data.user.organizations).toBeDefined();
+                    expect(body.data.user.memberships).toBeDefined();
                 });
         });
     });

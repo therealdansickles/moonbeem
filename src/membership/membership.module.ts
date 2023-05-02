@@ -17,7 +17,7 @@ import { MailModule } from '../mail/mail.module';
         forwardRef(() => UserModule),
         forwardRef(() => MailModule),
     ],
-    exports: [MembershipModule],
+    exports: [MembershipModule, MembershipService],
     providers: [MembershipService, MembershipResolver, OrganizationService],
     controllers: [],
 })
