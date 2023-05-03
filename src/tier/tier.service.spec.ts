@@ -89,10 +89,12 @@ describe('TierService', () => {
                 name: faker.company.name(),
                 totalMints: 100,
                 collection: { id: collection.id },
+                price: "100",
                 paymentTokenAddress: coin.address,
             });
 
             expect(tier).toBeDefined();
+            expect(tier.price).toEqual("100");
         });
 
         it('Should create a new tier for whitelisting collection', async () => {

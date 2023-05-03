@@ -20,9 +20,6 @@ export class Attribute {
 }
 
 @Entity({ name: 'Tier' })
-@Index(['collection.id', 'tierId'], { unique: true })
-@Index(['collection.id', 'beginId'], { unique: true })
-@Index(['collection.id', 'endId'], { unique: true })
 export class Tier extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -42,11 +39,17 @@ export class Tier extends BaseEntity {
     // This in part drives the following fields:
     // * `beginId`
     // * `endId`
-    @Column({ comment: 'The total number of NFTs in this tier.' })
-    totalMints: number;
+    @Column({ nullable: true, comment: 'The total number of NFTs in this tier.' })
+    totalMints?: number;
 
-    @Column({ comment: 'The contract address for the payment token associated with purchase of this tier.' })
-    paymentTokenAddress: string;
+    @Column({ nullable: true, comment: 'The price of NFTs in this tier.' })
+    price?: string;
+
+    @Column({
+        nullable: true,
+        comment: 'The contract address for the payment token associated with purchase of this tier.',
+    })
+    paymentTokenAddress?: string;
 
     // NOTE: Keeping it consistent with the contract naming.
     // https://github.com/vibexyz/vibe-contract/blob/cd578e468362a6e6fc77537c99fd33573b80e0c4/contracts/mint/NFTMintSaleMultiple.sol#L28-L33

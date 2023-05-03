@@ -1,5 +1,5 @@
 import { ArgsType, Field, Int, ObjectType, InputType, ID } from '@nestjs/graphql';
-import { IsNumber, IsString, IsDateString, IsUrl, ValidateIf, IsObject, IsOptional, IsArray } from 'class-validator';
+import { IsNumber, IsString, IsNumberString, IsDateString, IsUrl, ValidateIf, IsObject, IsOptional, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Collection, CollectionInput } from '../collection/collection.dto';
 import { Coin } from '../sync-chain/coin/coin.dto';
@@ -27,8 +27,12 @@ export class Tier {
     readonly id: string;
 
     @IsNumber()
-    @Field({ description: 'The total number of mints for this tier.' })
-    readonly totalMints: number;
+    @Field({ description: 'The total number of mints for this tier.', nullable: true })
+    readonly totalMints?: number;
+
+    @IsNumberString()
+    @Field({ description: 'The price of the NFTs in this tier.', nullable: true })
+    readonly price?: string;
 
     @IsNumber()
     @Field({ description: 'The tier id/index of the NFTs in this tier.', nullable: true })
@@ -41,8 +45,8 @@ export class Tier {
     endId?: number;
 
     @IsString()
-    @Field({ description: 'The name of the tier.' })
-    readonly name: string;
+    @Field({ description: 'The name of the tier.', nullable: true })
+    readonly name?: string;
 
     @Field(() => Collection, { description: 'The collection associated with this tier.' })
     readonly collection: Collection;
@@ -92,8 +96,12 @@ export class CreateTierInput {
     readonly collection: CollectionInput;
 
     @IsNumber()
-    @Field({ description: 'The total number of mints for this tier.' })
-    readonly totalMints: number;
+    @Field({ description: 'The total number of mints for this tier.', nullable: true })
+    readonly totalMints?: number;
+
+    @IsNumber()
+    @Field({ description: 'The price of the NFTs in this tier.', nullable: true })
+    readonly price?: string;
 
     @IsNumber()
     @Field({ nullable: true, description: 'The tier id/index of the NFTs in this tier.' })
@@ -106,12 +114,12 @@ export class CreateTierInput {
     endId?: number;
 
     @IsString()
-    @Field({ description: 'The name of the tier.' })
-    readonly name: string;
+    @Field({ description: 'The name of the tier.', nullable: true })
+    readonly name?: string;
 
-    @Field({ description: 'the tier selected coin id' })
+    @Field({ description: 'the tier selected coin id', nullable: true })
     @IsString()
-    readonly paymentTokenAddress: string;
+    readonly paymentTokenAddress?: string;
 
     @IsString()
     @Field({ nullable: true, description: 'The description of the tier.' })
@@ -156,6 +164,10 @@ export class UpdateTierInput {
     @IsNumber()
     @Field({ nullable: true, description: 'The total number of mints for this tier.' })
     readonly totalMints?: number;
+
+    @IsNumber()
+    @Field({ description: 'The price of the NFTs in this tier.', nullable: true })
+    readonly price?: string;
 
     @IsNumber()
     @Field({ nullable: true, description: 'The tier id/index of the NFTs in this tier.' })
