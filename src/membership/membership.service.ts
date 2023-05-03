@@ -8,6 +8,8 @@ import { Organization } from '../organization/organization.entity';
 import { User } from '../user/user.entity';
 import * as randomString from 'randomstring';
 import { MailService } from '../mail/mail.service';
+import { AuthPayload } from '../auth/auth.service';
+import * as Sentry from '@sentry/node';
 
 @Injectable()
 export class MembershipService {
@@ -59,13 +61,14 @@ export class MembershipService {
      * Create a new membership.
      *
      * @param data The data to create the membership with.
+     * @param authDetails The authenticated user details (from the authentication JWT)
      * @returns The created membership.
      */
-    async createMembership(data: CreateMembershipInput): Promise<Membership> {
+    async createMembership(data: CreateMembershipInput, authDetails: AuthPayload): Promise<Membership> {
         try {
-            const user = await this.userRepository.findOneBy({ id: data.userId });
-            if (!user) {
-                throw new GraphQLError(`user ${data.userId} does not exist`, { extensions: { code: 'BAD_REQUEST' } });
+            let user: User;
+            if (!data.email && !data.userId) {
+                throw new GraphQLError(`no email or user detected.`, { extensions: { code: 'BAD_REQUEST' } });
             }
 
             const organization = await this.organizationRepository.findOneBy({ id: data.organizationId });
@@ -75,6 +78,19 @@ export class MembershipService {
                 });
             }
 
+            if (data.userId) {
+                user = await this.userRepository.findOneBy({ id: data.userId });
+                if (!user) {
+                    throw new GraphQLError(`user ${data.userId} does not exist`, {
+                        extensions: { code: 'BAD_REQUEST' },
+                    });
+                }
+            }
+
+            if (data.email) {
+                user = await this.userRepository.findOneBy({ email: data.email.toLowerCase() });
+            }
+
             // invite token
             const inviteCode = randomString.generate(7);
 
@@ -82,17 +98,38 @@ export class MembershipService {
 
             membership.organization = organization;
             membership.user = user;
+            membership.email = user?.email || data.email.toLowerCase();
+
             membership.inviteCode = inviteCode;
 
             const { userId, organizationId, ...rest } = data;
 
             Object.assign(membership, rest);
 
-            await this.mailService.sendMemberInviteEmail(user.email, user.name, organization.name, inviteCode);
-            return await this.membershipRepository.save(membership);
+            await this.mailService.sendMemberInviteEmail(
+                organization.name,
+                inviteCode,
+                authDetails,
+                user?.email || data.email,
+                user !== undefined
+            );
+
+            try {
+                return await this.membershipRepository.save(membership);
+            } catch (e) {
+                // Add Sentry capture here.
+                Sentry.captureException(e);
+                throw new GraphQLError(
+                    `Failed to save membership for organization ${organizationId} and user ${userId}`,
+                    {
+                        extensions: { code: 'INTERNAL_SERVER_ERROR' },
+                    }
+                );
+            }
         } catch (e) {
             // FIXME: This ain't always true :issou:
             // Add Sentry capture here.
+            Sentry.captureException(e);
             throw new GraphQLError(`user ${data.userId} is already a member of organization ${data.organizationId}`, {
                 extensions: { code: 'BAD_REQUEST' },
             });

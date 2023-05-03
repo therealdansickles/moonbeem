@@ -161,12 +161,9 @@ describe('WalletResolver', () => {
             const name = faker.internet.userName();
             const email = faker.internet.email();
             const password = faker.internet.password();
-            const owner = await userService.createUser({
+
+            const owner = await authService.createUserWithEmail({
                 name,
-                email,
-                password,
-            });
-            const credentials = await authService.createUserWithEmail({
                 email,
                 password,
             });
@@ -186,7 +183,7 @@ describe('WalletResolver', () => {
             const variables = {
                 input: {
                     address: wallet.address,
-                    owner: { id: owner.id },
+                    owner: { id: owner.user.id },
                     message,
                     signature,
                 },
@@ -194,7 +191,7 @@ describe('WalletResolver', () => {
 
             return request(app.getHttpServer())
                 .post('/graphql')
-                .auth(credentials.sessionToken, { type: 'bearer' })
+                .auth(owner.sessionToken, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {

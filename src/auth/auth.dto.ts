@@ -62,6 +62,12 @@ export class CreateUserWithEmailInput {
     @IsString()
     @IsOptional()
     avatarUrl?: string;
+
+    @Field({ nullable: true })
+    @ApiProperty()
+    @IsString()
+    @IsOptional()
+    inviteCode?: string;
 }
 
 @ObjectType() // graphql: Object Type

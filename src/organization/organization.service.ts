@@ -5,12 +5,14 @@ import { Organization } from './organization.entity';
 import { CreateOrganizationInput, UpdateOrganizationInput } from './organization.dto';
 import { User } from '../user/user.entity';
 import { GraphQLError } from 'graphql';
+import { MembershipService } from '../membership/membership.service';
 
 @Injectable()
 export class OrganizationService {
     constructor(
         @InjectRepository(Organization) private organizationRepository: Repository<Organization>,
-        @InjectRepository(User) private userRepository: Repository<User>
+        @InjectRepository(User) private userRepository: Repository<User>,
+        private membershipService: MembershipService
     ) {}
 
     /**
@@ -36,7 +38,26 @@ export class OrganizationService {
                 extensions: { code: 'BAD_REQUEST' },
             });
         }
-        const organization = await this.organizationRepository.save(data);
+
+        const owner = await this.userRepository.findOneBy({ id: data.owner.id });
+
+        const { invites, ...createOrganizationData } = data;
+
+        const organization = await this.organizationRepository.save(createOrganizationData);
+
+        if (invites) {
+            for (const invite of invites) {
+                await this.membershipService.createMembership(
+                    {
+                        email: invite.toLowerCase(),
+                        organizationId: organization.id,
+                        canEdit: true,
+                    },
+                    owner
+                );
+            }
+        }
+
         return await this.organizationRepository.findOne({
             where: { id: organization.id },
             relations: ['owner'],

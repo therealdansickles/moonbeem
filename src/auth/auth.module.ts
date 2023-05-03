@@ -11,12 +11,15 @@ import { User } from '../user/user.entity';
 import { UserModule } from '../user/user.module';
 import { Wallet } from '../wallet/wallet.entity';
 import { WalletModule } from '../wallet/wallet.module';
+import { Membership } from '../membership/membership.entity';
+import { MembershipModule } from '../membership/membership.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([User, Wallet]),
+        TypeOrmModule.forFeature([User, Wallet, Membership]),
         forwardRef(() => UserModule),
         forwardRef(() => WalletModule),
+        forwardRef(() => MembershipModule),
         SharedModule,
         UserWalletModule,
         PassportModule,

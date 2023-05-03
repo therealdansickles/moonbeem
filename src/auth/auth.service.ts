@@ -15,6 +15,7 @@ import { User } from '../user/user.entity';
 import { Repository } from 'typeorm';
 import { Wallet } from '../wallet/wallet.entity';
 import { GraphQLError } from 'graphql';
+import { Membership } from '../membership/membership.entity';
 import * as Sentry from '@sentry/node';
 
 export const SESSION_PERFIX = 'login_session';
@@ -25,7 +26,8 @@ export class AuthService {
         private readonly jwtService: JWTService,
         private readonly redisClient: RedisAdapter,
         @InjectRepository(User) private userRepository: Repository<User>,
-        @InjectRepository(Wallet) private walletRepository: Repository<Wallet>
+        @InjectRepository(Wallet) private walletRepository: Repository<Wallet>,
+        @InjectRepository(Membership) private membershipRepository: Repository<Membership>
     ) {}
 
     /**
@@ -122,6 +124,19 @@ export class AuthService {
         }
 
         try {
+            // check if there are any pending invites
+            if (data.inviteCode) {
+                const membership = await this.membershipRepository.findOne({
+                    where: { inviteCode: data.inviteCode, email: user.email },
+                });
+                if (membership) {
+                    membership.acceptedAt = new Date();
+                    membership.inviteCode = null;
+                    membership.user = user;
+                    await this.membershipRepository.save(membership);
+                }
+            }
+
             // return the saved user
             const authPayload: AuthPayload = {
                 id: user.id,

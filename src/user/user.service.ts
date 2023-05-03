@@ -26,7 +26,12 @@ export class UserService {
      */
     async createUser(payload: Partial<User>): Promise<User> {
         try {
-            return this.userRepository.save(payload);
+            const { email, ...userProps } = payload;
+            const userPayload = {
+                email: email.toLowerCase(),
+                ...userProps,
+            };
+            return this.userRepository.save(userPayload);
         } catch (e) {
             Sentry.captureException(e);
             throw new GraphQLError(`Failed to create user ${payload.name}`, {

@@ -8,6 +8,8 @@ import {
     getVerificationEmailTemplate,
     getWelcomeEmailTemplate,
 } from './mail.templates';
+import { User } from 'src/user/user.entity';
+import { AuthPayload } from 'src/auth/auth.service';
 
 @Injectable()
 export class MailService {
@@ -45,11 +47,20 @@ export class MailService {
         await this.sendEmail(email, 'Welcome to Vibe!', html);
     }
 
-    async sendMemberInviteEmail(email: string, name: string, orgName: string, inviteCode: string) {
-        const registrationUrl = `${
-            mailgunConfig.BASE_URI_CONFIG.DASHBOARD
-        }/authentication/orgInvite/?inviteCode=${inviteCode}&identity=${Buffer.from(email, 'utf8').toString('base64')}`;
-        const html = getUserInviteEmail(registrationUrl, name || email, orgName);
+    async sendMemberInviteEmail(
+        orgName: string,
+        inviteCode: string,
+        user: AuthPayload,
+        email: string,
+        inviteExistingUser: boolean
+    ) {
+        const registrationUrl = new URL(mailgunConfig.BASE_URI_CONFIG.DASHBOARD);
+        registrationUrl.pathname = '/authentication/orgInvite/';
+        registrationUrl.searchParams.append('inviteCode', inviteCode);
+        registrationUrl.searchParams.append('identity', Buffer.from(email, 'utf8').toString('base64'));
+        registrationUrl.searchParams.append('exist', inviteExistingUser.toString());
+
+        const html = getUserInviteEmail(registrationUrl.toString(), user, orgName);
         await this.sendEmail(email, "You're invited to Vibe!", html);
     }
 

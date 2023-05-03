@@ -10,11 +10,14 @@ import { CreateOrganizationInput } from './organization.dto';
 import { User } from '../user/user.entity';
 import { UserModule } from '../user/user.module';
 import { UserService } from '../user/user.service';
+import { MembershipService } from '../membership/membership.service';
+import { MembershipModule } from '../membership/membership.module';
 
 describe.only('OrganizationService', () => {
     let repository: Repository<Organization>;
     let service: OrganizationService;
     let userService: UserService;
+    let membershipService: MembershipService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -40,12 +43,14 @@ describe.only('OrganizationService', () => {
                 }),
                 OrganizationModule,
                 UserModule,
+                MembershipModule,
             ],
         }).compile();
 
         repository = module.get('OrganizationRepository');
         service = module.get<OrganizationService>(OrganizationService);
         userService = module.get<UserService>(UserService);
+        membershipService = module.get<MembershipService>(MembershipService);
     });
 
     afterAll(async () => {
@@ -103,6 +108,40 @@ describe.only('OrganizationService', () => {
             expect(organization.id).toBeDefined();
             expect(organization.owner.id).toEqual(owner.id);
             expect(organization.owner.email).toEqual(owner.email);
+        });
+
+        it('should create an organization and invite users', async () => {
+            owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const invitee = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            organization = await service.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+                invites: [invitee.email],
+            });
+
+            expect(organization.id).toBeDefined();
+            expect(organization.owner.id).toEqual(owner.id);
+            expect(organization.owner.email).toEqual(owner.email);
+
+            const pendingMemberships = await membershipService.getMembershipsByUserId(invitee.id);
+            expect(pendingMemberships.length).toBe(1);
+            expect(pendingMemberships[0].organization.id).toEqual(organization.id);
         });
 
         it('should throw an error when create a organization with an existed name', async () => {

@@ -8,6 +8,6 @@ export const mailgunConfig = {
 
     DOMAIN: process.env.MAILGUN_DOMAIN || '',
     BASE_URI_CONFIG: {
-        DASHBOARD: process.env.DASHBOARD_URL || '',
+        DASHBOARD: process.env.DASHBOARD_URL || 'https://vibe.xyz',
     },
 };

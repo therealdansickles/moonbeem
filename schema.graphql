@@ -460,7 +460,10 @@ type Membership {
   id: String!
 
   """The user invited to this membership"""
-  user: User!
+  user: User
+
+  """The email of the user invited to this membership"""
+  email: String
 
   """The organization that this membership is for"""
   organization: Organization!
@@ -1296,6 +1299,7 @@ input CreateUserWithEmailInput {
   username: String
   name: String
   avatarUrl: String
+  inviteCode: String
 }
 
 input UpdateUserInput {
@@ -1545,6 +1549,9 @@ input CreateOrganizationInput {
 
   """The discord handle associated with this organization, e.g. 'vibe-labs"""
   discord: String
+
+  """emails to invite to the org"""
+  invites: [String!]
 }
 
 input UserInput {
@@ -1602,7 +1609,10 @@ input TransferOrganizationInput {
 
 input CreateMembershipInput {
   """The user that is a member of this organization."""
-  userId: String!
+  userId: String
+
+  """The email of the user"""
+  email: String
 
   """The organization that this user is a member of."""
   organizationId: String!

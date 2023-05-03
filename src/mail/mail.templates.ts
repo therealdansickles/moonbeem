@@ -1,3 +1,5 @@
+import { AuthPayload } from 'src/auth/auth.service';
+
 export const getVerificationEmailTemplate = (url: string): string => {
     return `<div style='background: #F7F8FC'>
     <div style='text-align:center;padding-top:60px; font-family: "Trebuchet MS"'>
@@ -140,14 +142,14 @@ export const getPasswordResetEmail = (url: string, name: string): string => {
 </div>`;
 };
 
-export const getUserInviteEmail = (url: string, user: string, orgName: string): string => {
+export const getUserInviteEmail = (url: string, user: AuthPayload, orgName: string): string => {
     return `<div style='background: #F7F8FC'>
     <div style='text-align:center;padding-top:60px; font-family: "Trebuchet MS"'>
         <div>
             <img src="https://arweave.net/tZ2u8l_bKV5tcNEOLUB-3fMnBhLxyGGsWbLahVyOUL0" alt="vibe logo" style='max-width:100px'/>
         </div>
         <div>
-            <h1 style='font-size:36px;'>${user} Has Invited you!</h1>
+            <h1 style='font-size:36px;'>${user.email || user.address} Has Invited you!</h1>
         </div>
         <div>
             <p style='font-size:16px'>Join us!</p>
@@ -161,7 +163,7 @@ export const getUserInviteEmail = (url: string, user: string, orgName: string): 
                 Invite
               </h1>
               <p style='font-size:16px;color:#5B5F5F; line-height: 24px;margin-bottom:32px'>
-                You've been invited to workspace "${orgName}" by ${user} 
+                You've been invited to workspace "${orgName}" by ${user.email || user.address}
               </p>
               <a href="${url}" style='gap: 6px;border-radius: 4px;margin-top:42px; background: #13B453;padding:10px 20px; color: #F7FBFD; font-size:16px;text-decoration:none; line-height: 24px; font-weight:700;'>Click Here to Join</a>
 

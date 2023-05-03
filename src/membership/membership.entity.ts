@@ -14,13 +14,21 @@ import { User } from '../user/user.entity';
 
 @Entity({ name: 'Membership' })
 @Index(['user.id', 'organization.id'], { unique: true })
+@Index(['email', 'organization.id'], { unique: true })
 export class Membership extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @ManyToOne(() => User, (user) => user.memberships, { eager: true, createForeignKeyConstraints: false })
+    @ManyToOne(() => User, (user) => user.memberships, {
+        eager: true,
+        createForeignKeyConstraints: false,
+        nullable: true,
+    })
     @JoinColumn()
-    user: User;
+    user?: User;
+
+    @Column({ nullable: true, comment: 'The email of the invited user' })
+    email?: string;
 
     @ManyToOne(() => Organization, (organization) => organization.memberships, {
         eager: true,
