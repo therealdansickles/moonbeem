@@ -11,6 +11,7 @@ import {
     RelationId,
     JoinColumn,
 } from 'typeorm';
+import { Collaboration } from '../collaboration/collaboration.entity';
 import { Collection } from '../collection/collection.entity';
 import { Membership } from '../membership/membership.entity';
 import { User } from '../user/user.entity';
@@ -70,6 +71,9 @@ export class Organization extends BaseEntity {
 
     @OneToMany(() => Collection, (collection) => collection.organization)
     collections: Collection[];
+
+    @OneToMany(() => Collaboration, (collaboration) => collaboration.organization)
+    collaborations: Collaboration[];
 
     @CreateDateColumn()
     createdAt: Date;

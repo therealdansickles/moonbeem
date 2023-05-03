@@ -10,6 +10,8 @@ import {
     Index,
 } from 'typeorm';
 import { Collection } from '../collection/collection.entity';
+import { Organization } from '../organization/organization.entity';
+import { User } from '../user/user.entity';
 import { Wallet } from '../wallet/wallet.entity';
 
 @Entity({ name: 'Collaboration' })
@@ -27,6 +29,16 @@ export class Collaboration extends BaseEntity {
     @ManyToOne(() => Collection, (collection) => collection.collaborations, { createForeignKeyConstraints: false })
     @JoinColumn()
     collection: Collection;
+
+    @ManyToOne(() => Organization, (organization) => organization.collaborations, {
+        createForeignKeyConstraints: false,
+    })
+    @JoinColumn()
+    organization: Organization;
+
+    @ManyToOne(() => User, (user) => user.collaborations, { createForeignKeyConstraints: false })
+    @JoinColumn()
+    user: User;
 
     @ManyToOne(() => Wallet, (wallet) => wallet.collaborations, { createForeignKeyConstraints: false })
     @JoinColumn()

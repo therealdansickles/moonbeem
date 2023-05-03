@@ -14,6 +14,12 @@ import { CollaborationService } from './collaboration.service';
 import { Collection } from '../collection/collection.entity';
 import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
+import { Organization } from '../organization/organization.entity';
+import { OrganizationModule } from '../organization/organization.module';
+import { OrganizationService } from '../organization/organization.service';
+import { User } from '../user/user.entity';
+import { UserModule } from '../user/user.module';
+import { UserService } from '../user/user.service';
 import { Wallet } from '../wallet/wallet.entity';
 import { WalletModule } from '../wallet/wallet.module';
 import { WalletService } from '../wallet/wallet.service';
@@ -27,6 +33,10 @@ describe('CollaborationResolver', () => {
     let collaboration: Collaboration;
     let collection: Collection;
     let collectionService: CollectionService;
+    let organization: Organization;
+    let organizationService: OrganizationService;
+    let user: User;
+    let userService: UserService;
     let wallet: Wallet;
     let walletService: WalletService;
 
@@ -54,6 +64,8 @@ describe('CollaborationResolver', () => {
                 }),
                 CollaborationModule,
                 CollectionModule,
+                OrganizationModule,
+                UserModule,
                 WalletModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
@@ -67,6 +79,8 @@ describe('CollaborationResolver', () => {
         service = module.get<CollaborationService>(CollaborationService);
         walletService = module.get<WalletService>(WalletService);
         collectionService = module.get<CollectionService>(CollectionService);
+        organizationService = module.get<OrganizationService>(OrganizationService);
+        userService = module.get<UserService>(UserService);
 
         wallet = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
 
@@ -84,9 +98,11 @@ describe('CollaborationResolver', () => {
     });
 
     afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Wallet" CASCADE');
-        await repository.query('TRUNCATE TABLE "Collection" CASCADE');
         await repository.query('TRUNCATE TABLE "Collaboration" CASCADE');
+        await repository.query('TRUNCATE TABLE "Collection" CASCADE');
+        await repository.query('TRUNCATE TABLE "Organization" CASCADE');
+        await repository.query('TRUNCATE TABLE "User" CASCADE');
+        await repository.query('TRUNCATE TABLE "Wallet" CASCADE');
         await app.close();
     });
 
@@ -179,6 +195,96 @@ describe('CollaborationResolver', () => {
                     expect(body.data.collaboration.id).toEqual(variables.id);
                     expect(body.data.collaboration.wallet.address).not.toBeNull();
                     expect(body.data.collaboration.collection.name).not.toBeNull();
+                });
+        });
+    });
+
+    describe('collaborations', () => {
+        it('should get a collaborations for a user id and org id', async () => {
+            let user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            let organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: user,
+            });
+
+            let collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                chainId: 1,
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization,
+            });
+
+            let wallet = await walletService.createWallet({
+                address: `arb:${faker.finance.ethereumAddress()}`,
+                ownerId: user.id,
+            });
+
+            let collab = await service.createCollaboration({
+                walletId: wallet.id,
+                collectionId: collection.id,
+                royaltyRate: 12,
+                collaborators: [
+                    {
+                        address: faker.finance.ethereumAddress(),
+                        role: faker.finance.accountName(),
+                        name: faker.finance.accountName(),
+                        rate: parseInt(faker.random.numeric(2)),
+                    },
+                ],
+            });
+
+            const query = gql`
+                query Collaboration($userId: String!, $organizationId: String!) {
+                    collaborations(userId: $userId, organizationId: $organizationId) {
+                        id
+                        royaltyRate
+
+                        wallet {
+                            owner {
+                                id
+                            }
+                        }
+
+                        collection {
+                            organization {
+                                id
+                            }
+                        }
+                    }
+                }
+            `;
+
+            const variables = {
+                userId: user.id,
+                organizationId: organization.id,
+            };
+
+            // FIXME: This is flakey sometimes. Unique index contraint issues?
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    const [collab, ...rest] = body.data.collaborations;
+                    expect(collab.wallet.owner.id).toEqual(variables.userId);
+                    expect(collab.collection.organization.id).toEqual(variables.organizationId);
                 });
         });
     });

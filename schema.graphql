@@ -1086,23 +1086,11 @@ type Query {
   """Returns an user for the given id"""
   user(id: String!): User
 
-  """Retrieves a wallet by its ethereum or EIP-3770 address."""
-  wallet(
-    """an ethereum or EIP-3770 address."""
-    address: String!
-  ): Wallet
-
   """returns a collaboration for a given uuid"""
   collaboration(id: String!): Collaboration
 
-  """returns transaction for a given uuid"""
-  transaction(id: String!): MintSaleTransaction!
-
-  """Get a specific tier by id."""
-  tier(id: String!): Tier
-
-  """Get tiers by collection id"""
-  tiers(collectionId: String!): [Tier!]
+  """returns all collaborations for a given user and organization"""
+  collaborations(userId: String!, organizationId: String!): [Collaboration!]!
 
   """returns a collection for a given uuid"""
   collection(id: String, address: String): Collection
@@ -1114,11 +1102,26 @@ type Query {
   membership(id: String!): Membership
   memberships(userId: String!): [Membership!]!
 
+  """Get a specific tier by id."""
+  tier(id: String!): Tier
+
+  """Get tiers by collection id"""
+  tiers(collectionId: String!): [Tier!]
+
   """returns coin for a given uuid"""
   coin(id: String!): Coin!
 
   """returns coin list for a given chainId"""
   coins(chainId: Int!, enable: Boolean): [Coin!]!
+
+  """Retrieves a wallet by its ethereum or EIP-3770 address."""
+  wallet(
+    """an ethereum or EIP-3770 address."""
+    address: String!
+  ): Wallet
+
+  """returns transaction for a given uuid"""
+  transaction(id: String!): MintSaleTransaction!
   getAddressInfo(address: EthereumAddress!): VUserWalletInfo!
   getUserFollowingList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowingListRspDto!
   getUserFollowerList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowerListRspDto!
@@ -1199,26 +1202,8 @@ type Mutation {
   """update the given user."""
   updateUser(input: UpdateUserInput!): User!
 
-  """creates a wallet"""
-  createWallet(input: CreateWalletInput!): Wallet!
-
-  """Binds a wallet to the current user."""
-  bindWallet(input: BindWalletInput!): Wallet!
-
-  """Unbinds a wallet from the current user."""
-  unbindWallet(input: UnbindWalletInput!): Wallet!
-
   """create a collaboration"""
   createCollaboration(input: CreateCollaborationInput!): Collaboration!
-
-  """Create a new tier."""
-  createTier(input: CreateTierInput!): Tier!
-
-  """Update a tier."""
-  updateTier(input: UpdateTierInput!): Boolean!
-
-  """Delete a tier."""
-  deleteTier(input: DeleteTierInput!): Boolean!
 
   """creates a collection"""
   createCollection(input: CreateCollectionInput!): Collection!
@@ -1258,6 +1243,24 @@ type Mutation {
 
   """Deletes a membership."""
   deleteMembership(input: DeleteMembershipInput!): Boolean!
+
+  """Create a new tier."""
+  createTier(input: CreateTierInput!): Tier!
+
+  """Update a tier."""
+  updateTier(input: UpdateTierInput!): Boolean!
+
+  """Delete a tier."""
+  deleteTier(input: DeleteTierInput!): Boolean!
+
+  """creates a wallet"""
+  createWallet(input: CreateWalletInput!): Wallet!
+
+  """Binds a wallet to the current user."""
+  bindWallet(input: BindWalletInput!): Wallet!
+
+  """Unbinds a wallet from the current user."""
+  unbindWallet(input: UnbindWalletInput!): Wallet!
   followUserWallet(address: EthereumAddress!, isFollowed: Boolean): Boolean!
   updateAddressInfo(name: String, avatar: String, customUrl: String, description: String, discordLink: String, facebookLink: String, twitterLink: String): Boolean!
 
@@ -1323,40 +1326,6 @@ input UpdateUserInput {
   discord: String
 }
 
-input CreateWalletInput {
-  """The address for a wallet."""
-  address: String!
-
-  """The id for the owner."""
-  ownerId: String
-}
-
-input BindWalletInput {
-  """an ethereum or EIP-3770 address."""
-  address: String!
-
-  """The signing message"""
-  message: String!
-
-  """The signature from the front-end to verify"""
-  signature: String!
-
-  """the owner uuid of the wallet."""
-  owner: UserInput!
-}
-
-input UserInput {
-  id: ID!
-}
-
-input UnbindWalletInput {
-  """an ethereum or EIP-3770 address."""
-  address: String!
-
-  """the owner uuid of the wallet."""
-  owner: UserInput!
-}
-
 input CreateCollaborationInput {
   """The address of the collaboration contract."""
   address: String
@@ -1386,109 +1355,6 @@ input CollaboratorInput {
 
   """All collaborators of this collaboration."""
   rate: Int!
-}
-
-input CreateTierInput {
-  """The collection associated with this tier."""
-  collection: CollectionInput!
-
-  """The total number of mints for this tier."""
-  totalMints: Float!
-
-  """The tier id/index of the NFTs in this tier."""
-  tierId: Float
-
-  """The starting id/index of the NFTs in this tier."""
-  beginId: Float
-
-  """The ending id/index of the NFTs in this tier."""
-  endId: Float
-
-  """The name of the tier."""
-  name: String!
-
-  """the tier selected coin id"""
-  paymentTokenAddress: String!
-
-  """The description of the tier."""
-  description: String
-
-  """This is the URL to the image of the tier."""
-  image: String
-
-  """
-  This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.
-  """
-  externalUrl: String
-
-  """This is the URL to the animation of the tier."""
-  animationUrl: String
-
-  """The tier attributes"""
-  attributes: [Attribute!]
-
-  """This merekleRoot of tier."""
-  merkleRoot: String
-}
-
-input CollectionInput {
-  id: ID!
-}
-
-input Attribute {
-  """The display type for the attribute"""
-  display_type: String
-
-  """The trait type of the attribute"""
-  trait_type: String!
-
-  """The value of the attribute"""
-  value: String!
-}
-
-input UpdateTierInput {
-  """The id of the tier."""
-  id: String!
-
-  """The total number of mints for this tier."""
-  totalMints: Float
-
-  """The tier id/index of the NFTs in this tier."""
-  tierId: Float
-
-  """The starting id/index of the NFTs in this tier."""
-  beginId: Float
-
-  """The ending id/index of the NFTs in this tier."""
-  endId: Float
-
-  """The name of the tier."""
-  name: String
-
-  """The description of the tier."""
-  description: String
-
-  """This is the URL to the image of the tier."""
-  image: String
-
-  """
-  This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.
-  """
-  externalUrl: String
-
-  """This is the URL to the animation of the tier."""
-  animationUrl: String
-
-  """A JSON object containing the attributes of the tier."""
-  attributes: String
-
-  """This merekleRoot of tier."""
-  merkleRoot: String
-}
-
-input DeleteTierInput {
-  """The id for a tier."""
-  id: String!
 }
 
 input CreateCollectionInput {
@@ -1571,6 +1437,17 @@ input CreateTierInCollectionInput {
 
   """This merekleRoot of tier."""
   merkleRoot: String
+}
+
+input Attribute {
+  """The display type for the attribute"""
+  display_type: String
+
+  """The trait type of the attribute"""
+  trait_type: String!
+
+  """The value of the attribute"""
+  value: String!
 }
 
 input UpdateCollectionInput {
@@ -1662,6 +1539,10 @@ input CreateOrganizationInput {
 
   """The discord handle associated with this organization, e.g. 'vibe-labs"""
   discord: String
+}
+
+input UserInput {
+  id: ID!
 }
 
 input UpdateOrganizationInput {
@@ -1758,6 +1639,128 @@ input UpdateMembershipInput {
 input DeleteMembershipInput {
   """The id for a membership."""
   id: String!
+}
+
+input CreateTierInput {
+  """The collection associated with this tier."""
+  collection: CollectionInput!
+
+  """The total number of mints for this tier."""
+  totalMints: Float!
+
+  """The tier id/index of the NFTs in this tier."""
+  tierId: Float
+
+  """The starting id/index of the NFTs in this tier."""
+  beginId: Float
+
+  """The ending id/index of the NFTs in this tier."""
+  endId: Float
+
+  """The name of the tier."""
+  name: String!
+
+  """the tier selected coin id"""
+  paymentTokenAddress: String!
+
+  """The description of the tier."""
+  description: String
+
+  """This is the URL to the image of the tier."""
+  image: String
+
+  """
+  This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.
+  """
+  externalUrl: String
+
+  """This is the URL to the animation of the tier."""
+  animationUrl: String
+
+  """The tier attributes"""
+  attributes: [Attribute!]
+
+  """This merekleRoot of tier."""
+  merkleRoot: String
+}
+
+input CollectionInput {
+  id: ID!
+}
+
+input UpdateTierInput {
+  """The id of the tier."""
+  id: String!
+
+  """The total number of mints for this tier."""
+  totalMints: Float
+
+  """The tier id/index of the NFTs in this tier."""
+  tierId: Float
+
+  """The starting id/index of the NFTs in this tier."""
+  beginId: Float
+
+  """The ending id/index of the NFTs in this tier."""
+  endId: Float
+
+  """The name of the tier."""
+  name: String
+
+  """The description of the tier."""
+  description: String
+
+  """This is the URL to the image of the tier."""
+  image: String
+
+  """
+  This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.
+  """
+  externalUrl: String
+
+  """This is the URL to the animation of the tier."""
+  animationUrl: String
+
+  """A JSON object containing the attributes of the tier."""
+  attributes: String
+
+  """This merekleRoot of tier."""
+  merkleRoot: String
+}
+
+input DeleteTierInput {
+  """The id for a tier."""
+  id: String!
+}
+
+input CreateWalletInput {
+  """The address for a wallet."""
+  address: String!
+
+  """The id for the owner."""
+  ownerId: String
+}
+
+input BindWalletInput {
+  """an ethereum or EIP-3770 address."""
+  address: String!
+
+  """The signing message"""
+  message: String!
+
+  """The signature from the front-end to verify"""
+  signature: String!
+
+  """the owner uuid of the wallet."""
+  owner: UserInput!
+}
+
+input UnbindWalletInput {
+  """an ethereum or EIP-3770 address."""
+  address: String!
+
+  """the owner uuid of the wallet."""
+  owner: UserInput!
 }
 
 input CreateMerkleRootInput {

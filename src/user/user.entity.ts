@@ -12,6 +12,7 @@ import {
 import { Wallet } from '../wallet/wallet.entity';
 import { Membership } from '../membership/membership.entity';
 import { Organization } from '../organization/organization.entity';
+import { Collaboration } from '../collaboration/collaboration.entity';
 
 @Entity({ name: 'User' })
 export class User extends BaseEntity {
@@ -59,6 +60,9 @@ export class User extends BaseEntity {
 
     @OneToMany(() => Organization, (organization) => organization.owner)
     ownedOrganizations: Organization[];
+
+    @OneToMany(() => Collaboration, (collaboration) => collaboration.user)
+    collaborations: Collaboration[];
 
     @CreateDateColumn()
     createdAt: Date;

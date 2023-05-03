@@ -22,6 +22,21 @@ export class CollaborationService {
     }
 
     /**
+     * Retrieves all collaborations related for a given user and organization.
+     */
+    async getCollaborationsByUserIdAndOrganizationId(userId: string, organizationId: string): Promise<Collaboration[]> {
+        return await this.collaborationRepository
+            .createQueryBuilder('collaboration')
+            .leftJoinAndSelect('collaboration.collection', 'collection')
+            .leftJoinAndSelect('collaboration.wallet', 'wallet')
+            .leftJoinAndSelect('wallet.owner', 'owner')
+            .leftJoinAndSelect('collection.organization', 'organization')
+            .where('wallet.ownerId = :userId', { userId })
+            .andWhere('collection.organizationId = :organizationId', { organizationId })
+            .getMany();
+    }
+
+    /**
      * Creates a new collaboration with the given data.
      *
      * @param data The data to use when creating the collaboration.

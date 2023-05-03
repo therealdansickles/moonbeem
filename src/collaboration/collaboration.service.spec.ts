@@ -15,6 +15,12 @@ import { CollectionService } from '../collection/collection.service';
 import { Wallet } from '../wallet/wallet.entity';
 import { WalletModule } from '../wallet/wallet.module';
 import { WalletService } from '../wallet/wallet.service';
+import { Organization } from '../organization/organization.entity';
+import { OrganizationService } from '../organization/organization.service';
+import { OrganizationModule } from '../organization/organization.module';
+import { User } from '../user/user.entity';
+import { UserService } from '../user/user.service';
+import { UserModule } from '../user/user.module';
 
 describe('CollaborationService', () => {
     let repository: Repository<Collaboration>;
@@ -22,6 +28,10 @@ describe('CollaborationService', () => {
     let collaboration: Collaboration;
     let collection: Collection;
     let collectionService: CollectionService;
+    let organization: Organization;
+    let organizationService: OrganizationService;
+    let user: User;
+    let userService: UserService;
     let wallet: Wallet;
     let walletService: WalletService;
 
@@ -49,6 +59,8 @@ describe('CollaborationService', () => {
                 }),
                 CollaborationModule,
                 CollectionModule,
+                OrganizationModule,
+                UserModule,
                 WalletModule,
             ],
         }).compile();
@@ -56,7 +68,28 @@ describe('CollaborationService', () => {
         repository = module.get('CollaborationRepository');
         service = module.get<CollaborationService>(CollaborationService);
         collectionService = module.get<CollectionService>(CollectionService);
+        organizationService = module.get<OrganizationService>(OrganizationService);
+        userService = module.get<UserService>(UserService);
         walletService = module.get<WalletService>(WalletService);
+
+        user = await userService.createUser({
+            username: faker.internet.userName(),
+            email: faker.internet.email(),
+            password: faker.internet.password(),
+        });
+
+        organization = await organizationService.createOrganization({
+            name: faker.company.name(),
+            displayName: faker.company.name(),
+            about: faker.company.catchPhrase(),
+            avatarUrl: faker.image.imageUrl(),
+            backgroundUrl: faker.image.imageUrl(),
+            websiteUrl: faker.internet.url(),
+            twitter: faker.internet.userName(),
+            instagram: faker.internet.userName(),
+            discord: faker.internet.userName(),
+            owner: user,
+        });
 
         collection = await collectionService.createCollection({
             name: faker.company.name(),
@@ -66,15 +99,21 @@ describe('CollaborationService', () => {
             address: faker.finance.ethereumAddress(),
             artists: [],
             tags: [],
+            organization,
         });
 
-        wallet = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
+        wallet = await walletService.createWallet({
+            address: `arb:${faker.finance.ethereumAddress()}`,
+            ownerId: user.id,
+        });
     });
 
     afterAll(async () => {
         await repository.query('TRUNCATE TABLE "Collaboration" CASCADE');
-        await repository.query('TRUNCATE TABLE "Wallet" CASCADE');
         await repository.query('TRUNCATE TABLE "Collection" CASCADE');
+        await repository.query('TRUNCATE TABLE "Organization" CASCADE');
+        await repository.query('TRUNCATE TABLE "User" CASCADE');
+        await repository.query('TRUNCATE TABLE "Wallet" CASCADE');
     });
 
     describe('createCollaboration', () => {
@@ -236,6 +275,42 @@ describe('CollaborationService', () => {
             const result = await service.getCollaboration(collaboration.id);
             expect(result.wallet).toBeDefined();
             expect(result.collection).toBeDefined();
+        });
+    });
+
+    describe('getCollaborationsByUserIdAndOrganizationId', () => {
+        it('should return collaborations', async () => {
+            let newUser = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            let newWallet = await walletService.createWallet({
+                address: `arb:${faker.finance.ethereumAddress()}`,
+                ownerId: newUser.id,
+            });
+
+            let newCollab = await service.createCollaboration({
+                walletId: newWallet.id,
+                collectionId: collection.id,
+                royaltyRate: 12,
+                collaborators: [
+                    {
+                        address: faker.finance.ethereumAddress(),
+                        role: faker.finance.accountName(),
+                        name: faker.finance.accountName(),
+                        rate: parseInt(faker.random.numeric(2)),
+                    },
+                ],
+            });
+
+            const [result, ..._rest] = await service.getCollaborationsByUserIdAndOrganizationId(
+                newUser.id,
+                organization.id
+            );
+            expect(result.wallet.owner.id).toEqual(newUser.id);
+            expect(result.collection.organization.id).toEqual(organization.id);
         });
     });
 });

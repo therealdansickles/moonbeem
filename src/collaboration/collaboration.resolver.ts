@@ -15,6 +15,15 @@ export class CollaborationResolver {
     }
 
     @Public()
+    @Query(() => [Collaboration], { description: 'returns all collaborations for a given user and organization' })
+    async collaborations(
+        @Args('userId') userId: string,
+        @Args('organizationId') organizationId: string
+    ): Promise<Collaboration[]> {
+        return await this.collaborationService.getCollaborationsByUserIdAndOrganizationId(userId, organizationId);
+    }
+
+    @Public()
     @Mutation(() => Collaboration, { description: 'create a collaboration' })
     async createCollaboration(@Args('input') input: CreateCollaborationInput): Promise<Collaboration> {
         return await this.collaborationService.createCollaboration(input);
