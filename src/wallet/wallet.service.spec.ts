@@ -77,7 +77,7 @@ describe('WalletService', () => {
     });
 
     afterAll(async () => {
-        // await repository.query('TRUNCATE TABLE "Wallet" CASCADE');
+        await repository.query('TRUNCATE TABLE "Wallet" CASCADE');
     });
 
     describe('getWallet', () => {
