@@ -58,6 +58,19 @@ describe('UserService', () => {
         });
     });
 
+    describe('createUser', () => {
+        it('should create user', async () => {
+            const user = await service.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+            expect(user.username).toBeDefined();
+            expect(user.email).toBeDefined();
+            expect(user.password).toBeDefined();
+        });
+    });
+
     describe('updateUser', () => {
         it('should update user info', async () => {
             const user = await repository.save({

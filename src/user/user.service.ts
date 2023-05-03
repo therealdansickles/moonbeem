@@ -3,6 +3,7 @@ import { GraphQLError } from 'graphql';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, UpdateResult } from 'typeorm';
 import { User } from './user.entity';
+import * as Sentry from '@sentry/node';
 
 @Injectable()
 export class UserService {
@@ -27,6 +28,7 @@ export class UserService {
         try {
             return this.userRepository.save(payload);
         } catch (e) {
+            Sentry.captureException(e);
             throw new GraphQLError(`Failed to create user ${payload.name}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
@@ -50,6 +52,7 @@ export class UserService {
         try {
             return this.userRepository.save({ ...user, ...payload });
         } catch (e) {
+            Sentry.captureException(e);
             throw new GraphQLError(`Failed to update user ${id}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
