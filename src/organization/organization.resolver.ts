@@ -27,6 +27,7 @@ export class OrganizationResolver {
         return await this.organizationService.getOrganization(id);
     }
 
+    @Public()
     @Mutation(() => Organization, { description: 'Creates an organization.' })
     async createOrganization(@Args('input') input: CreateOrganizationInput): Promise<Organization> {
         return await this.organizationService.createOrganization(input);

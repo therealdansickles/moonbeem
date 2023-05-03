@@ -22,6 +22,7 @@ export class UserResolver {
         return await this.userService.getUser(id);
     }
 
+    @Public()
     @Mutation(() => User, { description: 'update the given user.' })
     async updateUser(@Args('input') input: UpdateUserInput): Promise<User> {
         const { id } = input;

@@ -22,6 +22,7 @@ export class CollectionResolver {
         return id ? this.collectionService.getCollection(id) : this.collectionService.getCollectionByAddress(address);
     }
 
+    @Public()
     @Mutation(() => Collection, { description: 'creates a collection' })
     async createCollection(@Args('input') input: CreateCollectionInput): Promise<Collection> {
         return this.collectionService.createCollectionWithTiers(input);
