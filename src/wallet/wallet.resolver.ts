@@ -1,5 +1,5 @@
 import { Resolver, Query, Args, Mutation, ResolveField, Parent } from '@nestjs/graphql';
-import { Wallet, BindWalletInput, UnbindWalletInput, CreateWalletInput, Minted } from './wallet.dto';
+import { Wallet, BindWalletInput, UnbindWalletInput, CreateWalletInput, Minted, EstimatedValue } from './wallet.dto';
 import { Public } from '../lib/decorators/public.decorator';
 import { WalletService } from './wallet.service';
 
@@ -39,7 +39,15 @@ export class WalletResolver {
     @Public()
     @ResolveField(() => [Minted], { description: 'Retrieves the minted NFTs for the given wallet.' })
     async minted(@Parent() wallet: Wallet): Promise<Minted[]> {
-        let minted = await this.walletService.getMintedByAddress(wallet.address);
+        const minted = await this.walletService.getMintedByAddress(wallet.address);
         return minted;
+    }
+
+    @Public()
+    @ResolveField(() => String, {
+        description: 'Retrieve the estimated value of a address holdings/minted collections by address.',
+    })
+    async estimatedValue(@Parent() wallet: Wallet): Promise<string> {
+        return await this.walletService.getEstimatesByAddress(wallet.address);
     }
 }

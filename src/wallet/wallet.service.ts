@@ -3,12 +3,20 @@ import { HttpException, HttpStatus, Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ethers } from 'ethers';
+import BigNumber from 'bignumber.js';
+import * as Sentry from '@sentry/node';
 
 import { BindWalletInput, CreateWalletInput, UnbindWalletInput, Minted } from './wallet.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { User } from '../user/user.entity';
 import { Wallet } from './wallet.entity';
 import { Tier } from '../tier/tier.entity';
+import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
+
+interface ITokenPrice {
+    token: string;
+    price: string;
+}
 
 @Injectable()
 export class WalletService {
@@ -17,7 +25,9 @@ export class WalletService {
         @InjectRepository(User) private userRepository: Repository<User>,
         @InjectRepository(Tier) private tierRepository: Repository<Tier>,
         @InjectRepository(MintSaleTransaction, 'sync_chain')
-        private mintSaleTransactionRepository: Repository<MintSaleTransaction>
+        private mintSaleTransactionRepository: Repository<MintSaleTransaction>,
+        @InjectRepository(MintSaleContract, 'sync_chain')
+        private mintSaleContractRepository: Repository<MintSaleContract>
     ) {}
 
     /**
@@ -208,7 +218,7 @@ export class WalletService {
             mintSaleTransactions.map(async (mintSaleTransaction) => {
                 const { tierId, address } = mintSaleTransaction;
 
-                let tier = await this.tierRepository
+                const tier = await this.tierRepository
                     .createQueryBuilder('tier')
                     .leftJoinAndSelect('tier.collection', 'collection')
                     .where('collection.address = :address', { address })
@@ -219,5 +229,50 @@ export class WalletService {
             })
         );
         return minted;
+    }
+
+    /**
+     *
+     * @param address
+     * @returns
+     */
+    async getEstimatesByAddress(address: string): Promise<string> {
+        const wallet = await this.getWalletByAddress(address);
+        if (!wallet) throw new Error(`Wallet with address ${address} doesn't exist.`);
+
+        const priceByToken = await this.getValueGroupByToken(address);
+        const total = priceByToken.reduce(
+            (total, tokenPrice) => total.plus(new BigNumber(tokenPrice.price)),
+            new BigNumber(0)
+        );
+        return total.toString();
+    }
+
+    /**
+     *
+     * @param address
+     * @returns
+     */
+    async getValueGroupByToken(address: string): Promise<Array<ITokenPrice>> {
+        try {
+            const records = await this.mintSaleContractRepository
+                .createQueryBuilder('mintSaleContract')
+                .select([])
+                .leftJoinAndSelect(
+                    'MintSaleTransaction',
+                    'mintSaleTransaction',
+                    'mintSaleTransaction.address = mintSaleContract.address AND mintSaleTransaction.tierId = mintSaleContract.tierId'
+                )
+                .select([])
+                .where('mintSaleContract.sender = :address', { address })
+                .addSelect('SUM("mintSaleTransaction".price::decimal(30,0))', 'price')
+                .addSelect('mintSaleTransaction.paymentToken', 'token')
+                .groupBy('mintSaleTransaction.paymentToken')
+                .getRawMany();
+            return records;
+        } catch (e) {
+            Sentry.captureException(e);
+            return [];
+        }
     }
 }

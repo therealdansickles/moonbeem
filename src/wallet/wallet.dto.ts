@@ -34,6 +34,15 @@ export class Minted extends PickType(MintSaleTransaction, [
     readonly tier: Tier;
 }
 
+@ObjectType('EstimatedValue', {
+    description: 'The estimated value of a address holdings/minted collections by address',
+})
+export class EstimatedValue {
+    @IsString()
+    @Field({ description: 'The estimated value.' })
+    readonly estimatedValue: string;
+}
+
 @InputType()
 export class CreateWalletInput {
     @IsString() // we can use IsEthereumAddress() here, but we want to support EIP-3770 address format.

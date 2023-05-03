@@ -82,11 +82,14 @@ type Collection {
   """The unique URL-friendly identifier for a collection."""
   name: String!
 
-  """The name that we display for the collection."""
-  displayName: String!
-
   """The type of collection this is."""
   kind: CollectionKind!
+
+  """The organization that owns the collection."""
+  organization: Organization!
+
+  """The name that we display for the collection."""
+  displayName: String
 
   """The description for the collection."""
   about: String
@@ -135,9 +138,6 @@ type Collection {
 
   """The wallet that created the collection."""
   creatorId: String
-
-  """The organization that owns the collection."""
-  organization: Organization
 }
 
 enum CollectionKind {
@@ -192,7 +192,10 @@ type Tier {
   id: String!
 
   """The total number of mints for this tier."""
-  totalMints: Float!
+  totalMints: Float
+
+  """The price of the NFTs in this tier."""
+  price: String
 
   """The tier id/index of the NFTs in this tier."""
   tierId: Float
@@ -204,7 +207,7 @@ type Tier {
   endId: Float
 
   """The name of the tier."""
-  name: String!
+  name: String
 
   """The collection associated with this tier."""
   collection: Collection!
@@ -291,6 +294,11 @@ type Wallet {
 
   """Retrieves the minted NFTs for the given wallet."""
   minted: [Minted!]!
+
+  """
+  Retrieve the estimated value of a address holdings/minted collections by address.
+  """
+  estimatedValue: String!
 }
 
 """The NFT minted by a wallet."""
@@ -1414,8 +1422,16 @@ input CreateCollectionInput {
   """The description for the collection."""
   creatorId: String
 
+  """The organization that owns the collection."""
+  organization: OrganizationInput!
+
   """This tiers for collection"""
   tiers: [CreateTierInCollectionInput!]
+}
+
+input OrganizationInput {
+  """The id of the organization."""
+  id: String!
 }
 
 input CreateTierInCollectionInput {
@@ -1662,7 +1678,10 @@ input CreateTierInput {
   collection: CollectionInput!
 
   """The total number of mints for this tier."""
-  totalMints: Float!
+  totalMints: Float
+
+  """The price of the NFTs in this tier."""
+  price: String
 
   """The tier id/index of the NFTs in this tier."""
   tierId: Float
@@ -1674,10 +1693,10 @@ input CreateTierInput {
   endId: Float
 
   """The name of the tier."""
-  name: String!
+  name: String
 
   """the tier selected coin id"""
-  paymentTokenAddress: String!
+  paymentTokenAddress: String
 
   """The description of the tier."""
   description: String
@@ -1710,6 +1729,9 @@ input UpdateTierInput {
 
   """The total number of mints for this tier."""
   totalMints: Float
+
+  """The price of the NFTs in this tier."""
+  price: String
 
   """The tier id/index of the NFTs in this tier."""
   tierId: Float
@@ -1795,11 +1817,6 @@ input CreateMerkleRootData {
   Amount available, using string, the merkleTree can be expanded to erc20 tokens
   """
   amount: String!
-}
-
-input OrganizationInput {
-  """The id of the organization."""
-  id: String!
 }
 
 input CreateWaitlistInput {

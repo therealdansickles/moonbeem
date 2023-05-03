@@ -20,6 +20,8 @@ import { UserService } from '../user/user.service';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleContractModule } from '../sync-chain/mint-sale-contract/mint-sale-contract.module';
 
 import { TierService } from '../tier/tier.service';
 import { TierModule } from '../tier/tier.module';
@@ -35,6 +37,7 @@ describe('WalletResolver', () => {
     let authService: AuthService;
     let collectionService: CollectionService;
     let mintSaleTransactionService: MintSaleTransactionService;
+    let mintSaleContractService: MintSaleContractService;
     let tierService: TierService;
     let userService: UserService;
     let app: INestApplication;
@@ -68,6 +71,7 @@ describe('WalletResolver', () => {
                 CollectionModule,
                 TierModule,
                 MintSaleTransactionModule,
+                MintSaleContractModule,
                 UserModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
@@ -82,6 +86,7 @@ describe('WalletResolver', () => {
         authService = module.get<AuthService>(AuthService);
         collectionService = module.get<CollectionService>(CollectionService);
         mintSaleTransactionService = module.get<MintSaleTransactionService>(MintSaleTransactionService);
+        mintSaleContractService = module.get<MintSaleContractService>(MintSaleContractService);
         tierService = module.get<TierService>(TierService);
         userService = module.get<UserService>(UserService);
         app = module.createNestApplication();
@@ -279,7 +284,7 @@ describe('WalletResolver', () => {
                 paymentTokenAddress: faker.finance.ethereumAddress(),
             });
 
-            let transaction = await mintSaleTransactionService.createMintSaleTransaction({
+            const transaction = await mintSaleTransactionService.createMintSaleTransaction({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
@@ -324,6 +329,105 @@ describe('WalletResolver', () => {
                     expect(firstMint.address).toEqual(collection.address); // NOTE: These horrible `address` namings, which one is it???
                     expect(firstMint.tier.name).toEqual(tier.name);
                     expect(firstMint.tier.collection.name).toEqual(collection.name);
+                });
+        });
+    });
+
+    describe('getEstimatedValue', () => {
+        it('should get estimated value', async () => {
+            const sender1 = faker.finance.ethereumAddress();
+
+            const wallet = await service.createWallet({ address: sender1 });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                tierId: 1,
+                collection: { id: collection.id },
+                paymentTokenAddress: faker.finance.ethereumAddress(),
+            });
+
+            const paymentToken = faker.finance.ethereumAddress();
+
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: sender1,
+                recipient: wallet.address,
+                address: collection.address,
+                tierId: tier.tierId,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken,
+            });
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: sender1,
+                recipient: wallet.address,
+                address: collection.address,
+                tierId: tier.tierId,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken,
+            });
+
+            await mintSaleContractService.createMintSaleContract({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: sender1,
+                royaltyReceiver: sender1,
+                royaltyRate: faker.random.numeric(2),
+                derivativeRoyaltyRate: faker.random.numeric(2),
+                isDerivativeAllowed: true,
+                beginTime: Math.floor(faker.date.recent().valueOf() / 1000),
+                endTime: Math.floor(faker.date.future().valueOf() / 1000),
+                price: faker.random.numeric(5),
+                tierId: tier.tierId,
+                address: collection.address,
+                paymentToken,
+                startId: 0,
+                endId: 10,
+                currentId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+            });
+
+            const query = gql`
+                query GetEstimatedValueByWallet($address: String!) {
+                    wallet(address: $address) {
+                        id
+                        address
+                        estimatedValue
+                    }
+                }
+            `;
+
+            const variables = {
+                address: wallet.address,
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.wallet.estimatedValue).toBeTruthy();
+                    expect(+body.data.wallet.estimatedValue).toBeGreaterThan(0);
                 });
         });
     });
