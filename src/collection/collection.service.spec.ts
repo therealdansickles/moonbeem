@@ -282,6 +282,24 @@ describe('CollectionService', () => {
 
     describe('createCollection', () => {
         it('should create a collection', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
             const collection = await service.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
@@ -295,10 +313,14 @@ describe('CollectionService', () => {
                         totalMints: parseInt(faker.random.numeric(5)),
                     },
                 ],
+                organization: {
+                    id: organization.id,
+                },
             });
 
             expect(collection).toBeDefined();
             expect(collection.displayName).toEqual('The best collection');
+            expect(collection.organization.id).toEqual(organization.id);
         });
     });
 

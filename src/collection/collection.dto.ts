@@ -1,10 +1,10 @@
 import { ArgsType, Field, Int, ObjectType, InputType, registerEnumType, ID } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString, IsDateString, IsUrl, ValidateIf, IsOptional, IsArray } from 'class-validator';
+import { IsNumber, IsString, IsDateString, IsUrl, ValidateIf, IsOptional, IsArray, IsObject } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CollectionKind } from './collection.entity';
 import { Attribute, Tier } from '../tier/tier.dto';
-import { Organization } from '../organization/organization.dto';
+import { Organization, OrganizationInput } from '../organization/organization.dto';
 
 registerEnumType(CollectionKind, { name: 'CollectionKind' });
 
@@ -207,6 +207,10 @@ export class CreateCollectionInput {
     @Field({ description: 'The description for the collection.', nullable: true })
     @IsOptional()
     readonly creatorId?: string;
+
+    @IsObject()
+    @Field((type) => OrganizationInput, { description: 'The organization that owns the collection.' })
+    readonly organization: OrganizationInput;
 
     @IsArray()
     @Field((type) => [CreateTierInCollectionInput], { nullable: true, description: 'This tiers for collection' })
