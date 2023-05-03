@@ -6,7 +6,7 @@ import { ethers } from 'ethers';
 import BigNumber from 'bignumber.js';
 import * as Sentry from '@sentry/node';
 
-import { BindWalletInput, CreateWalletInput, UnbindWalletInput, Minted } from './wallet.dto';
+import { BindWalletInput, CreateWalletInput, UnbindWalletInput, Minted, UpdateWalletInput } from './wallet.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { User } from '../user/user.entity';
 import { Wallet } from './wallet.entity';
@@ -231,6 +231,23 @@ export class WalletService {
         return minted;
     }
 
+    async updateWallet(id: string, payload: Partial<Omit<UpdateWalletInput, 'id'>>): Promise<Wallet> {
+        const wallet = await this.walletRespository.findOneBy({ id });
+        if (!wallet) {
+            throw new GraphQLError(`Wallet with id ${id} doesn't exist.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
+        }
+
+        try {
+            return this.walletRespository.save({ ...wallet, ...payload });
+        } catch (e) {
+            Sentry.captureException(e);
+            throw new GraphQLError(`Failed to update wallet ${id}`, {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
+        }
+    }
     /**
      *
      * @param address

@@ -292,6 +292,27 @@ type Wallet {
   """The owner of the wallet."""
   owner: User
 
+  """The name for the wallet."""
+  name: String
+
+  """The URL pointing to the wallet's avatar."""
+  avatarUrl: String
+
+  """The description for the wallet."""
+  about: String
+
+  """The twitter handle for the wallet."""
+  twitter: String
+
+  """The instagram handle for the wallet."""
+  instagram: String
+
+  """The discord handle for the wallet."""
+  discord: String
+
+  """The spotify handle for the wallet.."""
+  spotify: String
+
   """Retrieves the minted NFTs for the given wallet."""
   minted: [Minted!]!
 
@@ -1281,6 +1302,9 @@ type Mutation {
 
   """Unbinds a wallet from the current user."""
   unbindWallet(input: UnbindWalletInput!): Wallet!
+
+  """update the given wallet"""
+  updateWallet(input: UpdateWalletInput!): Wallet!
   followUserWallet(address: EthereumAddress!, isFollowed: Boolean): Boolean!
   updateAddressInfo(name: String, avatar: String, customUrl: String, description: String, discordLink: String, facebookLink: String, twitterLink: String): Boolean!
 
@@ -1811,6 +1835,32 @@ input UnbindWalletInput {
 
   """the owner uuid of the wallet."""
   owner: UserInput!
+}
+
+input UpdateWalletInput {
+  """The id for the wallet."""
+  id: String!
+
+  """The name for the wallet."""
+  name: String
+
+  """The URL pointing to the wallet's avatar."""
+  avatarUrl: String
+
+  """The description for the wallet."""
+  about: String
+
+  """The twitter handle for the wallet."""
+  twitter: String
+
+  """The instagram handle for the wallet."""
+  instagram: String
+
+  """The discord handle for the wallet."""
+  discord: String
+
+  """The spotify handle for the wallet.."""
+  spotify: String
 }
 
 input CreateMerkleRootInput {

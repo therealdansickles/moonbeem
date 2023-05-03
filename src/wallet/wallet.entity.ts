@@ -32,6 +32,27 @@ export class Wallet extends BaseEntity {
     @ManyToOne(() => User, (user) => user.wallets, { createForeignKeyConstraints: false })
     owner?: User;
 
+    @Column({ nullable: true, comment: 'The name for the wallet.' })
+    name?: string;
+
+    @Column({ nullable: true, comment: "The URL pointing to the wallet's avatar." })
+    avatarUrl?: string;
+
+    @Column({ nullable: true, comment: 'The description for the wallet.' })
+    about?: string;
+
+    @Column({ nullable: true, comment: 'The twitter handle for the wallet.' })
+    twitter?: string;
+
+    @Column({ nullable: true, comment: 'The instagram handle for the wallet.' })
+    instagram?: string;
+
+    @Column({ nullable: true, comment: 'The discord handle for the wallet.' })
+    discord?: string;
+
+    @Column({ nullable: true, comment: 'The spotify handle for the wallet.' })
+    spotify?: string;
+
     @CreateDateColumn()
     createdAt: Date;
 

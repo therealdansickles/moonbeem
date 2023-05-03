@@ -25,7 +25,7 @@ export class User extends BaseEntity {
     @Column({ unique: true, comment: 'The email of the user.' })
     email: string;
 
-    @Column({ comment: 'The hashed password of the user.' })
+    @Column({ nullable: true, comment: 'The hashed password of the user.' })
     password?: string;
 
     @Column({ nullable: true, comment: 'The name for the user.' })

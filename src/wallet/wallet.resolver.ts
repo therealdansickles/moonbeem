@@ -1,5 +1,5 @@
 import { Resolver, Query, Args, Mutation, ResolveField, Parent } from '@nestjs/graphql';
-import { Wallet, BindWalletInput, UnbindWalletInput, CreateWalletInput, Minted, EstimatedValue } from './wallet.dto';
+import { Wallet, BindWalletInput, UnbindWalletInput, CreateWalletInput, Minted, UpdateWalletInput } from './wallet.dto';
 import { Public } from '../lib/decorators/public.decorator';
 import { WalletService } from './wallet.service';
 
@@ -44,6 +44,12 @@ export class WalletResolver {
     }
 
     @Public()
+    @Mutation(() => Wallet, { description: 'update the given wallet' })
+    async updateWallet(@Args('input') input: UpdateWalletInput): Promise<Wallet> {
+        const { id, ...payload } = input;
+        return await this.walletService.updateWallet(id, payload);
+    }
+
     @ResolveField(() => String, {
         description: 'Retrieve the estimated value of a address holdings/minted collections by address.',
     })

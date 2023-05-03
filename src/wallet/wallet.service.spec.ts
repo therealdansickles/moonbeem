@@ -77,7 +77,7 @@ describe('WalletService', () => {
     });
 
     afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Wallet" CASCADE');
+        // await repository.query('TRUNCATE TABLE "Wallet" CASCADE');
     });
 
     describe('getWallet', () => {
@@ -315,6 +315,19 @@ describe('WalletService', () => {
             expect(result.txTime).toEqual(transaction.txTime);
             expect(result.tier.id).toEqual(tier.id);
             expect(result.tier.collection.id).toEqual(collection.id);
+        });
+    });
+    describe('updateWallet', () => {
+        it('should update wallet', async () => {
+            const walletAddress = faker.finance.ethereumAddress().toLowerCase();
+            const name = faker.finance.accountName();
+            const result = await service.createWallet({ address: walletAddress });
+
+            const updateResult = await service.updateWallet(result.id, { name: name });
+
+            expect(result.id).toBeDefined();
+            expect(result.address).toEqual(walletAddress.toLowerCase());
+            expect(updateResult.name).toEqual(name);
         });
     });
 

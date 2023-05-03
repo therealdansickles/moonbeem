@@ -1,6 +1,15 @@
 import { ArgsType, Field, Int, ObjectType, InputType, ID, PickType } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString, IsDateString, IsEthereumAddress, IsUrl, ValidateIf, IsObject } from 'class-validator';
+import {
+    IsNumber,
+    IsString,
+    IsDateString,
+    IsEthereumAddress,
+    IsUrl,
+    ValidateIf,
+    IsObject,
+    IsOptional,
+} from 'class-validator';
 import { User, UserInput } from '../user/user.dto';
 import { Tier } from '../tier/tier.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
@@ -18,6 +27,41 @@ export class Wallet {
     @IsObject()
     @Field(() => User, { description: 'The owner of the wallet.', nullable: true })
     readonly owner?: User;
+
+    @IsString()
+    @Field({ nullable: true, description: 'The name for the wallet.' })
+    @IsOptional()
+    name?: string;
+
+    @IsString()
+    @Field({ nullable: true, description: "The URL pointing to the wallet's avatar." })
+    @IsOptional()
+    avatarUrl?: string;
+
+    @IsString()
+    @Field({ nullable: true, description: 'The description for the wallet.' })
+    @IsOptional()
+    about?: string;
+
+    @IsString()
+    @Field({ nullable: true, description: 'The twitter handle for the wallet.' })
+    @IsOptional()
+    twitter?: string;
+
+    @IsString()
+    @Field({ nullable: true, description: 'The instagram handle for the wallet.' })
+    @IsOptional()
+    instagram?: string;
+
+    @IsString()
+    @Field({ nullable: true, description: 'The discord handle for the wallet.' })
+    @IsOptional()
+    discord?: string;
+
+    @IsString()
+    @Field({ nullable: true, description: 'The spotify handle for the wallet..' })
+    @IsOptional()
+    spotify?: string;
 }
 
 @ObjectType('Minted', { description: 'The NFT minted by a wallet.' })
@@ -82,4 +126,46 @@ export class UnbindWalletInput {
     @IsObject()
     @Field((type) => UserInput, { description: 'the owner uuid of the wallet.' })
     readonly owner: UserInput;
+}
+
+@InputType('UpdateWalletInput')
+export class UpdateWalletInput {
+    @IsString()
+    @Field({ description: 'The id for the wallet.' })
+    id: string;
+
+    @IsString()
+    @Field({ nullable: true, description: 'The name for the wallet.' })
+    @IsOptional()
+    name?: string;
+
+    @IsString()
+    @Field({ nullable: true, description: "The URL pointing to the wallet's avatar." })
+    @IsOptional()
+    avatarUrl?: string;
+
+    @IsString()
+    @Field({ nullable: true, description: 'The description for the wallet.' })
+    @IsOptional()
+    about?: string;
+
+    @IsString()
+    @Field({ nullable: true, description: 'The twitter handle for the wallet.' })
+    @IsOptional()
+    twitter?: string;
+
+    @IsString()
+    @Field({ nullable: true, description: 'The instagram handle for the wallet.' })
+    @IsOptional()
+    instagram?: string;
+
+    @IsString()
+    @Field({ nullable: true, description: 'The discord handle for the wallet.' })
+    @IsOptional()
+    discord?: string;
+
+    @IsString()
+    @Field({ nullable: true, description: 'The spotify handle for the wallet..' })
+    @IsOptional()
+    spotify?: string;
 }
