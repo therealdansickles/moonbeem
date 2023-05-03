@@ -400,7 +400,7 @@ describe('WalletService', () => {
         });
     });
 
-    describe.only('getEstimatesByAddress', () => {
+    describe('getEstimatesByAddress', () => {
         it('should return correct value', async () => {
             const sender1 = faker.finance.ethereumAddress();
             const sender2 = faker.finance.ethereumAddress();

@@ -300,6 +300,8 @@ describe('CollaborationService', () => {
                 walletId: newWallet.id,
                 collectionId: collection.id,
                 royaltyRate: 12,
+                userId: newUser.id,
+                organizationId: organization.id,
                 collaborators: [
                     {
                         address: faker.finance.ethereumAddress(),
@@ -314,8 +316,10 @@ describe('CollaborationService', () => {
                 newUser.id,
                 organization.id
             );
-            expect(result.wallet.owner.id).toEqual(newUser.id);
-            expect(result.collection.organization.id).toEqual(organization.id);
+            // expect(result.wallet.owner.id).toEqual(newUser.id);
+            // expect(result.collection.organization.id).toEqual(organization.id);
+            expect(result.user.id).toEqual(newUser.id);
+            expect(result.organization.id).toEqual(organization.id);
         });
     });
 });

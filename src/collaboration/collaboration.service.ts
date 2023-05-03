@@ -6,6 +6,8 @@ import { CreateCollaborationInput } from './collaboration.dto';
 import { Collaboration } from './collaboration.entity';
 import { Collection } from '../collection/collection.entity';
 import { Wallet } from '../wallet/wallet.entity';
+import { User } from '../user/user.entity';
+import { Organization } from '../organization/organization.entity';
 
 @Injectable()
 export class CollaborationService {
@@ -25,15 +27,10 @@ export class CollaborationService {
      * Retrieves all collaborations related for a given user and organization.
      */
     async getCollaborationsByUserIdAndOrganizationId(userId: string, organizationId: string): Promise<Collaboration[]> {
-        return await this.collaborationRepository
-            .createQueryBuilder('collaboration')
-            .leftJoinAndSelect('collaboration.collection', 'collection')
-            .leftJoinAndSelect('collaboration.wallet', 'wallet')
-            .leftJoinAndSelect('wallet.owner', 'owner')
-            .leftJoinAndSelect('collection.organization', 'organization')
-            .where('wallet.ownerId = :userId', { userId })
-            .andWhere('collection.organizationId = :organizationId', { organizationId })
-            .getMany();
+        return await this.collaborationRepository.find({
+            where: { user: { id: userId }, organization: { id: organizationId } },
+            relations: ['user', 'organization'],
+        });
     }
 
     /**
@@ -76,6 +73,8 @@ export class CollaborationService {
         const dd = data as unknown as Collaboration;
         if (data.collectionId) dd.collection = data.collectionId as unknown as Collection;
         if (data.walletId) dd.wallet = data.walletId as unknown as Wallet;
+        if (data.userId) dd.user = data.userId as unknown as User;
+        if (data.organizationId) dd.organization = data.organizationId as unknown as Organization;
         return await this.collaborationRepository.save(dd);
     }
 

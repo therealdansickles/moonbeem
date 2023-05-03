@@ -15,7 +15,7 @@ import { User } from '../user/user.entity';
 import { Wallet } from '../wallet/wallet.entity';
 
 @Entity({ name: 'Collaboration' })
-@Index(['wallet.id', 'collection.id'], { unique: true })
+// @Index(['wallet.id', 'collection.id'], { unique: true })
 export class Collaboration extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;

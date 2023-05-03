@@ -2,6 +2,8 @@ import { Field, ObjectType, InputType, Int } from '@nestjs/graphql';
 import { IsObject, IsNumber, IsString, IsDateString, IsArray } from 'class-validator';
 import { Wallet } from '../wallet/wallet.dto';
 import { Collection } from '../collection/collection.dto';
+import { User } from '../user/user.dto';
+import { Organization } from '../organization/organization.dto';
 
 @ObjectType('Collaboration')
 export class Collaboration {
@@ -20,6 +22,14 @@ export class Collaboration {
     @IsString()
     @Field({ description: 'The address of the collaboration contract.', nullable: true })
     readonly address?: string;
+
+    @IsObject()
+    @Field(() => User, { description: 'The user of the collaboration.', nullable: true })
+    readonly user?: Partial<User>;
+
+    @IsObject()
+    @Field(() => Organization, { description: 'The organization of the collaboration.', nullable: true })
+    readonly organization?: Partial<Organization>;
 
     @IsArray()
     @Field((type) => [CollaboratorOutput], { description: 'All collaborators of this collaboration', nullable: true })
@@ -47,6 +57,14 @@ export class CreateCollaborationInput {
     @IsString()
     @Field({ description: 'The wallet of the collaboration.', nullable: true })
     readonly walletId?: string;
+
+    @IsString()
+    @Field({ description: 'The user of the collaboration.', nullable: true })
+    readonly userId?: string;
+
+    @IsString()
+    @Field({ description: 'The organization of the collaboration.', nullable: true })
+    readonly organizationId?: string;
 
     @IsString()
     @Field({ description: 'The collection of the collaboration.', nullable: true })

@@ -201,13 +201,13 @@ describe('CollaborationResolver', () => {
 
     describe('collaborations', () => {
         it('should get a collaborations for a user id and org id', async () => {
-            let user = await userService.createUser({
+            const user = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
 
-            let organization = await organizationService.createOrganization({
+            const organization = await organizationService.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
@@ -220,7 +220,7 @@ describe('CollaborationResolver', () => {
                 owner: user,
             });
 
-            let collection = await collectionService.createCollection({
+            const collection = await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -231,15 +231,17 @@ describe('CollaborationResolver', () => {
                 organization,
             });
 
-            let wallet = await walletService.createWallet({
+            const wallet = await walletService.createWallet({
                 address: `arb:${faker.finance.ethereumAddress()}`,
                 ownerId: user.id,
             });
 
-            let collab = await service.createCollaboration({
+            const collab = await service.createCollaboration({
                 walletId: wallet.id,
                 collectionId: collection.id,
                 royaltyRate: 12,
+                userId: user.id,
+                organizationId: organization.id,
                 collaborators: [
                     {
                         address: faker.finance.ethereumAddress(),
@@ -256,16 +258,12 @@ describe('CollaborationResolver', () => {
                         id
                         royaltyRate
 
-                        wallet {
-                            owner {
-                                id
-                            }
+                        user {
+                            id
                         }
 
-                        collection {
-                            organization {
-                                id
-                            }
+                        organization {
+                            id
                         }
                     }
                 }
@@ -283,8 +281,8 @@ describe('CollaborationResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     const [collab, ...rest] = body.data.collaborations;
-                    expect(collab.wallet.owner.id).toEqual(variables.userId);
-                    expect(collab.collection.organization.id).toEqual(variables.organizationId);
+                    expect(collab.user.id).toEqual(variables.userId);
+                    expect(collab.organization.id).toEqual(variables.organizationId);
                 });
         });
     });

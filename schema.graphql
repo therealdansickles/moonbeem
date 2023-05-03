@@ -436,6 +436,12 @@ type Collaboration {
   """The address of the collaboration contract."""
   address: String
 
+  """The user of the collaboration."""
+  user: User
+
+  """The organization of the collaboration."""
+  organization: Organization
+
   """All collaborators of this collaboration"""
   collaborators: [CollaboratorOutput!]
 
@@ -1350,6 +1356,12 @@ input CreateCollaborationInput {
 
   """The wallet of the collaboration."""
   walletId: String
+
+  """The user of the collaboration."""
+  userId: String
+
+  """The organization of the collaboration."""
+  organizationId: String
 
   """The collection of the collaboration."""
   collectionId: String
