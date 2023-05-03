@@ -70,6 +70,7 @@ export class UnbindWalletInput {
     @Field({ description: 'an ethereum or EIP-3770 address.' })
     readonly address: string;
 
+    @IsObject()
     @Field((type) => UserInput, { description: 'the owner uuid of the wallet.' })
     readonly owner: UserInput;
 }
