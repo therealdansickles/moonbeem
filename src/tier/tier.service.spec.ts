@@ -8,12 +8,13 @@ import { postgresConfig } from '../lib/configs/db.config';
 import { Tier } from './tier.entity';
 import { TierModule } from './tier.module';
 import { TierService } from './tier.service';
-import { Collection, CollectionKind } from '../collection/collection.entity';
+import { CollectionKind } from '../collection/collection.entity';
 import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { CoinModule } from '../sync-chain/coin/coin.module';
 import { Coin } from '../sync-chain/coin/coin.entity';
+import { Collection } from 'src/collection/collection.dto';
 
 describe('TierService', () => {
     let repository: Repository<Tier>;
@@ -89,12 +90,12 @@ describe('TierService', () => {
                 name: faker.company.name(),
                 totalMints: 100,
                 collection: { id: collection.id },
-                price: "100",
+                price: '100',
                 paymentTokenAddress: coin.address,
             });
 
             expect(tier).toBeDefined();
-            expect(tier.price).toEqual("100");
+            expect(tier.price).toEqual('100');
         });
 
         it('Should create a new tier for whitelisting collection', async () => {

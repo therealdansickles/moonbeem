@@ -11,7 +11,7 @@ import { postgresConfig } from '../lib/configs/db.config';
 import { Collaboration } from './collaboration.entity';
 import { CollaborationModule } from './collaboration.module';
 import { CollaborationService } from './collaboration.service';
-import { Collection } from '../collection/collection.entity';
+import { Collection } from '../collection/collection.dto';
 import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
 import { Organization } from '../organization/organization.entity';

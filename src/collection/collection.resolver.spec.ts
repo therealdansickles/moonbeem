@@ -20,6 +20,7 @@ import { UserService } from '../user/user.service';
 import { TierService } from '../tier/tier.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { CoinModule } from '../sync-chain/coin/coin.module';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 
 export const gql = String.raw;
 
@@ -32,6 +33,7 @@ describe('CollectionResolver', () => {
     let userService: UserService;
     let tierService: TierService;
     let coinService: CoinService;
+    let mintSaleContractService: MintSaleContractService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -73,6 +75,7 @@ describe('CollectionResolver', () => {
         userService = module.get<UserService>(UserService);
         tierService = module.get<TierService>(TierService);
         coinService = module.get<CoinService>(CoinService);
+        mintSaleContractService = module.get<MintSaleContractService>(MintSaleContractService);
 
         app = module.createNestApplication();
         await app.init();
@@ -139,6 +142,95 @@ describe('CollectionResolver', () => {
                     expect(body.data.collection.name).toEqual(collection.name);
                     expect(body.data.collection.displayName).toEqual(collection.displayName);
                     expect(body.data.collection.organization.name).toEqual(organization.name);
+                });
+        });
+
+        it('should get a collection by id with contract details', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const collection = await service.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+            });
+
+            const beginTime = Math.floor(faker.date.recent().getTime() / 1000);
+            const endTime = Math.floor(faker.date.recent().getTime() / 1000);
+
+            const contract = await mintSaleContractService.createMintSaleContract({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                address: faker.finance.ethereumAddress(),
+                royaltyReceiver: faker.finance.ethereumAddress(),
+                royaltyRate: 10000,
+                derivativeRoyaltyRate: 1000,
+                isDerivativeAllowed: true,
+                beginTime,
+                endTime,
+                tierId: 0,
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+                startId: 1,
+                endId: 100,
+                currentId: 1,
+                tokenAddress: faker.finance.ethereumAddress(),
+                collectionId: collection.id,
+            });
+
+            const query = gql`
+                query GetCollection($id: String!) {
+                    collection(id: $id) {
+                        name
+                        displayName
+                        kind
+
+                        organization {
+                            name
+                        }
+
+                        contract {
+                            beginTime
+                            endTime
+                        }
+                    }
+                }
+            `;
+
+            const variables = { id: collection.id };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.collection.name).toEqual(collection.name);
+                    expect(body.data.collection.displayName).toEqual(collection.displayName);
+                    expect(body.data.collection.organization.name).toEqual(organization.name);
+                    expect(body.data.collection.contract).toBeDefined();
+                    expect(body.data.collection.contract.beginTime).toEqual(beginTime);
+                    expect(body.data.collection.contract.endTime).toEqual(endTime);
                 });
         });
 

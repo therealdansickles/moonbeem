@@ -7,7 +7,7 @@ import { SharedModule } from '../../modules/share.module';
 
 @Module({
     imports: [TypeOrmModule.forFeature([MintSaleContract], 'sync_chain'), SharedModule],
-    exports: [MintSaleContractModule],
+    exports: [MintSaleContractModule, MintSaleContractService],
     providers: [MintSaleContractService, MintSaleContractResolver],
 })
 export class MintSaleContractModule {}

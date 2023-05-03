@@ -8,7 +8,7 @@ import { faker } from '@faker-js/faker';
 import { Repository } from 'typeorm';
 import { postgresConfig } from '../lib/configs/db.config';
 
-import { Collection, CollectionKind } from '../collection/collection.entity';
+import { CollectionKind } from '../collection/collection.entity';
 import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
 import { Tier } from './tier.entity';
@@ -17,6 +17,7 @@ import { TierService } from './tier.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { CoinModule } from '../sync-chain/coin/coin.module';
 import { Coin } from 'src/sync-chain/coin/coin.entity';
+import { Collection } from 'src/collection/collection.dto';
 
 export const gql = String.raw;
 

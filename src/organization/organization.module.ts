@@ -29,7 +29,7 @@ import { UserModule } from '../user/user.module';
         forwardRef(() => UserModule),
     ],
     exports: [OrganizationModule, OrganizationService],
-    providers: [CollectionService, MembershipService, OrganizationService, OrganizationResolver],
+    providers: [MembershipService, OrganizationService, OrganizationResolver],
     controllers: [],
 })
 export class OrganizationModule {}

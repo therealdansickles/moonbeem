@@ -1,17 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, UpdateResult, IsNull } from 'typeorm';
-import { Collection, CollectionKind } from './collection.entity';
+
+import * as collectionEntity from './collection.entity';
 import { GraphQLError } from 'graphql';
 import { Tier } from '../tier/tier.entity';
-import { CreateCollectionInput } from './collection.dto';
+import { Collection, CreateCollectionInput } from './collection.dto';
+import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 
 @Injectable()
 export class CollectionService {
     constructor(
-        @InjectRepository(Collection)
-        private readonly collectionRepository: Repository<Collection>,
-
+        @InjectRepository(collectionEntity.Collection)
+        private readonly collectionRepository: Repository<collectionEntity.Collection>,
+        @InjectRepository(MintSaleContract, 'sync_chain')
+        private readonly mintSaleContractRepository: Repository<MintSaleContract>,
         @InjectRepository(Tier)
         private readonly tierRepository: Repository<Tier>
     ) {}
@@ -23,7 +26,10 @@ export class CollectionService {
      * @returns The collection associated with the given id.
      */
     async getCollection(id: string): Promise<Collection | null> {
-        return this.collectionRepository.findOne({ where: { id }, relations: ['organization', 'tiers'] });
+        return await this.collectionRepository.findOne({
+            where: { id },
+            relations: ['organization', 'tiers'],
+        });
     }
 
     /**
@@ -33,7 +39,10 @@ export class CollectionService {
      * @returns The collection associated with the given address.
      */
     async getCollectionByAddress(address: string): Promise<Collection | null> {
-        return this.collectionRepository.findOne({ where: { address }, relations: ['organization'] });
+        return await this.collectionRepository.findOne({
+            where: { address },
+            relations: ['organization'],
+        });
     }
 
     /**
@@ -43,7 +52,7 @@ export class CollectionService {
      * @returns The collection associated with the given organization.
      */
     async getCollectionsByOrganizationId(organizationId: string): Promise<Collection[]> {
-        return this.collectionRepository.find({
+        return await this.collectionRepository.find({
             where: { organization: { id: organizationId } },
             relations: ['organization', 'tiers'],
         });
@@ -120,7 +129,7 @@ export class CollectionService {
 
     async createCollectionWithTiers(data: CreateCollectionInput) {
         const { tiers, ...collection } = data;
-        const kind = CollectionKind;
+        const kind = collectionEntity.CollectionKind;
         if ([kind.whitelistEdition, kind.whitelistTiered, kind.whitelistBulk].indexOf(collection.kind) >= 0) {
             tiers.forEach((tier) => {
                 if (!tier.merkleRoot)
@@ -133,7 +142,7 @@ export class CollectionService {
         if (data.tiers) {
             tiers.forEach(async (tier) => {
                 const dd = tier as unknown as Tier;
-                dd.collection = createResult.id as unknown as Collection;
+                dd.collection = createResult.id as unknown as collectionEntity.Collection;
                 const attributesJson = JSON.stringify(tier.attributes);
                 dd.attributes = attributesJson;
 
@@ -153,4 +162,6 @@ export class CollectionService {
         });
         return result;
     }
+
+    async;
 }

@@ -31,6 +31,10 @@ export class MintSaleContractService {
         return await this.contractRepository.findOneBy({ id });
     }
 
+    async getMintSaleContractByCollection(collectionId: string): Promise<MintSaleContract> {
+        return await this.contractRepository.findOneBy({ collectionId });
+    }
+
     async createMerkleRoot(input: CreateMerkleRootInput): Promise<CreateMerkleRootOutput> {
         // Create merkle root
         const tree = this.createMerkleTree(input.data);

@@ -138,6 +138,9 @@ type Collection {
 
   """The wallet that created the collection."""
   creatorId: String
+
+  """Returns the contract for the given collection"""
+  contract: MintSaleContract!
 }
 
 enum CollectionKind {
@@ -488,6 +491,95 @@ type CollaboratorOutput {
 
   """The royalty rate of the collaboration."""
   rate: Int!
+}
+
+type MintSaleContract {
+  id: ID!
+
+  """Block height of transaction."""
+  height: Float!
+
+  """Transaction hash of transaction."""
+  txHash: String!
+
+  """Transaction time of transaction."""
+  txTime: Float!
+
+  """Transaction sender of transaction."""
+  sender: String!
+
+  """The contract address."""
+  address: String!
+
+  """The royalty contract of MintSale"""
+  royaltyReceiver: String!
+
+  """The royalty rate of MintSale"""
+  royaltyRate: Float!
+
+  """The derivative royalty rate of MintSale"""
+  derivativeRoyaltyRate: Float!
+
+  """Means whether this nft supports derivative royalty"""
+  isDerivativeAllowed: Boolean!
+
+  """The begin time of the MintSale"""
+  beginTime: Float!
+
+  """The end time of the MintSale"""
+  endTime: Float!
+
+  """The tier id of the MintSale"""
+  tierId: Float!
+
+  """The price of the tier"""
+  price: String!
+
+  """The payment token of the collection"""
+  paymentToken: String!
+
+  """The start id of the tier"""
+  startId: Float!
+
+  """The end id of the tier"""
+  endId: Float!
+
+  """The current id of the tier"""
+  currentId: Float!
+
+  """The token address(erc721 address) of the collection"""
+  tokenAddress: String!
+
+  """The chain id for the transaction"""
+  chainId: Float!
+
+  """The DateTime of create."""
+  createdAt: DateTime!
+
+  """The DateTime that this contract was last updated."""
+  updatedAt: DateTime!
+}
+
+type CreateMerkleRootOutput {
+  """Status"""
+  success: Boolean!
+
+  """MerkleTree"""
+  merkleRoot: String!
+}
+
+type GetMerkleProofOutput {
+  """User Address"""
+  address: String!
+
+  """Available Amount"""
+  amount: String!
+
+  """Merkle Proof"""
+  proof: [String!]!
+
+  """Status"""
+  success: Boolean!
 }
 
 type Membership {
@@ -978,95 +1070,6 @@ type SystemConfig {
   updatedAt: DateTime!
 }
 
-type MintSaleContract {
-  id: ID!
-
-  """Block height of transaction."""
-  height: Float!
-
-  """Transaction hash of transaction."""
-  txHash: String!
-
-  """Transaction time of transaction."""
-  txTime: Float!
-
-  """Transaction sender of transaction."""
-  sender: String!
-
-  """The contract address."""
-  address: String!
-
-  """The royalty contract of MintSale"""
-  royaltyReceiver: String!
-
-  """The royalty rate of MintSale"""
-  royaltyRate: Float!
-
-  """The derivative royalty rate of MintSale"""
-  derivativeRoyaltyRate: Float!
-
-  """Means whether this nft supports derivative royalty"""
-  isDerivativeAllowed: Boolean!
-
-  """The begin time of the MintSale"""
-  beginTime: Float!
-
-  """The end time of the MintSale"""
-  endTime: Float!
-
-  """The tier id of the MintSale"""
-  tierId: Float!
-
-  """The price of the tier"""
-  price: String!
-
-  """The payment token of the collection"""
-  paymentToken: String!
-
-  """The start id of the tier"""
-  startId: Float!
-
-  """The end id of the tier"""
-  endId: Float!
-
-  """The current id of the tier"""
-  currentId: Float!
-
-  """The token address(erc721 address) of the collection"""
-  tokenAddress: String!
-
-  """The chain id for the transaction"""
-  chainId: Float!
-
-  """The DateTime of create."""
-  createdAt: DateTime!
-
-  """The DateTime that this contract was last updated."""
-  updatedAt: DateTime!
-}
-
-type CreateMerkleRootOutput {
-  """Status"""
-  success: Boolean!
-
-  """MerkleTree"""
-  merkleRoot: String!
-}
-
-type GetMerkleProofOutput {
-  """User Address"""
-  address: String!
-
-  """Available Amount"""
-  amount: String!
-
-  """Merkle Proof"""
-  proof: [String!]!
-
-  """Status"""
-  success: Boolean!
-}
-
 type Record721 {
   id: ID!
 
@@ -1155,6 +1158,12 @@ type Query {
   """returns coin list for a given chainId"""
   coins(chainId: Int!, enable: Boolean): [Coin!]!
 
+  """returns a contract for a given uuid"""
+  mintSaleContract(id: String!): MintSaleContract!
+
+  """Merkle Tree Verify"""
+  getMerkleProof(address: String!, merkleRoot: String!): GetMerkleProofOutput
+
   """Retrieves a wallet by its ethereum or EIP-3770 address."""
   wallet(
     """an ethereum or EIP-3770 address."""
@@ -1197,12 +1206,6 @@ type Query {
 
   """returns config for a given uuid"""
   configs(chainId: Int): [SystemConfig!]!
-
-  """returns a contract for a given uuid"""
-  mintSaleContract(id: String!): MintSaleContract!
-
-  """Merkle Tree Verify"""
-  getMerkleProof(address: String!, merkleRoot: String!): GetMerkleProofOutput
 
   """returns a waitlist for a given email"""
   getWaitlist(input: GetWaitlistInput!): Waitlist
@@ -1294,6 +1297,9 @@ type Mutation {
   """Delete a tier."""
   deleteTier(input: DeleteTierInput!): Boolean!
 
+  """Create merekleTree"""
+  createMerkleRoot(input: CreateMerkleRootInput!): CreateMerkleRootOutput!
+
   """creates a wallet"""
   createWallet(input: CreateWalletInput!): Wallet!
 
@@ -1307,9 +1313,6 @@ type Mutation {
   updateWallet(input: UpdateWalletInput!): Wallet!
   followUserWallet(address: EthereumAddress!, isFollowed: Boolean): Boolean!
   updateAddressInfo(name: String, avatar: String, customUrl: String, description: String, discordLink: String, facebookLink: String, twitterLink: String): Boolean!
-
-  """Create merekleTree"""
-  createMerkleRoot(input: CreateMerkleRootInput!): CreateMerkleRootOutput!
 
   """creates a waitlist item"""
   createWaitlist(input: CreateWaitlistInput!): Waitlist!
@@ -1807,6 +1810,24 @@ input DeleteTierInput {
   id: String!
 }
 
+input CreateMerkleRootInput {
+  """Create data for merkle."""
+  data: [CreateMerkleRootData!]!
+
+  """MerkleRoot association to collection."""
+  organization: OrganizationInput
+}
+
+input CreateMerkleRootData {
+  """Address added to merkleTree"""
+  address: String!
+
+  """
+  Amount available, using string, the merkleTree can be expanded to erc20 tokens
+  """
+  amount: String!
+}
+
 input CreateWalletInput {
   """The address for a wallet."""
   address: String!
@@ -1861,24 +1882,6 @@ input UpdateWalletInput {
 
   """The spotify handle for the wallet.."""
   spotify: String
-}
-
-input CreateMerkleRootInput {
-  """Create data for merkle."""
-  data: [CreateMerkleRootData!]!
-
-  """MerkleRoot association to collection."""
-  organization: OrganizationInput
-}
-
-input CreateMerkleRootData {
-  """Address added to merkleTree"""
-  address: String!
-
-  """
-  Amount available, using string, the merkleTree can be expanded to erc20 tokens
-  """
-  amount: String!
 }
 
 input CreateWaitlistInput {
