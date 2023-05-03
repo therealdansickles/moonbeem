@@ -36,9 +36,6 @@ export class Collection extends BaseEntity {
     @Column({ length: 64, unique: true, comment: 'The unique URL-friendly name of the collection.' })
     name: string;
 
-    @Column({ length: 64, comment: 'The displayed name for the collection.' })
-    displayName: string;
-
     @Column({
         type: 'enum',
         enum: CollectionKind,
@@ -46,6 +43,16 @@ export class Collection extends BaseEntity {
         comment: 'The type of collection that this is.',
     })
     kind: CollectionKind;
+
+    @ManyToOne(() => Organization, (organization) => organization.collections, {
+        eager: true,
+        createForeignKeyConstraints: false,
+    })
+    @JoinColumn()
+    organization: Organization;
+
+    @Column({ length: 64, comment: 'The displayed name for the collection.', nullable: true })
+    displayName?: string;
 
     @Column({ nullable: true, comment: 'The collection address' })
     address?: string;
@@ -65,10 +72,10 @@ export class Collection extends BaseEntity {
         comment:
             'This is going to change later as a stronger, association betwen our `User`. The list of artists attached to the collection.',
     })
-    artists: string[];
+    artists?: string[];
 
     @Column('text', { default: [], array: true, comment: 'The list of associated tags for the collection.' })
-    tags: string[];
+    tags?: string[];
 
     @Column({ nullable: true, comment: "The url of the collection's website." })
     websiteUrl?: string;
@@ -85,17 +92,10 @@ export class Collection extends BaseEntity {
     //@ManyToOne(() => Wallet, (wallet) => wallet.createdCollections)
     //creator: Wallet;
 
-    @ManyToOne(() => Organization, (organization) => organization.collections, {
-        eager: true,
-        createForeignKeyConstraints: false,
-    })
-    @JoinColumn()
-    organization: Organization;
+    @OneToMany(() => Tier, (tier) => tier.collection, { nullable: true })
+    tiers?: Tier[];
 
-    @OneToMany(() => Tier, (tier) => tier.collection)
-    tiers: Tier[];
-
-    @OneToMany(() => Collaboration, (collaboration) => collaboration.collection, { lazy: true })
+    @OneToMany(() => Collaboration, (collaboration) => collaboration.collection, { lazy: true, nullable: true })
     collaborations?: Collaboration[];
 
     @Column({ nullable: true, default: 1, comment: 'The chain id for the collection.' })

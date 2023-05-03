@@ -21,13 +21,18 @@ export class Collection {
     readonly name: string;
 
     @ApiProperty()
-    @IsString()
-    @Field({ description: 'The name that we display for the collection.' })
-    readonly displayName: string;
-
-    @ApiProperty()
     @Field((type) => CollectionKind, { description: 'The type of collection this is.' })
     readonly kind: CollectionKind;
+
+    @ApiProperty()
+    @Field(() => Organization, { description: 'The organization that owns the collection.' })
+    readonly organization: Organization;
+
+    @ApiProperty()
+    @IsString()
+    @Field({ description: 'The name that we display for the collection.', nullable: true })
+    @IsOptional()
+    readonly displayName?: string;
 
     @ApiProperty()
     @IsString()
@@ -84,12 +89,12 @@ export class Collection {
     @ApiProperty()
     @IsString()
     @Field((type) => [String], { description: 'The tags associated with this organization.', nullable: true })
-    readonly tags: string[];
+    readonly tags?: string[];
 
     @ApiProperty()
     @Field((type) => [Tier], { description: 'The collection tiers', nullable: true })
     @IsArray()
-    readonly tiers: Tier[];
+    readonly tiers?: Tier[];
 
     @ApiProperty()
     @IsDateString()
@@ -110,10 +115,6 @@ export class Collection {
     @IsString()
     @Field({ description: 'The wallet that created the collection.', nullable: true })
     readonly creatorId?: string;
-
-    @ApiProperty()
-    @Field(() => Organization, { description: 'The organization that owns the collection.', nullable: true })
-    readonly organization: Organization;
 }
 
 @InputType()
