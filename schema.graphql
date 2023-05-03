@@ -338,6 +338,9 @@ type User {
   """The URL pointing to the user's background."""
   backgroundUrl: String
 
+  """The description for the user."""
+  about: String
+
   """The url of the user's website."""
   websiteUrl: String
 
@@ -1312,6 +1315,9 @@ input UpdateUserInput {
 
   """The URL pointing to the user's background."""
   backgroundUrl: String
+
+  """The description for the user."""
+  about: String
 
   """The url of the user's website."""
   websiteUrl: String
