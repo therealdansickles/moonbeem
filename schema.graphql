@@ -420,19 +420,19 @@ type Collaboration {
   id: String!
 
   """The wallet of the collaboration."""
-  wallet: Wallet!
+  wallet: Wallet
 
   """The collection of the collaboration."""
-  collection: Collection!
+  collection: Collection
 
   """The address of the collaboration contract."""
   address: String
 
   """All collaborators of this collaboration"""
-  collaborators: [CollaboratorOutput!]!
+  collaborators: [CollaboratorOutput!]
 
   """The royalty rate of the collaboration."""
-  royaltyRate: Float!
+  royaltyRate: Float
 
   """The created datetime of the collaboration."""
   createdAt: DateTime!
@@ -1337,16 +1337,16 @@ input CreateCollaborationInput {
   address: String
 
   """The wallet of the collaboration."""
-  walletId: String!
+  walletId: String
 
   """The collection of the collaboration."""
-  collectionId: String!
+  collectionId: String
 
   """The royalty rate of the collaboration."""
-  royaltyRate: Int!
+  royaltyRate: Int = 0
 
   """All collaborators of this collaboration."""
-  collaborators: [CollaboratorInput!]!
+  collaborators: [CollaboratorInput!]
 }
 
 input CollaboratorInput {

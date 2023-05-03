@@ -24,27 +24,29 @@ export class Collaboration extends BaseEntity {
     address?: string;
 
     @Column({ default: 100, comment: 'The royalty rate in percentage.' })
-    royaltyRate: number;
+    royaltyRate?: number;
 
-    @ManyToOne(() => Collection, (collection) => collection.collaborations, { createForeignKeyConstraints: false })
+    @ManyToOne(() => Collection, (collection) => collection.collaborations, {
+        createForeignKeyConstraints: false,
+    })
     @JoinColumn()
-    collection: Collection;
+    collection?: Collection;
 
     @ManyToOne(() => Organization, (organization) => organization.collaborations, {
         createForeignKeyConstraints: false,
     })
     @JoinColumn()
-    organization: Organization;
+    organization?: Organization;
 
     @ManyToOne(() => User, (user) => user.collaborations, { createForeignKeyConstraints: false })
     @JoinColumn()
-    user: User;
+    user?: User;
 
     @ManyToOne(() => Wallet, (wallet) => wallet.collaborations, { createForeignKeyConstraints: false })
     @JoinColumn()
-    wallet: Wallet;
+    wallet?: Wallet;
 
-    @Column({ comment: 'All collaborators of this collaboration', type: 'jsonb' })
+    @Column({ comment: 'All collaborators of this collaboration', type: 'jsonb', default: [] })
     collaborators?: Collaborator[];
 
     @CreateDateColumn()
