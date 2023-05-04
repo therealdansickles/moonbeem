@@ -95,6 +95,7 @@ export class WalletService {
                 address: input.address.toLowerCase(),
             });
         } catch (e) {
+            Sentry.captureException(e);
             throw new GraphQLError(`Failed to create wallet ${input.address}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
@@ -140,6 +141,7 @@ export class WalletService {
                 relations: ['owner'],
             });
         } catch (e) {
+            Sentry.captureException(e);
             throw new GraphQLError(`Failed to bind wallet ${address}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
@@ -172,6 +174,7 @@ export class WalletService {
         try {
             return this.walletRespository.save({ ...wallet, owner: { id: this.unOwnedId } });
         } catch (e) {
+            Sentry.captureException(e);
             throw new GraphQLError(`Failed to unbind wallet ${address}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });

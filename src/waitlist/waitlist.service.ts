@@ -5,6 +5,7 @@ import { Repository, UpdateResult } from 'typeorm';
 import { CreateWaitlistInput, GetWaitlistInput } from './waitlist.dto';
 import { ethers } from 'ethers';
 import { GraphQLError } from 'graphql';
+import * as Sentry from '@sentry/node';
 
 @Injectable()
 export class WaitlistService {
@@ -45,7 +46,7 @@ export class WaitlistService {
                     extensions: { code: 'BAD_REQUEST' },
                 });
             } else {
-                console.error(e);
+                Sentry.captureException(e);
                 throw new GraphQLError(`Failed to create waitlist item`, {
                     extensions: { code: 'INTERNAL_SERVER_ERROR' },
                 });

@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as Sentry from '@sentry/node';
+
 import { Organization } from './organization.entity';
 import { CreateOrganizationInput, UpdateOrganizationInput } from './organization.dto';
 import { User } from '../user/user.entity';
@@ -95,6 +97,7 @@ export class OrganizationService {
                 relations: ['owner'],
             });
         } catch (e) {
+            Sentry.captureException(e);
             throw new GraphQLError(`Failed to update organization ${id}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
@@ -153,6 +156,7 @@ export class OrganizationService {
         try {
             return this.organizationRepository.save(organization);
         } catch (e) {
+            Sentry.captureException(e);
             throw new GraphQLError(`Failed to transfer organization ${id} to user ${ownerId}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });

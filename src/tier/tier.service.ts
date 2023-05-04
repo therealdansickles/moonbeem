@@ -80,6 +80,7 @@ export class TierService {
         try {
             return await this.tierRepository.save(dd);
         } catch (e) {
+            Sentry.captureException(e);
             throw new GraphQLError(`Failed to create tier ${data.name}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
@@ -98,6 +99,7 @@ export class TierService {
             const result: UpdateResult = await this.tierRepository.update(id, data);
             return result.affected > 0;
         } catch (e) {
+            Sentry.captureException(e);
             throw new GraphQLError(`Failed to update tier ${id}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
