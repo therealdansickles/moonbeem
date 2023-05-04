@@ -106,6 +106,7 @@ describe('TierResolver', () => {
                 collection: { id: collection.id },
                 totalMints: 10,
                 paymentTokenAddress: coin.address,
+                tierId: 0,
             });
 
             const query = gql`
@@ -154,6 +155,7 @@ describe('TierResolver', () => {
                 collection: { id: collection.id },
                 totalMints: 10,
                 paymentTokenAddress: coin.address,
+                tierId: 0,
             });
 
             await service.createTier({
@@ -161,6 +163,7 @@ describe('TierResolver', () => {
                 collection: { id: collection.id },
                 totalMints: 10,
                 paymentTokenAddress: coin.address,
+                tierId: 0,
             });
 
             const query = gql`
@@ -200,6 +203,7 @@ describe('TierResolver', () => {
                 collection: { id: collection.id },
                 totalMints: 10,
                 paymentTokenAddress: coin.address,
+                tierId: 0,
             });
 
             const query = gql`
@@ -232,6 +236,7 @@ describe('TierResolver', () => {
                 collection: { id: collection.id },
                 totalMints: 10,
                 paymentTokenAddress: coin.address,
+                tierId: 0,
             });
 
             const query = gql`

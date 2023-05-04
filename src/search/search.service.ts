@@ -96,7 +96,7 @@ export class SearchService {
             image: col.avatarUrl,
             address: col.address,
             chainId: col.chainId,
-            itemsCount: col.tiers?.reduce((sum, item) => (sum += item.endId - item.beginId + 1), 0) || 0,
+            itemsCount: col.tiers?.reduce((sum, item) => (sum += item.totalMints), 0) || 0,
         }));
 
         const [usersResult, totalUsers] = await this.userRepository

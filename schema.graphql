@@ -198,19 +198,13 @@ type Tier {
   id: String!
 
   """The total number of mints for this tier."""
-  totalMints: Float
+  totalMints: Int!
 
   """The price of the NFTs in this tier."""
   price: String
 
   """The tier id/index of the NFTs in this tier."""
-  tierId: Float
-
-  """The starting id/index of the NFTs in this tier."""
-  beginId: Float
-
-  """The ending id/index of the NFTs in this tier."""
-  endId: Float
+  tierId: Int!
 
   """The name of the tier."""
   name: String
@@ -240,6 +234,12 @@ type Tier {
 
   """The tier coin"""
   coin: Coin
+
+  """Returns the total sold for the given tier"""
+  totalSold: Int!
+
+  """Returns the total raised for the given tier"""
+  totalRaised: String!
 }
 
 type MintSaleTransaction {
@@ -1485,6 +1485,9 @@ input CreateTierInCollectionInput {
   """The name of the tier."""
   name: String!
 
+  """The id of the tier. should start from 0"""
+  tierId: Float!
+
   """the tier selected coin id"""
   paymentTokenAddress: String!
 
@@ -1740,19 +1743,13 @@ input CreateTierInput {
   collection: CollectionInput!
 
   """The total number of mints for this tier."""
-  totalMints: Float
+  totalMints: Int!
 
   """The price of the NFTs in this tier."""
   price: String
 
   """The tier id/index of the NFTs in this tier."""
-  tierId: Float
-
-  """The starting id/index of the NFTs in this tier."""
-  beginId: Float
-
-  """The ending id/index of the NFTs in this tier."""
-  endId: Float
+  tierId: Int!
 
   """The name of the tier."""
   name: String
@@ -1790,19 +1787,13 @@ input UpdateTierInput {
   id: String!
 
   """The total number of mints for this tier."""
-  totalMints: Float
+  totalMints: Int
 
   """The price of the NFTs in this tier."""
   price: String
 
   """The tier id/index of the NFTs in this tier."""
-  tierId: Float
-
-  """The starting id/index of the NFTs in this tier."""
-  beginId: Float
-
-  """The ending id/index of the NFTs in this tier."""
-  endId: Float
+  tierId: Int
 
   """The name of the tier."""
   name: String

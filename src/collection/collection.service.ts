@@ -49,7 +49,7 @@ export class CollectionService {
     async getCollectionByAddress(address: string): Promise<Collection | null> {
         return await this.collectionRepository.findOne({
             where: { address },
-            relations: ['organization'],
+            relations: ['organization', 'tiers'],
         });
     }
 

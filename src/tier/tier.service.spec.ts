@@ -92,6 +92,7 @@ describe('TierService', () => {
                 collection: { id: collection.id },
                 price: '100',
                 paymentTokenAddress: coin.address,
+                tierId: 0,
             });
 
             expect(tier).toBeDefined();
@@ -115,6 +116,7 @@ describe('TierService', () => {
                 collection: { id: collection.id },
                 merkleRoot: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 paymentTokenAddress: coin.address,
+                tierId: 0,
             });
         });
     });
@@ -136,6 +138,7 @@ describe('TierService', () => {
                 totalMints: 100,
                 collection: { id: collection.id },
                 paymentTokenAddress: coin.address,
+                tierId: 0,
             });
 
             await service.createTier({
@@ -143,6 +146,7 @@ describe('TierService', () => {
                 totalMints: 200,
                 collection: { id: collection.id },
                 paymentTokenAddress: coin.address,
+                tierId: 0,
             });
 
             const result = await service.getTiersByCollection(collection.id);
@@ -170,6 +174,7 @@ describe('TierService', () => {
                 collection: { id: collection.id },
                 totalMints: 10,
                 paymentTokenAddress: coin.address,
+                tierId: 0,
             });
 
             let result = await service.updateTier(tier.id, {
@@ -197,6 +202,7 @@ describe('TierService', () => {
                 totalMints: 100,
                 collection: { id: collection.id },
                 paymentTokenAddress: coin.address,
+                tierId: 0,
             });
 
             let result = await service.deleteTier(tier.id);

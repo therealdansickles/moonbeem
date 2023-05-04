@@ -37,22 +37,16 @@ export class Tier {
     readonly id: string;
 
     @IsNumber()
-    @Field({ description: 'The total number of mints for this tier.', nullable: true })
-    readonly totalMints?: number;
+    @Field((type) => Int, { description: 'The total number of mints for this tier.' })
+    readonly totalMints: number;
 
     @IsNumberString()
     @Field({ description: 'The price of the NFTs in this tier.', nullable: true })
     readonly price?: string;
 
     @IsNumber()
-    @Field({ description: 'The tier id/index of the NFTs in this tier.', nullable: true })
-    readonly tierId?: number;
-
-    @Field({ description: 'The starting id/index of the NFTs in this tier.', nullable: true })
-    beginId?: number;
-
-    @Field({ description: 'The ending id/index of the NFTs in this tier.', nullable: true })
-    endId?: number;
+    @Field((type) => Int, { description: 'The tier id/index of the NFTs in this tier.' })
+    readonly tierId: number;
 
     @IsString()
     @Field({ description: 'The name of the tier.', nullable: true })
@@ -106,22 +100,16 @@ export class CreateTierInput {
     readonly collection: CollectionInput;
 
     @IsNumber()
-    @Field({ description: 'The total number of mints for this tier.', nullable: true })
-    readonly totalMints?: number;
+    @Field((type) => Int, { description: 'The total number of mints for this tier.' })
+    readonly totalMints: number;
 
     @IsNumber()
     @Field({ description: 'The price of the NFTs in this tier.', nullable: true })
     readonly price?: string;
 
     @IsNumber()
-    @Field({ nullable: true, description: 'The tier id/index of the NFTs in this tier.' })
-    readonly tierId?: number;
-
-    @Field({ nullable: true, description: 'The starting id/index of the NFTs in this tier.' })
-    beginId?: number;
-
-    @Field({ nullable: true, description: 'The ending id/index of the NFTs in this tier.' })
-    endId?: number;
+    @Field((type) => Int, { description: 'The tier id/index of the NFTs in this tier.' })
+    readonly tierId: number;
 
     @IsString()
     @Field({ description: 'The name of the tier.', nullable: true })
@@ -172,7 +160,7 @@ export class UpdateTierInput {
     readonly id: string;
 
     @IsNumber()
-    @Field({ nullable: true, description: 'The total number of mints for this tier.' })
+    @Field((type) => Int, { nullable: true, description: 'The total number of mints for this tier.' })
     readonly totalMints?: number;
 
     @IsNumber()
@@ -180,14 +168,8 @@ export class UpdateTierInput {
     readonly price?: string;
 
     @IsNumber()
-    @Field({ nullable: true, description: 'The tier id/index of the NFTs in this tier.' })
+    @Field((type) => Int, { nullable: true, description: 'The tier id/index of the NFTs in this tier.' })
     readonly tierId?: number;
-
-    @Field({ nullable: true, description: 'The starting id/index of the NFTs in this tier.' })
-    readonly beginId?: number;
-
-    @Field({ nullable: true, description: 'The ending id/index of the NFTs in this tier.' })
-    readonly endId?: number;
 
     @IsString()
     @Field({ nullable: true, description: 'The name of the tier.' })

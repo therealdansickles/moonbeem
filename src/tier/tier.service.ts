@@ -7,16 +7,25 @@ import * as tierEntity from './tier.entity';
 import { CreateTierInput, UpdateTierInput, Tier } from './tier.dto';
 import { GraphQLError } from 'graphql';
 import * as Sentry from '@sentry/node';
+import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { BasicPriceInfo } from '../dto/basic.dto';
+import BigNumber from 'bignumber.js';
 
 @Injectable()
 export class TierService {
     constructor(
         @InjectRepository(tierEntity.Tier)
         private readonly tierRepository: Repository<tierEntity.Tier>,
+        @InjectRepository(Collection)
+        private readonly collectionRepository: Repository<Collection>,
+
         @InjectRepository(Coin, 'sync_chain')
         private readonly coinRepository: Repository<Coin>,
-        @InjectRepository(Collection)
-        private readonly collectionRepository: Repository<Collection>
+        @InjectRepository(MintSaleContract, 'sync_chain')
+        private readonly contractRepository: Repository<MintSaleContract>,
+        @InjectRepository(MintSaleTransaction, 'sync_chain')
+        private readonly transactionRepository: Repository<MintSaleTransaction>
     ) {}
 
     /**
@@ -121,6 +130,70 @@ export class TierService {
             throw new GraphQLError(`Failed to delete tier ${id}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
+        }
+    }
+
+    async getTotalSold(collectionAddress: string, tierId: number): Promise<number> {
+        try {
+            const result = await this.contractRepository
+                .createQueryBuilder('contract')
+                .select([])
+                .where('contract.tierId = :tierId AND contract.address = :collectionAddress', {
+                    tierId: tierId,
+                    collectionAddress: collectionAddress.toLowerCase(),
+                })
+                .getRawOne();
+
+            if (!result) return 0;
+            const data = result as MintSaleContract;
+            return data.currentId - data.startId;
+        } catch (error) {
+            Sentry.captureException(error);
+            return 0;
+        }
+    }
+
+    /**
+     *
+     * @param collectionAddress The address of collection. Collection.address
+     * @param tierId The collection contains the id of the tier, Tier.tierId
+     * @returns should be string, include number and float and bigNumber
+     */
+    async getTotalRaised(collectionAddress: string, tierId: number): Promise<string> {
+        try {
+            const result = await this.transactionRepository
+                .createQueryBuilder('transaction')
+                .select('SUM("transaction".price::decimal(30,0))', 'price')
+                .addSelect('transaction.paymentToken', 'token')
+                .where('transaction.address = :address AND transaction.tierId = :tierId', {
+                    address: collectionAddress,
+                    tierId: tierId,
+                })
+                .groupBy('transaction.paymentToken')
+                .getRawOne();
+            if (!result) return '0';
+
+            const data = result as BasicPriceInfo;
+            const coin = await this.coinRepository.findOneBy({ address: data.token.toLowerCase() });
+
+            /** Example:
+             * totalPrice: 10000000
+             * decimals: 6(USDC)
+             * derivedUSDC: 0.9 (USDC price)
+             *
+             * const totalUsdcPrice = new BigNumber(totalPrice).div(new BigNumber(10).pow(decimals))
+             * totalUsdcPrice = 10000000 / (10 ** 6) => 10000000 / 1000000 = 10 USDC
+             *
+             * const totalUSDPrice = new BigNumber(totalUsdcPrice).multipliedBy(derivedUSDC);
+             * totalUSDPrice = 10 * 0.9 = 9 USD
+             */
+            const totalTokenPrice = new BigNumber(data.price).div(new BigNumber(10).pow(coin.decimals));
+            const totalRaised = new BigNumber(totalTokenPrice).multipliedBy(coin.derivedUSDC);
+
+            return totalRaised.toString();
+        } catch (error) {
+            Sentry.captureException(error);
+            return '0';
         }
     }
 }

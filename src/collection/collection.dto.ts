@@ -330,6 +330,10 @@ export class CreateTierInCollectionInput {
     @Field({ description: 'The name of the tier.' })
     readonly name: string;
 
+    @IsNumber()
+    @Field({ description: 'The id of the tier. should start from 0' })
+    readonly tierId: number;
+
     @Field({ description: 'the tier selected coin id' })
     @IsString()
     readonly paymentTokenAddress: string;

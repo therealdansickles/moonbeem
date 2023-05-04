@@ -39,8 +39,8 @@ export class Tier extends BaseEntity {
     // This in part drives the following fields:
     // * `beginId`
     // * `endId`
-    @Column({ nullable: true, comment: 'The total number of NFTs in this tier.' })
-    totalMints?: number;
+    @Column({ default: 1, comment: 'The total number of NFTs in this tier.' })
+    totalMints: number;
 
     @Column({ nullable: true, comment: 'The price of NFTs in this tier.' })
     price?: string;
@@ -57,14 +57,8 @@ export class Tier extends BaseEntity {
     // see https://github.com/vibexyz/vibe-contract/blob/main/contracts/mint/NFTMintSaleMultiple.sol#L35
     // This is used by the contract to determine which tier the NFT belongs to.
     // These are nullable as we need to wait for the contract information to have these availble.
-    @Column({ nullable: true, comment: 'The tier id/index of the NFTs in this tier.' })
-    tierId?: number;
-
-    @Column({ nullable: true, comment: 'The starting id/index of the NFTs in this tier.' })
-    beginId?: number;
-
-    @Column({ nullable: true, comment: 'The ending id/index of the NFTs in this tier.' })
-    endId?: number;
+    @Column({ default: 0, comment: 'The tier id/index of the NFTs in this tier.' })
+    tierId: number;
 
     // The following fields are some of the metadata standards from OpenSea / BNB for ERC-721 / ERC-1155s
     // We primarily support most of their fields (minus something like `image_data`)

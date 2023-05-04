@@ -150,6 +150,7 @@ describe('CollectionService', () => {
                 totalMints: 100,
                 collection: { id: collection.id },
                 paymentTokenAddress: coin.address,
+                tierId: 0,
             });
 
             await tierService.createTier({
@@ -157,6 +158,7 @@ describe('CollectionService', () => {
                 totalMints: 200,
                 collection: { id: collection.id },
                 paymentTokenAddress: coin.address,
+                tierId: 0,
             });
 
             const result = await service.getCollection(collection.id);
@@ -270,6 +272,7 @@ describe('CollectionService', () => {
                 totalMints: 100,
                 collection: { id: collection.id },
                 paymentTokenAddress: coin.address,
+                tierId: 0,
             });
 
             await tierService.createTier({
@@ -277,6 +280,7 @@ describe('CollectionService', () => {
                 totalMints: 200,
                 collection: { id: collection.id },
                 paymentTokenAddress: coin.address,
+                tierId: 0,
             });
 
             const result = await service.getCollectionsByOrganizationId(organization.id);
