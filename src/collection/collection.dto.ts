@@ -5,6 +5,7 @@ import { Type } from 'class-transformer';
 import { CollectionKind } from './collection.entity';
 import { Attribute, Tier } from '../tier/tier.dto';
 import { Organization, OrganizationInput } from '../organization/organization.dto';
+import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 
 registerEnumType(CollectionKind, { name: 'CollectionKind' });
 
@@ -115,6 +116,10 @@ export class Collection {
     @IsString()
     @Field({ description: 'The wallet that created the collection.', nullable: true })
     readonly creatorId?: string;
+
+    @ApiProperty()
+    @Field((type) => MintSaleContract, { description: 'The collection contract', nullable: true })
+    readonly contract?: MintSaleContract;
 }
 
 @InputType()

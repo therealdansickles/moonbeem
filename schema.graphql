@@ -75,6 +75,95 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type MintSaleContract {
+  id: ID!
+
+  """Block height of transaction."""
+  height: Float!
+
+  """Transaction hash of transaction."""
+  txHash: String!
+
+  """Transaction time of transaction."""
+  txTime: Float!
+
+  """Transaction sender of transaction."""
+  sender: String!
+
+  """The contract address."""
+  address: String!
+
+  """The royalty contract of MintSale"""
+  royaltyReceiver: String!
+
+  """The royalty rate of MintSale"""
+  royaltyRate: Float!
+
+  """The derivative royalty rate of MintSale"""
+  derivativeRoyaltyRate: Float!
+
+  """Means whether this nft supports derivative royalty"""
+  isDerivativeAllowed: Boolean!
+
+  """The begin time of the MintSale"""
+  beginTime: Float!
+
+  """The end time of the MintSale"""
+  endTime: Float!
+
+  """The tier id of the MintSale"""
+  tierId: Float!
+
+  """The price of the tier"""
+  price: String!
+
+  """The payment token of the collection"""
+  paymentToken: String!
+
+  """The start id of the tier"""
+  startId: Float!
+
+  """The end id of the tier"""
+  endId: Float!
+
+  """The current id of the tier"""
+  currentId: Float!
+
+  """The token address(erc721 address) of the collection"""
+  tokenAddress: String!
+
+  """The chain id for the transaction"""
+  chainId: Float!
+
+  """The DateTime of create."""
+  createdAt: DateTime!
+
+  """The DateTime that this contract was last updated."""
+  updatedAt: DateTime!
+}
+
+type CreateMerkleRootOutput {
+  """Status"""
+  success: Boolean!
+
+  """MerkleTree"""
+  merkleRoot: String!
+}
+
+type GetMerkleProofOutput {
+  """User Address"""
+  address: String!
+
+  """Available Amount"""
+  amount: String!
+
+  """Merkle Proof"""
+  proof: [String!]!
+
+  """Status"""
+  success: Boolean!
+}
+
 type Collection {
   """The ID for a collection"""
   id: String!
@@ -139,11 +228,11 @@ type Collection {
   """The wallet that created the collection."""
   creatorId: String
 
+  """The collection contract"""
+  contract: MintSaleContract
+
   """returns the buyers of a collection"""
   buyers: [String!]!
-
-  """Returns the contract for the given collection"""
-  contract: MintSaleContract!
 }
 
 enum CollectionKind {
@@ -494,95 +583,6 @@ type CollaboratorOutput {
 
   """The royalty rate of the collaboration."""
   rate: Int!
-}
-
-type MintSaleContract {
-  id: ID!
-
-  """Block height of transaction."""
-  height: Float!
-
-  """Transaction hash of transaction."""
-  txHash: String!
-
-  """Transaction time of transaction."""
-  txTime: Float!
-
-  """Transaction sender of transaction."""
-  sender: String!
-
-  """The contract address."""
-  address: String!
-
-  """The royalty contract of MintSale"""
-  royaltyReceiver: String!
-
-  """The royalty rate of MintSale"""
-  royaltyRate: Float!
-
-  """The derivative royalty rate of MintSale"""
-  derivativeRoyaltyRate: Float!
-
-  """Means whether this nft supports derivative royalty"""
-  isDerivativeAllowed: Boolean!
-
-  """The begin time of the MintSale"""
-  beginTime: Float!
-
-  """The end time of the MintSale"""
-  endTime: Float!
-
-  """The tier id of the MintSale"""
-  tierId: Float!
-
-  """The price of the tier"""
-  price: String!
-
-  """The payment token of the collection"""
-  paymentToken: String!
-
-  """The start id of the tier"""
-  startId: Float!
-
-  """The end id of the tier"""
-  endId: Float!
-
-  """The current id of the tier"""
-  currentId: Float!
-
-  """The token address(erc721 address) of the collection"""
-  tokenAddress: String!
-
-  """The chain id for the transaction"""
-  chainId: Float!
-
-  """The DateTime of create."""
-  createdAt: DateTime!
-
-  """The DateTime that this contract was last updated."""
-  updatedAt: DateTime!
-}
-
-type CreateMerkleRootOutput {
-  """Status"""
-  success: Boolean!
-
-  """MerkleTree"""
-  merkleRoot: String!
-}
-
-type GetMerkleProofOutput {
-  """User Address"""
-  address: String!
-
-  """Available Amount"""
-  amount: String!
-
-  """Merkle Proof"""
-  proof: [String!]!
-
-  """Status"""
-  success: Boolean!
 }
 
 type Membership {

@@ -47,10 +47,16 @@ export class CollectionService {
      * @returns The collection associated with the given address.
      */
     async getCollectionByAddress(address: string): Promise<Collection | null> {
-        return await this.collectionRepository.findOne({
+        const collection = await this.collectionRepository.findOne({
             where: { address },
             relations: ['organization', 'tiers'],
         });
+        const contract = await this.mintSaleContractRepository.findOne({ where: { collectionId: collection.id } });
+
+        return {
+            ...collection,
+            contract,
+        };
     }
 
     /**
@@ -60,10 +66,21 @@ export class CollectionService {
      * @returns The collection associated with the given organization.
      */
     async getCollectionsByOrganizationId(organizationId: string): Promise<Collection[]> {
-        return await this.collectionRepository.find({
+        const result: Collection[] = [];
+        const collections = await this.collectionRepository.find({
             where: { organization: { id: organizationId } },
             relations: ['organization', 'tiers'],
         });
+
+        for (const collection of collections) {
+            const contract = await this.mintSaleContractRepository.findOne({ where: { collectionId: collection.id } });
+            result.push({
+                ...collection,
+                contract,
+            });
+        }
+
+        return result;
     }
 
     /**
