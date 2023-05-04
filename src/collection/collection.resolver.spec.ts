@@ -363,6 +363,8 @@ describe('CollectionResolver', () => {
                         tiers {
                             id
                             totalMints
+                            totalSold
+                            totalRaised
                         }
                     }
                 }
@@ -380,6 +382,7 @@ describe('CollectionResolver', () => {
                     expect(body.data.collection.organization.name).toEqual(organization.name);
                     expect(body.data.collection.tiers).toBeDefined();
                     expect(body.data.collection.tiers[0].totalMints).toEqual(100);
+                    expect(body.data.collection.tiers[0].totalSold).toBeDefined();
                 });
         });
     });

@@ -35,7 +35,7 @@ export class TierService {
      * @returns The tier.
      */
     async getTier(id: string): Promise<Tier> {
-        const tier = await this.tierRepository.findOne({ where: { id }, relations: { collection: true } });
+        const tier = await this.tierRepository.findOne({ where: { id }, relations: ['collection'] });
         const coin = await this.coinRepository.findOne({ where: { address: tier.paymentTokenAddress.toLowerCase() } });
 
         return {
@@ -133,20 +133,19 @@ export class TierService {
         }
     }
 
-    async getTotalSold(collectionAddress: string, tierId: number): Promise<number> {
+    async getTierTotalSold(id: string): Promise<number> {
         try {
-            const result = await this.contractRepository
-                .createQueryBuilder('contract')
-                .select([])
-                .where('contract.tierId = :tierId AND contract.address = :collectionAddress', {
-                    tierId: tierId,
-                    collectionAddress: collectionAddress.toLowerCase(),
-                })
-                .getRawOne();
+            const tier = await this.getTier(id);
+            const { collection } = tier;
+            if (!collection.address) return 0;
 
-            if (!result) return 0;
-            const data = result as MintSaleContract;
-            return data.currentId - data.startId;
+            const contract = await this.contractRepository.findOneBy({
+                tierId: tier.tierId,
+                address: collection.address.toLowerCase(),
+            });
+
+            if (!contract) return 0;
+            return contract.currentId - contract.startId;
         } catch (error) {
             Sentry.captureException(error);
             return 0;
@@ -159,15 +158,19 @@ export class TierService {
      * @param tierId The collection contains the id of the tier, Tier.tierId
      * @returns should be string, include number and float and bigNumber
      */
-    async getTotalRaised(collectionAddress: string, tierId: number): Promise<string> {
+    async getTierTotalRaised(id: string): Promise<string> {
         try {
+            const tier = await this.getTier(id);
+            const { collection } = tier;
+            if (!collection.address) return '0';
+
             const result = await this.transactionRepository
                 .createQueryBuilder('transaction')
                 .select('SUM("transaction".price::decimal(30,0))', 'price')
                 .addSelect('transaction.paymentToken', 'token')
                 .where('transaction.address = :address AND transaction.tierId = :tierId', {
-                    address: collectionAddress,
-                    tierId: tierId,
+                    address: collection.address.toLowerCase(),
+                    tierId: tier.tierId,
                 })
                 .groupBy('transaction.paymentToken')
                 .getRawOne();
