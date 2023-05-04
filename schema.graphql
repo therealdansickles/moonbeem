@@ -139,6 +139,9 @@ type Collection {
   """The wallet that created the collection."""
   creatorId: String
 
+  """returns the buyers of a collection"""
+  buyers: [String!]!
+
   """Returns the contract for the given collection"""
   contract: MintSaleContract!
 }
@@ -1116,7 +1119,9 @@ type Waitlist {
   """The address for a wallet."""
   address: String!
   seatNumber: Float!
-  twitter: String!
+
+  """The twitter username"""
+  twitter: String
 }
 
 """Ethereum Address custom scalar type"""
@@ -1146,6 +1151,15 @@ type Query {
   membership(id: String!): Membership
   memberships(userId: String!): [Membership!]!
 
+  """returns a contract for a given uuid"""
+  mintSaleContract(id: String!): MintSaleContract!
+
+  """Merkle Tree Verify"""
+  getMerkleProof(address: String!, merkleRoot: String!): GetMerkleProofOutput
+
+  """returns transaction for a given uuid"""
+  transaction(id: String!): MintSaleTransaction!
+
   """Get a specific tier by id."""
   tier(id: String!): Tier
 
@@ -1158,20 +1172,11 @@ type Query {
   """returns coin list for a given chainId"""
   coins(chainId: Int!, enable: Boolean): [Coin!]!
 
-  """returns a contract for a given uuid"""
-  mintSaleContract(id: String!): MintSaleContract!
-
-  """Merkle Tree Verify"""
-  getMerkleProof(address: String!, merkleRoot: String!): GetMerkleProofOutput
-
   """Retrieves a wallet by its ethereum or EIP-3770 address."""
   wallet(
     """an ethereum or EIP-3770 address."""
     address: String!
   ): Wallet
-
-  """returns transaction for a given uuid"""
-  transaction(id: String!): MintSaleTransaction!
   getAddressInfo(address: EthereumAddress!): VUserWalletInfo!
   getUserFollowingList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowingListRspDto!
   getUserFollowerList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowerListRspDto!
@@ -1288,6 +1293,9 @@ type Mutation {
   """Deletes a membership."""
   deleteMembership(input: DeleteMembershipInput!): Boolean!
 
+  """Create merekleTree"""
+  createMerkleRoot(input: CreateMerkleRootInput!): CreateMerkleRootOutput!
+
   """Create a new tier."""
   createTier(input: CreateTierInput!): Tier!
 
@@ -1296,9 +1304,6 @@ type Mutation {
 
   """Delete a tier."""
   deleteTier(input: DeleteTierInput!): Boolean!
-
-  """Create merekleTree"""
-  createMerkleRoot(input: CreateMerkleRootInput!): CreateMerkleRootOutput!
 
   """creates a wallet"""
   createWallet(input: CreateWalletInput!): Wallet!
@@ -1712,6 +1717,24 @@ input DeleteMembershipInput {
   id: String!
 }
 
+input CreateMerkleRootInput {
+  """Create data for merkle."""
+  data: [CreateMerkleRootData!]!
+
+  """MerkleRoot association to collection."""
+  organization: OrganizationInput
+}
+
+input CreateMerkleRootData {
+  """Address added to merkleTree"""
+  address: String!
+
+  """
+  Amount available, using string, the merkleTree can be expanded to erc20 tokens
+  """
+  amount: String!
+}
+
 input CreateTierInput {
   """The collection associated with this tier."""
   collection: CollectionInput!
@@ -1808,24 +1831,6 @@ input UpdateTierInput {
 input DeleteTierInput {
   """The id for a tier."""
   id: String!
-}
-
-input CreateMerkleRootInput {
-  """Create data for merkle."""
-  data: [CreateMerkleRootData!]!
-
-  """MerkleRoot association to collection."""
-  organization: OrganizationInput
-}
-
-input CreateMerkleRootData {
-  """Address added to merkleTree"""
-  address: String!
-
-  """
-  Amount available, using string, the merkleTree can be expanded to erc20 tokens
-  """
-  amount: String!
 }
 
 input CreateWalletInput {

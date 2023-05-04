@@ -22,7 +22,7 @@ export class Waitlist {
     @IsNumber()
     seatNumber: number;
 
-    @Field()
+    @Field({ nullable: true, description: 'The twitter username' })
     @IsString()
     @IsOptional()
     twitter?: string;
