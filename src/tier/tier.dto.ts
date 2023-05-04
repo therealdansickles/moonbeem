@@ -1,5 +1,15 @@
 import { ArgsType, Field, Int, ObjectType, InputType, ID } from '@nestjs/graphql';
-import { IsNumber, IsString, IsNumberString, IsDateString, IsUrl, ValidateIf, IsObject, IsOptional, IsArray } from 'class-validator';
+import {
+    IsNumber,
+    IsString,
+    IsNumberString,
+    IsDateString,
+    IsUrl,
+    ValidateIf,
+    IsObject,
+    IsOptional,
+    IsArray,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { Collection, CollectionInput } from '../collection/collection.dto';
 import { Coin } from '../sync-chain/coin/coin.dto';

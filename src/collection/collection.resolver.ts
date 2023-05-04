@@ -8,6 +8,7 @@ import {
     PublishCollectionInput,
     DeleteCollectionInput,
 } from './collection.dto';
+import { Wallet } from '../wallet/wallet.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 
@@ -52,6 +53,12 @@ export class CollectionResolver {
     async deleteCollection(@Args('input') input: DeleteCollectionInput): Promise<boolean> {
         const { id } = input;
         return await this.collectionService.deleteCollection(id);
+    }
+
+    @Public()
+    @ResolveField(() => [String], { description: 'returns the buyers of a collection' })
+    async buyers(@Parent() collection: Collection): Promise<string[]> {
+        return this.collectionService.getBuyers(collection.address);
     }
 
     @Public()

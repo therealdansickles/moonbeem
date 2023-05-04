@@ -64,12 +64,12 @@ export class MembershipRequestInput {
 @InputType()
 export class CreateMembershipInput {
     @IsString()
-    @Field({ description: 'The user that is a member of this organization.', nullable:true })
+    @Field({ description: 'The user that is a member of this organization.', nullable: true })
     @IsOptional()
     readonly userId?: string;
 
     @IsString()
-    @Field({ description: 'The email of the user' , nullable: true })
+    @Field({ description: 'The email of the user', nullable: true })
     @IsOptional()
     readonly email?: string;
 

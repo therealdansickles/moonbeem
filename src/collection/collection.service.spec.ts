@@ -7,6 +7,9 @@ import { postgresConfig } from '../lib/configs/db.config';
 import { Collection, CollectionKind } from './collection.entity';
 import { CollectionService } from './collection.service';
 import { CollectionModule } from './collection.module';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
 import { Organization } from '../organization/organization.entity';
 import { OrganizationService } from '../organization/organization.service';
 import { UserService } from '../user/user.service';
@@ -20,6 +23,7 @@ describe('CollectionService', () => {
     let repository: Repository<Collection>;
     let service: CollectionService;
     let organizationService: OrganizationService;
+    let mintSaleTransactionService: MintSaleTransactionService;
     let userService: UserService;
     let tierService: TierService;
     let coinService: CoinService;
@@ -49,12 +53,15 @@ describe('CollectionService', () => {
                 }),
                 CoinModule,
                 CollectionModule,
+                MintSaleTransactionModule,
+                TierModule,
             ],
         }).compile();
 
         repository = module.get('CollectionRepository');
         service = module.get<CollectionService>(CollectionService);
         organizationService = module.get<OrganizationService>(OrganizationService);
+        mintSaleTransactionService = module.get<MintSaleTransactionService>(MintSaleTransactionService);
         userService = module.get<UserService>(UserService);
         tierService = module.get<TierService>(TierService);
         coinService = module.get<CoinService>(CoinService);
@@ -389,6 +396,38 @@ describe('CollectionService', () => {
 
             const result = await service.deleteCollection(collection.id);
             expect(result).toBeFalsy();
+        });
+    });
+
+    describe('getBuyers', () => {
+        it('should get buyers(wallet)', async () => {
+            const collection = await repository.save({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                publishedAt: new Date(),
+            });
+
+            const txn = await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collection.address,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                collectionId: collection.id,
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
+            const [result, ...rest] = await service.getBuyers(collection.address);
+            expect(result).toEqual(txn.recipient);
         });
     });
 });

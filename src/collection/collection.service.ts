@@ -7,6 +7,8 @@ import { GraphQLError } from 'graphql';
 import { Tier } from '../tier/tier.entity';
 import { Collection, CreateCollectionInput } from './collection.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { Wallet } from '../wallet/wallet.entity';
 
 @Injectable()
 export class CollectionService {
@@ -16,7 +18,13 @@ export class CollectionService {
         @InjectRepository(MintSaleContract, 'sync_chain')
         private readonly mintSaleContractRepository: Repository<MintSaleContract>,
         @InjectRepository(Tier)
-        private readonly tierRepository: Repository<Tier>
+        private readonly tierRepository: Repository<Tier>,
+
+        @InjectRepository(Wallet)
+        private readonly walletRepository: Repository<Wallet>,
+
+        @InjectRepository(MintSaleTransaction, 'sync_chain')
+        private readonly mintSaleTransactionRepository: Repository<MintSaleTransaction>
     ) {}
 
     /**
@@ -163,5 +171,23 @@ export class CollectionService {
         return result;
     }
 
-    async;
+    /**
+     * Get the buyers/wallet of the collection. A buyer is a wallet who has at least one NFT from the collection.
+     *
+     * @param address The address of the collection.
+     */
+    async getBuyers(address: string): Promise<string[]> {
+        const result = await this.mintSaleTransactionRepository
+            .createQueryBuilder('MintSaleTransaction')
+            .select('recipient')
+            .distinctOn(['"MintSaleTransaction".recipient'])
+            .where('address = :address', { address })
+            .getRawMany();
+
+        return result.map((r) => r.recipient);
+
+        // NOTE: use this when we wanna attach wallet. CURENTLY, we will not have wallet's for every address
+        // so this WILL BREAK.
+        //return await this.walletRepository.find({ where: { address: In(result.map((r) => r.recipient)) } });
+    }
 }

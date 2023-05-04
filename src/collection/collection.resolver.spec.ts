@@ -20,6 +20,7 @@ import { UserService } from '../user/user.service';
 import { TierService } from '../tier/tier.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { CoinModule } from '../sync-chain/coin/coin.module';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 
 export const gql = String.raw;
@@ -33,6 +34,7 @@ describe('CollectionResolver', () => {
     let userService: UserService;
     let tierService: TierService;
     let coinService: CoinService;
+    let mintSaleTransactionService: MintSaleTransactionService;
     let mintSaleContractService: MintSaleContractService;
 
     beforeAll(async () => {
@@ -75,6 +77,7 @@ describe('CollectionResolver', () => {
         userService = module.get<UserService>(UserService);
         tierService = module.get<TierService>(TierService);
         coinService = module.get<CoinService>(CoinService);
+        mintSaleTransactionService = module.get<MintSaleTransactionService>(MintSaleTransactionService);
         mintSaleContractService = module.get<MintSaleContractService>(MintSaleContractService);
 
         app = module.createNestApplication();
@@ -535,6 +538,52 @@ describe('CollectionResolver', () => {
                 .expect(200)
                 .expect(async ({ body }) => {
                     expect(body.data.deleteCollection).toBeTruthy();
+                });
+        });
+    });
+
+    describe('buyers', () => {
+        it('should return the buyers', async () => {
+            const collection = await service.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+            });
+
+            const transaction = await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collection.address,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                collectionId: collection.id,
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
+            const query = gql`
+                query Collection($address: String!) {
+                    collection(address: $address) {
+                        buyers
+                    }
+                }
+            `;
+
+            const variables = { address: collection.address };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(async ({ body }) => {
+                    expect(body.data.collection.buyers).toEqual([transaction.recipient]);
                 });
         });
     });

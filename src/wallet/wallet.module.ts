@@ -13,12 +13,15 @@ import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/m
 import { Tier } from '../tier/tier.entity';
 import { TierModule } from '../tier/tier.module';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
+import { Collection } from '../collection/collection.entity';
+import { CollectionModule } from '../collection/collection.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Wallet, User, Collaboration, Tier]),
+        TypeOrmModule.forFeature([Wallet, User, Collaboration, Collection, Tier]),
         TypeOrmModule.forFeature([MintSaleTransaction, MintSaleContract], 'sync_chain'),
         forwardRef(() => CollaborationModule),
+        forwardRef(() => CollectionModule),
         forwardRef(() => MintSaleTransactionModule),
         forwardRef(() => TierModule),
         forwardRef(() => UserModule),
