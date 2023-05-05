@@ -78,6 +78,25 @@ export class Minted extends PickType(MintSaleTransaction, [
     readonly tier: Tier;
 }
 
+@ObjectType('Activity', { description: 'The activity for a wallet.' })
+export class Activity extends PickType(MintSaleTransaction, [
+    'address',
+    'tokenAddress',
+    'paymentToken',
+    'tokenId',
+    'price',
+    'txTime',
+] as const) {
+    @IsObject()
+    @Field(() => Tier, { description: 'The tier of the minted token.' })
+    readonly tier: Tier;
+
+    // TODO: make it as enum later
+    @IsString()
+    @Field({ description: 'The activity type.' })
+    readonly type: string;
+}
+
 @ObjectType('EstimatedValue', {
     description: 'The estimated value of a address holdings/minted collections by address',
 })
