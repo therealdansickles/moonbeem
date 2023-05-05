@@ -1,5 +1,5 @@
-import { Field, ObjectType, InputType, Int } from '@nestjs/graphql';
-import { IsObject, IsNumber, IsString, IsDateString, IsArray } from 'class-validator';
+import { Field, ObjectType, InputType, Int, ID } from '@nestjs/graphql';
+import { IsObject, IsNumber, IsString, IsDateString, IsArray, IsOptional } from 'class-validator';
 import { Wallet } from '../wallet/wallet.dto';
 import { Collection } from '../collection/collection.dto';
 import { User } from '../user/user.dto';
@@ -12,12 +12,12 @@ export class Collaboration {
     readonly id: string;
 
     @IsObject()
-    @Field({ description: 'The wallet of the collaboration.', nullable: true })
-    readonly wallet?: Wallet;
+    @Field(() => Wallet, { description: 'The wallet of the collaboration.', nullable: true })
+    readonly wallet?: Partial<Wallet>;
 
     @IsObject()
-    @Field({ description: 'The collection of the collaboration.', nullable: true })
-    readonly collection?: Collection;
+    @Field(() => Collection, { description: 'The collection of the collaboration.', nullable: true })
+    readonly collection?: Partial<Collection>;
 
     @IsString()
     @Field({ description: 'The address of the collaboration contract.', nullable: true })
@@ -52,6 +52,7 @@ export class Collaboration {
 export class CreateCollaborationInput {
     @IsString()
     @Field({ description: 'The address of the collaboration contract.', nullable: true })
+    @IsOptional()
     readonly address?: string;
 
     @IsString()
@@ -65,10 +66,6 @@ export class CreateCollaborationInput {
     @IsString()
     @Field({ description: 'The organization of the collaboration.', nullable: true })
     readonly organizationId?: string;
-
-    @IsString()
-    @Field({ description: 'The collection of the collaboration.', nullable: true })
-    readonly collectionId?: string;
 
     @IsNumber()
     @Field((type) => Int, { description: 'The royalty rate of the collaboration.', nullable: true, defaultValue: 0 })
@@ -115,4 +112,11 @@ export class CollaboratorOutput {
     @IsNumber()
     @Field((type) => Int, { description: 'The royalty rate of the collaboration.' })
     rate: number;
+}
+
+@InputType('CollaborationInput')
+export class CollaborationInput {
+    @IsString()
+    @Field(() => ID!, { description: 'The ID of the collaboration.' })
+    readonly id: string;
 }

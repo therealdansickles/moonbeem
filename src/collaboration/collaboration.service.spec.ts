@@ -120,7 +120,6 @@ describe('CollaborationService', () => {
         it('should create a collaboration', async () => {
             const result = await service.createCollaboration({
                 walletId: wallet.id,
-                collectionId: collection.id,
                 royaltyRate: 12,
                 collaborators: [
                     {
@@ -133,50 +132,13 @@ describe('CollaborationService', () => {
             });
             collaboration = result;
             expect(result.royaltyRate).toEqual(12);
-            expect(result.wallet).toEqual(wallet.id);
-            expect(result.collection).toEqual(collection.id);
+            expect(result.wallet).toBeDefined();
+            expect(result.wallet.id).toEqual(wallet.id);
         });
 
         it('should create a collaboration even if nothing provided', async () => {
             const result = await service.createCollaboration({});
             expect(result.id).toBeTruthy();
-        });
-
-        it('should throw error if wallet-collection pair is already existed', async () => {
-            const freshNewWallet = await walletService.createWallet({
-                address: `eth:${faker.finance.ethereumAddress()}`,
-            });
-            const freshNewCollection = await collectionService.createCollection({
-                name: faker.company.name(),
-                displayName: faker.finance.accountName(),
-                about: faker.finance.accountName(),
-                chainId: 1,
-                address: faker.finance.ethereumAddress(),
-                artists: [],
-                tags: [],
-            });
-            const collaboration1 = await service.createCollaboration({
-                walletId: freshNewWallet.id,
-                collectionId: freshNewCollection.id,
-                royaltyRate: 98,
-                collaborators: [
-                    {
-                        address: faker.finance.ethereumAddress(),
-                        role: faker.finance.accountName(),
-                        name: faker.finance.accountName(),
-                        rate: parseInt(faker.random.numeric(2)),
-                    },
-                ],
-            });
-            expect(
-                (async function () {
-                    await service.createCollaboration({
-                        walletId: freshNewWallet.id,
-                        collectionId: freshNewCollection.id,
-                        royaltyRate: 1,
-                    });
-                })()
-            ).rejects.toThrowError(GraphQLError);
         });
 
         it('should throw error if royalty out of bound', async () => {
@@ -192,7 +154,6 @@ describe('CollaborationService', () => {
             const wallet1 = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
             const collaboration1 = await service.createCollaboration({
                 walletId: wallet1.id,
-                collectionId: newCollection.id,
                 royaltyRate: 98,
                 collaborators: [
                     {
@@ -206,7 +167,6 @@ describe('CollaborationService', () => {
             const wallet2 = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
             const collaboration2 = await service.createCollaboration({
                 walletId: wallet2.id,
-                collectionId: newCollection.id,
                 royaltyRate: 2,
                 collaborators: [
                     {
@@ -229,7 +189,6 @@ describe('CollaborationService', () => {
             // this should work as it's another collection
             const collaborationForAnotherCollection = await service.createCollaboration({
                 walletId: wallet1.id,
-                collectionId: anotherCollection.id,
                 royaltyRate: 1,
                 collaborators: [
                     {
@@ -240,27 +199,26 @@ describe('CollaborationService', () => {
                     },
                 ],
             });
-            expect(collaborationForAnotherCollection.wallet).toEqual(wallet1.id);
-            expect(collaborationForAnotherCollection.collection).toEqual(anotherCollection.id);
-            // would fail
-            const wallet3 = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
-            expect(
-                (async function () {
-                    await service.createCollaboration({
-                        walletId: wallet3.id,
-                        collectionId: newCollection.id,
-                        royaltyRate: 1,
-                        collaborators: [
-                            {
-                                address: faker.finance.ethereumAddress(),
-                                role: faker.finance.accountName(),
-                                name: faker.finance.accountName(),
-                                rate: parseInt(faker.random.numeric(2)),
-                            },
-                        ],
-                    });
-                })()
-            ).rejects.toThrowError(GraphQLError);
+            expect(collaborationForAnotherCollection.wallet).toBeDefined();
+            expect(collaborationForAnotherCollection.wallet.id).toEqual(wallet1.id);
+            // would fail --> un needed
+            // const wallet3 = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
+            // expect(
+            //     (async function () {
+            //         await service.createCollaboration({
+            //             walletId: wallet3.id,
+            //             royaltyRate: 1,
+            //             collaborators: [
+            //                 {
+            //                     address: faker.finance.ethereumAddress(),
+            //                     role: faker.finance.accountName(),
+            //                     name: faker.finance.accountName(),
+            //                     rate: parseInt(faker.random.numeric(2)),
+            //                 },
+            //             ],
+            //         });
+            //     })()
+            // ).rejects.toThrowError(GraphQLError);
         });
     });
 
@@ -298,7 +256,6 @@ describe('CollaborationService', () => {
 
             const newCollab = await service.createCollaboration({
                 walletId: newWallet.id,
-                collectionId: collection.id,
                 royaltyRate: 12,
                 userId: newUser.id,
                 organizationId: organization.id,

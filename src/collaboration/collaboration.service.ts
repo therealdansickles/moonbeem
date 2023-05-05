@@ -40,42 +40,18 @@ export class CollaborationService {
      * @returns The newly created collaboration
      */
     async createCollaboration(data: CreateCollaborationInput): Promise<Collaboration> {
-        // TEMP: only do the check if collectionId and walletId both provided
-        if (data.collectionId && data.walletId) {
-            // check if wallet-collection pair is unique
-            const uniqueCheck = await this.collaborationRepository.findOne({
-                where: {
-                    collection: { id: data.collectionId },
-                    wallet: { id: data.walletId },
-                },
-            });
-            if (uniqueCheck)
-                throw new GraphQLError(
-                    `wallet ${data.walletId} is already collaborating with collection ${data.collectionId}`,
-                    { extensions: { code: 'BAD_REQUEST' } }
-                );
-        }
-        // TEMP: only check if collectionId is provided
-        if (data.collectionId) {
-            // get existed collaboration within the same collection
-            // if sum of royalty from existed + new one > 100 wouldn't pass the validation
-            const existedCollaborations = await this.collaborationRepository.find({
-                where: { collection: { id: data.collectionId } },
-            });
-            const sumOfExistedRoyalty = existedCollaborations.reduce((sum, c) => c.royaltyRate + sum, 0);
-            if (sumOfExistedRoyalty + data.royaltyRate > 100) {
-                throw new GraphQLError(`collection ${data.collectionId} royalty out of bound`, {
-                    extensions: { code: 'BAD_REQUEST' },
-                });
-            }
-        }
-
         const dd = data as unknown as Collaboration;
-        if (data.collectionId) dd.collection = data.collectionId as unknown as Collection;
+        // if (data.collectionId) dd.collection = data.collectionId as unknown as Collection;
         if (data.walletId) dd.wallet = data.walletId as unknown as Wallet;
         if (data.userId) dd.user = data.userId as unknown as User;
         if (data.organizationId) dd.organization = data.organizationId as unknown as Organization;
-        return await this.collaborationRepository.save(dd);
+        // return await this.collaborationRepository.save(dd);
+        const saveResult = await this.collaborationRepository.save(dd);
+
+        return await this.collaborationRepository.findOne({
+            where: { id: saveResult.id },
+            relations: ['wallet', 'user', 'collection', 'organization'],
+        });
     }
 
     // Example: query a nested field

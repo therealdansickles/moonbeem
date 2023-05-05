@@ -9,20 +9,22 @@ import { Collection, CreateCollectionInput } from './collection.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Wallet } from '../wallet/wallet.entity';
+import { Collaboration } from '../collaboration/collaboration.entity';
 
 @Injectable()
 export class CollectionService {
     constructor(
         @InjectRepository(collectionEntity.Collection)
         private readonly collectionRepository: Repository<collectionEntity.Collection>,
-        @InjectRepository(MintSaleContract, 'sync_chain')
-        private readonly mintSaleContractRepository: Repository<MintSaleContract>,
         @InjectRepository(Tier)
         private readonly tierRepository: Repository<Tier>,
-
         @InjectRepository(Wallet)
         private readonly walletRepository: Repository<Wallet>,
+        @InjectRepository(Collaboration)
+        private readonly collaborationRepository: Repository<Collaboration>,
 
+        @InjectRepository(MintSaleContract, 'sync_chain')
+        private readonly mintSaleContractRepository: Repository<MintSaleContract>,
         @InjectRepository(MintSaleTransaction, 'sync_chain')
         private readonly mintSaleTransactionRepository: Repository<MintSaleTransaction>
     ) {}
@@ -153,7 +155,7 @@ export class CollectionService {
     }
 
     async createCollectionWithTiers(data: CreateCollectionInput) {
-        const { tiers, ...collection } = data;
+        const { tiers, collaboration, ...collection } = data;
         const kind = collectionEntity.CollectionKind;
         if ([kind.whitelistEdition, kind.whitelistTiered, kind.whitelistBulk].indexOf(collection.kind) >= 0) {
             tiers.forEach((tier) => {
@@ -181,9 +183,18 @@ export class CollectionService {
             });
         }
 
+        const updateResult: UpdateResult = await this.collaborationRepository.update(collaboration.id, {
+            collection: createResult,
+        });
+        if (updateResult.affected <= 0) {
+            throw new GraphQLError(`Failed to update collaboration ${collaboration.id}`, {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
+        }
+
         const result = await this.collectionRepository.findOne({
             where: { id: createResult.id },
-            relations: ['tiers'],
+            relations: ['tiers', 'organization'],
         });
         return result;
     }

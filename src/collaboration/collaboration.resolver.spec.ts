@@ -124,7 +124,6 @@ describe('CollaborationResolver', () => {
             const variables = {
                 input: {
                     walletId: wallet.id,
-                    collectionId: collection.id,
                     royaltyRate: 9,
                     collaborators: [
                         {
@@ -153,7 +152,6 @@ describe('CollaborationResolver', () => {
             wallet = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
             collaboration = await service.createCollaboration({
                 walletId: wallet.id,
-                collectionId: collection.id,
                 royaltyRate: 12,
                 collaborators: [
                     {
@@ -174,10 +172,6 @@ describe('CollaborationResolver', () => {
                         wallet {
                             address
                         }
-
-                        collection {
-                            name
-                        }
                     }
                 }
             `;
@@ -194,7 +188,6 @@ describe('CollaborationResolver', () => {
                 .expect(({ body }) => {
                     expect(body.data.collaboration.id).toEqual(variables.id);
                     expect(body.data.collaboration.wallet.address).not.toBeNull();
-                    expect(body.data.collaboration.collection.name).not.toBeNull();
                 });
         });
     });
@@ -238,7 +231,6 @@ describe('CollaborationResolver', () => {
 
             const collab = await service.createCollaboration({
                 walletId: wallet.id,
-                collectionId: collection.id,
                 royaltyRate: 12,
                 userId: user.id,
                 organizationId: organization.id,

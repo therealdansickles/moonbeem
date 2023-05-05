@@ -5,6 +5,7 @@ import { Type } from 'class-transformer';
 import { CollectionKind } from './collection.entity';
 import { Attribute, Tier } from '../tier/tier.dto';
 import { Organization, OrganizationInput } from '../organization/organization.dto';
+import { CollaborationInput } from '../collaboration/collaboration.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 
 registerEnumType(CollectionKind, { name: 'CollectionKind' });
@@ -217,6 +218,10 @@ export class CreateCollectionInput {
     @IsObject()
     @Field((type) => OrganizationInput, { description: 'The organization that owns the collection.' })
     readonly organization: OrganizationInput;
+
+    @IsObject()
+    @Field((type) => CollaborationInput, { description: 'The collaboration of the collection.' })
+    readonly collaboration?: CollaborationInput;
 
     @IsArray()
     @Field((type) => [CreateTierInCollectionInput], { nullable: true, description: 'This tiers for collection' })

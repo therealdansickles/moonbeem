@@ -75,6 +75,52 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type Collaboration {
+  """The ID of the collaboration."""
+  id: String!
+
+  """The wallet of the collaboration."""
+  wallet: Wallet
+
+  """The collection of the collaboration."""
+  collection: Collection
+
+  """The address of the collaboration contract."""
+  address: String
+
+  """The user of the collaboration."""
+  user: User
+
+  """The organization of the collaboration."""
+  organization: Organization
+
+  """All collaborators of this collaboration"""
+  collaborators: [CollaboratorOutput!]
+
+  """The royalty rate of the collaboration."""
+  royaltyRate: Float
+
+  """The created datetime of the collaboration."""
+  createdAt: DateTime!
+
+  """The updated datetime of the collaboration."""
+  updatedAt: DateTime!
+}
+
+type CollaboratorOutput {
+  """The collaborator role of the collaboration."""
+  role: String!
+
+  """The collaborator name of the collaboration."""
+  name: String!
+
+  """The user address of the collaboration."""
+  address: String!
+
+  """The royalty rate of the collaboration."""
+  rate: Int!
+}
+
 type MintSaleContract {
   id: ID!
 
@@ -411,6 +457,9 @@ type Wallet {
   """Retrieves the minted NFTs for the given wallet."""
   minted: [Minted!]!
 
+  """Retrieves the activity for the given wallet."""
+  activities: [Activity!]!
+
   """
   Retrieve the estimated value of a address holdings/minted collections by address.
   """
@@ -439,6 +488,33 @@ type Minted {
 
   """The tier of the minted token."""
   tier: Tier!
+}
+
+"""The activity for a wallet."""
+type Activity {
+  """Transaction time of transaction."""
+  txTime: Float!
+
+  """The contract address"""
+  address: String!
+
+  """Collection associated token contract address, Erc721 contract"""
+  tokenAddress: String!
+
+  """The token id received by the user"""
+  tokenId: String!
+
+  """The tier price"""
+  price: String!
+
+  """The payment token address"""
+  paymentToken: String!
+
+  """The tier of the minted token."""
+  tier: Tier!
+
+  """The activity type."""
+  type: String!
 }
 
 type User {
@@ -537,52 +613,6 @@ type VUserFollowingListRspDto {
 type VUserFollowerListRspDto {
   data: [VFollowingInfo!]!
   total: Float!
-}
-
-type Collaboration {
-  """The ID of the collaboration."""
-  id: String!
-
-  """The wallet of the collaboration."""
-  wallet: Wallet
-
-  """The collection of the collaboration."""
-  collection: Collection
-
-  """The address of the collaboration contract."""
-  address: String
-
-  """The user of the collaboration."""
-  user: User
-
-  """The organization of the collaboration."""
-  organization: Organization
-
-  """All collaborators of this collaboration"""
-  collaborators: [CollaboratorOutput!]
-
-  """The royalty rate of the collaboration."""
-  royaltyRate: Float
-
-  """The created datetime of the collaboration."""
-  createdAt: DateTime!
-
-  """The updated datetime of the collaboration."""
-  updatedAt: DateTime!
-}
-
-type CollaboratorOutput {
-  """The collaborator role of the collaboration."""
-  role: String!
-
-  """The collaborator name of the collaboration."""
-  name: String!
-
-  """The user address of the collaboration."""
-  address: String!
-
-  """The royalty rate of the collaboration."""
-  rate: Int!
 }
 
 type Membership {
@@ -1395,9 +1425,6 @@ input CreateCollaborationInput {
   """The organization of the collaboration."""
   organizationId: String
 
-  """The collection of the collaboration."""
-  collectionId: String
-
   """The royalty rate of the collaboration."""
   royaltyRate: Int = 0
 
@@ -1469,6 +1496,9 @@ input CreateCollectionInput {
   """The organization that owns the collection."""
   organization: OrganizationInput!
 
+  """The collaboration of the collection."""
+  collaboration: CollaborationInput!
+
   """This tiers for collection"""
   tiers: [CreateTierInCollectionInput!]
 }
@@ -1476,6 +1506,11 @@ input CreateCollectionInput {
 input OrganizationInput {
   """The id of the organization."""
   id: String!
+}
+
+input CollaborationInput {
+  """The ID of the collaboration."""
+  id: ID!
 }
 
 input CreateTierInCollectionInput {

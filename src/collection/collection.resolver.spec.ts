@@ -22,6 +22,8 @@ import { CoinService } from '../sync-chain/coin/coin.service';
 import { CoinModule } from '../sync-chain/coin/coin.module';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { CollaborationService } from '../collaboration/collaboration.service';
+import { WalletService } from '../wallet/wallet.service';
 
 export const gql = String.raw;
 
@@ -36,6 +38,8 @@ describe('CollectionResolver', () => {
     let coinService: CoinService;
     let mintSaleTransactionService: MintSaleTransactionService;
     let mintSaleContractService: MintSaleContractService;
+    let collaborationService: CollaborationService;
+    let walletService: WalletService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -74,11 +78,13 @@ describe('CollectionResolver', () => {
         service = module.get<CollectionService>(CollectionService);
         authService = module.get<AuthService>(AuthService);
         organizationService = module.get<OrganizationService>(OrganizationService);
+        collaborationService = module.get<CollaborationService>(CollaborationService);
         userService = module.get<UserService>(UserService);
         tierService = module.get<TierService>(TierService);
         coinService = module.get<CoinService>(CoinService);
         mintSaleTransactionService = module.get<MintSaleTransactionService>(MintSaleTransactionService);
         mintSaleContractService = module.get<MintSaleContractService>(MintSaleContractService);
+        walletService = module.get<WalletService>(WalletService);
 
         app = module.createNestApplication();
         await app.init();
@@ -88,6 +94,8 @@ describe('CollectionResolver', () => {
         await repository.query('TRUNCATE TABLE "User" CASCADE');
         await repository.query('TRUNCATE TABLE "Organization" CASCADE');
         await repository.query('TRUNCATE TABLE "Collection" CASCADE');
+        await repository.query('TRUNCATE TABLE "Wallet" CASCADE');
+        await repository.query('TRUNCATE TABLE "Collaboration" CASCADE');
         await app.close();
     });
 
@@ -429,6 +437,20 @@ describe('CollectionResolver', () => {
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
+            const wallet1 = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
+
+            const collaboration = await collaborationService.createCollaboration({
+                walletId: wallet1.id,
+                royaltyRate: 98,
+                collaborators: [
+                    {
+                        address: faker.finance.ethereumAddress(),
+                        role: faker.finance.accountName(),
+                        name: faker.finance.accountName(),
+                        rate: parseInt(faker.random.numeric(2)),
+                    },
+                ],
+            });
 
             const organization = await organizationService.createOrganization({
                 name: faker.company.name(),
@@ -462,6 +484,9 @@ describe('CollectionResolver', () => {
                     address: faker.finance.ethereumAddress(),
                     organization: {
                         id: organization.id,
+                    },
+                    collaboration: {
+                        id: collaboration.id,
                     },
                 },
             };
