@@ -178,6 +178,9 @@ type MintSaleContract {
   """The token address(erc721 address) of the collection"""
   tokenAddress: String!
 
+  """The type of Contract."""
+  kind: ContractType!
+
   """The chain id for the transaction"""
   chainId: Float!
 
@@ -186,6 +189,19 @@ type MintSaleContract {
 
   """The DateTime that this contract was last updated."""
   updatedAt: DateTime!
+}
+
+enum ContractType {
+  factory
+  erc20
+  erc721
+  simpleFactory
+  royaltyReceiver
+  mintSale
+  mintSaleMultiple
+  mintSaleWhitelisting
+  mintSaleMultipleWhitelisting
+  unknown
 }
 
 type CreateMerkleRootOutput {
@@ -638,6 +654,42 @@ type Membership {
   canDeploy: Boolean!
 }
 
+type Factory {
+  id: ID!
+
+  """Block height of transaction."""
+  height: Float!
+
+  """Transaction hash of transaction."""
+  txHash: String!
+
+  """Transaction time of transaction."""
+  txTime: Float!
+
+  """Transaction sender of transaction."""
+  sender: String!
+
+  """The contract address."""
+  address: String!
+
+  """The master contract address."""
+  masterAddress: String!
+
+  """The type of Contract."""
+  kind: ContractType!
+
+  """The chain id for the factory"""
+  chainId: Float!
+
+  """
+  The DateTime that this organization was created(initially created as a draft).
+  """
+  createdAt: DateTime!
+
+  """The DateTime that this organization was last updated."""
+  updatedAt: DateTime!
+}
+
 type BasicPriceInfo {
   price: String!
   token: EthereumAddress!
@@ -917,55 +969,6 @@ type GlobalSearchResult {
   users: UserSearchResults!
 }
 
-type Factory {
-  id: ID!
-
-  """Block height of transaction."""
-  height: Float!
-
-  """Transaction hash of transaction."""
-  txHash: String!
-
-  """Transaction time of transaction."""
-  txTime: Float!
-
-  """Transaction sender of transaction."""
-  sender: String!
-
-  """The contract address."""
-  address: String!
-
-  """The master contract address."""
-  masterAddress: String!
-
-  """The type of Contract."""
-  kind: ContractType!
-
-  """The chain id for the factory"""
-  chainId: Float!
-
-  """
-  The DateTime that this organization was created(initially created as a draft).
-  """
-  createdAt: DateTime!
-
-  """The DateTime that this organization was last updated."""
-  updatedAt: DateTime!
-}
-
-enum ContractType {
-  factory
-  erc20
-  erc721
-  simpleFactory
-  royaltyReceiver
-  mintSale
-  mintSaleMultiple
-  mintSaleWhitelisting
-  mintSaleMultipleWhitelisting
-  unknown
-}
-
 type Royalty {
   id: ID!
 
@@ -1187,6 +1190,12 @@ type Query {
   """Merkle Tree Verify"""
   getMerkleProof(address: String!, merkleRoot: String!): GetMerkleProofOutput
 
+  """returns a factory contract for a given uuid"""
+  factory(id: String!): Factory!
+
+  """returns a factory list for a given chain id"""
+  factories(chainId: Int!): [Factory!]!
+
   """returns transaction for a given uuid"""
   transaction(id: String!): MintSaleTransaction!
 
@@ -1219,12 +1228,6 @@ type Query {
   getCollectionActivities(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VCollectionActivityRspDto!
   globalSearch(input: GloablSearchInput!): GlobalSearchResult!
   globalSearchV1(input: GloablSearchInput!): GlobalSearchResult!
-
-  """returns a factory contract for a given uuid"""
-  factory(id: String!): Factory!
-
-  """returns a factory list for a given chain id"""
-  factories(chainId: Int!): [Factory!]!
   royalty(id: String!): Royalty!
 
   """returns a asset for a given uuid"""

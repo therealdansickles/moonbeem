@@ -1,25 +1,29 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
-import { IMerkleTree, MintSaleContract, IStandardMerkleTreeData } from './mint-sale-contract.entity';
+import * as MintSaleContractEntity from './mint-sale-contract.entity';
 import {
     CreateMerkleRootData,
     CreateMerkleRootInput,
     CreateMerkleRootOutput,
     GetMerkleProofOutput,
+    MintSaleContract,
 } from './mint-sale-contract.dto';
 import { StandardMerkleTree } from '@openzeppelin/merkle-tree';
 import { MongoAdapter } from '../../lib/adapters/mongo.adapter';
 import { encodeAddressAndAmount } from '../../lib/utilities/merkle';
 import { keccak256 } from 'ethers/lib/utils';
+import { Factory } from '../factory/factory.entity';
+import { FactoryService } from '../factory/factory.service';
 // import { MerkleTree } from 'merkletreejs';
 const { MerkleTree } = require('merkletreejs');
 
 @Injectable()
 export class MintSaleContractService {
     constructor(
-        @InjectRepository(MintSaleContract, 'sync_chain')
-        private readonly contractRepository: Repository<MintSaleContract>,
+        @InjectRepository(MintSaleContractEntity.MintSaleContract, 'sync_chain')
+        private readonly contractRepository: Repository<MintSaleContractEntity.MintSaleContract>,
+        private factoreService: FactoryService,
         private readonly mongoRepository: MongoAdapter
     ) {}
 
@@ -32,7 +36,13 @@ export class MintSaleContractService {
     }
 
     async getMintSaleContractByCollection(collectionId: string): Promise<MintSaleContract> {
-        return await this.contractRepository.findOneBy({ collectionId });
+        const contract = await this.contractRepository.findOneBy({ collectionId });
+        const factory = await this.factoreService.getFactoryByAddress(contract.address);
+
+        return {
+            ...contract,
+            kind: factory?.kind,
+        };
     }
 
     async createMerkleRoot(input: CreateMerkleRootInput): Promise<CreateMerkleRootOutput> {

@@ -1,7 +1,10 @@
-import { ObjectType, Field, ID, InputType } from '@nestjs/graphql';
+import { ObjectType, Field, ID, InputType, registerEnumType } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsDateString, IsNumber, IsBoolean, IsNumberString, IsObject, IsArray } from 'class-validator';
 import { OrganizationInput } from '../../organization/organization.dto';
+import { ContractType } from '../factory/factory.entity';
+
+registerEnumType(ContractType, { name: 'ContractType' });
 
 @ObjectType('MintSaleContract')
 export class MintSaleContract {
@@ -99,6 +102,10 @@ export class MintSaleContract {
     @IsString()
     @Field({ description: 'The token address(erc721 address) of the collection' })
     readonly tokenAddress: string;
+
+    @ApiProperty()
+    @Field((type) => ContractType, { description: 'The type of Contract.' })
+    readonly kind?: ContractType;
 
     @ApiProperty()
     @IsNumber()

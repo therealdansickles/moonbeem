@@ -6,7 +6,7 @@ import { Factory } from './factory.entity';
 
 @Module({
     imports: [TypeOrmModule.forFeature([Factory], 'sync_chain')],
-    exports: [FactoryModule],
+    exports: [FactoryModule, FactoryService],
     providers: [FactoryService, FactoryResolver],
     controllers: [],
 })

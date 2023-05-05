@@ -7,7 +7,7 @@ import { postgresConfig } from '../../lib/configs/db.config';
 import { INestApplication } from '@nestjs/common';
 import { ApolloDriver } from '@nestjs/apollo';
 import { GraphQLModule } from '@nestjs/graphql';
-import { MintSaleContract } from './mint-sale-contract.entity';
+import { MintSaleContract } from './mint-sale-contract.dto';
 import { MintSaleContractModule } from './mint-sale-contract.module';
 import { MintSaleContractService } from './mint-sale-contract.service';
 

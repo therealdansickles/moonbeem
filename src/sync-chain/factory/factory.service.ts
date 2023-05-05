@@ -18,4 +18,8 @@ export class FactoryService {
     async getFactories(chainId: number): Promise<Factory[]> {
         return await this.factoryRepository.find({ where: { chainId: chainId } });
     }
+
+    async getFactoryByAddress(address: string): Promise<Factory> {
+        return await this.factoryRepository.findOne({ where: { address } });
+    }
 }
