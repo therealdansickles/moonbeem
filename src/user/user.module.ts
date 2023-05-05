@@ -8,6 +8,7 @@ import { MembershipModule } from '../membership/membership.module';
 import { MembershipService } from 'src/membership/membership.service';
 import { Organization } from '../organization/organization.entity';
 import { OrganizationModule } from '../organization/organization.module';
+import { OrganizationService } from '../organization/organization.service';
 import { User } from './user.entity';
 import { UserResolver } from './user.resolver';
 import { UserService } from './user.service';

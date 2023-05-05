@@ -17,6 +17,7 @@ import { Wallet } from '../wallet/wallet.entity';
 import { GraphQLError } from 'graphql';
 import { Membership } from '../membership/membership.entity';
 import * as Sentry from '@sentry/node';
+import { UserService } from '../user/user.service';
 
 export const SESSION_PERFIX = 'login_session';
 
@@ -25,6 +26,7 @@ export class AuthService {
     constructor(
         private readonly jwtService: JWTService,
         private readonly redisClient: RedisAdapter,
+        private readonly userService: UserService,
         @InjectRepository(User) private userRepository: Repository<User>,
         @InjectRepository(Wallet) private walletRepository: Repository<Wallet>,
         @InjectRepository(Membership) private membershipRepository: Repository<Membership>
@@ -115,7 +117,7 @@ export class AuthService {
                 avatarUrl: data.avatarUrl,
             } as unknown as User;
 
-            user = await this.userRepository.save(userPayload);
+            user = await this.userService.createUserWithOrganization(userPayload);
         } catch (e) {
             Sentry.captureException(e);
             throw new GraphQLError('Failed to create user.', {

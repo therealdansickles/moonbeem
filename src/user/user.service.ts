@@ -4,10 +4,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, UpdateResult } from 'typeorm';
 import { User } from './user.entity';
 import * as Sentry from '@sentry/node';
+import { CreateOrganizationInput } from '../organization/organization.dto';
+import { OrganizationService } from '../organization/organization.service';
+import { OrganizationKind } from '../organization/organization.entity';
+import * as randomstring from 'randomstring';
 
 @Injectable()
 export class UserService {
-    constructor(@InjectRepository(User) private userRepository: Repository<User>) {}
+    constructor(
+        private organizationService: OrganizationService,
+        @InjectRepository(User) private userRepository: Repository<User>
+    ) {}
 
     /**
      * Retrieve an user by id.
@@ -16,6 +23,34 @@ export class UserService {
      */
     async getUser(id: string): Promise<User> {
         return await this.userRepository.findOneBy({ id });
+    }
+
+    /**
+     * Create a new user with a default org / membership
+     * the original `createUser` would be atomic service function
+     *
+     * @param payload
+     * @returns The newly created user.
+     */
+    async createUserWithOrganization(payload: Partial<User>): Promise<User> {
+        try {
+            const user = await this.createUser(payload);
+            const pseudoOrgName = randomstring.generate();
+            const defaultOrgPayload = {
+                name: pseudoOrgName,
+                displayName: pseudoOrgName,
+                kind: OrganizationKind.Personal,
+                owner: { id: user.id },
+                invites: [user.email],
+            };
+            await this.organizationService.createOrganization(defaultOrgPayload);
+            return user;
+        } catch (e) {
+            Sentry.captureException(e);
+            throw new GraphQLError(`Failed to create user ${payload.name} with organization`, {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
+        }
     }
 
     /**

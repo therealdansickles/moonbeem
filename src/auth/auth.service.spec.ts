@@ -109,9 +109,13 @@ describe('AuthService', () => {
 
             const memberships = await membershipService.getMembershipsByUserId(invitedUser.user.id);
 
-            expect(memberships.length).toBe(1);
+            // we had 2 memberships now
+            // the first one is the invited one to be join
+            // the second one is his/her "private organization"
+            expect(memberships.length).toBe(2);
             expect(memberships[0].acceptedAt).toBeDefined();
-            expect(memberships[0].inviteCode).toBeNull();
+            // only one have inviteCode
+            expect(memberships.map((m) => m.inviteCode).filter((m) => !!m).length).toEqual(1);
         });
     });
 });

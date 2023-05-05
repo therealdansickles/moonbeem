@@ -6,10 +6,13 @@ import { postgresConfig } from '../lib/configs/db.config';
 import { UserModule } from './user.module';
 import { UserService } from './user.service';
 import { User } from './user.entity';
+import { OrganizationModule } from '../organization/organization.module';
+import { OrganizationService } from '../organization/organization.service';
 
 describe('UserService', () => {
     let service: UserService;
     let repository: Repository<User>;
+    let organizationService: OrganizationService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -34,11 +37,13 @@ describe('UserService', () => {
                     logging: false,
                 }),
                 UserModule,
+                OrganizationModule,
             ],
         }).compile();
 
         service = module.get<UserService>(UserService);
         repository = module.get('UserRepository');
+        organizationService = module.get<OrganizationService>(OrganizationService);
     });
 
     afterAll(async () => {
@@ -68,6 +73,23 @@ describe('UserService', () => {
             expect(user.username).toBeDefined();
             expect(user.email).toBeDefined();
             expect(user.password).toBeDefined();
+        });
+    });
+
+    describe.only('createUserWithOrganization', () => {
+        it('should create user', async () => {
+            const user = await service.createUserWithOrganization({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+            expect(user.username).toBeDefined();
+            expect(user.email).toBeDefined();
+            expect(user.password).toBeDefined();
+
+            const orgs = await organizationService.getOrganizationsByOwnerId(user.id);
+            expect(orgs.length).toEqual(1);
+            expect(orgs[0].owner.id).toEqual(user.id);
         });
     });
 
