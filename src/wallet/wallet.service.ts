@@ -261,11 +261,13 @@ export class WalletService {
         if (!wallet) throw new Error(`Wallet with address ${address} doesn't exist.`);
 
         const priceByToken = await this.getValueGroupByToken(address);
-        const total = priceByToken.reduce(
-            (total, tokenPrice) => total.plus(new BigNumber(tokenPrice.price)),
-            new BigNumber(0)
-        );
-        return total.toString();
+        const total = priceByToken.reduce((total, tokenPrice) => {
+            const price = new BigNumber(tokenPrice.price);
+            if (!price.isNaN()) total = total.plus(price);
+            return total;
+        }, new BigNumber(0));
+        // check again
+        return total.isNaN() ? '0' : total.toString();
     }
 
     /**
