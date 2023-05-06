@@ -245,6 +245,71 @@ describe('CollectionResolver', () => {
                 });
         });
 
+        it('should get a collection by id with no contract details, if contract doesnt exist', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const collection = await service.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+            });
+
+            const beginTime = Math.floor(faker.date.recent().getTime() / 1000);
+            const endTime = Math.floor(faker.date.recent().getTime() / 1000);
+
+            const query = gql`
+                query GetCollection($id: String!) {
+                    collection(id: $id) {
+                        name
+                        displayName
+                        kind
+
+                        organization {
+                            name
+                        }
+
+                        contract {
+                            beginTime
+                            endTime
+                        }
+                    }
+                }
+            `;
+
+            const variables = { id: collection.id };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.collection.name).toEqual(collection.name);
+                    expect(body.data.collection.displayName).toEqual(collection.displayName);
+                    expect(body.data.collection.organization.name).toEqual(organization.name);
+                    expect(body.data.collection.contract).toBe(null);
+                });
+        });
+
         it('should get a collection by address', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
