@@ -37,8 +37,11 @@ export class MintSaleContractService {
 
     async getMintSaleContractByCollection(collectionId: string): Promise<MintSaleContract> {
         const contract = await this.contractRepository.findOneBy({ collectionId });
-        const factory = await this.factoreService.getFactoryByAddress(contract.address);
+        if (!contract) {
+            return null;
+        }
 
+        const factory = await this.factoreService.getFactoryByAddress(contract.address);
         return {
             ...contract,
             kind: factory?.kind,
