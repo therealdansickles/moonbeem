@@ -85,7 +85,7 @@ describe('Search Resolver (e2e) {Supertest}', () => {
                     instagram: 'testthots',
                     discord: 'testcollection#123',
                     tags: ['test', 'collection'],
-                    creatorId: creator.id,
+                    creator: { id: creator.id },
                 });
 
                 collectionId = collection.id;

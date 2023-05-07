@@ -1,13 +1,7 @@
 import { Resolver, Query, Args, Mutation, ResolveField, Parent } from '@nestjs/graphql';
 import { Public } from '../lib/decorators/public.decorator';
 import { CollectionService } from './collection.service';
-import {
-    Collection,
-    CreateCollectionInput,
-    UpdateCollectionInput,
-    PublishCollectionInput,
-    DeleteCollectionInput,
-} from './collection.dto';
+import { Collection, CollectionInput, CreateCollectionInput, UpdateCollectionInput } from './collection.dto';
 import { Wallet } from '../wallet/wallet.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
@@ -43,16 +37,14 @@ export class CollectionResolver {
 
     @Public()
     @Mutation(() => Boolean, { description: 'publishes a collection' })
-    async publishCollection(@Args('input') input: PublishCollectionInput): Promise<boolean> {
-        const { id } = input;
-        return this.collectionService.publishCollection(id);
+    async publishCollection(@Args('input') input: CollectionInput): Promise<boolean> {
+        return this.collectionService.publishCollection(input.id);
     }
 
     @Public()
     @Mutation(() => Boolean, { description: 'delete a unpublished collection' })
-    async deleteCollection(@Args('input') input: DeleteCollectionInput): Promise<boolean> {
-        const { id } = input;
-        return await this.collectionService.deleteCollection(id);
+    async deleteCollection(@Args('input') input: CollectionInput): Promise<boolean> {
+        return await this.collectionService.deleteCollection(input.id);
     }
 
     @Public()

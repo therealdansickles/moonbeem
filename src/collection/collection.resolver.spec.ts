@@ -139,6 +139,10 @@ describe('CollectionResolver', () => {
                         organization {
                             name
                         }
+
+                        collaboration {
+                            id
+                        }
                     }
                 }
             `;
@@ -153,6 +157,7 @@ describe('CollectionResolver', () => {
                     expect(body.data.collection.name).toEqual(collection.name);
                     expect(body.data.collection.displayName).toEqual(collection.displayName);
                     expect(body.data.collection.organization.name).toEqual(organization.name);
+                    expect(body.data.collection.collaboration).toBeNull();
                 });
         });
 
@@ -616,7 +621,7 @@ describe('CollectionResolver', () => {
             });
 
             const query = gql`
-                mutation DeleteCollection($input: DeleteCollectionInput!) {
+                mutation DeleteCollection($input: CollectionInput!) {
                     deleteCollection(input: $input)
                 }
             `;

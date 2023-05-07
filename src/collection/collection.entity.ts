@@ -96,8 +96,8 @@ export class Collection extends BaseEntity {
     @OneToMany(() => Tier, (tier) => tier.collection, { nullable: true })
     tiers?: Tier[];
 
-    @OneToMany(() => Collaboration, (collaboration) => collaboration.collection, { lazy: true, nullable: true })
-    collaborations?: Collaboration[];
+    @ManyToOne(() => Collaboration, (collaboration) => collaboration.collections, { eager: true, nullable: true })
+    collaboration?: Collaboration;
 
     @Column({ nullable: true, default: 1, comment: 'The chain id for the collection.' })
     chainId?: number;

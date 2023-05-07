@@ -1,13 +1,14 @@
 import {
-    Entity,
-    Column,
-    PrimaryGeneratedColumn,
-    CreateDateColumn,
-    UpdateDateColumn,
     BaseEntity,
-    ManyToOne,
-    JoinColumn,
+    Column,
+    CreateDateColumn,
+    Entity,
     Index,
+    JoinColumn,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 import { Collection } from '../collection/collection.entity';
 import { Organization } from '../organization/organization.entity';
@@ -15,7 +16,6 @@ import { User } from '../user/user.entity';
 import { Wallet } from '../wallet/wallet.entity';
 
 @Entity({ name: 'Collaboration' })
-// @Index(['wallet.id', 'collection.id'], { unique: true })
 export class Collaboration extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -26,11 +26,8 @@ export class Collaboration extends BaseEntity {
     @Column({ default: 100, comment: 'The royalty rate in percentage.' })
     royaltyRate?: number;
 
-    @ManyToOne(() => Collection, (collection) => collection.collaborations, {
-        createForeignKeyConstraints: false,
-    })
-    @JoinColumn()
-    collection?: Collection;
+    @OneToMany(() => Collection, (collection) => collection.collaboration, { createForeignKeyConstraints: false })
+    collections: Collection[];
 
     @ManyToOne(() => Organization, (organization) => organization.collaborations, {
         createForeignKeyConstraints: false,

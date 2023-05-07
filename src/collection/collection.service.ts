@@ -38,7 +38,7 @@ export class CollectionService {
     async getCollection(id: string): Promise<Collection | null> {
         return await this.collectionRepository.findOne({
             where: { id },
-            relations: ['organization', 'tiers', 'creator'],
+            relations: ['organization', 'tiers', 'creator', 'collaboration'],
         });
     }
 
@@ -51,7 +51,7 @@ export class CollectionService {
     async getCollectionByAddress(address: string): Promise<Collection | null> {
         const collection = await this.collectionRepository.findOne({
             where: { address },
-            relations: ['organization', 'tiers'],
+            relations: ['organization', 'tiers', 'creator', 'collaboration'],
         });
         const contract = await this.mintSaleContractRepository.findOne({ where: { collectionId: collection.id } });
 
@@ -71,7 +71,7 @@ export class CollectionService {
         const result: Collection[] = [];
         const collections = await this.collectionRepository.find({
             where: { organization: { id: organizationId } },
-            relations: ['organization', 'tiers'],
+            relations: ['organization', 'tiers', 'creator', 'collaboration'],
         });
 
         for (const collection of collections) {
@@ -94,7 +94,7 @@ export class CollectionService {
     async getCreatedCollectionsByWalletId(walletId: string): Promise<Collection[]> {
         return await this.collectionRepository.find({
             where: { creator: { id: walletId } },
-            relations: ['organization', 'tiers', 'creator'],
+            relations: ['organization', 'tiers', 'creator', 'collaboration'],
         });
     }
 
@@ -200,15 +200,6 @@ export class CollectionService {
                         extensions: { code: 'INTERNAL_SERVER_ERROR' },
                     });
                 }
-            });
-        }
-
-        const updateResult: UpdateResult = await this.collaborationRepository.update(collaboration.id, {
-            collection: createResult,
-        });
-        if (updateResult.affected <= 0) {
-            throw new GraphQLError(`Failed to update collaboration ${collaboration.id}`, {
-                extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
         }
 

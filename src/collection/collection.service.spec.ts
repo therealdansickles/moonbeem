@@ -387,13 +387,13 @@ describe('CollectionService', () => {
                 organization: {
                     id: organization.id,
                 },
-                creatorId: wallet.id,
+                creator: { id: wallet.id },
             });
 
             expect(collection).toBeDefined();
             expect(collection.displayName).toEqual('The best collection');
             expect(collection.organization.id).toEqual(organization.id);
-            expect(collection.creatorId).toEqual(wallet.id);
+            expect(collection.creator.id).toEqual(wallet.id);
         });
     });
 

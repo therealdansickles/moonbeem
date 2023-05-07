@@ -1,11 +1,33 @@
-import { Field, ObjectType, InputType, Int, ID } from '@nestjs/graphql';
+import { Field, ObjectType, InputType, Int, ID, PickType, OmitType, PartialType } from '@nestjs/graphql';
 import { IsObject, IsNumber, IsString, IsDateString, IsArray, IsOptional } from 'class-validator';
 import { Wallet } from '../wallet/wallet.dto';
 import { Collection } from '../collection/collection.dto';
 import { User } from '../user/user.dto';
 import { Organization } from '../organization/organization.dto';
 
-@ObjectType('Collaboration')
+@ObjectType()
+export class CollaboratorOutput {
+    @IsString()
+    @Field({ description: 'The collaborator role of the collaboration.' })
+    role: string;
+
+    @IsString()
+    @Field({ description: 'The collaborator name of the collaboration.' })
+    name: string;
+
+    @IsString()
+    @Field({ description: 'The user address of the collaboration.' })
+    address: string;
+
+    @IsNumber()
+    @Field((type) => Int, { description: 'The royalty rate of the collaboration.' })
+    rate: number;
+}
+
+@InputType()
+export class CollaboratorInput extends OmitType(CollaboratorOutput, [], InputType) {}
+
+@ObjectType()
 export class Collaboration {
     @IsString()
     @Field({ description: 'The ID of the collaboration.' })
@@ -32,7 +54,7 @@ export class Collaboration {
     readonly organization?: Partial<Organization>;
 
     @IsArray()
-    @Field((type) => [CollaboratorOutput], { description: 'All collaborators of this collaboration', nullable: true })
+    @Field((type) => [CollaboratorOutput], { description: 'All collaborators of this collaboration.', nullable: true })
     readonly collaborators?: CollaboratorOutput[];
 
     @IsNumber()
@@ -48,75 +70,30 @@ export class Collaboration {
     readonly updatedAt: Date;
 }
 
-@InputType('CreateCollaborationInput')
-export class CreateCollaborationInput {
-    @IsString()
-    @Field({ description: 'The address of the collaboration contract.', nullable: true })
-    @IsOptional()
-    readonly address?: string;
-
-    @IsString()
-    @Field({ description: 'The wallet of the collaboration.', nullable: true })
+@InputType()
+export class CreateCollaborationInput extends OmitType(PartialType(Collaboration, InputType), [
+    'id',
+    'createdAt',
+    'updatedAt',
+    'wallet',
+    'collection',
+    'user',
+    'organization',
+    'collaborators',
+]) {
+    @Field({ nullable: true })
     readonly walletId?: string;
 
-    @IsString()
-    @Field({ description: 'The user of the collaboration.', nullable: true })
+    @Field({ nullable: true })
     readonly userId?: string;
 
-    @IsString()
-    @Field({ description: 'The organization of the collaboration.', nullable: true })
+    @Field({ nullable: true })
     readonly organizationId?: string;
 
-    @IsNumber()
-    @Field((type) => Int, { description: 'The royalty rate of the collaboration.', nullable: true, defaultValue: 0 })
-    readonly royaltyRate?: number;
-
     @IsArray()
-    @Field((type) => [CollaboratorInput], { description: 'All collaborators of this collaboration.', nullable: true })
+    @Field((type) => [CollaboratorInput], { description: 'All collaborators of this collaboration', nullable: true })
     readonly collaborators?: CollaboratorInput[];
 }
 
 @InputType()
-export class CollaboratorInput {
-    @IsString()
-    @Field({ description: 'The collaborator role of the collaboration.' })
-    role: string;
-
-    @IsString()
-    @Field({ description: 'The collaborator name of the collaboration.' })
-    name: string;
-
-    @IsString()
-    @Field({ description: 'The user address of the collaboration.' })
-    address: string;
-
-    @IsNumber()
-    @Field((type) => Int, { description: 'All collaborators of this collaboration.' })
-    rate: number;
-}
-
-@ObjectType()
-export class CollaboratorOutput {
-    @IsString()
-    @Field({ description: 'The collaborator role of the collaboration.' })
-    role: string;
-
-    @IsString()
-    @Field({ description: 'The collaborator name of the collaboration.' })
-    name: string;
-
-    @IsString()
-    @Field({ description: 'The user address of the collaboration.' })
-    address: string;
-
-    @IsNumber()
-    @Field((type) => Int, { description: 'The royalty rate of the collaboration.' })
-    rate: number;
-}
-
-@InputType('CollaborationInput')
-export class CollaborationInput {
-    @IsString()
-    @Field(() => ID!, { description: 'The ID of the collaboration.' })
-    readonly id: string;
-}
+export class CollaborationInput extends PickType(Collaboration, ['id'], InputType) {}

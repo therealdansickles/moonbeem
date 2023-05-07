@@ -237,7 +237,6 @@ describe('CollaborationService', () => {
         it('should return a collaboration with its wallet and collection', async () => {
             const result = await service.getCollaboration(collaboration.id);
             expect(result.wallet).toBeDefined();
-            expect(result.collection).toBeDefined();
         });
     });
 
@@ -273,8 +272,6 @@ describe('CollaborationService', () => {
                 newUser.id,
                 organization.id
             );
-            // expect(result.wallet.owner.id).toEqual(newUser.id);
-            // expect(result.collection.organization.id).toEqual(organization.id);
             expect(result.user.id).toEqual(newUser.id);
             expect(result.organization.id).toEqual(organization.id);
         });

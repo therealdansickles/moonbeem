@@ -20,16 +20,23 @@ export class CollaborationService {
      * @returns The collaboration associated with the given id.
      */
     async getCollaboration(id: string): Promise<Collaboration> {
-        return await this.collaborationRepository.findOne({ where: { id }, relations: ['collection', 'wallet'] });
+        return await this.collaborationRepository.findOne({
+            where: { id },
+            relations: ['wallet', 'user', 'organization'],
+        });
     }
 
     /**
      * Retrieves all collaborations related for a given user and organization.
+     *
+     * @param userId The id of the user to retrieve collaborations for.
+     * @param organizationId The id of the organization to retrieve collaborations for.
+     * @returns The collaborations associated with the given user and organization.
      */
     async getCollaborationsByUserIdAndOrganizationId(userId: string, organizationId: string): Promise<Collaboration[]> {
         return await this.collaborationRepository.find({
             where: { user: { id: userId }, organization: { id: organizationId } },
-            relations: ['user', 'organization'],
+            relations: ['wallet', 'user', 'organization'],
         });
     }
 
@@ -41,17 +48,12 @@ export class CollaborationService {
      */
     async createCollaboration(data: CreateCollaborationInput): Promise<Collaboration> {
         const dd = data as unknown as Collaboration;
-        // if (data.collectionId) dd.collection = data.collectionId as unknown as Collection;
         if (data.walletId) dd.wallet = data.walletId as unknown as Wallet;
         if (data.userId) dd.user = data.userId as unknown as User;
         if (data.organizationId) dd.organization = data.organizationId as unknown as Organization;
-        // return await this.collaborationRepository.save(dd);
-        const saveResult = await this.collaborationRepository.save(dd);
 
-        return await this.collaborationRepository.findOne({
-            where: { id: saveResult.id },
-            relations: ['wallet', 'user', 'collection', 'organization'],
-        });
+        const result = await this.collaborationRepository.save(dd);
+        return await this.getCollaboration(result.id);
     }
 
     // Example: query a nested field
