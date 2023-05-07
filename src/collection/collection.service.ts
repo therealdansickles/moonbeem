@@ -38,7 +38,7 @@ export class CollectionService {
     async getCollection(id: string): Promise<Collection | null> {
         return await this.collectionRepository.findOne({
             where: { id },
-            relations: ['organization', 'tiers'],
+            relations: ['organization', 'tiers', 'creator'],
         });
     }
 
@@ -83,6 +83,19 @@ export class CollectionService {
         }
 
         return result;
+    }
+
+    /**
+     * Retrieves the collection associated with the given wallet.
+     *
+     * @param walletId The id of the wallet to retrieve.
+     * @returns The collection associated with the given wallet.
+     */
+    async getCreatedCollectionsByWalletId(walletId: string): Promise<Collection[]> {
+        return await this.collectionRepository.find({
+            where: { creator: { id: walletId } },
+            relations: ['organization', 'tiers', 'creator'],
+        });
     }
 
     /**
@@ -154,6 +167,13 @@ export class CollectionService {
         }
     }
 
+    // FIXME: We should clean this up and remove/merge createCollection then.
+    /**
+     * Creates a new collection with the given tiers.
+     *
+     * @param data The data to use when creating the collection.
+     * @returns The newly created collection.
+     */
     async createCollectionWithTiers(data: CreateCollectionInput) {
         const { tiers, collaboration, ...collection } = data;
         const kind = collectionEntity.CollectionKind;

@@ -188,3 +188,10 @@ export class UpdateWalletInput {
     @IsOptional()
     spotify?: string;
 }
+
+@InputType('WalletInput')
+export class WalletInput {
+    @IsString()
+    @Field((returns) => ID!)
+    id: string;
+}

@@ -10,10 +10,12 @@ import {
 } from './wallet.dto';
 import { Public } from '../lib/decorators/public.decorator';
 import { WalletService } from './wallet.service';
+import { Collection } from '../collection/collection.dto';
+import { CollectionService } from '../collection/collection.service';
 
 @Resolver(() => Wallet)
 export class WalletResolver {
-    constructor(private readonly walletService: WalletService) {}
+    constructor(private readonly walletService: WalletService, private readonly collectionService: CollectionService) {}
 
     @Public()
     @Query((returns) => Wallet, {
@@ -70,5 +72,10 @@ export class WalletResolver {
     })
     async estimatedValue(@Parent() wallet: Wallet): Promise<string> {
         return await this.walletService.getEstimatesByAddress(wallet.address);
+    }
+
+    @ResolveField(() => [Collection], { description: 'Retrieve the owned collections by the wallet address.' })
+    async createdCollections(@Parent() wallet: Wallet): Promise<Collection[]> {
+        return await this.collectionService.getCreatedCollectionsByWalletId(wallet.id);
     }
 }

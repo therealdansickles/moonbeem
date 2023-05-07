@@ -12,7 +12,7 @@ import {
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 //import { Contract } from '../contract/contract.entity';
-//import { Wallet } from '../wallet/wallet.entity';
+import { Wallet } from '../wallet/wallet.entity';
 import { Organization } from '../organization/organization.entity';
 import { Collaboration } from '../collaboration/collaboration.entity';
 import { Tier } from '../tier/tier.entity';
@@ -89,8 +89,9 @@ export class Collection extends BaseEntity {
     @Column({ nullable: true, comment: 'The discord handle for the collection.' })
     discord?: string;
 
-    //@ManyToOne(() => Wallet, (wallet) => wallet.createdCollections)
-    //creator: Wallet;
+    @ManyToOne(() => Wallet, (wallet) => wallet.createdCollections)
+    @JoinColumn()
+    creator: Wallet;
 
     @OneToMany(() => Tier, (tier) => tier.collection, { nullable: true })
     tiers?: Tier[];

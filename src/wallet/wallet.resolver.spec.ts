@@ -502,4 +502,45 @@ describe('WalletResolver', () => {
                 });
         });
     });
+
+    describe('createdCollections', () => {
+        it('should get created collections by wallet', async () => {
+            const wallet = await service.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                tiers: [],
+                creator: { id: wallet.id },
+            });
+
+            const query = gql`
+                query CreatedCollections($address: String!) {
+                    wallet(address: $address) {
+                        createdCollections {
+                            name
+                        }
+                    }
+                }
+            `;
+
+            const variables = {
+                address: wallet.address,
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    const [firstCollection, ..._rest] = body.data.wallet.createdCollections;
+                    expect(firstCollection.name).toEqual(collection.name);
+                });
+        });
+    });
 });

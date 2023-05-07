@@ -22,8 +22,8 @@ export class Wallet extends BaseEntity {
     @Column({ length: 64, unique: true, comment: 'The Ethereum address' })
     address: string;
 
-    //@OneToMany(() => Collection, (collection) => collection.creator, { lazy: true })
-    //createdCollections?: Collection[];
+    @OneToMany(() => Collection, (collection) => collection.creator)
+    createdCollections?: Collection[];
 
     @OneToMany(() => Collaboration, (collaboration) => collaboration.wallet, { lazy: true })
     collaborations?: Collaboration[];

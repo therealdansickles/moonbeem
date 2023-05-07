@@ -7,27 +7,31 @@ import { postgresConfig } from '../lib/configs/db.config';
 import { Collection, CollectionKind } from './collection.entity';
 import { CollectionService } from './collection.service';
 import { CollectionModule } from './collection.module';
+import { Coin } from '../sync-chain/coin/coin.entity';
+import { CoinModule } from '../sync-chain/coin/coin.module';
+import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { Organization } from '../organization/organization.entity';
 import { OrganizationService } from '../organization/organization.service';
-import { UserService } from '../user/user.service';
-import { TierService } from '../tier/tier.service';
 import { TierModule } from '../tier/tier.module';
-import { CoinService } from '../sync-chain/coin/coin.service';
-import { CoinModule } from '../sync-chain/coin/coin.module';
-import { Coin } from '../sync-chain/coin/coin.entity';
+import { TierService } from '../tier/tier.service';
+import { UserService } from '../user/user.service';
+import { Wallet } from '../wallet/wallet.entity';
+import { WalletModule } from '../wallet/wallet.module';
+import { WalletService } from '../wallet/wallet.service';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
     let service: CollectionService;
-    let organizationService: OrganizationService;
-    let mintSaleTransactionService: MintSaleTransactionService;
-    let userService: UserService;
-    let tierService: TierService;
-    let coinService: CoinService;
     let coin: Coin;
+    let coinService: CoinService;
+    let mintSaleTransactionService: MintSaleTransactionService;
+    let organizationService: OrganizationService;
+    let tierService: TierService;
+    let userService: UserService;
+    let walletService: WalletService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -65,6 +69,7 @@ describe('CollectionService', () => {
         userService = module.get<UserService>(UserService);
         tierService = module.get<TierService>(TierService);
         coinService = module.get<CoinService>(CoinService);
+        walletService = module.get<WalletService>(WalletService);
 
         coin = await coinService.createCoin({
             address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
@@ -102,7 +107,11 @@ describe('CollectionService', () => {
                 owner: owner,
             });
 
-            const collection = await repository.save({
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await service.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -110,10 +119,13 @@ describe('CollectionService', () => {
                 artists: [],
                 tags: [],
                 organization: organization,
+                creator: { id: wallet.id },
             });
+
             const result = await service.getCollection(collection.id);
             expect(result.id).not.toBeNull();
             expect(result.organization.name).not.toBeNull();
+            expect(result.creator.id).toEqual(wallet.id);
         });
 
         it('should get a collection by id with tiers', async () => {
@@ -291,6 +303,51 @@ describe('CollectionService', () => {
         });
     });
 
+    describe('getCreatedCollectionsByWalletId', () => {
+        it('should get collections by wallet', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await service.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                tiers: [],
+                organization: {
+                    id: organization.id,
+                },
+                creator: { id: wallet.id },
+            });
+
+            const [result, ..._rest] = await service.getCreatedCollectionsByWalletId(wallet.id);
+
+            expect(result).toBeDefined();
+            expect(result.creator.id).toEqual(wallet.id);
+            expect(result.organization.id).toEqual(organization.id);
+        });
+    });
+
     describe('createCollection', () => {
         it('should create a collection', async () => {
             const owner = await userService.createUser({
@@ -311,12 +368,15 @@ describe('CollectionService', () => {
                 owner: owner,
             });
 
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
             const collection = await service.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
-                artists: [],
                 tags: [],
                 tiers: [
                     {
@@ -327,11 +387,13 @@ describe('CollectionService', () => {
                 organization: {
                     id: organization.id,
                 },
+                creatorId: wallet.id,
             });
 
             expect(collection).toBeDefined();
             expect(collection.displayName).toEqual('The best collection');
             expect(collection.organization.id).toEqual(organization.id);
+            expect(collection.creatorId).toEqual(wallet.id);
         });
     });
 

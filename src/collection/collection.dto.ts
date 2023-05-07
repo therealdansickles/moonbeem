@@ -7,6 +7,7 @@ import { Attribute, Tier } from '../tier/tier.dto';
 import { Organization, OrganizationInput } from '../organization/organization.dto';
 import { CollaborationInput } from '../collaboration/collaboration.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
+import { Wallet, WalletInput } from '../wallet/wallet.dto';
 
 registerEnumType(CollectionKind, { name: 'CollectionKind' });
 
@@ -115,8 +116,12 @@ export class Collection {
 
     @ApiProperty()
     @IsString()
-    @Field({ description: 'The wallet that created the collection.', nullable: true })
+    @Field({ description: 'The wallet id that created the collection.', nullable: true })
     readonly creatorId?: string;
+
+    @IsObject()
+    @Field(() => Wallet, { description: 'The wallet that created the collection.', nullable: true })
+    readonly creator?: Wallet;
 
     @ApiProperty()
     @Field((type) => MintSaleContract, { description: 'The collection contract', nullable: true })
@@ -214,6 +219,10 @@ export class CreateCollectionInput {
     @Field({ description: 'The description for the collection.', nullable: true })
     @IsOptional()
     readonly creatorId?: string;
+
+    @IsObject()
+    @Field(() => WalletInput, { description: 'The wallet that created the collection.', nullable: true })
+    readonly creator?: WalletInput;
 
     @IsObject()
     @Field((type) => OrganizationInput, { description: 'The organization that owns the collection.' })
