@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID, InputType, registerEnumType } from '@nestjs/graphql';
+import { ObjectType, Field, ID, InputType, registerEnumType, Int } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsDateString, IsNumber, IsBoolean, IsNumberString, IsObject, IsArray } from 'class-validator';
 import { OrganizationInput } from '../../organization/organization.dto';
@@ -167,23 +167,27 @@ export class CreateMerkleRootOutput {
 
 @ObjectType()
 export class GetMerkleProofOutput {
-    @ApiProperty()
     @IsString()
     @Field({ description: 'User Address' })
     address: string;
 
-    @ApiProperty()
     @IsString()
     @Field({ description: 'Available Amount' })
     amount: string;
 
-    @ApiProperty()
     @IsString()
     @Field((type) => [String], { description: 'Merkle Proof' })
     proof: string[];
 
-    @ApiProperty()
     @IsBoolean()
     @Field({ description: 'Status' })
     success: boolean;
+
+    @Field((type) => Int, {
+        nullable: true,
+        defaultValue: 0,
+        description: 'Given merekleRoot and collection, return the number of available',
+    })
+    @IsNumber()
+    usable?: number;
 }

@@ -224,6 +224,9 @@ type GetMerkleProofOutput {
 
   """Status"""
   success: Boolean!
+
+  """Given merekleRoot and collection, return the number of available"""
+  usable: Int
 }
 
 type Collection {
@@ -287,8 +290,11 @@ type Collection {
   """The DateTime that this collection was last updated."""
   updatedAt: DateTime!
 
-  """The wallet that created the collection."""
+  """The wallet id that created the collection."""
   creatorId: String
+
+  """The wallet that created the collection."""
+  creator: Wallet
 
   """The collection contract"""
   contract: MintSaleContract
@@ -480,6 +486,9 @@ type Wallet {
   Retrieve the estimated value of a address holdings/minted collections by address.
   """
   estimatedValue: String!
+
+  """Retrieve the owned collections by the wallet address."""
+  createdCollections: [Collection!]!
 }
 
 """The NFT minted by a wallet."""
@@ -1188,16 +1197,16 @@ type Query {
   mintSaleContract(id: String!): MintSaleContract!
 
   """Merkle Tree Verify"""
-  getMerkleProof(address: String!, merkleRoot: String!): GetMerkleProofOutput
+  getMerkleProof(address: String!, merkleRoot: String!, collectionAddress: String, tierId: Float): GetMerkleProofOutput
+
+  """returns transaction for a given uuid"""
+  transaction(id: String!): MintSaleTransaction!
 
   """returns a factory contract for a given uuid"""
   factory(id: String!): Factory!
 
   """returns a factory list for a given chain id"""
   factories(chainId: Int!): [Factory!]!
-
-  """returns transaction for a given uuid"""
-  transaction(id: String!): MintSaleTransaction!
 
   """Get a specific tier by id."""
   tier(id: String!): Tier
@@ -1496,6 +1505,9 @@ input CreateCollectionInput {
   """The description for the collection."""
   creatorId: String
 
+  """The wallet that created the collection."""
+  creator: WalletInput
+
   """The organization that owns the collection."""
   organization: OrganizationInput!
 
@@ -1504,6 +1516,10 @@ input CreateCollectionInput {
 
   """This tiers for collection"""
   tiers: [CreateTierInCollectionInput!]
+}
+
+input WalletInput {
+  id: ID!
 }
 
 input OrganizationInput {
@@ -1632,7 +1648,7 @@ input CreateOrganizationInput {
   """
   The image url for the avatar of the organization. This is the profile picture.
   """
-  avatarUrl: String!
+  avatarUrl: String
 
   """The image url for the background of the organization."""
   backgroundUrl: String
@@ -1652,11 +1668,25 @@ input CreateOrganizationInput {
   discord: String
 
   """emails to invite to the org"""
-  invites: [String!]
+  invites: [OrganizationInviteItemInput!]
 }
 
 input UserInput {
   id: ID!
+}
+
+input OrganizationInviteItemInput {
+  """emails to invite to the org."""
+  email: String!
+
+  """canEdit for the membership."""
+  canEdit: Boolean!
+
+  """canDeploy for the membership."""
+  canDeploy: Boolean!
+
+  """canManage for the membership."""
+  canManage: Boolean!
 }
 
 input UpdateOrganizationInput {

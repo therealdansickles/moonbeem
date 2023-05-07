@@ -15,6 +15,8 @@ import { encodeAddressAndAmount } from '../../lib/utilities/merkle';
 import { keccak256 } from 'ethers/lib/utils';
 import { Factory } from '../factory/factory.entity';
 import { FactoryService } from '../factory/factory.service';
+import { MintSaleTransaction } from '../mint-sale-transaction/mint-sale-transaction.entity';
+import { GraphQLError } from 'graphql';
 // import { MerkleTree } from 'merkletreejs';
 const { MerkleTree } = require('merkletreejs');
 
@@ -23,6 +25,8 @@ export class MintSaleContractService {
     constructor(
         @InjectRepository(MintSaleContractEntity.MintSaleContract, 'sync_chain')
         private readonly contractRepository: Repository<MintSaleContractEntity.MintSaleContract>,
+        @InjectRepository(MintSaleTransaction, 'sync_chain')
+        private readonly transactionRepository: Repository<MintSaleTransaction>,
         private factoreService: FactoryService,
         private readonly mongoRepository: MongoAdapter
     ) {}
@@ -64,7 +68,12 @@ export class MintSaleContractService {
         return { success: true, merkleRoot: tree.getHexRoot() };
     }
 
-    async getMerkleProof(address: string, merkleRoot: string): Promise<GetMerkleProofOutput> {
+    async getMerkleProof(
+        address: string,
+        merkleRoot: string,
+        collectionAddress?: string,
+        tierId?: number
+    ): Promise<GetMerkleProofOutput> {
         const merkleTreeData = await this.mongoRepository.db.collection('merkleTree').findOne({ root: merkleRoot });
         if (!merkleTreeData) throw new Error('Invalid Merkle Tree');
         const tree = this.createMerkleTree(merkleTreeData.data);
@@ -72,11 +81,35 @@ export class MintSaleContractService {
         for (let data of merkleTreeData.data as CreateMerkleRootData[]) {
             if (data.address.toLocaleLowerCase() == address.toLocaleLowerCase()) {
                 const merkleProof = tree.getHexProof(encodeAddressAndAmount(data.address, parseInt(data.amount)));
+
+                let count = 0;
+                if (collectionAddress) {
+                    const contract = await this.contractRepository.findOneBy({
+                        address: collectionAddress.toLowerCase(),
+                        tierId: tierId ? tierId : 0,
+                    });
+
+                    if (contract.merkleRoot != merkleRoot) {
+                        throw new GraphQLError('The merkleRoot on this collection is invalid.', {
+                            extensions: { code: 'BAD_REQUEST' },
+                        });
+                    }
+
+                    count = await this.transactionRepository.count({
+                        where: {
+                            recipient: address.toLowerCase(),
+                            tierId: tierId,
+                            address: collectionAddress.toLowerCase(),
+                        },
+                    });
+                }
+
                 return {
                     address: data.address.toLocaleLowerCase(),
                     amount: data.amount,
                     proof: merkleProof,
                     success: true,
+                    usable: parseInt(data.amount) - count,
                 };
             }
         }

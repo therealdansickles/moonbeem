@@ -1,4 +1,4 @@
-import { Args, Resolver, Query, Mutation } from '@nestjs/graphql';
+import { Args, Resolver, Query, Mutation, Int } from '@nestjs/graphql';
 import { Public } from '../../lib/decorators/public.decorator';
 import { MintSaleContractService } from './mint-sale-contract.service';
 import {
@@ -28,8 +28,10 @@ export class MintSaleContractResolver {
     @Query(() => GetMerkleProofOutput, { nullable: true, description: 'Merkle Tree Verify' })
     async getMerkleProof(
         @Args('address') address: string,
-        @Args('merkleRoot') merkleRoot: string
+        @Args('merkleRoot') merkleRoot: string,
+        @Args('collectionAddress', { nullable: true, description: '' }) collectionAddress?: string,
+        @Args('tierId', { nullable: true, description: '' }) tierId?: number
     ): Promise<GetMerkleProofOutput> {
-        return await this.mintSaleContractService.getMerkleProof(address, merkleRoot);
+        return await this.mintSaleContractService.getMerkleProof(address, merkleRoot, collectionAddress, tierId);
     }
 }
