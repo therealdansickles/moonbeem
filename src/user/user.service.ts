@@ -4,7 +4,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, UpdateResult } from 'typeorm';
 import { User } from './user.entity';
 import * as Sentry from '@sentry/node';
-import { CreateOrganizationInput } from '../organization/organization.dto';
 import { OrganizationService } from '../organization/organization.service';
 import { OrganizationKind } from '../organization/organization.entity';
 import * as randomstring from 'randomstring';
@@ -41,7 +40,7 @@ export class UserService {
                 displayName: pseudoOrgName,
                 kind: OrganizationKind.Personal,
                 owner: { id: user.id },
-                invites: [user.email],
+                invites: [{ email: user.email, canManage: true, canDeploy: true, canEdit: true }],
             };
             await this.organizationService.createOrganization(defaultOrgPayload);
             return user;

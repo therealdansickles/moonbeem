@@ -10,6 +10,7 @@ import {
     IsOptional,
     IsObject,
     IsArray,
+    IsBoolean,
 } from 'class-validator';
 import { OrganizationKind } from './organization.entity';
 import { User, UserInput } from '../user/user.dto';
@@ -102,7 +103,10 @@ export class CreateOrganizationInput {
     readonly about?: string;
 
     @IsUrl()
-    @Field({ description: 'The image url for the avatar of the organization. This is the profile picture.' })
+    @Field({
+        description: 'The image url for the avatar of the organization. This is the profile picture.',
+        nullable: true,
+    })
     readonly avatarUrl?: string;
 
     @IsUrl()
@@ -136,9 +140,31 @@ export class CreateOrganizationInput {
     readonly discord?: string;
 
     @IsArray()
-    @Field(() => [String], { description: 'emails to invite to the org', nullable: true })
+    @Field((type) => [OrganizationInviteItemInput], { description: 'emails to invite to the org', nullable: true })
     @IsOptional()
-    readonly invites?: string[];
+    readonly invites?: OrganizationInviteItemInput[];
+}
+
+@InputType('OrganizationInviteItemInput')
+class OrganizationInviteItemInput {
+    @IsString()
+    @Field({ description: 'emails to invite to the org.' })
+    readonly email: string;
+
+    @IsBoolean()
+    @IsOptional()
+    @Field({ description: 'canEdit for the membership.' })
+    readonly canEdit?: boolean;
+
+    @IsBoolean()
+    @IsOptional()
+    @Field({ description: 'canDeploy for the membership.' })
+    readonly canDeploy?: boolean;
+
+    @IsBoolean()
+    @IsOptional()
+    @Field({ description: 'canManage for the membership.' })
+    readonly canManage?: boolean;
 }
 
 @InputType()

@@ -94,7 +94,7 @@ describe('AuthService', () => {
                 instagram: faker.internet.userName(),
                 discord: faker.internet.userName(),
                 owner: owner.user,
-                invites: [inviteeEmail],
+                invites: [{ email: inviteeEmail }],
             });
 
             const pendingMembership = await repository.findOne({ where: { email: inviteeEmail.toLowerCase() } });

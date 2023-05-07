@@ -51,9 +51,11 @@ export class OrganizationService {
             for (const invite of invites) {
                 await this.membershipService.createMembership(
                     {
-                        email: invite.toLowerCase(),
+                        email: invite.email.toLowerCase(),
                         organizationId: organization.id,
-                        canEdit: true,
+                        canEdit: invite.canEdit,
+                        canDeploy: invite.canDeploy,
+                        canManage: invite.canManage,
                     },
                     owner
                 );
