@@ -558,6 +558,7 @@ describe('CollectionResolver', () => {
                     collaboration: {
                         id: collaboration.id,
                     },
+                    tags: ['test'],
                 },
             };
 

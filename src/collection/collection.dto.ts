@@ -81,7 +81,7 @@ export class Collection {
     @Field({ description: "The discord handle associated with this collection, e.g. 'vibe-labs", nullable: true })
     readonly discord?: string;
 
-    @IsString()
+    @IsArray()
     @Field((type) => [String], { description: 'The tags associated with this organization.', nullable: true })
     readonly tags?: string[];
 

@@ -75,6 +75,20 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type CollaboratorOutput {
+  """The collaborator role of the collaboration."""
+  role: String!
+
+  """The collaborator name of the collaboration."""
+  name: String!
+
+  """The user address of the collaboration."""
+  address: String!
+
+  """The royalty rate of the collaboration."""
+  rate: Int!
+}
+
 type Collaboration {
   """The ID of the collaboration."""
   id: String!
@@ -94,7 +108,7 @@ type Collaboration {
   """The organization of the collaboration."""
   organization: Organization
 
-  """All collaborators of this collaboration"""
+  """All collaborators of this collaboration."""
   collaborators: [CollaboratorOutput!]
 
   """The royalty rate of the collaboration."""
@@ -105,20 +119,6 @@ type Collaboration {
 
   """The updated datetime of the collaboration."""
   updatedAt: DateTime!
-}
-
-type CollaboratorOutput {
-  """The collaborator role of the collaboration."""
-  role: String!
-
-  """The collaborator name of the collaboration."""
-  name: String!
-
-  """The user address of the collaboration."""
-  address: String!
-
-  """The royalty rate of the collaboration."""
-  rate: Int!
 }
 
 type MintSaleContract {
@@ -290,14 +290,14 @@ type Collection {
   """The DateTime that this collection was last updated."""
   updatedAt: DateTime!
 
-  """The wallet id that created the collection."""
-  creatorId: String
-
   """The wallet that created the collection."""
   creator: Wallet
 
   """The collection contract"""
   contract: MintSaleContract
+
+  """The collaboration of the collection."""
+  collaboration: Collaboration
 
   """returns the buyers of a collection"""
   buyers: [String!]!
@@ -1303,10 +1303,10 @@ type Mutation {
   updateCollection(input: UpdateCollectionInput!): Boolean!
 
   """publishes a collection"""
-  publishCollection(input: PublishCollectionInput!): Boolean!
+  publishCollection(input: CollectionInput!): Boolean!
 
   """delete a unpublished collection"""
-  deleteCollection(input: DeleteCollectionInput!): Boolean!
+  deleteCollection(input: CollectionInput!): Boolean!
 
   """Creates an organization."""
   createOrganization(input: CreateOrganizationInput!): Organization!
@@ -1428,19 +1428,13 @@ input CreateCollaborationInput {
   """The address of the collaboration contract."""
   address: String
 
-  """The wallet of the collaboration."""
+  """The royalty rate of the collaboration."""
+  royaltyRate: Float
   walletId: String
-
-  """The user of the collaboration."""
   userId: String
-
-  """The organization of the collaboration."""
   organizationId: String
 
-  """The royalty rate of the collaboration."""
-  royaltyRate: Int = 0
-
-  """All collaborators of this collaboration."""
+  """All collaborators of this collaboration"""
   collaborators: [CollaboratorInput!]
 }
 
@@ -1454,22 +1448,27 @@ input CollaboratorInput {
   """The user address of the collaboration."""
   address: String!
 
-  """All collaborators of this collaboration."""
+  """The royalty rate of the collaboration."""
   rate: Int!
 }
 
 input CreateCollectionInput {
   """The unique URL-friendly identifier for a collection."""
-  name: String!
-
-  """The name that we display for the collection."""
-  displayName: String!
+  name: String
 
   """The type of collection this is."""
-  kind: CollectionKind!
+  kind: CollectionKind
+
+  """The name that we display for the collection."""
+  displayName: String
 
   """The description for the collection."""
   about: String
+
+  """
+  The address of the collection, e.g. '0x6bf9ec331e083627b0f48332ece2d99a7eb7fb0c'
+  """
+  address: String
 
   """
   The image url for the avatar of the collection. This is the profile picture.
@@ -1494,16 +1493,16 @@ input CreateCollectionInput {
   """The tags associated with this organization."""
   tags: [String!]
 
-  """
-  The address of the collection, e.g. '0x6bf9ec331e083627b0f48332ece2d99a7eb7fb0c'
-  """
-  address: String
+  """The DateTime that this collection was published."""
+  publishedAt: DateTime
 
-  """The chainId of the collection."""
-  chainId: Int
+  """
+  The DateTime that this collection was created(initially created as a draft).
+  """
+  createdAt: DateTime
 
-  """The description for the collection."""
-  creatorId: String
+  """The DateTime that this collection was last updated."""
+  updatedAt: DateTime
 
   """The wallet that created the collection."""
   creator: WalletInput
@@ -1529,7 +1528,7 @@ input OrganizationInput {
 
 input CollaborationInput {
   """The ID of the collaboration."""
-  id: ID!
+  id: String!
 }
 
 input CreateTierInCollectionInput {
@@ -1578,25 +1577,22 @@ input Attribute {
 }
 
 input UpdateCollectionInput {
-  """The id for a collection."""
-  id: String!
-
   """The unique URL-friendly identifier for a collection."""
   name: String
 
+  """The type of collection this is."""
+  kind: CollectionKind
+
   """The name that we display for the collection."""
   displayName: String
+
+  """The description for the collection."""
+  about: String
 
   """
   The address of the collection, e.g. '0x6bf9ec331e083627b0f48332ece2d99a7eb7fb0c'
   """
   address: String
-
-  """The chainId of the collection."""
-  chainId: Int
-
-  """The description for the collection."""
-  about: String
 
   """
   The image url for the avatar of the collection. This is the profile picture.
@@ -1620,15 +1616,27 @@ input UpdateCollectionInput {
 
   """The tags associated with this organization."""
   tags: [String!]
-}
 
-input PublishCollectionInput {
+  """The DateTime that this collection was published."""
+  publishedAt: DateTime
+
+  """
+  The DateTime that this collection was created(initially created as a draft).
+  """
+  createdAt: DateTime
+
+  """The DateTime that this collection was last updated."""
+  updatedAt: DateTime
+
+  """The wallet that created the collection."""
+  creator: WalletInput
+
   """The id for a collection."""
   id: String!
 }
 
-input DeleteCollectionInput {
-  """The id for a collection."""
+input CollectionInput {
+  """The ID for a collection"""
   id: String!
 }
 
@@ -1844,10 +1852,6 @@ input CreateTierInput {
 
   """This merekleRoot of tier."""
   merkleRoot: String
-}
-
-input CollectionInput {
-  id: ID!
 }
 
 input UpdateTierInput {
