@@ -120,9 +120,7 @@ export class AuthService {
             user = await this.userService.createUserWithOrganization(userPayload);
         } catch (e) {
             Sentry.captureException(e);
-            throw new GraphQLError('Failed to create user.', {
-                extensions: { code: 'INTERNAL_SERVER_ERROR' },
-            });
+            throw e;
         }
 
         try {

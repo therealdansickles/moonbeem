@@ -46,6 +46,12 @@ export class UserService {
             return user;
         } catch (e) {
             Sentry.captureException(e);
+            if (e.routine === '_bt_check_unique') {
+                throw new GraphQLError(`User already exists.`, {
+                    extensions: { code: 'BAD_REQUEST' },
+                });
+            }
+
             throw new GraphQLError(`Failed to create user ${payload.name} with organization`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });

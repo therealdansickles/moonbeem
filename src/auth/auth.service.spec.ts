@@ -13,6 +13,7 @@ import { UserService } from '../user/user.service';
 import { MembershipService } from '../membership/membership.service';
 import { MembershipModule } from '../membership/membership.module';
 import { Membership } from '../membership/membership.entity';
+import { GraphQLError } from 'graphql';
 
 describe('AuthService', () => {
     let service: AuthService;
@@ -73,6 +74,25 @@ describe('AuthService', () => {
 
             expect(user.sessionToken).toBeDefined();
             expect(user.user.email).toEqual(email.toLowerCase());
+        });
+
+        it('should not create a user that already exists', async () => {
+            const email = faker.internet.email();
+
+            const user = await service.createUserWithEmail({
+                email,
+                password: faker.internet.password(),
+            });
+
+            expect(user.sessionToken).toBeDefined();
+            expect(user.user.email).toEqual(email.toLowerCase());
+
+            expect(async () => {
+                await service.createUserWithEmail({
+                    email,
+                    password: faker.internet.password(),
+                });
+            }).rejects.toThrow('User already exists.');
         });
 
         it('should create a user that was invited to an org and accept its membership', async () => {
