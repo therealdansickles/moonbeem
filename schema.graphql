@@ -28,7 +28,7 @@ type Organization {
   displayName: String!
 
   """The type of organization this is. e.g 'personal', 'general'."""
-  kind: Float!
+  kind: OrganizationKind
 
   """The description for the organization."""
   about: String
@@ -71,6 +71,11 @@ type Organization {
 
   """Returns the members for the given organization"""
   collaborations: [Collaboration!]!
+}
+
+enum OrganizationKind {
+  personal
+  general
 }
 
 """

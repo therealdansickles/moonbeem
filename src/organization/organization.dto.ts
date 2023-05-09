@@ -1,4 +1,4 @@
-import { ArgsType, Field, Int, ObjectType, InputType, ID } from '@nestjs/graphql';
+import { ArgsType, Field, Int, ObjectType, InputType, ID, registerEnumType } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
 import {
     IsNumber,
@@ -14,6 +14,8 @@ import {
 } from 'class-validator';
 import { OrganizationKind } from './organization.entity';
 import { User, UserInput } from '../user/user.dto';
+
+registerEnumType(OrganizationKind, { name: 'OrganizationKind' });
 
 @ObjectType('Organization')
 export class Organization {
@@ -34,7 +36,7 @@ export class Organization {
 
     @IsOptional()
     @IsEnum(OrganizationKind)
-    @Field({ description: "The type of organization this is. e.g 'personal', 'general'." })
+    @Field((type) => OrganizationKind, { description: "The type of organization this is. e.g 'personal', 'general'.", nullable: true })
     readonly kind?: OrganizationKind;
 
     @IsString()

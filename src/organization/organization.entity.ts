@@ -16,9 +16,10 @@ import { Collection } from '../collection/collection.entity';
 import { Membership } from '../membership/membership.entity';
 import { User } from '../user/user.entity';
 
+// see https://stackoverflow.com/questions/55598213/enums-not-working-with-nestjs-and-graphql
 export enum OrganizationKind {
-    Personal,
-    General,
+    personal = 'personal',
+    general = 'general',
 }
 
 @Entity({ name: 'Organization' })
@@ -39,7 +40,7 @@ export class Organization extends BaseEntity {
     @Column({
         type: 'enum',
         enum: OrganizationKind,
-        default: OrganizationKind.General,
+        default: OrganizationKind.general,
         comment:
             'The type of organization that this is. * `personal` - default organization with your account. * `general` - Bulk generation of NFTs.',
     })

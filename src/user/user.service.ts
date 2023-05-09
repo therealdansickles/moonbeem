@@ -38,7 +38,7 @@ export class UserService {
             const defaultOrgPayload = {
                 name: pseudoOrgName,
                 displayName: pseudoOrgName,
-                kind: OrganizationKind.Personal,
+                kind: OrganizationKind.personal,
                 owner: { id: user.id },
                 invites: [{ email: user.email, canManage: true, canDeploy: true, canEdit: true }],
             };
