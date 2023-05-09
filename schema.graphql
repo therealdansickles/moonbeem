@@ -488,7 +488,7 @@ type Wallet {
   """
   Retrieve the estimated value of a address holdings/minted collections by address.
   """
-  estimatedValue: String!
+  estimatedValue: [EstimatedValue!]!
 
   """Retrieve the owned collections by the wallet address."""
   createdCollections: [Collection!]!
@@ -543,6 +543,20 @@ type Activity {
 
   """The activity type."""
   type: String!
+}
+
+"""
+The estimated value of a address holdings/minted collections by address
+"""
+type EstimatedValue {
+  """the payment token used"""
+  paymentTokenAddress: String!
+
+  """The estimated value."""
+  total: String!
+
+  """The estimated value in USDC."""
+  totalUSDC: String
 }
 
 type User {

@@ -7,6 +7,7 @@ import {
     Minted,
     UpdateWalletInput,
     Activity,
+    EstimatedValue,
 } from './wallet.dto';
 import { Public } from '../lib/decorators/public.decorator';
 import { WalletService } from './wallet.service';
@@ -67,10 +68,10 @@ export class WalletResolver {
         return await this.walletService.updateWallet(id, payload);
     }
 
-    @ResolveField(() => String, {
+    @ResolveField(() => [EstimatedValue], {
         description: 'Retrieve the estimated value of a address holdings/minted collections by address.',
     })
-    async estimatedValue(@Parent() wallet: Wallet): Promise<string> {
+    async estimatedValue(@Parent() wallet: Wallet): Promise<EstimatedValue[]> {
         return await this.walletService.getEstimatesByAddress(wallet.address);
     }
 

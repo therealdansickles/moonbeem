@@ -6,7 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
     imports: [TypeOrmModule.forFeature([Coin], 'sync_chain')],
-    exports: [CoinModule],
+    exports: [CoinModule, CoinService],
     providers: [CoinResolver, CoinService],
 })
 export class CoinModule {}

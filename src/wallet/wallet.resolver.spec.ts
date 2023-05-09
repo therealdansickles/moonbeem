@@ -483,7 +483,11 @@ describe('WalletResolver', () => {
                     wallet(address: $address) {
                         id
                         address
-                        estimatedValue
+                        estimatedValue {
+                            total
+                            totalUSDC
+                            paymentTokenAddress
+                        }
                     }
                 }
             `;
@@ -497,8 +501,9 @@ describe('WalletResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.data.wallet.estimatedValue).toBeTruthy();
-                    expect(+body.data.wallet.estimatedValue).toBeGreaterThan(0);
+                    expect(body.data.wallet.estimatedValue).toBeDefined();
+                    expect(+body.data.wallet.estimatedValue[0].total).toBeGreaterThan(0);
+                    expect(+body.data.wallet.estimatedValue[0].paymentTokenAddress).toBeDefined();
                 });
         });
     });

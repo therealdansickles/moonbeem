@@ -102,8 +102,17 @@ export class Activity extends PickType(MintSaleTransaction, [
 })
 export class EstimatedValue {
     @IsString()
+    @Field({ description: 'the payment token used' })
+    readonly paymentTokenAddress: string;
+
+    @IsString()
     @Field({ description: 'The estimated value.' })
-    readonly estimatedValue: string;
+    readonly total: string;
+
+    @IsString()
+    @Field({ description: 'The estimated value in USDC.', nullable: true })
+    @IsOptional()
+    readonly totalUSDC?: string;
 }
 
 @InputType()

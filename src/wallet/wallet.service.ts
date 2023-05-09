@@ -6,12 +6,20 @@ import { ethers } from 'ethers';
 import BigNumber from 'bignumber.js';
 import * as Sentry from '@sentry/node';
 
-import { BindWalletInput, CreateWalletInput, UnbindWalletInput, Minted, UpdateWalletInput } from './wallet.dto';
+import {
+    BindWalletInput,
+    CreateWalletInput,
+    UnbindWalletInput,
+    Minted,
+    UpdateWalletInput,
+    EstimatedValue,
+} from './wallet.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { User } from '../user/user.entity';
 import { Wallet } from './wallet.entity';
 import { Tier } from '../tier/tier.entity';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
+import { CoinService } from '../sync-chain/coin/coin.service';
 
 interface ITokenPrice {
     token: string;
@@ -27,7 +35,8 @@ export class WalletService {
         @InjectRepository(MintSaleTransaction, 'sync_chain')
         private mintSaleTransactionRepository: Repository<MintSaleTransaction>,
         @InjectRepository(MintSaleContract, 'sync_chain')
-        private mintSaleContractRepository: Repository<MintSaleContract>
+        private mintSaleContractRepository: Repository<MintSaleContract>,
+        private coinService: CoinService
     ) {}
 
     /**
@@ -256,18 +265,26 @@ export class WalletService {
      * @param address
      * @returns
      */
-    async getEstimatesByAddress(address: string): Promise<string> {
+    async getEstimatesByAddress(address: string): Promise<EstimatedValue[]> {
+        const values: EstimatedValue[] = [];
         const wallet = await this.getWalletByAddress(address);
         if (!wallet) throw new Error(`Wallet with address ${address} doesn't exist.`);
 
-        const priceByToken = await this.getValueGroupByToken(address);
-        const total = priceByToken.reduce((total, tokenPrice) => {
-            const price = new BigNumber(tokenPrice.price);
-            if (!price.isNaN()) total = total.plus(price);
-            return total;
-        }, new BigNumber(0));
-        // check again
-        return total.isNaN() ? '0' : total.toString();
+        const priceTokenGroups = await this.getValueGroupByToken(address);
+
+        for (const group of priceTokenGroups) {
+            const coin = await this.coinService.getCoinByAddress(group.token);
+            const usdcValue = coin?.derivedUSDC || '0';
+            const price = group?.price || '0';
+
+            values.push({
+                paymentTokenAddress: group.token,
+                total: price,
+                totalUSDC: new BigNumber(price).multipliedBy(usdcValue).toString(),
+            });
+        }
+
+        return values;
     }
 
     /**
@@ -280,7 +297,7 @@ export class WalletService {
             const records = await this.mintSaleContractRepository
                 .createQueryBuilder('mintSaleContract')
                 .select([])
-                .leftJoinAndSelect(
+                .innerJoinAndSelect(
                     'MintSaleTransaction',
                     'mintSaleTransaction',
                     'mintSaleTransaction.address = mintSaleContract.address AND mintSaleTransaction.tierId = mintSaleContract.tierId'

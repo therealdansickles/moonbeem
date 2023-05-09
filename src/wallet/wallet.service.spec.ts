@@ -488,8 +488,8 @@ describe('WalletService', () => {
                 tokenAddress: faker.finance.ethereumAddress(),
             });
 
-            const total = await service.getEstimatesByAddress(sender1);
-            expect(+total).toBeGreaterThan(0);
+            const estimatedValue = await service.getEstimatesByAddress(sender1);
+            expect(+estimatedValue[0].total).toBeGreaterThan(0);
         });
     });
 });
