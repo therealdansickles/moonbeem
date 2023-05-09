@@ -44,7 +44,10 @@ export class Organization {
 
     @IsOptional()
     @IsUrl()
-    @Field({ description: 'The image url for the avatar of the organization. This is the profile picture.' })
+    @Field({
+        description: 'The image url for the avatar of the organization. This is the profile picture.',
+        nullable: true,
+    })
     readonly avatarUrl?: string;
 
     @IsUrl()

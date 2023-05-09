@@ -36,7 +36,7 @@ type Organization {
   """
   The image url for the avatar of the organization. This is the profile picture.
   """
-  avatarUrl: String!
+  avatarUrl: String
 
   """The image url for the background of the organization."""
   backgroundUrl: String
@@ -68,6 +68,9 @@ type Organization {
 
   """Returns the members for the given organization"""
   memberships: [Membership!]!
+
+  """Returns the members for the given organization"""
+  collaborations: [Collaboration!]!
 }
 
 """
