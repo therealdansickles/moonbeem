@@ -27,6 +27,19 @@ export class CollaborationService {
     }
 
     /**
+     * Retrieves all collaborations related for a given organization.
+     *
+     * @param organizationId The id of the user to retrieve collaborations for.
+     * @returns The collaborations associated with the given organization.
+     */
+    async getCollaborationsByOrganizationId(organizationId: string): Promise<Collaboration[]> {
+        return await this.collaborationRepository.find({
+            where: { organization: { id: organizationId } },
+            relations: ['wallet', 'user', 'organization'],
+        });
+    }
+
+    /**
      * Retrieves all collaborations related for a given user and organization.
      *
      * @param userId The id of the user to retrieve collaborations for.

@@ -276,4 +276,40 @@ describe('CollaborationService', () => {
             expect(result.organization.id).toEqual(organization.id);
         });
     });
+
+    describe('getCollaborationsByOrganizationId', () => {
+        it('should return collaborations', async () => {
+            const newUser = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const newWallet = await walletService.createWallet({
+                address: `arb:${faker.finance.ethereumAddress()}`,
+                ownerId: newUser.id,
+            });
+
+            const newCollab = await service.createCollaboration({
+                walletId: newWallet.id,
+                royaltyRate: 12,
+                userId: newUser.id,
+                organizationId: organization.id,
+                collaborators: [
+                    {
+                        address: faker.finance.ethereumAddress(),
+                        role: faker.finance.accountName(),
+                        name: faker.finance.accountName(),
+                        rate: parseInt(faker.random.numeric(2)),
+                    },
+                ],
+            });
+
+            const result = await service.getCollaborationsByOrganizationId(organization.id);
+
+            result.forEach((collaboration) => {
+                expect(collaboration.organization.id).toEqual(organization.id);
+            });
+        });
+    });
 });

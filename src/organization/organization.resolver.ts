@@ -8,6 +8,8 @@ import {
     TransferOrganizationInput,
 } from './organization.dto';
 import { OrganizationService } from './organization.service';
+import { Collaboration } from '../collaboration/collaboration.dto';
+import { CollaborationService } from '../collaboration/collaboration.service';
 import { Collection } from '../collection/collection.dto';
 import { CollectionService } from '../collection/collection.service';
 import { Membership } from '../membership/membership.dto';
@@ -16,9 +18,10 @@ import { MembershipService } from '../membership/membership.service';
 @Resolver(() => Organization)
 export class OrganizationResolver {
     constructor(
-        private readonly organizationService: OrganizationService,
         private readonly collectionService: CollectionService,
-        private readonly membershipService: MembershipService
+        private readonly collaborationService: CollaborationService,
+        private readonly membershipService: MembershipService,
+        private readonly organizationService: OrganizationService
     ) {}
 
     @Public()
@@ -64,5 +67,11 @@ export class OrganizationResolver {
     @ResolveField(() => [Membership], { description: 'Returns the members for the given organization' })
     async memberships(@Parent() organization: Organization): Promise<Membership[]> {
         return await this.membershipService.getMembershipsByOrganizationId(organization.id);
+    }
+
+    @Public()
+    @ResolveField(() => [Collaboration], { description: 'Returns the members for the given organization' })
+    async collaborations(@Parent() organization: Organization): Promise<Collaboration[]> {
+        return await this.collaborationService.getCollaborationsByOrganizationId(organization.id);
     }
 }

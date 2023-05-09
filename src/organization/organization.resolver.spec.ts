@@ -104,6 +104,10 @@ describe('OrganizationResolver', () => {
                         memberships {
                             id
                         }
+
+                        collaborations {
+                            id
+                        }
                     }
                 }
             `;
@@ -120,6 +124,7 @@ describe('OrganizationResolver', () => {
                     expect(body.data.organization.id).toEqual(organization.id);
                     expect(body.data.organization.collections).toBeDefined();
                     expect(body.data.organization.memberships).toBeDefined();
+                    expect(body.data.organization.collaborations).toBeDefined();
                 });
         });
     });

@@ -23,6 +23,6 @@ import { WalletModule } from '../wallet/wallet.module';
     ],
     providers: [CollaborationService, CollaborationResolver],
     controllers: [],
-    exports: [],
+    exports: [CollaborationModule, CollaborationService],
 })
 export class CollaborationModule {}
