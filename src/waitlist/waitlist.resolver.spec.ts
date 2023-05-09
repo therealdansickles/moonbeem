@@ -205,4 +205,42 @@ describe('WaitlistResolver', () => {
                 });
         });
     });
+
+    describe('claimWaitlist', () => {
+        it('should successfully claim a waitlist item by address', async () => {
+            const email = faker.internet.email();
+            const randomWallet = ethers.Wallet.createRandom();
+            const message = 'Hi from tests!';
+            const signature = await randomWallet.signMessage(message);
+
+            const waitlist = await service.createWaitlist({
+                email,
+                address: randomWallet.address,
+                signature,
+                message,
+            });
+
+            const query = gql`
+                mutation ClaimWaitlist($input: ClaimWaitlistInput!) {
+                    claimWaitlist(input: $input)
+                }
+            `;
+
+            const variables = {
+                input: {
+                    address: randomWallet.address,
+                    message,
+                    signature,
+                },
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.claimWaitlist).toBeTruthy();
+                });
+        });
+    });
 });

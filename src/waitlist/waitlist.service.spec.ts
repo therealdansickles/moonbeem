@@ -78,4 +78,55 @@ describe('CollectionService', () => {
             expect(waitlist.twitter).toEqual(twitter);
         });
     });
+
+    describe('claimWaitlist', () => {
+        it('should update a waitlist item', async () => {
+            const email = faker.internet.email();
+            const randomWallet = ethers.Wallet.createRandom();
+            const message = 'Hi from tests!';
+            const signature = await randomWallet.signMessage(message);
+            const twitter = `@${faker.name.firstName()}`;
+
+            const waitlist = await service.createWaitlist({
+                email,
+                address: randomWallet.address,
+                twitter,
+                signature,
+                message,
+            });
+
+            const result = await service.claimWaitlist({
+                address: waitlist.address,
+                signature,
+                message,
+            });
+
+            expect(result).toBeTruthy();
+        });
+
+        it('should throw an error if the signature is invalid', async () => {
+            const email = faker.internet.email();
+            const randomWallet = ethers.Wallet.createRandom();
+            const message = 'YOOOO from tests!';
+            const badMessage = 'im the wrong message to sign';
+            const signature = await randomWallet.signMessage(message);
+            const twitter = `@${faker.name.firstName()}`;
+
+            const waitlist = await service.createWaitlist({
+                email,
+                address: randomWallet.address,
+                twitter,
+                signature,
+                message,
+            });
+
+            await expect(async () => {
+                await service.claimWaitlist({
+                    address: waitlist.address,
+                    message: badMessage,
+                    signature,
+                });
+            }).rejects.toThrow('verification failure');
+        });
+    });
 });

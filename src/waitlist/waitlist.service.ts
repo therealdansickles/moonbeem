@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Waitlist } from './waitlist.entity';
 import { Repository, UpdateResult } from 'typeorm';
-import { CreateWaitlistInput, GetWaitlistInput } from './waitlist.dto';
+import { CreateWaitlistInput, GetWaitlistInput, ClaimWaitlistInput } from './waitlist.dto';
 import { ethers } from 'ethers';
 import { GraphQLError } from 'graphql';
 import * as Sentry from '@sentry/node';
@@ -52,5 +52,24 @@ export class WaitlistService {
                 });
             }
         }
+    }
+
+    /**
+     * Claim a Waitlist.
+     *
+     * @param input The address, signature, and message to claim the waitlist.
+     * @returns A boolean whether or not if the waitlist was claimed.
+     */
+    async claimWaitlist(input: ClaimWaitlistInput): Promise<boolean> {
+        const verifiedAddress = ethers.utils.verifyMessage(input.message, input.signature);
+
+        if (input.address.toLowerCase() !== verifiedAddress.toLocaleLowerCase()) {
+            throw new GraphQLError(`signature verification failure`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
+        }
+
+        const result = await this.waitlistRepository.update({ address: input.address }, { isClaimed: true });
+        return result.affected > 0;
     }
 }

@@ -22,6 +22,9 @@ export class Waitlist extends BaseEntity {
     @Column({ length: 64, unique: true, comment: 'The Ethereum address of the user wallet' })
     address: string;
 
+    @Column({ comment: 'The user position in the waitinglist', default: false })
+    isClaimed: boolean;
+
     @Column({ comment: 'The user seat number in the waitinglist' })
     @Generated('increment')
     seatNumber: number;
