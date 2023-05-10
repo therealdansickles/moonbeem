@@ -96,6 +96,9 @@ type Collaboration {
   """The ID of the collaboration."""
   id: String!
 
+  """The template name of this collaboration."""
+  name: String
+
   """The wallet of the collaboration."""
   wallet: Wallet
 
@@ -1447,6 +1450,8 @@ input UpdateUserInput {
 }
 
 input CreateCollaborationInput {
+  name: String
+
   """The address of the collaboration contract."""
   address: String
 

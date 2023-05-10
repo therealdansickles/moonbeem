@@ -33,6 +33,10 @@ export class Collaboration {
     @Field({ description: 'The ID of the collaboration.' })
     readonly id: string;
 
+    @IsString()
+    @Field({ description: 'The template name of this collaboration.', nullable: true })
+    readonly name?: string;
+
     @IsObject()
     @Field(() => Wallet, { description: 'The wallet of the collaboration.', nullable: true })
     readonly wallet?: Partial<Wallet>;
@@ -81,6 +85,9 @@ export class CreateCollaborationInput extends OmitType(PartialType(Collaboration
     'organization',
     'collaborators',
 ]) {
+    @Field({ nullable: true })
+    readonly name?: string;
+
     @Field({ nullable: true })
     readonly walletId?: string;
 
