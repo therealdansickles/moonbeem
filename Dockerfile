@@ -2,24 +2,15 @@ FROM node:16-alpine3.16
 
 WORKDIR /app
 
-COPY package*.json ./
-COPY yarn.lock ./
-
-RUN yarn install
-
 COPY . .
+
+RUN yarn set version stable
+RUN yarn install --immutable
+
 
 RUN yarn run build
 
-RUN echo $' \
-if [[ $NODE_ENV == "dev" ]] \n \
-then \n \
-    yarn run dev \n \
-else \n \
-    yarn start \n \
-fi \n \
-' \
-    >./entrypoint.sh
+RUN echo $' yarn run start' >./entrypoint.sh
 
 EXPOSE 3000
 

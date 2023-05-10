@@ -28,7 +28,7 @@ type Organization {
   displayName: String!
 
   """The type of organization this is. e.g 'personal', 'general'."""
-  kind: OrganizationKind
+  kind: String
 
   """The description for the organization."""
   about: String
@@ -71,11 +71,6 @@ type Organization {
 
   """Returns the members for the given organization"""
   collaborations: [Collaboration!]!
-}
-
-enum OrganizationKind {
-  personal
-  general
 }
 
 """
@@ -1186,6 +1181,9 @@ type Waitlist {
 
   """The twitter username"""
   twitter: String
+
+  """Whether they have claimed the NFT"""
+  isClaimed: Boolean
 }
 
 """Ethereum Address custom scalar type"""
@@ -1299,7 +1297,6 @@ input GloablSearchInput {
 }
 
 input GetWaitlistInput {
-  """The email of the user"""
   email: String
 
   """The address for a wallet."""
@@ -1337,7 +1334,7 @@ type Mutation {
   updateOrganization(input: UpdateOrganizationInput!): Organization!
 
   """Delete an organization."""
-  deleteOrganization(input: DeleteOrganizationInput!): Boolean!
+  deleteOrganization(input: OrganizationInput!): Boolean!
 
   """Transfer an organization to another user."""
   transferOrganization(input: TransferOrganizationInput!): Organization!
@@ -1385,6 +1382,9 @@ type Mutation {
 
   """creates a waitlist item"""
   createWaitlist(input: CreateWaitlistInput!): Waitlist!
+
+  """claim a waitlist item"""
+  claimWaitlist(input: ClaimWaitlistInput!): Boolean!
 }
 
 input LoginWithWalletInput {
@@ -1544,8 +1544,7 @@ input WalletInput {
 }
 
 input OrganizationInput {
-  """The id of the organization."""
-  id: String!
+  id: ID!
 }
 
 input CollaborationInput {
@@ -1720,9 +1719,6 @@ input OrganizationInviteItemInput {
 }
 
 input UpdateOrganizationInput {
-  """The id of the organization."""
-  id: String!
-
   """The unique URL-friendly identifier for a organization."""
   name: String
 
@@ -1753,16 +1749,13 @@ input UpdateOrganizationInput {
 
   """The discord handle associated with this organization, e.g. 'vibe-labs"""
   discord: String
-}
 
-input DeleteOrganizationInput {
   """The id of the organization."""
   id: String!
 }
 
 input TransferOrganizationInput {
-  """The id of the organization."""
-  id: String!
+  id: ID!
 
   """The new ownerId of the organization."""
   ownerId: String!
@@ -1975,7 +1968,6 @@ input UpdateWalletInput {
 }
 
 input CreateWaitlistInput {
-  """The email of the user"""
   email: String!
 
   """The address for a wallet."""
@@ -1989,4 +1981,15 @@ input CreateWaitlistInput {
 
   """The email of the user"""
   twitter: String
+}
+
+input ClaimWaitlistInput {
+  """The address for a wallet."""
+  address: String!
+
+  """The signing message"""
+  message: String!
+
+  """The signature from the front-end to verify"""
+  signature: String!
 }

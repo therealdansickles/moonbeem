@@ -2,9 +2,9 @@ import { Resolver, Query, Args, Mutation, ResolveField, Parent } from '@nestjs/g
 import { Public } from '../lib/decorators/public.decorator';
 import {
     Organization,
+    OrganizationInput,
     CreateOrganizationInput,
     UpdateOrganizationInput,
-    DeleteOrganizationInput,
     TransferOrganizationInput,
 } from './organization.dto';
 import { OrganizationService } from './organization.service';
@@ -45,7 +45,7 @@ export class OrganizationResolver {
 
     @Public()
     @Mutation(() => Boolean, { description: 'Delete an organization.' })
-    async deleteOrganization(@Args('input') input: DeleteOrganizationInput): Promise<boolean> {
+    async deleteOrganization(@Args('input') input: OrganizationInput): Promise<boolean> {
         const { id } = input;
         return await this.organizationService.deleteOrganization(id);
     }

@@ -30,7 +30,7 @@ export class Membership extends BaseEntity {
     @Column({ nullable: true, comment: 'The email of the invited user' })
     email?: string;
 
-    @ManyToOne(() => Organization, (organization) => organization.memberships, {
+    @ManyToOne(() => Organization, (organization) => organization.membership, {
         eager: true,
         createForeignKeyConstraints: false,
     })

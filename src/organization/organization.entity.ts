@@ -38,13 +38,11 @@ export class Organization extends BaseEntity {
     displayName: string;
 
     @Column({
-        type: 'enum',
-        enum: OrganizationKind,
         default: OrganizationKind.general,
         comment:
             'The type of organization that this is. * `personal` - default organization with your account. * `general` - Bulk generation of NFTs.',
     })
-    kind?: OrganizationKind;
+    kind?: string;
 
     @Column({ nullable: true, comment: 'The description for the organization.' })
     about?: string;
@@ -67,8 +65,8 @@ export class Organization extends BaseEntity {
     @Column({ nullable: true, comment: 'The discord handle for the organization.' })
     discord?: string;
 
-    @ManyToOne(() => Membership, (membership) => membership.organization)
-    memberships: Membership[];
+    @OneToMany(() => Membership, (membership) => membership.organization)
+    membership: Membership[];
 
     @OneToMany(() => Collection, (collection) => collection.organization)
     collections: Collection[];

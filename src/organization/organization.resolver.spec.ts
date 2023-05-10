@@ -87,11 +87,31 @@ describe('OrganizationResolver', () => {
 
     afterAll(async () => {
         await repository.query('TRUNCATE TABLE "Organization" CASCADE');
+        await repository.query('TRUNCATE TABLE "User" CASCADE');
+        await repository.query('TRUNCATE TABLE "Membership" CASCADE');
         await app.close();
     });
 
     describe('organization', () => {
         it('should return an organization', async () => {
+            let newOwner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            let newOrganization = await service.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: newOwner,
+            });
+
             const query = gql`
                 query GetOrg($id: String!) {
                     organization(id: $id) {
@@ -113,7 +133,7 @@ describe('OrganizationResolver', () => {
             `;
 
             const variables = {
-                id: organization.id,
+                id: newOrganization.id,
             };
 
             return await request(app.getHttpServer())
@@ -121,7 +141,7 @@ describe('OrganizationResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.data.organization.id).toEqual(organization.id);
+                    expect(body.data.organization.id).toEqual(newOrganization.id);
                     expect(body.data.organization.collections).toBeDefined();
                     expect(body.data.organization.memberships).toBeDefined();
                     expect(body.data.organization.collaborations).toBeDefined();
@@ -220,6 +240,24 @@ describe('OrganizationResolver', () => {
 
     describe('updateOrganization', () => {
         it('should update an organization', async () => {
+            let newOwner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            let newOrganization = await service.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: newOwner,
+            });
+
             const query = gql`
                 mutation updateOrganization($input: UpdateOrganizationInput!) {
                     updateOrganization(input: $input) {
@@ -230,7 +268,7 @@ describe('OrganizationResolver', () => {
 
             const variables = {
                 input: {
-                    id: organization.id,
+                    id: newOrganization.id,
                     displayName: faker.company.name(),
                 },
             };
@@ -247,15 +285,33 @@ describe('OrganizationResolver', () => {
 
     describe('deleteOrganization', () => {
         it('should delete an organization', async () => {
+            let newOwner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            let newOrganization = await service.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: newOwner,
+            });
+
             const query = gql`
-                mutation deleteOrganization($input: DeleteOrganizationInput!) {
+                mutation deleteOrganization($input: OrganizationInput!) {
                     deleteOrganization(input: $input)
                 }
             `;
 
             const variables = {
                 input: {
-                    id: organization.id,
+                    id: newOrganization.id,
                 },
             };
 

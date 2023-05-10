@@ -1,21 +1,29 @@
-import { ArgsType, Field, Int, ObjectType, InputType, ID, registerEnumType } from '@nestjs/graphql';
+import {
+    ArgsType,
+    Field,
+    ID,
+    InputType,
+    Int,
+    ObjectType,
+    OmitType,
+    PartialType,
+    PickType,
+    registerEnumType,
+} from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
 import {
-    IsNumber,
-    IsString,
-    IsDateString,
-    IsUrl,
-    ValidateIf,
-    IsEnum,
-    IsOptional,
-    IsObject,
     IsArray,
     IsBoolean,
+    IsDateString,
+    IsEnum,
+    IsNumber,
+    IsObject,
+    IsOptional,
+    IsString,
+    IsUrl,
+    ValidateIf,
 } from 'class-validator';
-import { OrganizationKind } from './organization.entity';
 import { User, UserInput } from '../user/user.dto';
-
-registerEnumType(OrganizationKind, { name: 'OrganizationKind' });
 
 @ObjectType('Organization')
 export class Organization {
@@ -35,9 +43,11 @@ export class Organization {
     readonly displayName: string;
 
     @IsOptional()
-    @IsEnum(OrganizationKind)
-    @Field((type) => OrganizationKind, { description: "The type of organization this is. e.g 'personal', 'general'.", nullable: true })
-    readonly kind?: OrganizationKind;
+    @Field((type) => String, {
+        description: "The type of organization this is. e.g 'personal', 'general'.",
+        nullable: true,
+    })
+    readonly kind?: string;
 
     @IsString()
     @ValidateIf((object, value) => value !== null)
@@ -173,77 +183,21 @@ class OrganizationInviteItemInput {
 }
 
 @InputType()
-export class UpdateOrganizationInput {
-    @IsString()
-    @Field({ description: 'The id of the organization.' })
-    readonly id: string;
-
-    @IsString()
-    @Field({ description: 'The unique URL-friendly identifier for a organization.', nullable: true })
-    readonly name?: string;
-
-    @IsString()
-    @Field({ description: 'The name that we display for the organization.', nullable: true })
-    readonly displayName?: string;
-
-    @IsString()
-    @ValidateIf((object, value) => value !== null)
-    @Field({ description: 'The description for the organization.', nullable: true })
-    readonly about?: string;
-
-    @IsUrl()
-    @Field({
-        description: 'The image url for the avatar of the organization. This is the profile picture.',
-        nullable: true,
-    })
-    readonly avatarUrl?: string;
-
-    @IsUrl()
-    @ValidateIf((object, value) => value !== null)
-    @Field({ description: 'The image url for the background of the organization.', nullable: true })
-    readonly backgroundUrl?: string;
-
-    @IsUrl()
-    @ValidateIf((object, value) => value !== null)
-    @Field({ description: 'The url for the website associated with this organization', nullable: true })
-    readonly websiteUrl?: string;
-
-    @IsString()
-    @ValidateIf((object, value) => value !== null)
-    @Field({ description: "The twitter handle associated with this organization, e.g. 'vibe-labs'", nullable: true })
-    readonly twitter?: string;
-
-    @IsString()
-    @ValidateIf((object, value) => value !== null)
-    @Field({ description: "The instagram handle associated with this organization, e.g. 'vibe-labs'", nullable: true })
-    readonly instagram?: string;
-
-    @IsString()
-    @ValidateIf((object, value) => value !== null)
-    @Field({ description: "The discord handle associated with this organization, e.g. 'vibe-labs", nullable: true })
-    readonly discord?: string;
-}
-
-@InputType()
-export class DeleteOrganizationInput {
+export class UpdateOrganizationInput extends OmitType(
+    PartialType(CreateOrganizationInput),
+    ['owner', 'invites'],
+    InputType
+) {
     @IsString()
     @Field({ description: 'The id of the organization.' })
     readonly id: string;
 }
 
 @InputType()
-export class OrganizationInput {
-    @IsString()
-    @Field({ description: 'The id of the organization.' })
-    readonly id: string;
-}
+export class OrganizationInput extends PickType(Organization, ['id'], InputType) {}
 
 @InputType()
-export class TransferOrganizationInput {
-    @IsString()
-    @Field({ description: 'The id of the organization.' })
-    readonly id: string;
-
+export class TransferOrganizationInput extends PickType(Organization, ['id'], InputType) {
     @IsString()
     @Field({ description: 'The new ownerId of the organization.' })
     readonly ownerId: string;

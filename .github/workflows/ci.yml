@@ -82,8 +82,11 @@ jobs:
           node-version: 16.x
           cache: 'yarn'
 
-      - name: Run install
-        run: yarn install
+      - name: Set Yarn 3
+        run: yarn set version stable
+
+      - name: yarn install --immutable
+        run: yarn install --immutable
 
       - name: Run Tests/CI
         run: yarn test:ci

@@ -8,10 +8,11 @@ services:
       dockerfile: ./Dockerfile
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
-      NODE_ENV: dev
-      V1_DATABASE_URL: postgresql://root:root@localhost:5432/platform_development?schema=public
-      DATABASE_URL: postgres://root:root@postgres/vibe-server
+      V1_DATABASE_URL: postgresql://root:root@postgres:5432/platform_development?schema=public
+      SYNC_CHAIN_DATABASE_URL: postgresql://root:root@postgres-sync-chain:5442/sync_chain_development?schema=public
       REDIS_URL: redis://default:redis@redis:6379
       MONGO_URL: mongodb://root:root@mongo:27017
       SESSION_SECRET: secretKey
