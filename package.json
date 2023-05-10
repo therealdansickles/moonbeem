@@ -19,7 +19,10 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json --forceExit",
-    "test:ci": "jest --ci --forceExit --runInBand"
+    "test:ci": "jest --ci --forceExit --runInBand",
+    "typeorm:create": "ts-node --transpile-only ./node_modules/typeorm/cli.js --config src/lib/configs/postgres.config.ts migration:create --",
+    "typeorm:generate": "npx ts-node ./node_modules/.bin/typeorm migration:generate -d src/lib/configs/postgres.config.ts migrations/migration",
+    "typeorm:migrate": "npx ts-node --transpile-only ./node_modules/typeorm/cli.js migration:run -d src/lib/configs/postgres.config.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.319.0",
