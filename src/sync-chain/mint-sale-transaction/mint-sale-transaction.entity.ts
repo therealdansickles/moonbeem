@@ -42,6 +42,9 @@ export class MintSaleTransaction extends BaseEntity {
     @Column({ default: 1, comment: 'The chain id for the MintSale record.' })
     chainId?: number;
 
+    @Column({ default: false, comment: 'Whether the metadata had beed uploaded.' })
+    isUploaded: boolean;
+
     @CreateDateColumn()
     @Exclude()
     createdAt: Date;

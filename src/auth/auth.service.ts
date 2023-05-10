@@ -133,7 +133,7 @@ export class AuthService {
                     membership.acceptedAt = new Date();
                     membership.inviteCode = null;
                     membership.user = user;
-                    await this.membershipRepository.save(membership);
+                    await this.membershipRepository.update({ id: membership.id }, membership);
                 }
             }
 

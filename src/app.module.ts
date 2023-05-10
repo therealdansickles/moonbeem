@@ -23,7 +23,6 @@ import { MarketService } from './services/market.service';
 import { MembershipModule } from './membership/membership.module';
 import { MongoAdapter } from './lib/adapters/mongo.adapter';
 import { OrganizationModule } from './organization/organization.module';
-import { PollerModule } from './modules/poller.module';
 import { PostgresAdapter } from './lib/adapters/postgres.adapter';
 import { RedisAdapter } from './lib/adapters/redis.adapter';
 import { RpcClient } from './lib/adapters/eth.client.adapter';
@@ -35,6 +34,7 @@ import { UserWalletService } from './services/user.wallet.service';
 import { WalletModule } from './wallet/wallet.module';
 import { SyncChainModule } from './sync-chain/sync-chain.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
+import { PollerModule } from './poller/poller.module';
 
 @Module({
     imports: [

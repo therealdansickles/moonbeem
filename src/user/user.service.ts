@@ -13,7 +13,7 @@ export class UserService {
     constructor(
         private organizationService: OrganizationService,
         @InjectRepository(User) private userRepository: Repository<User>
-    ) {}
+    ) { }
 
     /**
      * Retrieve an user by id.
@@ -34,7 +34,7 @@ export class UserService {
     async createUserWithOrganization(payload: Partial<User>): Promise<User> {
         try {
             const user = await this.createUser(payload);
-            const pseudoOrgName = randomstring.generate();
+            const pseudoOrgName = randomstring.generate(12);
             const defaultOrgPayload = {
                 name: pseudoOrgName,
                 displayName: pseudoOrgName,
