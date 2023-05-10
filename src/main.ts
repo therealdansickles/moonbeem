@@ -23,6 +23,7 @@ async function bootstrap() {
 
     // configure: sentry
     Sentry.init({
+        environment: process.env.NODE_ENV,
         dsn: process.env.SENTRY_DSN,
     });
 
