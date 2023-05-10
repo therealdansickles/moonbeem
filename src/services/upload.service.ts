@@ -17,7 +17,8 @@ export class UploadService {
                 HttpStatus.BAD_REQUEST
             );
         }
-        const buf = Buffer.from(uploadImageReq.buffer);
+        let buf = Buffer.from(uploadImageReq.buffer);
+        if (uploadImageReq.buffer.buffer) buf = Buffer.from(uploadImageReq.buffer);
         const fileName = uuidv4();
 
         // upload image to uploadcare

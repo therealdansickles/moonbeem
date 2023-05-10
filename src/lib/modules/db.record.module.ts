@@ -100,16 +100,32 @@ export interface CollectionActivity {
     tx_time: number;
 }
 
+export interface SearchCollectionItemV1 {
+    name: string;
+    address: string;
+    chainId: number;
+    avatarUrl?: string;
+    tiers?: any[];
+}
+
 export interface SearchCollectionItem {
     name: string;
     collection: string;
     chain_id: number;
     avatar?: string;
-    tiers: any[];
+    tiers?: any[];
+}
+
+export interface SearchAccountItemV1 {
+    name?: string;
+    email?: string;
+    address: string;
+    avatarUrl?: string;
 }
 
 export interface SearchAccountItem {
-    name: string;
+    name?: string;
+    email?: string;
     address: string;
     avatar?: string;
 }

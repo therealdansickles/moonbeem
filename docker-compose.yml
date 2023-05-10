@@ -1,0 +1,65 @@
+version: '3.0'
+services:
+  server-restful:
+    image: vibe-server-restful:latest
+    container_name: server-restful
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      V1_DATABASE_URL: postgresql://root:root@postgres:5432/platform_development?schema=public
+      SYNC_CHAIN_DATABASE_URL: postgresql://root:root@postgres-sync-chain:5442/sync_chain_development?schema=public
+      REDIS_URL: redis://default:redis@redis:6379
+      MONGO_URL: mongodb://root:root@mongo:27017
+      SESSION_SECRET: secretKey
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    volumes:
+      - /tmp/postgres-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: platform_development
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+  postgres-sync-chain:
+    image: postgres:latest
+    container_name: postgres-sync-chain
+    volumes:
+      - /tmp/postgres-data-sync-chain:/var/lib/postgresql/data
+    ports:
+      - 5442:5432
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: sync_chain_development
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
+    command: redis-server --save 20 1 --loglevel warning --requirepass ${REDIS_PASSWORD}
+    ports:
+      - 6379:6379
+    environment:
+      REDIS_PASSWORD: redis
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    restart: always
+    ports:
+      - 27017:27017
+    volumes:
+      - /tmp/mongo-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root

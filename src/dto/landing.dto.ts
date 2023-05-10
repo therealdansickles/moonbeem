@@ -3,7 +3,17 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNumber, IsOptional } from 'class-validator';
 import { GraphQLJSONObject } from 'graphql-type-json';
-import { BasicWalletInfo, BasicCollectionInfo, BasicCollectionRoyaltyInfo, BasicFloorPriceInfo, BasicTierInfo, BasicPagingParams, BasicCollectionStatus, BasicCollectionType, BasicPriceInfo } from './basic.dto';
+import {
+    BasicWalletInfo,
+    BasicCollectionInfo,
+    BasicCollectionRoyaltyInfo,
+    BasicFloorPriceInfo,
+    BasicTierInfo,
+    BasicPagingParams,
+    BasicCollectionStatus,
+    BasicCollectionType,
+    BasicPriceInfo,
+} from './basic.dto';
 
 @ObjectType()
 export class LandingPageCollectionData {

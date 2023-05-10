@@ -1,11 +1,19 @@
 import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
 import { ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
-import { VUserWalletInfo } from '../dto/auth.dto';
-import { VFollowUserWalletReqDto, VGetAddressReqDto, VUpdateUserWalletReqDto, VUserFollowingListRspDto, VUserFollowingListReqDto, VUserFollowerListRspDto, VUserFollowerListReqDto } from '../dto/user.wallet.dto';
+import { VUserWalletInfo } from '../auth/auth.dto';
+import {
+    VFollowUserWalletReqDto,
+    VGetAddressReqDto,
+    VUpdateUserWalletReqDto,
+    VUserFollowingListRspDto,
+    VUserFollowingListReqDto,
+    VUserFollowerListRspDto,
+    VUserFollowerListReqDto,
+} from '../dto/user.wallet.dto';
 import { Public } from '../lib/decorators/public.decorator';
 import { IResponse, ResponseSucc, ResponseInternalError } from '../lib/interfaces/response.interface';
-import { AuthPayload } from '../services/auth.service';
+import { AuthPayload } from '../auth/auth.service';
 import { JWTService } from '../services/jwt.service';
 import { UserWalletService } from '../services/user.wallet.service';
 
@@ -27,7 +35,11 @@ export class UserWalletController {
     public async followUserWallet(@Req() req: Request, @Body() body: VFollowUserWalletReqDto): Promise<IResponse> {
         try {
             const payload = req.user as AuthPayload;
-            const rsp = await this.userWalletService.followUserWallet(payload, body.address.toLowerCase(), body.isFollowed);
+            const rsp = await this.userWalletService.followUserWallet(
+                payload,
+                body.address.toLowerCase(),
+                body.isFollowed
+            );
             return new ResponseSucc(rsp);
         } catch (err) {
             return new ResponseInternalError((err as Error).message);

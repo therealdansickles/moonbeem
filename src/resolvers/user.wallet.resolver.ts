@@ -1,8 +1,16 @@
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { VUserWalletInfo } from '../dto/auth.dto';
-import { VGetAddressReqDto, VFollowUserWalletReqDto, VUpdateUserWalletReqDto, VUserFollowingListRspDto, VUserFollowingListReqDto, VUserFollowerListRspDto, VUserFollowerListReqDto } from '../dto/user.wallet.dto';
+import { VUserWalletInfo } from '../auth/auth.dto';
+import {
+    VGetAddressReqDto,
+    VFollowUserWalletReqDto,
+    VUpdateUserWalletReqDto,
+    VUserFollowingListRspDto,
+    VUserFollowingListReqDto,
+    VUserFollowerListRspDto,
+    VUserFollowerListReqDto,
+} from '../dto/user.wallet.dto';
 import { Public } from '../lib/decorators/public.decorator';
-import { AuthPayload } from '../services/auth.service';
+import { AuthPayload } from '../auth/auth.service';
 import { JWTService } from '../services/jwt.service';
 import { UserWalletService } from '../services/user.wallet.service';
 
@@ -34,7 +42,10 @@ export class UserWalletResolver {
 
     @Public()
     @Query(() => VUserFollowingListRspDto)
-    public async getUserFollowingList(@Context('req') req: any, @Args() args: VUserFollowingListReqDto): Promise<VUserFollowingListRspDto> {
+    public async getUserFollowingList(
+        @Context('req') req: any,
+        @Args() args: VUserFollowingListReqDto
+    ): Promise<VUserFollowingListRspDto> {
         const payload = await this.jwtService.verifySession(req.headers.session);
         const rsp = await this.userWalletService.getUserFollowingList(args, payload);
         return rsp;
@@ -42,7 +53,10 @@ export class UserWalletResolver {
 
     @Public()
     @Query(() => VUserFollowerListRspDto)
-    public async getUserFollowerList(@Context('req') req: any, @Args() args: VUserFollowerListReqDto): Promise<VUserFollowerListRspDto> {
+    public async getUserFollowerList(
+        @Context('req') req: any,
+        @Args() args: VUserFollowerListReqDto
+    ): Promise<VUserFollowerListRspDto> {
         const payload = await this.jwtService.verifySession(req.headers.session);
         const rsp = await this.userWalletService.getUserFollowerList(args, payload);
         return rsp;

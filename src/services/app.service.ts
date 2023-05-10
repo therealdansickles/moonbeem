@@ -7,7 +7,11 @@ import { SysConfigItem, TotalRecord } from '../lib/modules/db.record.module';
 
 @Injectable()
 export class AppService {
-    constructor(private readonly ethClient: RpcClient, private readonly redisClient: RedisAdapter, private readonly pgClient: PostgresAdapter) {}
+    constructor(
+        private readonly ethClient: RpcClient,
+        private readonly redisClient: RedisAdapter,
+        private readonly pgClient: PostgresAdapter
+    ) {}
 
     getHealth(): string {
         return 'ok';
@@ -63,7 +67,8 @@ export class AppService {
     }
 
     async findManyFactoryConfigs(args: FactoryConfigReqDto) {
-        let sqlStr = 'SELECT cfg_name,cfg_value,cfg_type,cfg_comment,chain_id FROM sysconfig WHERE cfg_name LIKE \'%ADDR%\'';
+        let sqlStr =
+            "SELECT cfg_name,cfg_value,cfg_type,cfg_comment,chain_id FROM sysconfig WHERE cfg_name LIKE '%ADDR%'";
 
         const values: unknown[] = [];
         if (args.chainId) {
@@ -75,7 +80,7 @@ export class AppService {
     }
 
     async countFactoryConfig(args: FactoryConfigReqDto) {
-        let sqlStr = 'SELECT COUNT(*) AS total FROM sysconfig WHERE cfg_name LIKE \'%ADDR%\'';
+        let sqlStr = "SELECT COUNT(*) AS total FROM sysconfig WHERE cfg_name LIKE '%ADDR%'";
 
         const values: unknown[] = [];
         if (args.chainId) {

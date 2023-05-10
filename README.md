@@ -1,91 +1,83 @@
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
+  <a href="https://platform-staging.vibe.xyz/graphql" target="blank"><img src="https://vibe.xyz/vibe.jpg" width="200" alt="Vibe" /></a>
+  The Platform API™️
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+[![CI](https://github.com/vibexyz/vibe-server-restful/actions/workflows/ci.yml/badge.svg)](https://github.com/vibexyz/vibe-server-restful/actions/workflows/ci.yml)
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+:clipboard: https://studio.apollographql.com/graph/V1-Staging-8tuw9f/variant/current/home ( Apollo Graph )
 
-# Vibe Server Restful(Base on nestjs) Startup
+:clipboard: https://railway.app/project/18a37276-7b78-4adb-b6e4-91a6c4df89cf ( "staging" )
+
+:clipboard: https://railway.app/project/6ee0852c-c977-4984-af99-af6405c87bcc ( "prod" )
+
+# Quickstart
+
+## Use Staging
+
+Use the Apollog explorer: https://studio.apollographql.com/graph/V1-Staging-8tuw9f/variant/current/home
+
+or visit the endpoint directly: https://platform-staging.vibe.xyz/graphql
+
+## Use Docker
+
+```sh
+docker compose up
+```
+
+# Installation / Development
 
 ## 1. Loading services with Docker
 
-Make sure you have started the docker compose for the vibe base middleware. and get some accessible middleware endpoints(postgres url, mongo url, redis url)
+Make sure you have started the docker compose for the vibe base middleware. and get some accessible middleware endpoints(postgres url, mongo url, redis url).
 
-### Build the docker image
+This repository also adds those services for your convenience.
 
-```bash
-docker compose build
+```sh
+docker compose up postgres redis -d
 ```
 
-### Running the app
+## Install Deps
 
-```bash
-docker compose up -d
+We use `yarn`, so you can build install the deps like so:
+
+```sh
+yarn install
 ```
 
-Once it's been deployed, you should be able to create a login at http://localhost:3000 and begin using the service.
+If you haven't already, you'll also need to set yourself up with some `.env`. First copy the [`.env.template`](.env.template) in this repository to your local `.env`
 
-## 2. Loading services with Shell command
+## Booting up the Application
 
-### Installation
+Once that's good to go, you can boo the app:
 
-```bash
-$ npm install
-```
-
-### Running the app
-
-```bash
+```sh
 # development
-$ npm run start
+$ yarn start
 
 # watch mode
-$ npm run dev
+$ yarn dev
 
 # production mode
-$ npm run start:prod
+$ yarn start:prod
 ```
 
-### Test
+# Testing
 
-```bash
-# unit tests
-$ npm run test
+We have our test suite setup on GitHub Actions. Locally, you can just run `yarn test:ci` to go through the suite. Using `yarn test` currently is broken.
 
-# e2e tests
-$ npm run test:e2e
+### Specific / Single Tests
 
-# test coverage
-$ npm run test:cov
-```
+For specific test examples, try `yarn test src/membership` or the path you want to run.
 
-### Support
+### E2E
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+`yarn test:e2e` runs our e2e test. Note that it's currently not active and not fully functional. See any `resolver.spec` though as they act as e2e tests currently.
 
-### Stay in touch
+### Coverage
 
--   Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
--   Website - [https://nestjs.com](https://nestjs.com/)
--   Twitter - [@nestframework](https://twitter.com/nestframework)
+`yarn test:cov` but these are currently not setup on CI/CD or working.
 
-### License
+### CI
 
-Nest is [MIT licensed](LICENSE).
+CI executes the following command to run the suite: `yarn test:ci`.

@@ -23,11 +23,12 @@ async function bootstrap() {
 
     // configure: sentry
     Sentry.init({
+        environment: process.env.NODE_ENV,
         dsn: process.env.SENTRY_DSN,
     });
 
     app.use(json({ limit: '100mb' }));
-    app.use(urlencoded({ extended: true, limit: '100mb' }));
+    app.use(urlencoded({ limit: '100mb', extended: true }));
 
     // configure: param validator, controlled by dto's decorator
     app.useGlobalPipes(
@@ -61,7 +62,9 @@ async function bootstrap() {
     await app.listen(appConfig.global.port);
     // print some log
     console.log(`Server Starting on http://localhost:${appConfig.global.port}`);
-    appConfig.global.debug ? console.log(`Swagger Starting on http://localhost:${appConfig.global.port}/${appConfig.swagger.route}`) : '';
+    appConfig.global.debug
+        ? console.log(`Swagger Starting on http://localhost:${appConfig.global.port}/${appConfig.swagger.route}`)
+        : '';
     appConfig.global.debug ? console.log(`GraphQL Starting on http://localhost:${appConfig.global.port}/graphql`) : '';
 }
 

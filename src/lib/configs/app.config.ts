@@ -8,7 +8,8 @@ export const appConfig = {
         route: 'swagger',
         prefix: 'v1',
         title: 'Vibe Restful Api Documentation',
-        description: 'About the restful api of marketplace, it is different from dashboard in that it uses wallet address to verify identity',
+        description:
+            'About the restful api of marketplace, it is different from dashboard in that it uses wallet address to verify identity',
         version: '1.0',
     },
     cron: {

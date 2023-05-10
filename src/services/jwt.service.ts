@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { RedisAdapter } from '../lib/adapters/redis.adapter';
 import { jwtConfig } from '../lib/configs/jwt.config';
-import { AuthPayload, SESSION_PERFIX } from './auth.service';
+import { AuthPayload, SESSION_PERFIX } from '../auth/auth.service';
 
 @Injectable()
 export class JWTService {
@@ -10,18 +10,10 @@ export class JWTService {
 
     /**
      * Token is obtained through jwt signature. Payload has wallet id, address and signature
-     * @param walletId Wallet ID, database PK
-     * @param address user wallet address
-     * @param signature signature message
+     * @param payload AuthPayload containing id and either address + signature or email
      * @returns session
      */
-    createToken(walletId, address, signature): string {
-        const payload: AuthPayload = {
-            id: walletId,
-            address: address,
-            signature: signature,
-        };
-
+    createToken(payload: AuthPayload): string {
         const token = this.jwt.sign(payload);
         return token;
     }
@@ -49,7 +41,8 @@ export class JWTService {
         if (!payload) return;
 
         // check token has been delete
-        const isLogin = await this.validateIsLogin(payload.address.toLowerCase());
+        const isLogin = await this.validateIsLogin(payload.address?.toLowerCase() ?? payload.email?.toLowerCase());
+
         if (!isLogin) return;
         return payload;
     }
@@ -59,8 +52,8 @@ export class JWTService {
      * @param address which address you want to verify
      * @returns boolean
      */
-    async validateIsLogin(address: string): Promise<boolean> {
-        const _key = this.redisClient.getKey(address.toLocaleLowerCase(), SESSION_PERFIX);
+    async validateIsLogin(identifier: string): Promise<boolean> {
+        const _key = this.redisClient.getKey(identifier.toLocaleLowerCase(), SESSION_PERFIX);
         const val = await this.redisClient.get(_key);
         if (!val) return false;
         return true;

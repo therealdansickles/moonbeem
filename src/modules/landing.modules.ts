@@ -6,7 +6,7 @@ import { LandingController } from '../controllers/landing.controller';
 
 @Module({
     imports: [SharedModule],
-    providers: [LandingService,LandingResolver],
+    providers: [LandingService, LandingResolver],
     controllers: [LandingController],
     exports: [],
 })

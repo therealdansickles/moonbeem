@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { BasicAttributeInfo, BasicCollectionInfo, BasicErc721Info, BasicPriceInfo, BasicTierInfo } from '../dto/basic.dto';
+import {
+    BasicAttributeInfo,
+    BasicCollectionInfo,
+    BasicErc721Info,
+    BasicPriceInfo,
+    BasicTierInfo,
+} from '../dto/basic.dto';
 import {
     MarketAddressActivitiesReqDto,
     MarketAddressActivitiesRspDto,
@@ -12,24 +18,30 @@ import {
     VITierAttr,
     VAddressHoldingRspDto,
     VSecondaryMarketView,
-    VGlobalSearchReqDto,
-    VGlobalSearchRspDto,
-    VSearchCollectionItem,
-    VSearchAccountItem,
-    VSearchCollectionRsp,
-    VSearchAccountRsp,
 } from '../dto/market.dto';
 import { MongoAdapter } from '../lib/adapters/mongo.adapter';
 import { PostgresAdapter } from '../lib/adapters/postgres.adapter';
 import { IPreMint, ITier } from '../lib/interfaces/main.interface';
 import { IRowCount } from '../lib/modules/db.module';
 import { IMetadata } from '../lib/modules/db.mongo.module';
-import { CollectionActivity, AddressReleased, AddressActivity, AddressHolding, TotalRecord, SearchCollectionItem, SearchAccountItem } from '../lib/modules/db.record.module';
+import {
+    CollectionActivity,
+    AddressReleased,
+    AddressActivity,
+    AddressHolding,
+    TotalRecord,
+    SearchCollectionItem,
+    SearchAccountItem,
+} from '../lib/modules/db.record.module';
 import { UserWalletService } from './user.wallet.service';
 
 @Injectable()
 export class MarketService {
-    constructor(private readonly pgClient: PostgresAdapter, private readonly userWallet: UserWalletService, private readonly mongoClient: MongoAdapter) {}
+    constructor(
+        private readonly pgClient: PostgresAdapter,
+        private readonly userWallet: UserWalletService,
+        private readonly mongoClient: MongoAdapter
+    ) {}
 
     // services: controller
     async getCollectionActivities(args: MarketAddressActivitiesReqDto) {
@@ -124,7 +136,12 @@ export class MarketService {
                 owner: item.owner,
             };
 
-            const tier: BasicTierInfo = await this.matchCollectionTier(item.address, item.chain_id ?? 0, item.tier_id, item.tiers);
+            const tier: BasicTierInfo = await this.matchCollectionTier(
+                item.address,
+                item.chain_id ?? 0,
+                item.tier_id,
+                item.tiers
+            );
 
             const secondary: VSecondaryMarketView = await this.getSecondaryMarketView();
 
@@ -196,7 +213,8 @@ export class MarketService {
         values.push(address);
         values.push(chainId);
 
-        sqlStr += ' GROUP BY c.id,pm.payment_token,pm.begin_time,pm.end_time,pmr.contract,pmr.token_id,pmr.recipient,pmr.price,pmr.tier';
+        sqlStr +=
+            ' GROUP BY c.id,pm.payment_token,pm.begin_time,pm.end_time,pmr.contract,pmr.token_id,pmr.recipient,pmr.price,pmr.tier';
 
         if (offset) {
             sqlStr = `${sqlStr} OFFSET ${offset}`;
@@ -312,7 +330,12 @@ export class MarketService {
                 endTime: item.end_time,
             };
 
-            const tier: BasicTierInfo = await this.matchCollectionTier(item.address, item.chain_id ?? 0, item.tier_id, item.tiers);
+            const tier: BasicTierInfo = await this.matchCollectionTier(
+                item.address,
+                item.chain_id ?? 0,
+                item.tier_id,
+                item.tiers
+            );
 
             const currentPrice: BasicPriceInfo = {
                 price: item.price,
@@ -561,57 +584,10 @@ export class MarketService {
 
     async getMetadataFromMongo(collectionId: string, tierId: number): Promise<IMetadata> {
         const metaCol = this.mongoClient.db.collection('metadata');
-        const r = (await metaCol.findOne({ 'vibe_properties.collection': collectionId, 'vibe_properties.tier_id': tierId })) as unknown as IMetadata | null;
+        const r = (await metaCol.findOne({
+            'vibe_properties.collection': collectionId,
+            'vibe_properties.tier_id': tierId,
+        })) as unknown as IMetadata | null;
         return r;
-    }
-
-    async executeSearch(searchArgs: VGlobalSearchReqDto): Promise<VGlobalSearchRspDto> {
-        const page = searchArgs.page || 0;
-        const pageSize = searchArgs.pageSize || 10;
-        const offset = page * pageSize;
-
-        const collectionSqlStr = `select * from collection as c where (lower(c.name) like '%${searchArgs.searchTerm.toLowerCase()}%' or lower(c.collection) like '%${searchArgs.searchTerm.toLowerCase()}%') and c.collection!='' fetch first ${pageSize} row only offset ${offset} rows`;
-        const collectionSqlCountStr = `SELECT COUNT(*) FROM collection as c where (lower(c.name) like '%${searchArgs.searchTerm.toLowerCase()}%' or lower(c.collection) like '%${searchArgs.searchTerm.toLowerCase()}%') and c.collection!=''`;
-
-        const collectionCountRsp = await this.pgClient.query<IRowCount>(collectionSqlCountStr);
-        const collectionRsp = await this.pgClient.select<SearchCollectionItem>(collectionSqlStr);
-        const isLastCollectionPage = collectionCountRsp.count - (offset + collectionRsp.length) <= 0;
-        const collectionData: VSearchCollectionItem[] = collectionRsp.map((col) => ({
-            name: col.name,
-            image: col.avatar,
-            collection: col.collection,
-            chainId: col.chain_id,
-            itemsCount: col.tiers.reduce((sum, item) => (sum += item.endId - item.startId + 1), 0),
-        }));
-
-        const accountSqlStr = `select * from "UserWallet" where lower(address) like '%${searchArgs.searchTerm.toLowerCase()}%' OR lower(name) like '%${searchArgs.searchTerm.toLowerCase()}%' fetch first ${pageSize} row only offset ${offset} rows`;
-        const accountSqlCountStr = `SELECT COUNT(*) FROM "UserWallet" where lower(address) like '%${searchArgs.searchTerm.toLowerCase()}%' or lower(name) like '%${searchArgs.searchTerm.toLowerCase()}%'`;
-
-        const accountCountRsp = await this.pgClient.query<IRowCount>(accountSqlCountStr);
-        const accountsRsp = await this.pgClient.select<SearchAccountItem>(accountSqlStr);
-        const isLastAccountsPage = accountCountRsp.count - (offset + accountsRsp.length) <= 0;
-
-        const accountsData: VSearchAccountItem[] = accountsRsp.map((acc) => ({
-            name: acc.name,
-            address: acc.address,
-            avatar: acc.avatar,
-        }));
-
-        const collections: VSearchCollectionRsp = {
-            data: collectionData,
-            total: parseInt(collectionCountRsp.count.toString()),
-            isLastPage: isLastCollectionPage,
-        };
-
-        const accounts: VSearchAccountRsp = {
-            data: accountsData,
-            total: parseInt(accountCountRsp.count.toString()),
-            isLastPage: isLastAccountsPage,
-        };
-
-        return {
-            collections,
-            accounts,
-        };
     }
 }

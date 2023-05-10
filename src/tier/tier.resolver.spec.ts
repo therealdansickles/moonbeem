@@ -1,0 +1,263 @@
+import * as request from 'supertest';
+import { Test, TestingModule } from '@nestjs/testing';
+import { GraphQLModule } from '@nestjs/graphql';
+import { INestApplication } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ApolloDriver } from '@nestjs/apollo';
+import { faker } from '@faker-js/faker';
+import { Repository } from 'typeorm';
+import { postgresConfig } from '../lib/configs/db.config';
+
+import { CollectionKind } from '../collection/collection.entity';
+import { CollectionModule } from '../collection/collection.module';
+import { CollectionService } from '../collection/collection.service';
+import { Tier } from './tier.entity';
+import { TierModule } from './tier.module';
+import { TierService } from './tier.service';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import { CoinModule } from '../sync-chain/coin/coin.module';
+import { Coin } from 'src/sync-chain/coin/coin.entity';
+import { Collection } from 'src/collection/collection.dto';
+
+export const gql = String.raw;
+
+describe('TierResolver', () => {
+    let app: INestApplication;
+    let repository: Repository<Tier>;
+    let service: TierService;
+    let collection: Collection;
+    let collectionService: CollectionService;
+    let coinService: CoinService;
+    let coin: Coin;
+
+    beforeAll(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            imports: [
+                TypeOrmModule.forRoot({
+                    type: 'postgres',
+                    url: postgresConfig.url,
+                    autoLoadEntities: true,
+                    synchronize: true,
+                    logging: false,
+                }),
+                TypeOrmModule.forRoot({
+                    name: 'sync_chain',
+                    type: 'postgres',
+                    host: postgresConfig.syncChain.host,
+                    port: postgresConfig.syncChain.port,
+                    username: postgresConfig.syncChain.username,
+                    password: postgresConfig.syncChain.password,
+                    database: postgresConfig.syncChain.database,
+                    autoLoadEntities: true,
+                    synchronize: true,
+                    logging: false,
+                }),
+                CollectionModule,
+                TierModule,
+                CoinModule,
+                GraphQLModule.forRoot({
+                    driver: ApolloDriver,
+                    autoSchemaFile: true,
+                    include: [CollectionModule, TierModule, CoinModule],
+                }),
+            ],
+        }).compile();
+
+        repository = module.get('TierRepository');
+        service = module.get<TierService>(TierService);
+        collectionService = module.get<CollectionService>(CollectionService);
+        coinService = module.get<CoinService>(CoinService);
+
+        coin = await coinService.createCoin({
+            address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+            name: 'Wrapped Ether',
+            symbol: 'WETH',
+            decimals: 18,
+            derivedETH: 1,
+            derivedUSDC: 1,
+            enabled: true,
+            chainId: 1,
+        });
+
+        app = module.createNestApplication();
+        await app.init();
+    });
+
+    afterAll(async () => {
+        await repository.query('TRUNCATE TABLE "Tier" CASCADE');
+        await repository.query('TRUNCATE TABLE "Collection" CASCADE');
+        await app.close();
+    });
+
+    describe('tier', () => {
+        it('should return a tier', async () => {
+            collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const tier = await service.createTier({
+                name: faker.company.name(),
+                collection: { id: collection.id },
+                totalMints: 10,
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+            });
+
+            const query = gql`
+                query GetTier($id: String!) {
+                    tier(id: $id) {
+                        id
+                        name
+                        coin {
+                            address
+                        }
+                    }
+                }
+            `;
+
+            const variables = {
+                id: tier.id,
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.tier.id).toBe(tier.id);
+                    expect(body.data.tier.name).toBe(tier.name);
+                    expect(body.data.tier.coin).toBeDefined();
+                    expect(body.data.tier.coin.address).toEqual(coin.address);
+                });
+        });
+    });
+
+    describe('tiers', () => {
+        it('should return tiers by collection id', async () => {
+            collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+            });
+
+            await service.createTier({
+                name: faker.company.name(),
+                collection: { id: collection.id },
+                totalMints: 10,
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+            });
+
+            await service.createTier({
+                name: faker.company.name(),
+                collection: { id: collection.id },
+                totalMints: 10,
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+            });
+
+            const query = gql`
+                query getTiersByCollection($collectionId: String!) {
+                    tiers(collectionId: $collectionId) {
+                        id
+                        name
+                        collection {
+                            id
+                            name
+                        }
+                        coin {
+                            id
+                        }
+                    }
+                }
+            `;
+
+            const variables = {
+                collectionId: collection.id,
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.tiers.length).toBe(2);
+                });
+        });
+    });
+
+    describe('updateTier', () => {
+        it('should update a tier', async () => {
+            const tier = await service.createTier({
+                name: faker.company.name(),
+                collection: { id: collection.id },
+                totalMints: 10,
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+            });
+
+            const query = gql`
+                mutation UpdateTier($input: UpdateTierInput!) {
+                    updateTier(input: $input)
+                }
+            `;
+
+            const variables = {
+                input: {
+                    id: tier.id,
+                    name: faker.company.name(),
+                },
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.updateTier).toBeTruthy();
+                });
+        });
+    });
+
+    describe('deleteTier', () => {
+        it('should delete a tier', async () => {
+            const tier = await service.createTier({
+                name: faker.company.name(),
+                collection: { id: collection.id },
+                totalMints: 10,
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+            });
+
+            const query = gql`
+                mutation DeleteTier($input: DeleteTierInput!) {
+                    deleteTier(input: $input)
+                }
+            `;
+
+            const variables = {
+                input: {
+                    id: tier.id,
+                },
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.deleteTier).toBeTruthy();
+                });
+        });
+    });
+});

@@ -1,5 +1,5 @@
 import { Sequelize } from 'sequelize';
-import { postgresConfig } from '../configs/db.config';
+import { onChainConfig } from '../configs/db.config';
 
 export class PostgresAdapter {
     private db;
@@ -9,7 +9,7 @@ export class PostgresAdapter {
     }
 
     async getPGConnection() {
-        this.db = await new Sequelize(postgresConfig.url, {
+        this.db = await new Sequelize(onChainConfig.url, {
             pool: {
                 max: 5,
                 min: 0,
