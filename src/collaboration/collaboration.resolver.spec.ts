@@ -112,6 +112,7 @@ describe('CollaborationResolver', () => {
                 mutation CreateCollaboration($input: CreateCollaborationInput!) {
                     createCollaboration(input: $input) {
                         id
+                        name
                         royaltyRate
                         collaborators {
                             name
@@ -123,6 +124,7 @@ describe('CollaborationResolver', () => {
 
             const variables = {
                 input: {
+                    name: faker.hacker.noun(),
                     walletId: wallet.id,
                     royaltyRate: 9,
                     collaborators: [
@@ -142,6 +144,7 @@ describe('CollaborationResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.createCollaboration.royaltyRate).toEqual(variables.input.royaltyRate);
+                    expect(body.data.createCollaboration.name).toEqual(variables.input.name);
                     collaboration = body.data.createCollaboration;
                 });
         });

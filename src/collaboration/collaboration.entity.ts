@@ -20,6 +20,9 @@ export class Collaboration extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
+    @Column({ nullable: true, comment: 'The template name of this collaboration.' })
+    name?: string;
+
     @Column({ nullable: true, length: 64, unique: true, comment: 'The Ethereum address' })
     address?: string;
 
