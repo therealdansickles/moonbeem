@@ -489,10 +489,10 @@ type Wallet {
   spotify: String
 
   """Retrieves the minted NFTs for the given wallet."""
-  minted: [Minted!]!
+  minted: [Minted!]
 
   """Retrieves the activity for the given wallet."""
-  activities: [Activity!]!
+  activities: [Activity!]
 
   """
   Retrieve the estimated value of a address holdings/minted collections by address.
@@ -524,7 +524,7 @@ type Minted {
   paymentToken: String!
 
   """The tier of the minted token."""
-  tier: Tier!
+  tier: Tier
 }
 
 """The activity for a wallet."""
@@ -548,7 +548,7 @@ type Activity {
   paymentToken: String!
 
   """The tier of the minted token."""
-  tier: Tier!
+  tier: Tier
 
   """The activity type."""
   type: String!
