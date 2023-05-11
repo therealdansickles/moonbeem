@@ -1544,7 +1544,7 @@ input CreateCollectionInput {
   organization: OrganizationInput!
 
   """The collaboration of the collection."""
-  collaboration: CollaborationInput!
+  collaboration: CollaborationInput
 
   """This tiers for collection"""
   tiers: [CreateTierInCollectionInput!]

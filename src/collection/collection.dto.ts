@@ -132,11 +132,13 @@ export class CreateCollectionInput extends OmitType(PartialType(Collection, Inpu
     readonly organization: OrganizationInput;
 
     @IsObject()
-    @Field((type) => CollaborationInput, { description: 'The collaboration of the collection.' })
+    @Field((type) => CollaborationInput, { description: 'The collaboration of the collection.', nullable: true })
+    @IsOptional()
     readonly collaboration?: CollaborationInput;
 
     @IsArray()
     @Field((type) => [CreateTierInCollectionInput], { nullable: true, description: 'This tiers for collection' })
+    @IsOptional()
     readonly tiers?: CreateTierInCollectionInput[];
 }
 
