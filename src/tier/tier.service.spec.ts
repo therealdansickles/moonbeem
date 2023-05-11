@@ -119,6 +119,97 @@ describe('TierService', () => {
                 tierId: 0,
             });
         });
+
+        it('Should create a tier with attributes, conditions and plugins', async () => {
+            collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.whitelistEdition,
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const conditions = [
+                {
+                    trait_type: 'Holding Days',
+                    greater_than: 10,
+                    update: {
+                        trait_type: 'Ranking',
+                        value: 'Platinum',
+                    },
+                },
+                {
+                    trait_type: 'Ranking',
+                    equal: 'Platinum',
+                    update: {
+                        trait_type: 'Claimble',
+                        value: true,
+                    },
+                },
+            ];
+
+            const tier = await service.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                merkleRoot: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+                conditions,
+                plugins: [
+                    {
+                        type: 'vibe',
+                        path: 'airdrop',
+                        config: {
+                            matching: {
+                                color: 'red',
+                            },
+                        },
+                    },
+                    {
+                        type: 'vibe',
+                        path: 'points',
+                        config: {
+                            initial: 0,
+                            increment: 1,
+                        },
+                    },
+                    {
+                        type: 'github',
+                        path: 'vibexyz/vibes',
+                    },
+                    {
+                        type: 'script',
+                        path: 'https://example.com/script.js',
+                    },
+                ],
+                attributes: [
+                    {
+                        trait_type: 'Base',
+                        value: 'Starfish',
+                    },
+                    {
+                        trait_type: 'Eyes',
+                        value: 'Big',
+                    },
+                ],
+            });
+
+            expect(tier).toBeDefined();
+            expect(tier.conditions).toBeDefined();
+            const receiverdConditions = JSON.parse(tier.conditions);
+
+            expect(receiverdConditions.length).toBe(2);
+            expect(receiverdConditions[0].trait_type).toBe(conditions[0].trait_type);
+            expect(receiverdConditions[1].trait_type).toBe(conditions[1].trait_type);
+            expect(receiverdConditions[1].equal).toBe(conditions[1].equal);
+            expect(tier.attributes).toBeDefined();
+            expect(JSON.parse(tier.attributes).length).toBe(2);
+            expect(tier.plugins).toBeDefined();
+            expect(JSON.parse(tier.plugins).length).toBe(4);
+        });
     });
 
     describe('getTiersByCollection', () => {

@@ -101,6 +101,22 @@ export class Tier extends BaseEntity {
 
     @Column({
         nullable: true,
+        type: 'jsonb',
+        comment:
+            'A JSON object containing the data of the conditions of this item.',
+    })
+    conditions?: string;
+
+    @Column({
+        nullable: true,
+        type: 'jsonb',
+        comment:
+            'A JSON object containing the data of the tier plugins data.',
+    })
+    plugins?: string;
+
+    @Column({
+        nullable: true,
         length: 6,
         comment: 'Background color of the item. Must be a six-character hexadecimal without a pre-pended #.',
     })

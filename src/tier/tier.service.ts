@@ -77,6 +77,7 @@ export class TierService {
      */
     async createTier(data: CreateTierInput): Promise<Tier> {
         const kind = CollectionKind;
+
         const collection = await this.collectionRepository.findOneBy({ id: data.collection.id });
         if ([kind.whitelistEdition, kind.whitelistTiered, kind.whitelistBulk].indexOf(collection.kind) >= 0) {
             if (!data.merkleRoot) throw new GraphQLError('Please provide merkleRoot for the whitelisting collection.');
@@ -84,8 +85,18 @@ export class TierService {
 
         const dd = data as unknown as tierEntity.Tier;
         dd.collection = data.collection as unknown as Collection;
-        const attributesJson = JSON.stringify(data.attributes);
-        dd.attributes = attributesJson;
+        if (data.attributes) {
+            dd.attributes = JSON.stringify(data.attributes);
+        }
+
+        if (data.conditions) {
+            dd.conditions = JSON.stringify(data.conditions);
+        }
+
+        if (data.plugins) {
+            dd.plugins = JSON.stringify(data.plugins);
+        }
+
         try {
             return await this.tierRepository.save(dd);
         } catch (e) {
@@ -105,7 +116,19 @@ export class TierService {
      */
     async updateTier(id: string, data: Omit<UpdateTierInput, 'id'>): Promise<boolean> {
         try {
-            const result: UpdateResult = await this.tierRepository.update(id, data);
+            const dd = data as unknown as tierEntity.Tier;
+            if (data.attributes) {
+                dd.attributes = JSON.stringify(data.attributes);
+            }
+
+            if (data.conditions) {
+                dd.conditions = JSON.stringify(data.conditions);
+            }
+
+            if (data.plugins) {
+                dd.plugins = JSON.stringify(data.plugins);
+            }
+            const result: UpdateResult = await this.tierRepository.update(id, dd);
             return result.affected > 0;
         } catch (e) {
             Sentry.captureException(e);

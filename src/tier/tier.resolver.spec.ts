@@ -136,6 +136,87 @@ describe('TierResolver', () => {
                     expect(body.data.tier.coin.address).toEqual(coin.address);
                 });
         });
+
+        it('should return a tier with plugins, attributes and conditions', async () => {
+            collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const tier = await service.createTier({
+                name: faker.company.name(),
+                collection: { id: collection.id },
+                totalMints: 10,
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+                attributes: [
+                    {
+                        trait_type: 'Powerup',
+                        value: '1000',
+                    },
+                ],
+                conditions: [
+                    {
+                        trait_type: 'Ranking',
+                        equal: 'Platinum',
+                        update: {
+                            trait_type: 'Claimble',
+                            value: true,
+                        },
+                    },
+                ],
+                plugins: [
+                    {
+                        type: 'gituub',
+                        path: 'vibexyz/vibes',
+                    },
+                    {
+                        type: 'vibe',
+                        path: 'points',
+                        config: {
+                            initial: 0,
+                            increment: 1,
+                        },
+                    },
+                ],
+            });
+
+            const query = gql`
+                query GetTier($id: String!) {
+                    tier(id: $id) {
+                        id
+                        name
+                        coin {
+                            address
+                        }
+                        plugins
+                        attributes
+                        conditions
+                    }
+                }
+            `;
+
+            const variables = {
+                id: tier.id,
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.tier.id).toBe(tier.id);
+                    expect(body.data.tier.name).toBe(tier.name);
+                    expect(body.data.tier.plugins).toBe(tier.plugins);
+                    expect(body.data.tier.attributes).toBe(tier.attributes);
+                    expect(body.data.tier.conditions).toBe(tier.conditions);
+                });
+        });
     });
 
     describe('tiers', () => {

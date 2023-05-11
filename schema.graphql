@@ -395,6 +395,12 @@ type Tier {
   """A JSON object containing the attributes of the tier."""
   attributes: String
 
+  """A JSON object containing the conditions of the tier."""
+  conditions: String
+
+  """A JSON object containing the plugins of the tier."""
+  plugins: String
+
   """The tier coin"""
   coin: Coin
 
@@ -1870,6 +1876,12 @@ input CreateTierInput {
   """The tier attributes"""
   attributes: [Attribute!]
 
+  """The tier conditions"""
+  conditions: [JSONObject!]
+
+  """A JSON object containing the plugins of the tier."""
+  plugins: [JSONObject!]
+
   """This merekleRoot of tier."""
   merkleRoot: String
 }
@@ -1904,8 +1916,14 @@ input UpdateTierInput {
   """This is the URL to the animation of the tier."""
   animationUrl: String
 
-  """A JSON object containing the attributes of the tier."""
-  attributes: String
+  """The tier attributes"""
+  attributes: [Attribute!]
+
+  """The tier conditions"""
+  conditions: [JSONObject!]
+
+  """A JSON object containing the plugins of the tier."""
+  plugins: [JSONObject!]
 
   """This merekleRoot of tier."""
   merkleRoot: String
