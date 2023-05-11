@@ -122,6 +122,7 @@ describe('WalletService', () => {
 
         beforeEach(async () => {
             const owner = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -172,6 +173,7 @@ describe('WalletService', () => {
 
         beforeEach(async () => {
             const owner = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -208,10 +210,12 @@ describe('WalletService', () => {
 
         it('should throw an error if the wallet is not bound to the user', async () => {
             const owner = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
             const nonOwner = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });

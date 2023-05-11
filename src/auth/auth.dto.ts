@@ -45,11 +45,10 @@ export class CreateUserWithEmailInput {
     @IsString()
     password: string;
 
-    @Field({ nullable: true })
+    @Field()
     @ApiProperty()
     @IsString()
-    @IsOptional()
-    username?: string;
+    username: string;
 
     @Field({ nullable: true })
     @ApiProperty()

@@ -9,10 +9,9 @@ export class User {
     @Field((returns) => ID!)
     id: string;
 
-    @Field({ description: 'The username of the user.', nullable: true })
+    @Field({ description: 'The username of the user.' })
     @IsString()
-    @IsOptional()
-    username?: string;
+    username: string;
 
     @Field({ description: 'The name of the user.', nullable: true })
     @IsString()

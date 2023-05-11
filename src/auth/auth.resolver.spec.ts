@@ -70,8 +70,8 @@ describe('AuthResolver', () => {
             email = faker.internet.email();
 
             const query = gql`
-                mutation createUserWithEmail($email: String!, $password: String!) {
-                    createUserWithEmail(input: { email: $email, password: $password }) {
+                mutation createUserWithEmail($input: CreateUserWithEmailInput!) {
+                    createUserWithEmail(input: $input) {
                         sessionToken
                         user {
                             email
@@ -82,8 +82,11 @@ describe('AuthResolver', () => {
             `;
 
             const variables = {
-                email,
-                password: 'testsAreFun',
+                input: {
+                    email,
+                    password: 'testsAreFun',
+                    username: faker.internet.userName(),
+                },
             };
 
             return await request(app.getHttpServer())

@@ -122,6 +122,7 @@ describe('WalletResolver', () => {
         it('should create a wallet', async () => {
             address = faker.finance.ethereumAddress();
             const user = await authService.createUserWithEmail({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -168,6 +169,7 @@ describe('WalletResolver', () => {
             const password = faker.internet.password();
 
             const owner = await authService.createUserWithEmail({
+                username: faker.internet.userName(),
                 name,
                 email,
                 password,
@@ -211,6 +213,7 @@ describe('WalletResolver', () => {
             const password = faker.internet.password();
 
             const credentials = await authService.createUserWithEmail({
+                username: faker.internet.userName(),
                 email,
                 password,
             });
@@ -221,6 +224,7 @@ describe('WalletResolver', () => {
 
             const owner = await userService.createUser({
                 name: faker.internet.userName(),
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });

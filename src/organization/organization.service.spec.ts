@@ -61,6 +61,7 @@ describe.only('OrganizationService', () => {
     describe('getOrganization', () => {
         it('should get an organization', async () => {
             const owner = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -89,6 +90,7 @@ describe.only('OrganizationService', () => {
 
         it('should create an organization', async () => {
             owner = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -112,11 +114,13 @@ describe.only('OrganizationService', () => {
 
         it('should create an organization and invite users', async () => {
             owner = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
 
             const invitee = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -171,6 +175,7 @@ describe.only('OrganizationService', () => {
 
         it('should update an organization', async () => {
             owner = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -222,6 +227,7 @@ describe.only('OrganizationService', () => {
     describe('deleteOrganization', () => {
         it('should delete an organization', async () => {
             const owner = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -247,11 +253,13 @@ describe.only('OrganizationService', () => {
     describe('transferOrganization', () => {
         it('should transfer an organization', async () => {
             const owner = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
 
             const user = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -275,6 +283,7 @@ describe.only('OrganizationService', () => {
 
         it('should throw an error if the user does not exist', async () => {
             const owner = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -301,11 +310,13 @@ describe.only('OrganizationService', () => {
     describe('getOrganizationsByOwnerId', () => {
         it('should return all the organizations a user is owner on', async () => {
             const owner = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
 
             const differentOwner = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });

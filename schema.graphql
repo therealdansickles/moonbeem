@@ -572,7 +572,7 @@ type User {
   id: ID!
 
   """The username of the user."""
-  username: String
+  username: String!
 
   """The name of the user."""
   name: String
@@ -1415,7 +1415,7 @@ input LogoutInput {
 input CreateUserWithEmailInput {
   email: String!
   password: String!
-  username: String
+  username: String!
   name: String
   avatarUrl: String
   inviteCode: String

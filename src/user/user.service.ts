@@ -57,7 +57,8 @@ export class UserService {
         } catch (e) {
             Sentry.captureException(e);
             if (e.routine === '_bt_check_unique') {
-                throw new GraphQLError(`User already exists.`, {
+                const keyMatch = e.detail.match(/Key \((.+)\)=/);
+                throw new GraphQLError(`A user with this ${keyMatch[1] || ''} already exists.`, {
                     extensions: { code: 'BAD_REQUEST' },
                 });
             }

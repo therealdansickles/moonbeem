@@ -90,6 +90,7 @@ describe('CollectionService', () => {
     describe('getCollection', () => {
         it('should get a collection by id', async () => {
             const owner = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -130,6 +131,7 @@ describe('CollectionService', () => {
 
         it('should get a collection by id with tiers', async () => {
             const owner = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -184,6 +186,7 @@ describe('CollectionService', () => {
     describe('getCollectionByAddress', () => {
         it('should get collections by organization', async () => {
             const owner = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -219,6 +222,7 @@ describe('CollectionService', () => {
     describe('getCollectionsByOrganizationId', () => {
         it('should get collections by organization', async () => {
             const owner = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -252,6 +256,7 @@ describe('CollectionService', () => {
 
         it('should get collections by organization with tiers', async () => {
             const owner = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -306,6 +311,7 @@ describe('CollectionService', () => {
     describe('getCreatedCollectionsByWalletId', () => {
         it('should get collections by wallet', async () => {
             const owner = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -351,6 +357,7 @@ describe('CollectionService', () => {
     describe('createCollection', () => {
         it('should create a collection', async () => {
             const owner = await userService.createUser({
+                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
