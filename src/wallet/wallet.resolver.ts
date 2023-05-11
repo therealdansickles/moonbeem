@@ -48,14 +48,14 @@ export class WalletResolver {
     }
 
     @Public()
-    @ResolveField(() => [Minted], { description: 'Retrieves the minted NFTs for the given wallet.' })
+    @ResolveField(() => [Minted], { description: 'Retrieves the minted NFTs for the given wallet.', nullable: true })
     async minted(@Parent() wallet: Wallet): Promise<Minted[]> {
         const minted = await this.walletService.getMintedByAddress(wallet.address);
         return minted;
     }
 
     @Public()
-    @ResolveField(() => [Activity], { description: 'Retrieves the activity for the given wallet.' })
+    @ResolveField(() => [Activity], { description: 'Retrieves the activity for the given wallet.', nullable: true })
     async activities(@Parent() wallet: Wallet): Promise<Activity[]> {
         const activities = await this.walletService.getMintedByAddress(wallet.address);
         return activities.map((activity) => ({ type: 'Mint', ...activity }));
