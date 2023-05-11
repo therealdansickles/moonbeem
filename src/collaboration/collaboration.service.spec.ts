@@ -120,6 +120,8 @@ describe('CollaborationService', () => {
         it('should create a collaboration', async () => {
             const result = await service.createCollaboration({
                 walletId: wallet.id,
+                organizationId: organization.id,
+                userId: user.id,
                 royaltyRate: 12,
                 collaborators: [
                     {
@@ -134,6 +136,8 @@ describe('CollaborationService', () => {
             expect(result.royaltyRate).toEqual(12);
             expect(result.wallet).toBeDefined();
             expect(result.wallet.id).toEqual(wallet.id);
+            expect(result.organization.id).toEqual(organization.id)
+            expect(result.user.id).toEqual(user.id)
         });
 
         it('should create a collaboration even if nothing provided', async () => {
