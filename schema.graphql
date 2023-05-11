@@ -1203,8 +1203,8 @@ type Query {
   getTxStatus(chain: String!, txHash: String!): Boolean!
   getFactoryConfig(chainId: Int = 0): FactoryConfigRspDto!
 
-  """Returns an user for the given id"""
-  user(id: String!): User
+  """Returns an user for the given id or username"""
+  user(id: String, username: String): User
 
   """returns a collaboration for a given uuid"""
   collaboration(id: String!): Collaboration

@@ -8,20 +8,30 @@ import { OrganizationService } from '../organization/organization.service';
 import { OrganizationKind } from '../organization/organization.entity';
 import * as randomstring from 'randomstring';
 
+interface GetUserInput {
+    id?: string;
+    username?: string;
+}
+
 @Injectable()
 export class UserService {
     constructor(
         private organizationService: OrganizationService,
         @InjectRepository(User) private userRepository: Repository<User>
-    ) { }
+    ) {}
 
     /**
      * Retrieve an user by id.
      * @param id
      * @returns
      */
-    async getUser(id: string): Promise<User> {
-        return await this.userRepository.findOneBy({ id });
+    async getUser(input: GetUserInput): Promise<User> {
+        if (!input.id && !input.username) {
+            throw new GraphQLError(`Either 'id' or 'username' have to be provided.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
+        }
+        return await this.userRepository.findOneBy(input);
     }
 
     /**

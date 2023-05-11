@@ -17,9 +17,12 @@ export class UserResolver {
     ) {}
 
     @Public()
-    @Query(() => User, { description: 'Returns an user for the given id', nullable: true })
-    async user(@Args('id') id: string): Promise<User> {
-        return await this.userService.getUser(id);
+    @Query(() => User, { description: 'Returns an user for the given id or username', nullable: true })
+    async user(
+        @Args({ name: 'id', nullable: true }) id: string,
+        @Args({ name: 'username', nullable: true }) username: string
+    ): Promise<User> {
+        return await this.userService.getUser({ id, username });
     }
 
     @Public()
