@@ -155,6 +155,7 @@ describe('CollectionService', () => {
                 collection: { id: collection.id },
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                price: '100',
             });
 
             await tierService.createTier({
@@ -170,6 +171,7 @@ describe('CollectionService', () => {
             expect(result.organization.name).not.toBeNull();
             expect(result.tiers).not.toBeNull();
             expect(result.tiers.some((tier) => tier.totalMints === 200)).toBeTruthy();
+            expect(result.tiers.some((tier) => tier.price === '100')).toBeTruthy();
         });
     });
 

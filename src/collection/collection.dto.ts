@@ -203,4 +203,9 @@ export class CreateTierInCollectionInput {
     @Field({ nullable: true, description: 'This merekleRoot of tier.' })
     @IsOptional()
     readonly merkleRoot?: string;
+
+    @IsString()
+    @Field({ nullable: true, description: 'The price of NFTs in this tier.' })
+    @IsOptional()
+    readonly price?: string;
 }

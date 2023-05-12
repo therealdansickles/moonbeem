@@ -1615,6 +1615,9 @@ input CreateTierInCollectionInput {
 
   """This merekleRoot of tier."""
   merkleRoot: String
+
+  """The price of NFTs in this tier."""
+  price: String
 }
 
 input Attribute {
