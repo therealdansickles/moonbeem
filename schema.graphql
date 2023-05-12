@@ -457,6 +457,23 @@ type MintSaleTransaction {
   updatedAt: DateTime!
 }
 
+type LeaderboardRanking {
+  """Ranking of this leaderboard"""
+  rank: Int!
+
+  """return price"""
+  amount: String!
+
+  """Total number of buy"""
+  item: Int!
+
+  """The user address"""
+  address: EthereumAddress!
+
+  """The payment token address"""
+  paymentToken: EthereumAddress!
+}
+
 type Wallet {
   """The id for a wallet."""
   id: ID!
@@ -1230,6 +1247,9 @@ type Query {
 
   """returns transaction for a given uuid"""
   transaction(id: String!): MintSaleTransaction!
+
+  """Get leaderboard for collection"""
+  leaderboard(address: String!): [LeaderboardRanking!]!
 
   """returns a factory contract for a given uuid"""
   factory(id: String!): Factory!

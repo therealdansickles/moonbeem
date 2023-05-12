@@ -1,81 +1,89 @@
-import { ObjectType, Field, ID } from '@nestjs/graphql';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsDateString, IsNumber } from 'class-validator';
+import { ObjectType, Field, ID, Int } from '@nestjs/graphql';
+import { IsString, IsDateString, IsNumber, isNumberString, IsNumberString, IsEthereumAddress } from 'class-validator';
+import { EthereumAddress } from '../../lib/scalars/eth.scalar';
 
 @ObjectType('MintSaleTransaction')
 export class MintSaleTransaction {
-    @ApiProperty()
     @IsString()
     @Field((returns) => ID!)
     readonly id: string;
 
-    @ApiProperty()
     @IsNumber()
     @Field({ description: 'Block height of transaction.' })
     readonly height: number;
 
-    @ApiProperty()
     @IsString()
     @Field({ description: 'Transaction hash of transaction.' })
     readonly txHash: string;
 
-    @ApiProperty()
     @IsNumber()
     @Field({ description: 'Transaction time of transaction.' })
     readonly txTime: number;
 
-    @ApiProperty()
     @IsString()
     @Field({ description: 'Transaction sender of transaction.' })
     sender: string;
 
-    @ApiProperty()
     @IsString()
     @Field({ description: 'NFT Recipient of current transaction.' })
     recipient: string;
 
-    @ApiProperty()
     @IsString()
     @Field({ description: 'The contract address' })
     readonly address: string;
 
-    @ApiProperty()
     @IsNumber()
     @Field({ description: 'The tier id for the collection.' })
     readonly tierId: number;
 
-    @ApiProperty()
     @IsString()
     @Field({ description: 'Collection associated token contract address, Erc721 contract' })
     tokenAddress: string;
 
-    @ApiProperty()
     @IsString()
     @Field({ description: 'The token id received by the user' })
     tokenId: string;
 
-    @ApiProperty()
     @IsString()
     @Field({ description: 'The tier price' })
     price: string;
 
-    @ApiProperty()
     @IsString()
     @Field({ description: 'The payment token address' })
     paymentToken: string;
 
-    @ApiProperty()
     @IsNumber()
     @Field({ description: 'The chain id for the transaction' })
     readonly chainId?: number;
 
-    @ApiProperty()
     @IsDateString()
     @Field({ description: 'The created time.' })
     readonly createdAt: Date;
 
-    @ApiProperty()
     @IsDateString()
     @Field({ description: 'The DateTime that this transaction was last updated.' })
     readonly updatedAt: Date;
+}
+
+@ObjectType()
+export class LeaderboardRanking {
+    @IsNumber()
+    @Field((type) => Int, { description: 'Ranking of this leaderboard' })
+    readonly rank: number;
+
+    @IsNumberString()
+    @Field({ description: 'return price' })
+    readonly amount: string;
+
+    @IsNumber()
+    @Field((type) => Int, { description: 'Total number of buy' })
+    readonly item: number;
+
+    @Field(() => EthereumAddress, { description: 'The user address' })
+    @IsEthereumAddress()
+    readonly address: string;
+
+    @Field(() => EthereumAddress, { description: 'The payment token address' })
+    @IsEthereumAddress()
+    readonly paymentToken: string;
 }
