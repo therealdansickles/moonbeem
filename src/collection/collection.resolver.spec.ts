@@ -95,7 +95,6 @@ describe('CollectionResolver', () => {
     describe('collection', () => {
         it('should get a collection by id', async () => {
             const owner = await userService.createUser({
-                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -157,7 +156,6 @@ describe('CollectionResolver', () => {
 
         it('should get a collection by id with contract details', async () => {
             const owner = await userService.createUser({
-                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -247,7 +245,6 @@ describe('CollectionResolver', () => {
 
         it('should get a collection by id with no contract details, if contract doesnt exist', async () => {
             const owner = await userService.createUser({
-                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -313,7 +310,6 @@ describe('CollectionResolver', () => {
 
         it('should get a collection by address', async () => {
             const owner = await userService.createUser({
-                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -370,7 +366,6 @@ describe('CollectionResolver', () => {
 
         it('should get a collection by id with tiers', async () => {
             const owner = await userService.createUser({
-                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -497,13 +492,11 @@ describe('CollectionResolver', () => {
 
         it('should allow authenticated users to create a collection', async () => {
             const credentials = await authService.createUserWithEmail({
-                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
 
             const owner = await userService.createUser({
-                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });

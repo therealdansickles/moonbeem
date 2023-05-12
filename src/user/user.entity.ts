@@ -8,7 +8,6 @@ import {
     OneToMany,
     ManyToOne,
     JoinColumn,
-    Index,
 } from 'typeorm';
 import { Wallet } from '../wallet/wallet.entity';
 import { Membership } from '../membership/membership.entity';
@@ -20,9 +19,8 @@ export class User extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ unique: true, comment: 'The username of the user.' })
-    //@Index({ unique: true, where: 'username IS NOT NULL' })
-    username: string;
+    @Column({ nullable: true, comment: 'The username of the user.' })
+    username?: string;
 
     @Column({ unique: true, comment: 'The email of the user.' })
     email: string;

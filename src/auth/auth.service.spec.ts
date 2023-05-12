@@ -68,7 +68,6 @@ describe('AuthService', () => {
             const email = faker.internet.email();
 
             const user = await service.createUserWithEmail({
-                username: faker.internet.userName(),
                 email,
                 password: faker.internet.password(),
             });
@@ -77,11 +76,10 @@ describe('AuthService', () => {
             expect(user.user.email).toEqual(email.toLowerCase());
         });
 
-        it('should not create a user with an email that already exists', async () => {
+        it('should not create a user that already exists', async () => {
             const email = faker.internet.email();
 
             const user = await service.createUserWithEmail({
-                username: faker.internet.userName(),
                 email,
                 password: faker.internet.password(),
             });
@@ -91,36 +89,16 @@ describe('AuthService', () => {
 
             expect(async () => {
                 await service.createUserWithEmail({
-                    username: faker.internet.userName(),
                     email,
                     password: faker.internet.password(),
                 });
-            }).rejects.toThrow('A user with this email already exists.');
-        });
-
-        it('should not create a user with a username that already exists', async () => {
-            const username = faker.internet.userName();
-
-            await service.createUserWithEmail({
-                username,
-                email: faker.internet.email(),
-                password: faker.internet.password(),
-            });
-
-            expect(async () => {
-                await service.createUserWithEmail({
-                    username,
-                    email: faker.internet.email(),
-                    password: faker.internet.password(),
-                });
-            }).rejects.toThrow('A user with this username already exists.');
+            }).rejects.toThrow('User already exists.');
         });
 
         it('should create a user that was invited to an org and accept its membership', async () => {
             const inviteeEmail = faker.internet.email();
 
             const owner = await service.createUserWithEmail({
-                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -142,7 +120,6 @@ describe('AuthService', () => {
             const pendingMembership = await repository.findOne({ where: { email: inviteeEmail.toLowerCase() } });
 
             const invitedUser = await service.createUserWithEmail({
-                username: faker.internet.userName(),
                 email: inviteeEmail,
                 password: faker.internet.password(),
                 inviteCode: pendingMembership.inviteCode,

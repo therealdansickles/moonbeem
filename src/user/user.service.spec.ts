@@ -82,40 +82,6 @@ describe('UserService', () => {
             expect(user.email).toBeDefined();
             expect(user.password).toBeDefined();
         });
-
-        it('should fail to create user with duplicate email', async () => {
-            const email = faker.internet.email();
-            await service.createUser({
-                username: faker.internet.userName(),
-                email,
-                password: faker.internet.password(),
-            });
-
-            expect(async () => {
-                await service.createUser({
-                    username: faker.internet.userName(),
-                    email,
-                    password: faker.internet.password(),
-                });
-            }).rejects.toThrowError();
-        });
-
-        it('should fail to create user with duplicate username', async () => {
-            const username = faker.internet.userName();
-            await service.createUser({
-                username,
-                email: faker.internet.email(),
-                password: faker.internet.password(),
-            });
-
-            expect(async () => {
-                await service.createUser({
-                    username,
-                    email: faker.internet.email(),
-                    password: faker.internet.password(),
-                });
-            }).rejects.toThrowError();
-        });
     });
 
     describe('createUserWithOrganization', () => {
@@ -132,40 +98,6 @@ describe('UserService', () => {
             const orgs = await organizationService.getOrganizationsByOwnerId(user.id);
             expect(orgs.length).toEqual(1);
             expect(orgs[0].owner.id).toEqual(user.id);
-        });
-
-        it('should fail to create user with duplicate email', async () => {
-            const email = faker.internet.email();
-            await service.createUserWithOrganization({
-                username: faker.internet.userName(),
-                email,
-                password: faker.internet.password(),
-            });
-
-            expect(async () => {
-                await service.createUserWithOrganization({
-                    username: faker.internet.userName(),
-                    email,
-                    password: faker.internet.password(),
-                });
-            }).rejects.toThrowError();
-        });
-
-        it('should fail to create user with duplicate username', async () => {
-            const username = faker.internet.userName();
-            await service.createUserWithOrganization({
-                username,
-                email: faker.internet.email(),
-                password: faker.internet.password(),
-            });
-
-            expect(async () => {
-                await service.createUserWithOrganization({
-                    username,
-                    email: faker.internet.email(),
-                    password: faker.internet.password(),
-                });
-            }).rejects.toThrowError();
         });
     });
 

@@ -124,7 +124,6 @@ describe('SearchResolver', () => {
             const name = faker.company.name();
             const user = await authService.createUserWithEmail({
                 name,
-                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });

@@ -160,7 +160,6 @@ describe('MembershipResolver', () => {
             });
 
             const owner = await authService.createUserWithEmail({
-                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });

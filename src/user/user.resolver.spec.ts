@@ -71,7 +71,6 @@ describe('UserResolver', () => {
     describe('getUser', () => {
         it('should get an user', async () => {
             const credentials = await authService.createUserWithEmail({
-                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -130,7 +129,6 @@ describe('UserResolver', () => {
     describe('updateUser', () => {
         it('should update an user', async () => {
             const credentials = await authService.createUserWithEmail({
-                username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
