@@ -25,6 +25,7 @@ describe.only('MintSaleTransactionService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 MintSaleTransactionModule,
             ],
@@ -32,10 +33,6 @@ describe.only('MintSaleTransactionService', () => {
 
         repository = module.get('sync_chain_MintSaleTransactionRepository');
         service = module.get<MintSaleTransactionService>(MintSaleTransactionService);
-    });
-
-    afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "MintSaleTransaction" CASCADE');
     });
 
     describe('MintSaleTransaction', () => {

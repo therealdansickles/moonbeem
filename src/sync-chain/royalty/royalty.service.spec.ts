@@ -25,6 +25,7 @@ describe('RoyaltyService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 RoyaltyModule,
             ],
@@ -32,10 +33,6 @@ describe('RoyaltyService', () => {
 
         repository = module.get('sync_chain_RoyaltyRepository');
         service = module.get<RoyaltyService>(RoyaltyService);
-    });
-
-    afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Royalty" CASCADE');
     });
 
     describe('getRoyalty', () => {

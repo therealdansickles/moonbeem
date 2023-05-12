@@ -23,6 +23,7 @@ describe('UserService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
@@ -35,19 +36,15 @@ describe('UserService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 UserModule,
-                OrganizationModule,
             ],
         }).compile();
 
         service = module.get<UserService>(UserService);
         repository = module.get('UserRepository');
         organizationService = module.get<OrganizationService>(OrganizationService);
-    });
-
-    afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "User" CASCADE');
     });
 
     describe('getUser', () => {

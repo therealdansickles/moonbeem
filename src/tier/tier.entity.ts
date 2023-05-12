@@ -102,16 +102,14 @@ export class Tier extends BaseEntity {
     @Column({
         nullable: true,
         type: 'jsonb',
-        comment:
-            'A JSON object containing the data of the conditions of this item.',
+        comment: 'A JSON object containing the data of the conditions of this item.',
     })
     conditions?: string;
 
     @Column({
         nullable: true,
         type: 'jsonb',
-        comment:
-            'A JSON object containing the data of the tier plugins data.',
+        comment: 'A JSON object containing the data of the tier plugins data.',
     })
     plugins?: string;
 

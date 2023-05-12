@@ -25,6 +25,7 @@ describe.only('SystemConfigService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 SystemConfigModule,
             ],
@@ -32,10 +33,6 @@ describe.only('SystemConfigService', () => {
 
         repository = module.get('sync_chain_SystemConfigRepository');
         service = module.get<SystemConfigService>(SystemConfigService);
-    });
-
-    afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "SystemConfig" CASCADE');
     });
 
     describe('system config', () => {

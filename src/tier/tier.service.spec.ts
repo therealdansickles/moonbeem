@@ -9,10 +9,8 @@ import { Tier } from './tier.entity';
 import { TierModule } from './tier.module';
 import { TierService } from './tier.service';
 import { CollectionKind } from '../collection/collection.entity';
-import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { CoinModule } from '../sync-chain/coin/coin.module';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { Collection } from 'src/collection/collection.dto';
 
@@ -33,6 +31,7 @@ describe('TierService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
@@ -45,10 +44,9 @@ describe('TierService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
-                CollectionModule,
                 TierModule,
-                CoinModule,
             ],
         }).compile();
 
@@ -67,11 +65,6 @@ describe('TierService', () => {
             enabled: true,
             chainId: 1,
         });
-    });
-
-    afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Tier" CASCADE');
-        await repository.query('TRUNCATE TABLE "Collection" CASCADE');
     });
 
     describe('createTier', () => {

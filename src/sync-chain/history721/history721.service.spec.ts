@@ -25,6 +25,7 @@ describe.only('History721Service', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 History721Module,
             ],
@@ -32,10 +33,6 @@ describe.only('History721Service', () => {
 
         repository = module.get('sync_chain_History721Repository');
         service = module.get<History721Service>(History721Service);
-    });
-
-    afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "History721" CASCADE');
     });
 
     describe('history721', () => {

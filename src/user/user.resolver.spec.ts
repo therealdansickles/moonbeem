@@ -31,6 +31,7 @@ describe('UserResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
@@ -43,6 +44,7 @@ describe('UserResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 UserModule,
                 AuthModule,
@@ -63,7 +65,6 @@ describe('UserResolver', () => {
     });
 
     afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "User" CASCADE');
         await app.close();
     });
 

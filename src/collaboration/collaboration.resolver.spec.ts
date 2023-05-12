@@ -49,6 +49,7 @@ describe('CollaborationResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
@@ -61,12 +62,9 @@ describe('CollaborationResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 CollaborationModule,
-                CollectionModule,
-                OrganizationModule,
-                UserModule,
-                WalletModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
@@ -98,11 +96,6 @@ describe('CollaborationResolver', () => {
     });
 
     afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Collaboration" CASCADE');
-        await repository.query('TRUNCATE TABLE "Collection" CASCADE');
-        await repository.query('TRUNCATE TABLE "Organization" CASCADE');
-        await repository.query('TRUNCATE TABLE "User" CASCADE');
-        await repository.query('TRUNCATE TABLE "Wallet" CASCADE');
         await app.close();
     });
 
@@ -115,7 +108,7 @@ describe('CollaborationResolver', () => {
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
-            })
+            });
             organization = await organizationService.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
@@ -127,8 +120,8 @@ describe('CollaborationResolver', () => {
                 instagram: faker.internet.userName(),
                 discord: faker.internet.userName(),
                 owner: user,
-            })    
-        })
+            });
+        });
 
         it('should create a collaboration', async () => {
             const query = gql`

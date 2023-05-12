@@ -9,13 +9,11 @@ import { Repository } from 'typeorm';
 import { postgresConfig } from '../lib/configs/db.config';
 
 import { CollectionKind } from '../collection/collection.entity';
-import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
 import { Tier } from './tier.entity';
 import { TierModule } from './tier.module';
 import { TierService } from './tier.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { CoinModule } from '../sync-chain/coin/coin.module';
 import { Coin } from 'src/sync-chain/coin/coin.entity';
 import { Collection } from 'src/collection/collection.dto';
 
@@ -39,6 +37,7 @@ describe('TierResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
@@ -51,14 +50,13 @@ describe('TierResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
-                CollectionModule,
                 TierModule,
-                CoinModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
-                    include: [CollectionModule, TierModule, CoinModule],
+                    include: [TierModule],
                 }),
             ],
         }).compile();
@@ -84,8 +82,6 @@ describe('TierResolver', () => {
     });
 
     afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Tier" CASCADE');
-        await repository.query('TRUNCATE TABLE "Collection" CASCADE');
         await app.close();
     });
 

@@ -33,6 +33,7 @@ describe.only('SystemConfigResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 SystemConfigModule,
                 GraphQLModule.forRoot({
@@ -58,7 +59,6 @@ describe.only('SystemConfigResolver', () => {
     });
 
     afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "SystemConfig" CASCADE');
         await app.close();
     });
 

@@ -33,6 +33,7 @@ describe.only('Record721Resolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 Record721Module,
                 GraphQLModule.forRoot({
@@ -62,7 +63,6 @@ describe.only('Record721Resolver', () => {
     });
 
     afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Record721" CASCADE');
         await app.close();
     });
 

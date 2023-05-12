@@ -35,6 +35,7 @@ describe('RoyaltyResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 RoyaltyModule,
                 GraphQLModule.forRoot({
@@ -63,7 +64,6 @@ describe('RoyaltyResolver', () => {
     });
 
     afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Royalty" CASCADE');
         await app.close();
     });
 
