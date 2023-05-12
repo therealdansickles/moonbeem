@@ -125,6 +125,7 @@ export class CreateCollectionInput extends OmitType(PartialType(Collection, Inpu
 ]) {
     @IsObject()
     @Field(() => WalletInput, { description: 'The wallet that created the collection.', nullable: true })
+    @IsOptional()
     readonly creator?: WalletInput;
 
     @IsObject()
@@ -137,7 +138,7 @@ export class CreateCollectionInput extends OmitType(PartialType(Collection, Inpu
     readonly collaboration?: CollaborationInput;
 
     @IsArray()
-    @Field((type) => [CreateTierInCollectionInput], { nullable: true, description: 'This tiers for collection' })
+    @Field((type) => [CreateTierInCollectionInput], { description: 'This tiers for collection', nullable: true })
     @IsOptional()
     readonly tiers?: CreateTierInCollectionInput[];
 }
@@ -150,7 +151,7 @@ export class UpdateCollectionInput extends OmitType(CreateCollectionInput, ['org
 }
 
 @InputType()
-export class CollectionInput extends PickType(Collection, ['id'], InputType) {}
+export class CollectionInput extends PickType(Collection, ['id'], InputType) { }
 
 @InputType('CreateTierInCollectionInput')
 export class CreateTierInCollectionInput {
