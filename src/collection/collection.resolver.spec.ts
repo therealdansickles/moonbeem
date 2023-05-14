@@ -13,13 +13,10 @@ import { AuthService } from '../auth/auth.service';
 import { Collection, CollectionKind } from './collection.entity';
 import { CollectionModule } from './collection.module';
 import { CollectionService } from './collection.service';
-import { Organization } from '../organization/organization.entity';
 import { OrganizationService } from '../organization/organization.service';
-import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
 import { TierService } from '../tier/tier.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { CoinModule } from '../sync-chain/coin/coin.module';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { CollaborationService } from '../collaboration/collaboration.service';
@@ -50,6 +47,7 @@ describe('CollectionResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
@@ -62,14 +60,14 @@ describe('CollectionResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
-                CoinModule,
                 AuthModule,
                 CollectionModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
-                    include: [AuthModule, CollectionModule, CoinModule],
+                    include: [AuthModule, CollectionModule],
                 }),
             ],
         }).compile();
@@ -91,11 +89,6 @@ describe('CollectionResolver', () => {
     });
 
     afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "User" CASCADE');
-        await repository.query('TRUNCATE TABLE "Organization" CASCADE');
-        await repository.query('TRUNCATE TABLE "Collection" CASCADE');
-        await repository.query('TRUNCATE TABLE "Wallet" CASCADE');
-        await repository.query('TRUNCATE TABLE "Collaboration" CASCADE');
         await app.close();
     });
 
@@ -442,7 +435,10 @@ describe('CollectionResolver', () => {
                             id
                             totalMints
                             totalSold
-                            totalRaised
+                            profit {
+                                inPaymentToken
+                                inUSDC
+                            }
                         }
                     }
                 }
@@ -461,6 +457,7 @@ describe('CollectionResolver', () => {
                     expect(body.data.collection.tiers).toBeDefined();
                     expect(body.data.collection.tiers[0].totalMints).toEqual(100);
                     expect(body.data.collection.tiers[0].totalSold).toBeDefined();
+                    expect(body.data.collection.tiers[0].profit).toBeDefined();
                 });
         });
     });

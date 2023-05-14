@@ -74,7 +74,7 @@ export class Minted extends PickType(MintSaleTransaction, [
     'txTime',
 ] as const) {
     @IsObject()
-    @Field(() => Tier, { description: 'The tier of the minted token.' })
+    @Field(() => Tier, { description: 'The tier of the minted token.', nullable: true })
     readonly tier: Tier;
 }
 
@@ -88,7 +88,7 @@ export class Activity extends PickType(MintSaleTransaction, [
     'txTime',
 ] as const) {
     @IsObject()
-    @Field(() => Tier, { description: 'The tier of the minted token.' })
+    @Field(() => Tier, { description: 'The tier of the minted token.', nullable: true })
     readonly tier: Tier;
 
     // TODO: make it as enum later

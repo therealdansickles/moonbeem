@@ -33,6 +33,7 @@ describe.only('MintSaleContractResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 MintSaleContractModule,
                 GraphQLModule.forRoot({
@@ -72,7 +73,6 @@ describe.only('MintSaleContractResolver', () => {
     });
 
     afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "MintSaleContract" CASCADE');
         await app.close();
     });
 

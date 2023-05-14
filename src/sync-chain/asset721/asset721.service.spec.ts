@@ -25,6 +25,7 @@ describe.only('Asset721Service', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 Asset721Module,
             ],
@@ -32,10 +33,6 @@ describe.only('Asset721Service', () => {
 
         repository = module.get('sync_chain_Asset721Repository');
         service = module.get<Asset721Service>(Asset721Service);
-    });
-
-    afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Asset721" CASCADE');
     });
 
     describe('asset721', () => {

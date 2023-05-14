@@ -4,7 +4,7 @@ import { Repository, DeleteResult, UpdateResult } from 'typeorm';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { Collection, CollectionKind } from '../collection/collection.entity';
 import * as tierEntity from './tier.entity';
-import { CreateTierInput, UpdateTierInput, Tier } from './tier.dto';
+import { CreateTierInput, UpdateTierInput, Tier, Profit } from './tier.dto';
 import { GraphQLError } from 'graphql';
 import * as Sentry from '@sentry/node';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
@@ -77,6 +77,7 @@ export class TierService {
      */
     async createTier(data: CreateTierInput): Promise<Tier> {
         const kind = CollectionKind;
+
         const collection = await this.collectionRepository.findOneBy({ id: data.collection.id });
         if ([kind.whitelistEdition, kind.whitelistTiered, kind.whitelistBulk].indexOf(collection.kind) >= 0) {
             if (!data.merkleRoot) throw new GraphQLError('Please provide merkleRoot for the whitelisting collection.');
@@ -84,8 +85,18 @@ export class TierService {
 
         const dd = data as unknown as tierEntity.Tier;
         dd.collection = data.collection as unknown as Collection;
-        const attributesJson = JSON.stringify(data.attributes);
-        dd.attributes = attributesJson;
+        if (data.attributes) {
+            dd.attributes = JSON.stringify(data.attributes);
+        }
+
+        if (data.conditions) {
+            dd.conditions = JSON.stringify(data.conditions);
+        }
+
+        if (data.plugins) {
+            dd.plugins = JSON.stringify(data.plugins);
+        }
+
         try {
             return await this.tierRepository.save(dd);
         } catch (e) {
@@ -105,7 +116,19 @@ export class TierService {
      */
     async updateTier(id: string, data: Omit<UpdateTierInput, 'id'>): Promise<boolean> {
         try {
-            const result: UpdateResult = await this.tierRepository.update(id, data);
+            const dd = data as unknown as tierEntity.Tier;
+            if (data.attributes) {
+                dd.attributes = JSON.stringify(data.attributes);
+            }
+
+            if (data.conditions) {
+                dd.conditions = JSON.stringify(data.conditions);
+            }
+
+            if (data.plugins) {
+                dd.plugins = JSON.stringify(data.plugins);
+            }
+            const result: UpdateResult = await this.tierRepository.update(id, dd);
             return result.affected > 0;
         } catch (e) {
             Sentry.captureException(e);
@@ -154,15 +177,14 @@ export class TierService {
 
     /**
      *
-     * @param collectionAddress The address of collection. Collection.address
-     * @param tierId The collection contains the id of the tier, Tier.tierId
-     * @returns should be string, include number and float and bigNumber
+     * @param id The id of the tier
+     * @returns Profit object. Contains the price in token and USDC.
      */
-    async getTierTotalRaised(id: string): Promise<string> {
+    async getTierProfit(id: string): Promise<Profit> {
         try {
             const tier = await this.getTier(id);
             const { collection } = tier;
-            if (!collection.address) return '0';
+            if (!collection.address) return { inPaymentToken: '0', inUSDC: '0' };
 
             const result = await this.transactionRepository
                 .createQueryBuilder('transaction')
@@ -174,7 +196,7 @@ export class TierService {
                 })
                 .groupBy('transaction.paymentToken')
                 .getRawOne();
-            if (!result) return '0';
+            if (!result) return { inPaymentToken: '0', inUSDC: '0' };
 
             const data = result as BasicPriceInfo;
             const coin = await this.coinRepository.findOneBy({ address: data.token.toLowerCase() });
@@ -191,12 +213,15 @@ export class TierService {
              * totalUSDPrice = 10 * 0.9 = 9 USD
              */
             const totalTokenPrice = new BigNumber(data.price).div(new BigNumber(10).pow(coin.decimals));
-            const totalRaised = new BigNumber(totalTokenPrice).multipliedBy(coin.derivedUSDC);
+            const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(coin.derivedUSDC);
 
-            return totalRaised.toString();
+            return {
+                inPaymentToken: totalTokenPrice.toString(),
+                inUSDC: totalUSDC.toString(),
+            };
         } catch (error) {
             Sentry.captureException(error);
-            return '0';
+            return { inPaymentToken: '0', inUSDC: '0' };
         }
     }
 }

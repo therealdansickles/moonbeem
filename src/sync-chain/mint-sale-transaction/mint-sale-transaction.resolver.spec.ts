@@ -33,6 +33,7 @@ describe.only('MintSaleTransactionResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 MintSaleTransactionModule,
                 GraphQLModule.forRoot({
@@ -65,7 +66,6 @@ describe.only('MintSaleTransactionResolver', () => {
     });
 
     afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "MintSaleTransaction" CASCADE');
         await app.close();
     });
 
@@ -89,6 +89,81 @@ describe.only('MintSaleTransactionResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.transaction.id).toEqual(transaction.id);
+                });
+        });
+    });
+
+    describe('Leaderboard', () => {
+        it('should be return leaderboard', async () => {
+            const contractAddress = faker.finance.ethereumAddress();
+            const recipient1 = faker.finance.ethereumAddress();
+            const recipient2 = faker.finance.ethereumAddress();
+            const paymentToken = faker.finance.ethereumAddress();
+
+            const transaction1 = await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: recipient1,
+                address: contractAddress,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken: paymentToken,
+            });
+            const transaction2 = await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: recipient1,
+                address: contractAddress,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken: paymentToken,
+            });
+            const transaction3 = await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: recipient2,
+                address: contractAddress,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken: paymentToken,
+            });
+
+            const query = gql`
+                query Leaderboard($address: String!) {
+                    leaderboard(address: $address) {
+                        rank
+                        amount
+                        item
+                        address
+                        paymentToken
+                    }
+                }
+            `;
+            const variables = {
+                address: contractAddress,
+            };
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.leaderboard).toBeDefined();
+                    expect(body.data.leaderboard[0].rank).toBeDefined();
+                    expect(body.data.leaderboard[0].rank).toBe(1);
+                    expect(body.data.leaderboard[1].rank).toBeDefined();
+                    expect(body.data.leaderboard[1].rank).toBe(2);
                 });
         });
     });

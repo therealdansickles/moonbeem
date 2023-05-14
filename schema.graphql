@@ -395,6 +395,12 @@ type Tier {
   """A JSON object containing the attributes of the tier."""
   attributes: String
 
+  """A JSON object containing the conditions of the tier."""
+  conditions: String
+
+  """A JSON object containing the plugins of the tier."""
+  plugins: String
+
   """The tier coin"""
   coin: Coin
 
@@ -451,6 +457,23 @@ type MintSaleTransaction {
   updatedAt: DateTime!
 }
 
+type LeaderboardRanking {
+  """Ranking of this leaderboard"""
+  rank: Int!
+
+  """return price"""
+  amount: String!
+
+  """Total number of buy"""
+  item: Int!
+
+  """The user address"""
+  address: EthereumAddress!
+
+  """The payment token address"""
+  paymentToken: EthereumAddress!
+}
+
 type Wallet {
   """The id for a wallet."""
   id: ID!
@@ -483,10 +506,10 @@ type Wallet {
   spotify: String
 
   """Retrieves the minted NFTs for the given wallet."""
-  minted: [Minted!]!
+  minted: [Minted!]
 
   """Retrieves the activity for the given wallet."""
-  activities: [Activity!]!
+  activities: [Activity!]
 
   """
   Retrieve the estimated value of a address holdings/minted collections by address.
@@ -518,7 +541,7 @@ type Minted {
   paymentToken: String!
 
   """The tier of the minted token."""
-  tier: Tier!
+  tier: Tier
 }
 
 """The activity for a wallet."""
@@ -542,7 +565,7 @@ type Activity {
   paymentToken: String!
 
   """The tier of the minted token."""
-  tier: Tier!
+  tier: Tier
 
   """The activity type."""
   type: String!
@@ -1187,6 +1210,9 @@ type Waitlist {
 
   """Whether they have claimed the NFT"""
   isClaimed: Boolean
+
+  """The kind of the waitlist."""
+  kind: String
 }
 
 """Ethereum Address custom scalar type"""
@@ -1197,8 +1223,8 @@ type Query {
   getTxStatus(chain: String!, txHash: String!): Boolean!
   getFactoryConfig(chainId: Int = 0): FactoryConfigRspDto!
 
-  """Returns an user for the given id"""
-  user(id: String!): User
+  """Returns an user for the given id or username"""
+  user(id: String, username: String): User
 
   """returns a collaboration for a given uuid"""
   collaboration(id: String!): Collaboration
@@ -1224,6 +1250,9 @@ type Query {
 
   """returns transaction for a given uuid"""
   transaction(id: String!): MintSaleTransaction!
+
+  """Get leaderboard for collection"""
+  leaderboard(address: String!): [LeaderboardRanking!]!
 
   """returns a factory contract for a given uuid"""
   factory(id: String!): Factory!
@@ -1538,7 +1567,7 @@ input CreateCollectionInput {
   organization: OrganizationInput!
 
   """The collaboration of the collection."""
-  collaboration: CollaborationInput!
+  collaboration: CollaborationInput
 
   """This tiers for collection"""
   tiers: [CreateTierInCollectionInput!]
@@ -1589,6 +1618,9 @@ input CreateTierInCollectionInput {
 
   """This merekleRoot of tier."""
   merkleRoot: String
+
+  """The price of NFTs in this tier."""
+  price: String
 }
 
 input Attribute {
@@ -1870,6 +1902,12 @@ input CreateTierInput {
   """The tier attributes"""
   attributes: [Attribute!]
 
+  """The tier conditions"""
+  conditions: [JSONObject!]
+
+  """A JSON object containing the plugins of the tier."""
+  plugins: [JSONObject!]
+
   """This merekleRoot of tier."""
   merkleRoot: String
 }
@@ -1904,8 +1942,14 @@ input UpdateTierInput {
   """This is the URL to the animation of the tier."""
   animationUrl: String
 
-  """A JSON object containing the attributes of the tier."""
-  attributes: String
+  """The tier attributes"""
+  attributes: [Attribute!]
+
+  """The tier conditions"""
+  conditions: [JSONObject!]
+
+  """A JSON object containing the plugins of the tier."""
+  plugins: [JSONObject!]
 
   """This merekleRoot of tier."""
   merkleRoot: String
@@ -1977,6 +2021,9 @@ input CreateWaitlistInput {
 
   """The address for a wallet."""
   address: String!
+
+  """The kind of the waitlist."""
+  kind: String
 
   """The signing message"""
   message: String!

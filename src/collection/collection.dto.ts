@@ -125,6 +125,7 @@ export class CreateCollectionInput extends OmitType(PartialType(Collection, Inpu
 ]) {
     @IsObject()
     @Field(() => WalletInput, { description: 'The wallet that created the collection.', nullable: true })
+    @IsOptional()
     readonly creator?: WalletInput;
 
     @IsObject()
@@ -132,11 +133,13 @@ export class CreateCollectionInput extends OmitType(PartialType(Collection, Inpu
     readonly organization: OrganizationInput;
 
     @IsObject()
-    @Field((type) => CollaborationInput, { description: 'The collaboration of the collection.' })
+    @Field((type) => CollaborationInput, { description: 'The collaboration of the collection.', nullable: true })
+    @IsOptional()
     readonly collaboration?: CollaborationInput;
 
     @IsArray()
-    @Field((type) => [CreateTierInCollectionInput], { nullable: true, description: 'This tiers for collection' })
+    @Field((type) => [CreateTierInCollectionInput], { description: 'This tiers for collection', nullable: true })
+    @IsOptional()
     readonly tiers?: CreateTierInCollectionInput[];
 }
 
@@ -148,7 +151,7 @@ export class UpdateCollectionInput extends OmitType(CreateCollectionInput, ['org
 }
 
 @InputType()
-export class CollectionInput extends PickType(Collection, ['id'], InputType) {}
+export class CollectionInput extends PickType(Collection, ['id'], InputType) { }
 
 @InputType('CreateTierInCollectionInput')
 export class CreateTierInCollectionInput {
@@ -201,4 +204,9 @@ export class CreateTierInCollectionInput {
     @Field({ nullable: true, description: 'This merekleRoot of tier.' })
     @IsOptional()
     readonly merkleRoot?: string;
+
+    @IsString()
+    @Field({ nullable: true, description: 'The price of NFTs in this tier.' })
+    @IsOptional()
+    readonly price?: string;
 }

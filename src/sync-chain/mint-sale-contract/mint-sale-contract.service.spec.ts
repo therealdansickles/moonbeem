@@ -29,6 +29,7 @@ describe.only('MintSaleContractService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
@@ -41,6 +42,7 @@ describe.only('MintSaleContractService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 MintSaleContractModule,
                 CollectionModule,
@@ -54,10 +56,6 @@ describe.only('MintSaleContractService', () => {
         collectionService = module.get<CollectionService>(CollectionService);
         userService = module.get<UserService>(UserService);
         organizationService = module.get<OrganizationService>(OrganizationService);
-    });
-
-    afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "MintSaleContract" CASCADE');
     });
 
     describe('MintSaleContract', () => {

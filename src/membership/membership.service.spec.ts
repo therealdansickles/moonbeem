@@ -9,10 +9,8 @@ import { Membership } from './membership.entity';
 import { MembershipModule } from './membership.module';
 import { MembershipService } from './membership.service';
 import { Organization } from '../organization/organization.entity';
-import { OrganizationModule } from '../organization/organization.module';
 import { OrganizationService } from '../organization/organization.service';
 import { User } from '../user/user.entity';
-import { UserModule } from '../user/user.module';
 import { UserService } from '../user/user.service';
 
 describe('MembershipService', () => {
@@ -33,6 +31,7 @@ describe('MembershipService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
@@ -45,10 +44,9 @@ describe('MembershipService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 MembershipModule,
-                OrganizationModule,
-                UserModule,
             ],
         }).compile();
 
@@ -81,12 +79,6 @@ describe('MembershipService', () => {
             organization: organization,
             user: user,
         });
-    });
-
-    afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "User" CASCADE');
-        await repository.query('TRUNCATE TABLE "Organization" CASCADE');
-        await repository.query('TRUNCATE TABLE "Membership" CASCADE');
     });
 
     describe('getMembership', () => {

@@ -52,6 +52,7 @@ describe('WalletResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
@@ -64,15 +65,10 @@ describe('WalletResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 WalletModule,
                 AuthModule,
-                CollaborationModule,
-                CollectionModule,
-                TierModule,
-                MintSaleTransactionModule,
-                MintSaleContractModule,
-                UserModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
@@ -94,7 +90,6 @@ describe('WalletResolver', () => {
     });
 
     afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Wallet" CASCADE');
         await app.close();
     });
 

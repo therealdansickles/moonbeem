@@ -25,6 +25,7 @@ describe.only('CoinService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 CoinModule,
             ],
@@ -32,10 +33,6 @@ describe.only('CoinService', () => {
 
         repository = module.get('sync_chain_CoinRepository');
         service = module.get<CoinService>(CoinService);
-    });
-
-    afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Coin" CASCADE');
     });
 
     describe('coin', () => {

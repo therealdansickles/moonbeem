@@ -61,9 +61,9 @@ export class CollaborationService {
      */
     async createCollaboration(data: CreateCollaborationInput): Promise<Collaboration> {
         const dd = data as unknown as Collaboration;
-        if (data.walletId) dd.wallet = data.walletId as unknown as Wallet;
-        if (data.userId) dd.user = data.userId as unknown as User;
-        if (data.organizationId) dd.organization = data.organizationId as unknown as Organization;
+        if (data.walletId) dd.wallet = { id: data.walletId } as unknown as Wallet;
+        if (data.userId) dd.user = { id: data.userId } as unknown as User;
+        if (data.organizationId) dd.organization = { id: data.organizationId } as unknown as Organization;
 
         const result = await this.collaborationRepository.save(dd);
         return await this.getCollaboration(result.id);

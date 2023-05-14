@@ -23,6 +23,7 @@ describe('UserService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
@@ -35,9 +36,9 @@ describe('UserService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 UserModule,
-                OrganizationModule,
             ],
         }).compile();
 
@@ -46,18 +47,25 @@ describe('UserService', () => {
         organizationService = module.get<OrganizationService>(OrganizationService);
     });
 
-    afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "User" CASCADE');
-    });
-
     describe('getUser', () => {
-        it('should return user info', async () => {
+        it('should return user info by id', async () => {
             const user = await repository.save({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
-            const result = await service.getUser(user.id);
+            const result = await service.getUser({ id: user.id });
+            expect(result.username).toEqual(user.username);
+            expect(result.email).toEqual(user.email);
+        });
+
+        it('should return user info by username', async () => {
+            const user = await repository.save({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+            const result = await service.getUser({ username: user.username });
             expect(result.username).toEqual(user.username);
             expect(result.email).toEqual(user.email);
         });
@@ -76,7 +84,7 @@ describe('UserService', () => {
         });
     });
 
-    describe.only('createUserWithOrganization', () => {
+    describe('createUserWithOrganization', () => {
         it('should create user', async () => {
             const user = await service.createUserWithOrganization({
                 username: faker.internet.userName(),

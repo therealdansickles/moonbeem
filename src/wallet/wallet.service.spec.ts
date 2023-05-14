@@ -43,6 +43,7 @@ describe('WalletService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
@@ -55,13 +56,8 @@ describe('WalletService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
-                CollaborationModule,
-                CollectionModule,
-                MintSaleTransactionModule,
-                MintSaleContractModule,
-                TierModule,
-                UserModule,
                 WalletModule,
             ],
         }).compile();
@@ -74,10 +70,6 @@ describe('WalletService', () => {
         mintSaleContractService = module.get<MintSaleContractService>(MintSaleContractService);
         tierService = module.get<TierService>(TierService);
         userService = module.get<UserService>(UserService);
-    });
-
-    afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Wallet" CASCADE');
     });
 
     describe('getWallet', () => {

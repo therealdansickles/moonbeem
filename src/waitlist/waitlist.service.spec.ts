@@ -1,12 +1,13 @@
 import { Repository } from 'typeorm';
-import { Waitlist } from './waitlist.entity';
-import { WaitlistService } from './waitlist.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { postgresConfig } from '../lib/configs/db.config';
-import { WaitlistModule } from './waitlist.module';
-import { faker } from '@faker-js/faker';
 import { ethers } from 'ethers';
+import { faker } from '@faker-js/faker';
+import { postgresConfig } from '../lib/configs/db.config';
+
+import { Waitlist } from './waitlist.entity';
+import { WaitlistModule } from './waitlist.module';
+import { WaitlistService } from './waitlist.service';
 
 describe('CollectionService', () => {
     let repository: Repository<Waitlist>;
@@ -21,6 +22,7 @@ describe('CollectionService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 WaitlistModule,
             ],
@@ -28,10 +30,6 @@ describe('CollectionService', () => {
 
         repository = module.get('WaitlistRepository');
         service = module.get<WaitlistService>(WaitlistService);
-    });
-
-    afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Waitlist" CASCADE');
     });
 
     describe('getWaitlist', () => {

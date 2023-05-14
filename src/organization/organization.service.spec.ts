@@ -28,6 +28,7 @@ describe.only('OrganizationService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
@@ -40,10 +41,9 @@ describe.only('OrganizationService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 OrganizationModule,
-                UserModule,
-                MembershipModule,
             ],
         }).compile();
 
@@ -51,11 +51,6 @@ describe.only('OrganizationService', () => {
         service = module.get<OrganizationService>(OrganizationService);
         userService = module.get<UserService>(UserService);
         membershipService = module.get<MembershipService>(MembershipService);
-    });
-
-    afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "User" CASCADE');
-        await repository.query('TRUNCATE TABLE "Organization" CASCADE');
     });
 
     describe('getOrganization', () => {

@@ -35,6 +35,7 @@ describe('OrganizationResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
@@ -47,6 +48,7 @@ describe('OrganizationResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 OrganizationModule,
                 AuthModule,
@@ -86,9 +88,6 @@ describe('OrganizationResolver', () => {
     });
 
     afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Organization" CASCADE');
-        await repository.query('TRUNCATE TABLE "User" CASCADE');
-        await repository.query('TRUNCATE TABLE "Membership" CASCADE');
         await app.close();
     });
 

@@ -1,22 +1,19 @@
 import * as request from 'supertest';
-import { Test, TestingModule } from '@nestjs/testing';
+import { ApolloDriver } from '@nestjs/apollo';
 import { GraphQLModule } from '@nestjs/graphql';
 import { INestApplication } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ApolloDriver } from '@nestjs/apollo';
+import { ethers } from 'ethers';
 import { faker } from '@faker-js/faker';
-import { Repository } from 'typeorm';
 import { postgresConfig } from '../lib/configs/db.config';
 
-import { Waitlist } from './waitlist.entity';
-import { WaitlistService } from './waitlist.service';
 import { WaitlistModule } from './waitlist.module';
-import { ethers } from 'ethers';
+import { WaitlistService } from './waitlist.service';
 
 export const gql = String.raw;
 
 describe('WaitlistResolver', () => {
-    let repository: Repository<Waitlist>;
     let service: WaitlistService;
     let app: INestApplication;
 
@@ -29,6 +26,7 @@ describe('WaitlistResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 WaitlistModule,
                 GraphQLModule.forRoot({
@@ -39,14 +37,12 @@ describe('WaitlistResolver', () => {
             ],
         }).compile();
 
-        repository = module.get('WaitlistRepository');
         service = module.get<WaitlistService>(WaitlistService);
         app = module.createNestApplication();
         await app.init();
     });
 
     afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Waitlist" CASCADE');
         await app.close();
     });
 
@@ -145,6 +141,7 @@ describe('WaitlistResolver', () => {
                         id
                         email
                         seatNumber
+                        kind
                     }
                 }
             `;
@@ -155,6 +152,7 @@ describe('WaitlistResolver', () => {
                     address: randomWallet.address,
                     message,
                     signature,
+                    kind: faker.hacker.noun()
                 },
             };
 
@@ -166,6 +164,7 @@ describe('WaitlistResolver', () => {
                     expect(body.data.createWaitlist.email).toEqual(email);
                     expect(body.data.createWaitlist.id).toBeDefined();
                     expect(body.data.createWaitlist.seatNumber).toBeDefined();
+                    expect(body.data.createWaitlist.kind).toEqual(variables.input.kind)
                 });
         });
 

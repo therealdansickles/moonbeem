@@ -1,7 +1,7 @@
 import { Public } from '../lib/decorators/public.decorator';
 import { Resolver, Query, Args, Mutation, ResolveField, Parent, Int } from '@nestjs/graphql';
 
-import { Tier, CreateTierInput, UpdateTierInput, DeleteTierInput } from './tier.dto';
+import { Tier, CreateTierInput, UpdateTierInput, DeleteTierInput, Profit } from './tier.dto';
 import { TierService } from './tier.service';
 
 @Resolver(() => Tier)
@@ -46,8 +46,8 @@ export class TierResolver {
     }
 
     @Public()
-    @ResolveField(() => String, { description: 'Returns the total raised for the given tier' })
-    async totalRaised(@Parent() tier: Tier): Promise<string> {
-        return await this.tierService.getTierTotalRaised(tier.id);
+    @ResolveField(() => Profit, { description: 'Returns the total raised for the given tier' })
+    async profit(@Parent() tier: Tier): Promise<Profit> {
+        return await this.tierService.getTierProfit(tier.id);
     }
 }

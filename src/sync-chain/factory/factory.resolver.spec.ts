@@ -33,6 +33,7 @@ describe('FactoryResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 FactoryModule,
                 GraphQLModule.forRoot({
@@ -62,7 +63,6 @@ describe('FactoryResolver', () => {
     });
 
     afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Factory" CASCADE');
         await app.close();
     });
 

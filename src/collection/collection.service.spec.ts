@@ -1,25 +1,20 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Test, TestingModule } from '@nestjs/testing';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../lib/configs/db.config';
-import { Collection, CollectionKind } from './collection.entity';
-import { CollectionService } from './collection.service';
-import { CollectionModule } from './collection.module';
+
 import { Coin } from '../sync-chain/coin/coin.entity';
-import { CoinModule } from '../sync-chain/coin/coin.module';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
+import { Collection } from './collection.entity';
+import { CollectionModule } from './collection.module';
+import { CollectionService } from './collection.service';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import { Organization } from '../organization/organization.entity';
 import { OrganizationService } from '../organization/organization.service';
-import { TierModule } from '../tier/tier.module';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { Wallet } from '../wallet/wallet.entity';
-import { WalletModule } from '../wallet/wallet.module';
 import { WalletService } from '../wallet/wallet.service';
 
 describe('CollectionService', () => {
@@ -42,6 +37,7 @@ describe('CollectionService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
@@ -54,11 +50,9 @@ describe('CollectionService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
-                CoinModule,
                 CollectionModule,
-                MintSaleTransactionModule,
-                TierModule,
             ],
         }).compile();
 
@@ -81,10 +75,6 @@ describe('CollectionService', () => {
             enabled: true,
             chainId: 1,
         });
-    });
-
-    afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Collection" CASCADE');
     });
 
     describe('getCollection', () => {
@@ -163,6 +153,7 @@ describe('CollectionService', () => {
                 collection: { id: collection.id },
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                price: '100',
             });
 
             await tierService.createTier({
@@ -178,6 +169,7 @@ describe('CollectionService', () => {
             expect(result.organization.name).not.toBeNull();
             expect(result.tiers).not.toBeNull();
             expect(result.tiers.some((tier) => tier.totalMints === 200)).toBeTruthy();
+            expect(result.tiers.some((tier) => tier.price === '100')).toBeTruthy();
         });
     });
 

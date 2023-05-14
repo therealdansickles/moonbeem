@@ -33,6 +33,7 @@ describe.only('CoinResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 CoinModule,
                 GraphQLModule.forRoot({
@@ -61,7 +62,6 @@ describe.only('CoinResolver', () => {
     });
 
     afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Coin" CASCADE');
         await app.close();
     });
 

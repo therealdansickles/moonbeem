@@ -85,15 +85,23 @@ export class CreateCollaborationInput extends OmitType(PartialType(Collaboration
     'organization',
     'collaborators',
 ]) {
+    @IsString()
+    @IsOptional()
     @Field({ nullable: true })
     readonly name?: string;
 
+    @IsString()
+    @IsOptional()
     @Field({ nullable: true })
     readonly walletId?: string;
 
+    @IsString()
+    @IsOptional()
     @Field({ nullable: true })
     readonly userId?: string;
 
+    @IsString()
+    @IsOptional()
     @Field({ nullable: true })
     readonly organizationId?: string;
 

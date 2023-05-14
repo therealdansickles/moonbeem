@@ -25,6 +25,7 @@ describe.only('Record721Service', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 Record721Module,
             ],
@@ -32,10 +33,6 @@ describe.only('Record721Service', () => {
 
         repository = module.get('sync_chain_Record721Repository');
         service = module.get<Record721Service>(Record721Service);
-    });
-
-    afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Record721" CASCADE');
     });
 
     describe('erc721 record', () => {

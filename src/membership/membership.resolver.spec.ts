@@ -43,6 +43,7 @@ describe('MembershipResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
@@ -55,15 +56,14 @@ describe('MembershipResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 MembershipModule,
-                OrganizationModule,
-                UserModule,
                 AuthModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
-                    include: [MembershipModule, OrganizationModule, UserModule, AuthModule],
+                    include: [MembershipModule, AuthModule],
                 }),
             ],
         }).compile();
@@ -107,9 +107,6 @@ describe('MembershipResolver', () => {
     });
 
     afterEach(async () => {
-        await repository.query('TRUNCATE TABLE "User" CASCADE');
-        await repository.query('TRUNCATE TABLE "Organization" CASCADE');
-        await repository.query('TRUNCATE TABLE "Membership" CASCADE');
         await app.close();
     });
 

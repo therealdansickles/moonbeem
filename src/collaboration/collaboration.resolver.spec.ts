@@ -49,6 +49,7 @@ describe('CollaborationResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
@@ -61,12 +62,9 @@ describe('CollaborationResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 CollaborationModule,
-                CollectionModule,
-                OrganizationModule,
-                UserModule,
-                WalletModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
@@ -98,15 +96,33 @@ describe('CollaborationResolver', () => {
     });
 
     afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Collaboration" CASCADE');
-        await repository.query('TRUNCATE TABLE "Collection" CASCADE');
-        await repository.query('TRUNCATE TABLE "Organization" CASCADE');
-        await repository.query('TRUNCATE TABLE "User" CASCADE');
-        await repository.query('TRUNCATE TABLE "Wallet" CASCADE');
         await app.close();
     });
 
     describe('createCollaboration', () => {
+        let organization: Organization;
+        let user: User;
+
+        beforeEach(async () => {
+            user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+            organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: user,
+            });
+        });
+
         it('should create a collaboration', async () => {
             const query = gql`
                 mutation CreateCollaboration($input: CreateCollaborationInput!) {
@@ -118,6 +134,16 @@ describe('CollaborationResolver', () => {
                             name
                             role
                         }
+
+                        organization {
+                            id
+                            name
+                        }
+
+                        user {
+                            id
+                            username
+                        }
                     }
                 }
             `;
@@ -126,6 +152,8 @@ describe('CollaborationResolver', () => {
                 input: {
                     name: faker.hacker.noun(),
                     walletId: wallet.id,
+                    organizationId: organization.id,
+                    userId: user.id,
                     royaltyRate: 9,
                     collaborators: [
                         {
@@ -145,6 +173,11 @@ describe('CollaborationResolver', () => {
                 .expect(({ body }) => {
                     expect(body.data.createCollaboration.royaltyRate).toEqual(variables.input.royaltyRate);
                     expect(body.data.createCollaboration.name).toEqual(variables.input.name);
+                    expect(body.data.createCollaboration.organization.id).toEqual(variables.input.organizationId);
+                    expect(body.data.createCollaboration.organization.name).toEqual(organization.name);
+                    expect(body.data.createCollaboration.user.id).toEqual(variables.input.userId);
+                    expect(body.data.createCollaboration.user.username).toEqual(user.username);
+
                     collaboration = body.data.createCollaboration;
                 });
         });

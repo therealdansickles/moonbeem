@@ -1,4 +1,4 @@
-import { ArgsType, Field, Int, ObjectType, InputType, ID } from '@nestjs/graphql';
+import { ArgsType, Field, Int, ObjectType, InputType, ID, createUnionType } from '@nestjs/graphql';
 import {
     IsNumber,
     IsString,
@@ -13,6 +13,8 @@ import {
 import { Type } from 'class-transformer';
 import { Collection, CollectionInput } from '../collection/collection.dto';
 import { Coin } from '../sync-chain/coin/coin.dto';
+import { Any } from 'typeorm';
+import { GraphQLJSONObject } from 'graphql-type-json';
 
 @InputType()
 export class Attribute {
@@ -25,9 +27,37 @@ export class Attribute {
     @Field({ description: 'The trait type of the attribute' })
     trait_type: string;
 
-    @Field({ description: 'The value of the attribute' })
     @IsString()
+    @Field({ description: 'The value of the attribute' })
     value: string;
+}
+
+@InputType()
+export class Plugin {
+    @IsString()
+    @Field({ description: 'The type for the plugin. can be `github`, `vibe` etc.' })
+    type: string;
+
+    @IsString()
+    @Field({ description: 'The path for the plugin.' })
+    path: string;
+
+    @Field((type) => GraphQLJSONObject, { description: 'The path for the plugin.', nullable: true })
+    @IsOptional()
+    config?: { [key: string]: any };
+}
+
+@ObjectType()
+export class Profit {
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'Profits in payment token', nullable: true })
+    readonly inPaymentToken?: string;
+
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'Profits converted to USDC', nullable: true })
+    readonly inUSDC?: string;
 }
 
 @ObjectType()
@@ -88,6 +118,19 @@ export class Tier {
     @IsOptional()
     readonly attributes?: string;
 
+    @IsString()
+    @Field({ description: 'A JSON object containing the conditions of the tier.', nullable: true })
+    @IsOptional()
+    readonly conditions?: string;
+
+    @IsString()
+    @Field({
+        description: 'A JSON object containing the plugins of the tier.',
+        nullable: true,
+    })
+    @IsOptional()
+    readonly plugins?: string;
+
     @Field(() => Coin, { description: 'The tier coin', nullable: true })
     @IsOptional()
     readonly coin?: Coin;
@@ -103,7 +146,6 @@ export class CreateTierInput {
     @Field((type) => Int, { description: 'The total number of mints for this tier.' })
     readonly totalMints: number;
 
-    @IsNumber()
     @Field({ description: 'The price of the NFTs in this tier.', nullable: true })
     readonly price?: string;
 
@@ -145,7 +187,21 @@ export class CreateTierInput {
 
     @Field((type) => [Attribute], { description: 'The tier attributes', nullable: true })
     @IsArray()
+    @IsOptional()
     readonly attributes?: Attribute[];
+
+    @Field((type) => [GraphQLJSONObject], { description: 'The tier conditions', nullable: true })
+    @IsOptional()
+    @IsArray()
+    readonly conditions?: { [key: string]: any }[];
+
+    @IsArray()
+    @Field((type) => [GraphQLJSONObject], {
+        description: 'A JSON object containing the plugins of the tier.',
+        nullable: true,
+    })
+    @IsOptional()
+    readonly plugins?: Plugin[];
 
     @IsString()
     @Field({ nullable: true, description: 'This merekleRoot of tier.' })
@@ -199,10 +255,23 @@ export class UpdateTierInput {
     @IsOptional()
     readonly animationUrl?: string;
 
-    @IsString()
-    @Field({ nullable: true, description: 'A JSON object containing the attributes of the tier.' })
+    @Field((type) => [Attribute], { description: 'The tier attributes', nullable: true })
+    @IsArray()
     @IsOptional()
-    readonly attributes?: string;
+    readonly attributes?: Attribute[];
+
+    @Field((type) => [GraphQLJSONObject], { description: 'The tier conditions', nullable: true })
+    @IsOptional()
+    @IsArray()
+    readonly conditions?: (typeof GraphQLJSONObject)[];
+
+    @IsArray()
+    @Field((type) => [GraphQLJSONObject], {
+        description: 'A JSON object containing the plugins of the tier.',
+        nullable: true,
+    })
+    @IsOptional()
+    readonly plugins?: Plugin[];
 
     @IsString()
     @Field({ nullable: true, description: 'This merekleRoot of tier.' })
