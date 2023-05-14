@@ -1210,6 +1210,9 @@ type Waitlist {
 
   """Whether they have claimed the NFT"""
   isClaimed: Boolean
+
+  """The kind of the waitlist."""
+  kind: String
 }
 
 """Ethereum Address custom scalar type"""
@@ -2018,6 +2021,9 @@ input CreateWaitlistInput {
 
   """The address for a wallet."""
   address: String!
+
+  """The kind of the waitlist."""
+  kind: String
 
   """The signing message"""
   message: String!

@@ -1,6 +1,5 @@
 import { ArgsType, Field, Int, ObjectType, InputType, ID, PickType, PartialType } from '@nestjs/graphql';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString, IsDateString, IsUrl, ValidateIf, IsOptional, IsEthereumAddress } from 'class-validator';
+import { IsNumber, IsString, IsDateString, IsUrl, ValidateIf, IsOptional, IsEthereumAddress, IsBoolean } from 'class-validator';
 
 @ObjectType('Waitlist')
 export class Waitlist {
@@ -26,14 +25,21 @@ export class Waitlist {
     twitter?: string;
 
     @Field({ nullable: true, description: 'Whether they have claimed the NFT' })
+    @IsBoolean()
+    @IsOptional()
     isClaimed?: boolean;
+
+    @Field({ nullable: true, description: 'The kind of the waitlist.'})
+    @IsString()
+    @IsOptional()
+    kind?: string;
 }
 
 @InputType()
 export class GetWaitlistInput extends PickType(PartialType(Waitlist, InputType), ['email', 'address']) {}
 
 @InputType('CreateWaitlistInput')
-export class CreateWaitlistInput extends PickType(Waitlist, ['email', 'address'], InputType) {
+export class CreateWaitlistInput extends PickType(Waitlist, ['email', 'address', 'kind'], InputType) {
     @Field({ description: 'The signing message' })
     @IsString()
     readonly message: string;
