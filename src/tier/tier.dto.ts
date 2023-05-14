@@ -48,6 +48,19 @@ export class Plugin {
 }
 
 @ObjectType()
+export class Profit {
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'Profits in payment token', nullable: true })
+    readonly inPaymentToken?: string;
+
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'Profits converted to USDC', nullable: true })
+    readonly inUSDC?: string;
+}
+
+@ObjectType()
 export class Tier {
     @IsString()
     @Field({ description: 'The id of the tier.' })

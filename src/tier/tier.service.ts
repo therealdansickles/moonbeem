@@ -4,7 +4,7 @@ import { Repository, DeleteResult, UpdateResult } from 'typeorm';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { Collection, CollectionKind } from '../collection/collection.entity';
 import * as tierEntity from './tier.entity';
-import { CreateTierInput, UpdateTierInput, Tier } from './tier.dto';
+import { CreateTierInput, UpdateTierInput, Tier, Profit } from './tier.dto';
 import { GraphQLError } from 'graphql';
 import * as Sentry from '@sentry/node';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
@@ -177,15 +177,14 @@ export class TierService {
 
     /**
      *
-     * @param collectionAddress The address of collection. Collection.address
-     * @param tierId The collection contains the id of the tier, Tier.tierId
-     * @returns should be string, include number and float and bigNumber
+     * @param id The id of the tier
+     * @returns Profit object. Contains the price in token and USDC.
      */
-    async getTierTotalRaised(id: string): Promise<string> {
+    async getTierProfit(id: string): Promise<Profit> {
         try {
             const tier = await this.getTier(id);
             const { collection } = tier;
-            if (!collection.address) return '0';
+            if (!collection.address) return { inPaymentToken: '0', inUSDC: '0' };
 
             const result = await this.transactionRepository
                 .createQueryBuilder('transaction')
@@ -197,7 +196,7 @@ export class TierService {
                 })
                 .groupBy('transaction.paymentToken')
                 .getRawOne();
-            if (!result) return '0';
+            if (!result) return { inPaymentToken: '0', inUSDC: '0' };
 
             const data = result as BasicPriceInfo;
             const coin = await this.coinRepository.findOneBy({ address: data.token.toLowerCase() });
@@ -214,12 +213,15 @@ export class TierService {
              * totalUSDPrice = 10 * 0.9 = 9 USD
              */
             const totalTokenPrice = new BigNumber(data.price).div(new BigNumber(10).pow(coin.decimals));
-            const totalRaised = new BigNumber(totalTokenPrice).multipliedBy(coin.derivedUSDC);
+            const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(coin.derivedUSDC);
 
-            return totalRaised.toString();
+            return {
+                inPaymentToken: totalTokenPrice.toString(),
+                inUSDC: totalUSDC.toString(),
+            };
         } catch (error) {
             Sentry.captureException(error);
-            return '0';
+            return { inPaymentToken: '0', inUSDC: '0' };
         }
     }
 }

@@ -435,7 +435,10 @@ describe('CollectionResolver', () => {
                             id
                             totalMints
                             totalSold
-                            totalRaised
+                            profit {
+                                inPaymentToken
+                                inUSDC
+                            }
                         }
                     }
                 }
@@ -454,6 +457,7 @@ describe('CollectionResolver', () => {
                     expect(body.data.collection.tiers).toBeDefined();
                     expect(body.data.collection.tiers[0].totalMints).toEqual(100);
                     expect(body.data.collection.tiers[0].totalSold).toBeDefined();
+                    expect(body.data.collection.tiers[0].profit).toBeDefined();
                 });
         });
     });
