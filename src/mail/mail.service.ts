@@ -10,7 +10,7 @@ import {
 } from './mail.templates';
 import { User } from 'src/user/user.entity';
 import { AuthPayload } from 'src/auth/auth.service';
-import * as Sentry from '@sentry/node';
+import { captureException } from '@sentry/node';
 
 @Injectable()
 export class MailService {
@@ -29,7 +29,7 @@ export class MailService {
                 await this.mailgunService.createEmail(mailgunConfig.DOMAIN, options);
             }
         } catch (e) {
-            Sentry.captureException(e);
+            captureException(e);
             // This service is not exposed to GraphQL thus it doesnt need to throw GraphQL error.
             // It should silently error.
             console.error('Mailgun service error:', e);

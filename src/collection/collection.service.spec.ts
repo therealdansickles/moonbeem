@@ -80,6 +80,10 @@ describe('CollectionService', () => {
         });
     });
 
+    afterAll(async () => {
+        global.gc && global.gc();
+    });
+
     describe('getCollection', () => {
         it('should get a collection by id', async () => {
             const owner = await userService.createUser({

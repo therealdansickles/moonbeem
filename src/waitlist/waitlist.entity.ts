@@ -25,7 +25,7 @@ export class Waitlist extends BaseEntity {
     @Column({ comment: 'The user position in the waitinglist', default: false })
     isClaimed: boolean;
 
-    @Column({ nullable: true, comment: 'The kind of the waitlist'})
+    @Column({ nullable: true, comment: 'The kind of the waitlist' })
     kind?: string;
 
     @Column({ comment: 'The user seat number in the waitinglist' })

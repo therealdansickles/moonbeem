@@ -58,6 +58,10 @@ describe.only('MintSaleContractService', () => {
         organizationService = module.get<OrganizationService>(OrganizationService);
     });
 
+    afterAll(async () => {
+        global.gc && global.gc();
+    });
+
     describe('MintSaleContract', () => {
         it('should get an contract', async () => {
             const contract = await service.createMintSaleContract({

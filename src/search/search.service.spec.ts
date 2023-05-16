@@ -53,7 +53,9 @@ describe('SearchService', () => {
         authService = module.get<AuthService>(AuthService);
     });
 
-    afterAll(async () => {});
+    afterAll(async () => {
+        global.gc && global.gc();
+    });
 
     describe('executeGlobalSearchV1', () => {
         it('should perform search for collection', async () => {

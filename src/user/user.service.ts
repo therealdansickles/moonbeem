@@ -3,7 +3,7 @@ import { GraphQLError } from 'graphql';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, UpdateResult } from 'typeorm';
 import { User } from './user.entity';
-import * as Sentry from '@sentry/node';
+import { captureException } from '@sentry/node';
 import { OrganizationService } from '../organization/organization.service';
 import { OrganizationKind } from '../organization/organization.entity';
 import * as randomstring from 'randomstring';
@@ -55,7 +55,7 @@ export class UserService {
             await this.organizationService.createOrganization(defaultOrgPayload);
             return user;
         } catch (e) {
-            Sentry.captureException(e);
+            captureException(e);
             if (e.routine === '_bt_check_unique') {
                 throw new GraphQLError(`User already exists.`, {
                     extensions: { code: 'BAD_REQUEST' },
@@ -83,7 +83,7 @@ export class UserService {
             };
             return this.userRepository.save(userPayload);
         } catch (e) {
-            Sentry.captureException(e);
+            captureException(e);
             throw new GraphQLError(`Failed to create user ${payload.name}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
@@ -107,7 +107,7 @@ export class UserService {
         try {
             return this.userRepository.save({ ...user, ...payload });
         } catch (e) {
-            Sentry.captureException(e);
+            captureException(e);
             throw new GraphQLError(`Failed to update user ${id}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });

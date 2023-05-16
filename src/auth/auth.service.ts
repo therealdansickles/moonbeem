@@ -16,7 +16,7 @@ import { Repository } from 'typeorm';
 import { Wallet } from '../wallet/wallet.entity';
 import { GraphQLError } from 'graphql';
 import { Membership } from '../membership/membership.entity';
-import * as Sentry from '@sentry/node';
+import { captureException } from '@sentry/node';
 import { UserService } from '../user/user.service';
 
 export const SESSION_PERFIX = 'login_session';
@@ -119,7 +119,7 @@ export class AuthService {
 
             user = await this.userService.createUserWithOrganization(userPayload);
         } catch (e) {
-            Sentry.captureException(e);
+            captureException(e);
             throw e;
         }
 
@@ -154,7 +154,7 @@ export class AuthService {
                 user: returnUser,
             };
         } catch (e) {
-            Sentry.captureException(e);
+            captureException(e);
             throw new GraphQLError('Failed to create accessToken or save accessToken', {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });

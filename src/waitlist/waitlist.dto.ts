@@ -1,5 +1,14 @@
 import { ArgsType, Field, Int, ObjectType, InputType, ID, PickType, PartialType } from '@nestjs/graphql';
-import { IsNumber, IsString, IsDateString, IsUrl, ValidateIf, IsOptional, IsEthereumAddress, IsBoolean } from 'class-validator';
+import {
+    IsNumber,
+    IsString,
+    IsDateString,
+    IsUrl,
+    ValidateIf,
+    IsOptional,
+    IsEthereumAddress,
+    IsBoolean,
+} from 'class-validator';
 
 @ObjectType('Waitlist')
 export class Waitlist {
@@ -29,7 +38,7 @@ export class Waitlist {
     @IsOptional()
     isClaimed?: boolean;
 
-    @Field({ nullable: true, description: 'The kind of the waitlist.'})
+    @Field({ nullable: true, description: 'The kind of the waitlist.' })
     @IsString()
     @IsOptional()
     kind?: string;

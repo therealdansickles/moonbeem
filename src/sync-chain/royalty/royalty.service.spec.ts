@@ -35,6 +35,10 @@ describe('RoyaltyService', () => {
         service = module.get<RoyaltyService>(RoyaltyService);
     });
 
+    afterAll(async () => {
+        global.gc && global.gc();
+    });
+
     describe('getRoyalty', () => {
         it('should get an royalty', async () => {
             const royalty = await service.createRoyalty({

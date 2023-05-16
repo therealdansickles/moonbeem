@@ -53,6 +53,10 @@ describe.only('OrganizationService', () => {
         membershipService = module.get<MembershipService>(MembershipService);
     });
 
+    afterAll(async () => {
+        global.gc && global.gc();
+    });
+
     describe('getOrganization', () => {
         it('should get an organization', async () => {
             const owner = await userService.createUser({

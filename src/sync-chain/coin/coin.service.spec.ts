@@ -35,6 +35,10 @@ describe.only('CoinService', () => {
         service = module.get<CoinService>(CoinService);
     });
 
+    afterAll(async () => {
+        global.gc && global.gc();
+    });
+
     describe('coin', () => {
         it('should get an coin', async () => {
             const coin = await service.createCoin({

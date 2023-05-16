@@ -35,6 +35,10 @@ describe.only('History721Service', () => {
         service = module.get<History721Service>(History721Service);
     });
 
+    afterAll(async () => {
+        global.gc && global.gc();
+    });
+
     describe('history721', () => {
         it('should get an nft history', async () => {
             const history = await service.createHistory721({

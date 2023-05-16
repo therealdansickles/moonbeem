@@ -81,6 +81,10 @@ describe('MembershipService', () => {
         });
     });
 
+    afterAll(async () => {
+        global.gc && global.gc();
+    });
+
     describe('getMembership', () => {
         it('should return a membership', async () => {
             const result = await service.getMembership(membership.id);

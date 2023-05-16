@@ -151,7 +151,7 @@ export class UpdateCollectionInput extends OmitType(CreateCollectionInput, ['org
 }
 
 @InputType()
-export class CollectionInput extends PickType(Collection, ['id'], InputType) { }
+export class CollectionInput extends PickType(Collection, ['id'], InputType) {}
 
 @InputType('CreateTierInCollectionInput')
 export class CreateTierInCollectionInput {

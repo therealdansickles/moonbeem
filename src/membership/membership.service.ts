@@ -9,7 +9,7 @@ import { User } from '../user/user.entity';
 import * as randomString from 'randomstring';
 import { MailService } from '../mail/mail.service';
 import { AuthPayload } from '../auth/auth.service';
-import * as Sentry from '@sentry/node';
+import { captureException } from '@sentry/node';
 
 @Injectable()
 export class MembershipService {
@@ -117,8 +117,7 @@ export class MembershipService {
             try {
                 return await this.membershipRepository.save(membership);
             } catch (e) {
-                // Add Sentry capture here.
-                Sentry.captureException(e);
+                captureException(e);
                 throw new GraphQLError(
                     `Failed to save membership for organization ${organizationId} and user ${userId}`,
                     {
@@ -128,8 +127,7 @@ export class MembershipService {
             }
         } catch (e) {
             // FIXME: This ain't always true :issou:
-            // Add Sentry capture here.
-            Sentry.captureException(e);
+            captureException(e);
             throw new GraphQLError(`user ${data.userId} is already a member of organization ${data.organizationId}`, {
                 extensions: { code: 'BAD_REQUEST' },
             });

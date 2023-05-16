@@ -35,6 +35,10 @@ describe.only('Record721Service', () => {
         service = module.get<Record721Service>(Record721Service);
     });
 
+    afterAll(async () => {
+        global.gc && global.gc();
+    });
+
     describe('erc721 record', () => {
         it('should get an contract', async () => {
             const record = await service.createRecord721({

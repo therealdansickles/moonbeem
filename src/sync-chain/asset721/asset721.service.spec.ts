@@ -35,6 +35,10 @@ describe.only('Asset721Service', () => {
         service = module.get<Asset721Service>(Asset721Service);
     });
 
+    afterAll(async () => {
+        global.gc && global.gc();
+    });
+
     describe('asset721', () => {
         it('should get an asset', async () => {
             const asset = await service.createAsset721({

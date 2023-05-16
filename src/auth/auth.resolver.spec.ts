@@ -37,6 +37,7 @@ describe('AuthResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
@@ -49,6 +50,7 @@ describe('AuthResolver', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 AuthModule,
                 UserModule,
@@ -63,6 +65,11 @@ describe('AuthResolver', () => {
 
         app = module.createNestApplication();
         await app.init();
+    });
+
+    afterAll(async () => {
+        global.gc && global.gc();
+        await app.close();
     });
 
     describe('createUserWithEmail', () => {

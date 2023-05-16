@@ -35,6 +35,10 @@ describe.only('MintSaleTransactionService', () => {
         service = module.get<MintSaleTransactionService>(MintSaleTransactionService);
     });
 
+    afterAll(async () => {
+        global.gc && global.gc();
+    });
+
     describe('MintSaleTransaction', () => {
         it('should get an transaction', async () => {
             const transaction = await service.createMintSaleTransaction({

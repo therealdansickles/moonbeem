@@ -63,6 +63,7 @@ describe.only('Record721Resolver', () => {
     });
 
     afterAll(async () => {
+        global.gc && global.gc();
         await app.close();
     });
 

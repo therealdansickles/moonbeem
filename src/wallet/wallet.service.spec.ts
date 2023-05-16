@@ -72,6 +72,10 @@ describe('WalletService', () => {
         userService = module.get<UserService>(UserService);
     });
 
+    afterAll(async () => {
+        global.gc && global.gc();
+    });
+
     describe('getWallet', () => {
         it('should return a wallet by id', async () => {
             const wallet = await service.createWallet({ address: faker.finance.ethereumAddress().toLowerCase() });

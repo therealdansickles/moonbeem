@@ -106,6 +106,10 @@ describe('CollaborationService', () => {
         });
     });
 
+    afterAll(async () => {
+        global.gc && global.gc();
+    });
+
     describe('createCollaboration', () => {
         it('should create a collaboration', async () => {
             const result = await service.createCollaboration({

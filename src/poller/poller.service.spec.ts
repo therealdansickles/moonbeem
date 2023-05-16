@@ -59,6 +59,10 @@ describe('PollerService', () => {
         coinService = module.get<CoinService>(CoinService);
     });
 
+    afterAll(async () => {
+        global.gc && global.gc();
+    });
+
     describe('#getSaleRecord', () => {
         beforeEach(async () => {
             const collection = await collectionService.createCollection({

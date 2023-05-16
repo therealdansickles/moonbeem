@@ -35,7 +35,7 @@ describe.only('FactoryService', () => {
     });
 
     afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Factory" CASCADE');
+        global.gc && global.gc();
     });
 
     describe('getFactory', () => {

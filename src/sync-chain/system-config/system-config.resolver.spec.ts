@@ -59,6 +59,7 @@ describe.only('SystemConfigResolver', () => {
     });
 
     afterAll(async () => {
+        global.gc && global.gc();
         await app.close();
     });
 

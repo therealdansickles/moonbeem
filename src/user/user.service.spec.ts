@@ -47,6 +47,10 @@ describe('UserService', () => {
         organizationService = module.get<OrganizationService>(OrganizationService);
     });
 
+    afterAll(async () => {
+        global.gc && global.gc();
+    });
+
     describe('getUser', () => {
         it('should return user info by id', async () => {
             const user = await repository.save({

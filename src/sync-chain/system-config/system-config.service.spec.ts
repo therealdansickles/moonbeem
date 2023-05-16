@@ -35,6 +35,10 @@ describe.only('SystemConfigService', () => {
         service = module.get<SystemConfigService>(SystemConfigService);
     });
 
+    afterAll(async () => {
+        global.gc && global.gc();
+    });
+
     describe('system config', () => {
         it('should get an config', async () => {
             const config = await service.createConfig({

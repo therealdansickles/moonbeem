@@ -107,6 +107,7 @@ describe('MembershipResolver', () => {
     });
 
     afterEach(async () => {
+        global.gc && global.gc();
         await app.close();
     });
 

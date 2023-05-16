@@ -43,6 +43,7 @@ describe('WaitlistResolver', () => {
     });
 
     afterAll(async () => {
+        global.gc && global.gc();
         await app.close();
     });
 
@@ -152,7 +153,7 @@ describe('WaitlistResolver', () => {
                     address: randomWallet.address,
                     message,
                     signature,
-                    kind: faker.hacker.noun()
+                    kind: faker.hacker.noun(),
                 },
             };
 
@@ -164,7 +165,7 @@ describe('WaitlistResolver', () => {
                     expect(body.data.createWaitlist.email).toEqual(email);
                     expect(body.data.createWaitlist.id).toBeDefined();
                     expect(body.data.createWaitlist.seatNumber).toBeDefined();
-                    expect(body.data.createWaitlist.kind).toEqual(variables.input.kind)
+                    expect(body.data.createWaitlist.kind).toEqual(variables.input.kind);
                 });
         });
 

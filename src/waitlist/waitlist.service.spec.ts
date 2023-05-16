@@ -32,6 +32,10 @@ describe('CollectionService', () => {
         service = module.get<WaitlistService>(WaitlistService);
     });
 
+    afterAll(async () => {
+        global.gc && global.gc();
+    });
+
     describe('getWaitlist', () => {
         it('should get a waitlist item by email', async () => {
             const waitlist = await repository.save({

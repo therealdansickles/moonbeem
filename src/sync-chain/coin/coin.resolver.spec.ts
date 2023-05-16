@@ -62,6 +62,7 @@ describe.only('CoinResolver', () => {
     });
 
     afterAll(async () => {
+        global.gc && global.gc();
         await app.close();
     });
 

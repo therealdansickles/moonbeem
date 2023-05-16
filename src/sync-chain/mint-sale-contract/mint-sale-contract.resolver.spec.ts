@@ -73,6 +73,7 @@ describe.only('MintSaleContractResolver', () => {
     });
 
     afterAll(async () => {
+        global.gc && global.gc();
         await app.close();
     });
 

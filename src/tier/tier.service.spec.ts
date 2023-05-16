@@ -71,6 +71,10 @@ describe('TierService', () => {
         });
     });
 
+    afterAll(async () => {
+        global.gc && global.gc();
+    });
+
     describe('createTier', () => {
         it('should create a new tier', async () => {
             collection = await collectionService.createCollection({

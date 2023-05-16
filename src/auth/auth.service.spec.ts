@@ -32,6 +32,7 @@ describe('AuthService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
@@ -44,6 +45,7 @@ describe('AuthService', () => {
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
+                    dropSchema: true,
                 }),
                 UserModule,
                 AuthModule,
@@ -60,7 +62,7 @@ describe('AuthService', () => {
     });
 
     afterAll(async () => {
-        //await repository.query('TRUNCATE TABLE "User" CASCADE');
+        global.gc && global.gc();
     });
 
     describe('createUserWithEmail', () => {

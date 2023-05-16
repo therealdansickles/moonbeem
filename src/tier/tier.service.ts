@@ -6,7 +6,7 @@ import { Collection, CollectionKind } from '../collection/collection.entity';
 import * as tierEntity from './tier.entity';
 import { CreateTierInput, UpdateTierInput, Tier, Profit } from './tier.dto';
 import { GraphQLError } from 'graphql';
-import * as Sentry from '@sentry/node';
+import { captureException } from '@sentry/node';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { BasicPriceInfo } from '../dto/basic.dto';
@@ -100,7 +100,7 @@ export class TierService {
         try {
             return await this.tierRepository.save(dd);
         } catch (e) {
-            Sentry.captureException(e);
+            captureException(e);
             throw new GraphQLError(`Failed to create tier ${data.name}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
@@ -131,7 +131,7 @@ export class TierService {
             const result: UpdateResult = await this.tierRepository.update(id, dd);
             return result.affected > 0;
         } catch (e) {
-            Sentry.captureException(e);
+            captureException(e);
             throw new GraphQLError(`Failed to update tier ${id}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
@@ -149,7 +149,7 @@ export class TierService {
             const result: DeleteResult = await this.tierRepository.delete({ id });
             return result.affected > 0;
         } catch (e) {
-            Sentry.captureException(e);
+            captureException(e);
             throw new GraphQLError(`Failed to delete tier ${id}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
@@ -170,7 +170,7 @@ export class TierService {
             if (!contract) return 0;
             return contract.currentId - contract.startId;
         } catch (error) {
-            Sentry.captureException(error);
+            captureException(error);
             return 0;
         }
     }
@@ -220,7 +220,7 @@ export class TierService {
                 inUSDC: totalUSDC.toString(),
             };
         } catch (error) {
-            Sentry.captureException(error);
+            captureException(error);
             return { inPaymentToken: '0', inUSDC: '0' };
         }
     }
