@@ -356,6 +356,14 @@ type Coin {
   updatedAt: DateTime!
 }
 
+type Profit {
+  """Profits in payment token"""
+  inPaymentToken: String
+
+  """Profits converted to USDC"""
+  inUSDC: String
+}
+
 type Tier {
   """The id of the tier."""
   id: String!
@@ -408,7 +416,7 @@ type Tier {
   totalSold: Int!
 
   """Returns the total raised for the given tier"""
-  totalRaised: String!
+  profit: Profit!
 }
 
 type MintSaleTransaction {

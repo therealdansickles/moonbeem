@@ -16,6 +16,7 @@ import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { Wallet } from '../wallet/wallet.entity';
 import { WalletService } from '../wallet/wallet.service';
+import { CollaborationService } from '../collaboration/collaboration.service';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
@@ -27,6 +28,7 @@ describe('CollectionService', () => {
     let tierService: TierService;
     let userService: UserService;
     let walletService: WalletService;
+    let collaborationService: CollaborationService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -64,6 +66,7 @@ describe('CollectionService', () => {
         tierService = module.get<TierService>(TierService);
         coinService = module.get<CoinService>(CoinService);
         walletService = module.get<WalletService>(WalletService);
+        collaborationService = module.get<CollaborationService>(CollaborationService);
 
         coin = await coinService.createCoin({
             address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
@@ -118,7 +121,7 @@ describe('CollectionService', () => {
             expect(result.creator.id).toEqual(wallet.id);
         });
 
-        it('should get a collection by id with tiers', async () => {
+        it('should get a collection by id with tiers and collabs', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
@@ -137,39 +140,53 @@ describe('CollectionService', () => {
                 owner: owner,
             });
 
-            const collection = await repository.save({
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const newCollab = await collaborationService.createCollaboration({
+                walletId: wallet.id,
+                royaltyRate: 12,
+                userId: owner.id,
+                organizationId: organization.id,
+                collaborators: [
+                    {
+                        address: faker.finance.ethereumAddress(),
+                        role: faker.finance.accountName(),
+                        name: faker.finance.accountName(),
+                        rate: parseInt(faker.random.numeric(2)),
+                    },
+                ],
+            });
+
+            const collection = await service.createCollectionWithTiers({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
-                artists: [],
                 tags: [],
-                organization: organization,
-            });
-
-            await tierService.createTier({
-                name: faker.company.name(),
-                totalMints: 100,
-                collection: { id: collection.id },
-                paymentTokenAddress: coin.address,
-                tierId: 0,
-                price: '100',
-            });
-
-            await tierService.createTier({
-                name: faker.company.name(),
-                totalMints: 200,
-                collection: { id: collection.id },
-                paymentTokenAddress: coin.address,
-                tierId: 0,
+                organization: { id: organization.id },
+                collaboration: { id: newCollab.id },
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: 200,
+                        paymentTokenAddress: coin.address,
+                        tierId: 0,
+                        price: '200',
+                    },
+                ],
             });
 
             const result = await service.getCollection(collection.id);
+
             expect(result.id).not.toBeNull();
             expect(result.organization.name).not.toBeNull();
             expect(result.tiers).not.toBeNull();
             expect(result.tiers.some((tier) => tier.totalMints === 200)).toBeTruthy();
-            expect(result.tiers.some((tier) => tier.price === '100')).toBeTruthy();
+            expect(result.tiers.some((tier) => tier.price === '200')).toBeTruthy();
+            expect(result.collaboration).not.toBeNull();
+            expect(result.collaboration.id).toBe(newCollab.id);
         });
     });
 

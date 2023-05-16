@@ -175,7 +175,7 @@ export class CollectionService {
      * @returns The newly created collection.
      */
     async createCollectionWithTiers(data: CreateCollectionInput) {
-        const { tiers, collaboration, ...collection } = data;
+        const { tiers, ...collection } = data;
         const kind = collectionEntity.CollectionKind;
         if ([kind.whitelistEdition, kind.whitelistTiered, kind.whitelistBulk].indexOf(collection.kind) >= 0) {
             tiers.forEach((tier) => {
@@ -186,26 +186,26 @@ export class CollectionService {
 
         const createResult = await this.collectionRepository.save(collection as Collection);
 
-        if (data.tiers) {
-            tiers.forEach(async (tier) => {
+        if (tiers) {
+            for (const tier of tiers) {
                 const dd = tier as unknown as Tier;
                 dd.collection = createResult.id as unknown as collectionEntity.Collection;
                 const attributesJson = JSON.stringify(tier.attributes);
                 dd.attributes = attributesJson;
 
                 try {
-                    return await this.tierRepository.save(dd);
+                    await this.tierRepository.save(dd);
                 } catch (e) {
                     throw new GraphQLError(`Failed to create tier ${data.name}`, {
                         extensions: { code: 'INTERNAL_SERVER_ERROR' },
                     });
                 }
-            });
+            }
         }
 
         const result = await this.collectionRepository.findOne({
             where: { id: createResult.id },
-            relations: ['tiers', 'organization'],
+            relations: ['tiers', 'organization', 'collaboration'],
         });
         return result;
     }
