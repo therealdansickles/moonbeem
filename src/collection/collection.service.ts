@@ -10,6 +10,7 @@ import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-con
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Wallet } from '../wallet/wallet.entity';
 import { Collaboration } from '../collaboration/collaboration.entity';
+import * as Sentry from '@sentry/node';
 
 @Injectable()
 export class CollectionService {
@@ -108,6 +109,7 @@ export class CollectionService {
         try {
             return this.collectionRepository.save(data);
         } catch (e) {
+            Sentry.captureException(e);
             throw new GraphQLError('Failed to create new collection.', {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
@@ -125,6 +127,7 @@ export class CollectionService {
             const result: UpdateResult = await this.collectionRepository.update(id, data);
             return result.affected > 0;
         } catch (e) {
+            Sentry.captureException(e);
             throw new GraphQLError(`Failed to update collection ${id}.`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
@@ -142,6 +145,7 @@ export class CollectionService {
             const result: UpdateResult = await this.collectionRepository.update(id, { publishedAt: new Date() });
             return result.affected > 0;
         } catch (e) {
+            Sentry.captureException(e);
             throw new GraphQLError(`Failed to publish collection ${id}.`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
@@ -158,9 +162,12 @@ export class CollectionService {
      */
     async deleteCollection(id: string): Promise<boolean> {
         try {
+            // remove the collection tiers first
+            await this.tierRepository.delete({ collection: { id } });
             const result = await this.collectionRepository.delete({ id, publishedAt: IsNull() });
             return result.affected > 0;
         } catch (e) {
+            Sentry.captureException(e);
             throw new GraphQLError(`Failed to delete collection ${id}.`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });

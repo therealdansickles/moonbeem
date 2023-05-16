@@ -458,6 +458,37 @@ describe('CollectionService', () => {
             expect(result).toBeTruthy();
         });
 
+        it('should delete a collection with tiers', async () => {
+            const collection = await repository.save({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                publishedAt: null,
+            });
+
+            await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+            });
+
+            await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 200,
+                collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+            });
+
+            const result = await service.deleteCollection(collection.id);
+            expect(result).toBeTruthy();
+        });
+
         it('should not delete a published collection', async () => {
             const collection = await repository.save({
                 name: faker.company.name(),
