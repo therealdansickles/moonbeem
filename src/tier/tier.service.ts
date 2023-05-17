@@ -86,7 +86,11 @@ export class TierService {
         const dd = data as unknown as tierEntity.Tier;
         dd.collection = data.collection as unknown as Collection;
         if (data.attributes) {
-            dd.attributes = JSON.stringify(data.attributes);
+            data.attributes.forEach((attribute) =>
+                Object.keys(attribute).forEach((key) => attribute[key] === '' && delete attribute[key])
+            );
+            const attributesJson = JSON.stringify(data.attributes);
+            dd.attributes = attributesJson;
         }
 
         if (data.conditions) {

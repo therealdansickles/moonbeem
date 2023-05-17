@@ -197,8 +197,13 @@ export class CollectionService {
             for (const tier of tiers) {
                 const dd = tier as unknown as Tier;
                 dd.collection = createResult.id as unknown as collectionEntity.Collection;
-                const attributesJson = JSON.stringify(tier.attributes);
-                dd.attributes = attributesJson;
+                if (tier.attributes) {
+                    tier.attributes.forEach((attribute) =>
+                        Object.keys(attribute).forEach((key) => attribute[key] === '' && delete attribute[key])
+                    );
+                    const attributesJson = JSON.stringify(tier.attributes);
+                    dd.attributes = attributesJson;
+                }
 
                 try {
                     await this.tierRepository.save(dd);
