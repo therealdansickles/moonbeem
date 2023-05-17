@@ -10419,6 +10419,7 @@ __metadata:
     graphql: ^16.6.0
     graphql-type-json: ^0.3.2
     jest: 28.1.3
+    jest-util: ^29.5.0
     lodash: ^4.17.21
     merkletreejs: ^0.3.10
     mongodb: ^4.13.0

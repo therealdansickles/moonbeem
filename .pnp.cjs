@@ -78,6 +78,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["graphql", "npm:16.6.0"],\
             ["graphql-type-json", "virtual:9794d7ff8d6669027c61d2cc554e54e4f18c886220b4fe5f88ebe190d35cd26e03485eb8ee25d1f2c9f7261ae71efcc7df4735d46506a305ffac02c4f5fd4201#npm:0.3.2"],\
             ["jest", "virtual:9794d7ff8d6669027c61d2cc554e54e4f18c886220b4fe5f88ebe190d35cd26e03485eb8ee25d1f2c9f7261ae71efcc7df4735d46506a305ffac02c4f5fd4201#npm:28.1.3"],\
+            ["jest-util", "npm:29.5.0"],\
             ["lodash", "npm:4.17.21"],\
             ["merkletreejs", "npm:0.3.10"],\
             ["mongodb", "npm:4.16.0"],\
@@ -13058,6 +13059,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["graphql", "npm:16.6.0"],\
             ["graphql-type-json", "virtual:9794d7ff8d6669027c61d2cc554e54e4f18c886220b4fe5f88ebe190d35cd26e03485eb8ee25d1f2c9f7261ae71efcc7df4735d46506a305ffac02c4f5fd4201#npm:0.3.2"],\
             ["jest", "virtual:9794d7ff8d6669027c61d2cc554e54e4f18c886220b4fe5f88ebe190d35cd26e03485eb8ee25d1f2c9f7261ae71efcc7df4735d46506a305ffac02c4f5fd4201#npm:28.1.3"],\
+            ["jest-util", "npm:29.5.0"],\
             ["lodash", "npm:4.17.21"],\
             ["merkletreejs", "npm:0.3.10"],\
             ["mongodb", "npm:4.16.0"],\

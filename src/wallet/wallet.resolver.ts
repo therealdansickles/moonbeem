@@ -16,7 +16,7 @@ import { CollectionService } from '../collection/collection.service';
 
 @Resolver(() => Wallet)
 export class WalletResolver {
-    constructor(private readonly walletService: WalletService, private readonly collectionService: CollectionService) {}
+    constructor(private readonly walletService: WalletService, private readonly collectionService: CollectionService) { }
 
     @Public()
     @Query((returns) => Wallet, {
@@ -57,8 +57,8 @@ export class WalletResolver {
     @Public()
     @ResolveField(() => [Activity], { description: 'Retrieves the activity for the given wallet.', nullable: true })
     async activities(@Parent() wallet: Wallet): Promise<Activity[]> {
-        const activities = await this.walletService.getMintedByAddress(wallet.address);
-        return activities.map((activity) => ({ type: 'Mint', ...activity }));
+        const activities = await this.walletService.getActivitiesByAddress(wallet.address);
+        return activities;
     }
 
     @Public()

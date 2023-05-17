@@ -47,13 +47,13 @@ export class Organization extends BaseEntity {
     @Column({ nullable: true, comment: 'The description for the organization.' })
     about?: string;
 
-    @Column({ nullable: true, comment: "The URL pointing to the organization's avatar." })
+    @Column({ nullable: true, comment: 'The URL pointing to the organization\'s avatar.' })
     avatarUrl?: string;
 
-    @Column({ nullable: true, comment: "The URL pointing to the organization's background." })
+    @Column({ nullable: true, comment: 'The URL pointing to the organization\'s background.' })
     backgroundUrl?: string;
 
-    @Column({ nullable: true, comment: "The url of the organization's website." })
+    @Column({ nullable: true, comment: 'The url of the organization\'s website.' })
     websiteUrl?: string;
 
     @Column({ nullable: true, comment: 'The twitter handle for the organization.' })
