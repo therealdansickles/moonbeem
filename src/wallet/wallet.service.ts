@@ -37,7 +37,7 @@ export class WalletService {
         @InjectRepository(MintSaleContract, 'sync_chain')
         private mintSaleContractRepository: Repository<MintSaleContract>,
         private coinService: CoinService
-    ) { }
+    ) {}
 
     /**
      * This is the uuid for the ownerId for all unbound wallets, e.g the blackhole.
@@ -233,6 +233,7 @@ export class WalletService {
                 const tier = await this.tierRepository
                     .createQueryBuilder('tier')
                     .leftJoinAndSelect('tier.collection', 'collection')
+                    .leftJoinAndSelect('collection.collaboration', 'collaboration')
                     .where('collection.address = :address', { address })
                     .andWhere('tier.tierId = :tierId', { tierId })
                     .getOne();
@@ -244,11 +245,11 @@ export class WalletService {
     }
 
     /**
-     * 
+     *
      * The `Minted` list + `Deply` list
-     * 
+     *
      * @param address
-     * @returns 
+     * @returns
      */
     async getActivitiesByAddress(address: string): Promise<any> {
         const wallet = await this.getWalletByAddress(address);
@@ -258,10 +259,10 @@ export class WalletService {
         // it would be difficult if we want to paginate for the service
         const [mintedTransactions, deployedTransactions] = await Promise.all([
             this.mintSaleTransactionRepository.find({ where: { recipient: address } }),
-            this.mintSaleContractRepository.find({ where: { sender: address } })
+            this.mintSaleContractRepository.find({ where: { sender: address } }),
         ]);
 
-        const mintList = mintedTransactions.map(tx => ({
+        const mintList = mintedTransactions.map((tx) => ({
             type: 'Mint',
             txTime: tx.txTime,
             address: tx.address,
@@ -270,19 +271,19 @@ export class WalletService {
             tokenId: tx.tokenId,
             tierId: tx.tierId,
         }));
-        const deployList = deployedTransactions.map(tx => ({
+        const deployList = deployedTransactions.map((tx) => ({
             type: 'Deploy',
             txTime: tx.txTime,
             address: tx.address,
             paymentToken: tx.paymentToken,
             price: tx.price,
             // tokenId: tx.tokenId,
-            tierId: tx.tierId
+            tierId: tx.tierId,
         }));
-        const mergedList = [...mintList || [], ...deployList || []].sort(item => item.txTime * -1);
+        const mergedList = [...(mintList || []), ...(deployList || [])].sort((item) => item.txTime * -1);
 
         const activities = await Promise.all(
-            mergedList.map(async item => {
+            mergedList.map(async (item) => {
                 const { tierId, address } = item;
                 const tier = await this.tierRepository
                     .createQueryBuilder('tier')
