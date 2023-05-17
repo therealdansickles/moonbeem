@@ -2,7 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { RedisAdapter } from '../lib/adapters/redis.adapter';
 import { jwtConfig } from '../lib/configs/jwt.config';
-import { AuthPayload, SESSION_PERFIX } from '../auth/auth.service';
+
+interface AuthPayload {
+    id?: string;
+    address?: string;
+    signature?: string;
+    email?: string;
+}
+
+const SESSION_PREFIX = 'login_session:';
 
 @Injectable()
 export class JWTService {
@@ -53,7 +61,7 @@ export class JWTService {
      * @returns boolean
      */
     async validateIsLogin(identifier: string): Promise<boolean> {
-        const _key = this.redisClient.getKey(identifier.toLocaleLowerCase(), SESSION_PERFIX);
+        const _key = this.redisClient.getKey(identifier.toLocaleLowerCase(), SESSION_PREFIX);
         const val = await this.redisClient.get(_key);
         if (!val) return false;
         return true;

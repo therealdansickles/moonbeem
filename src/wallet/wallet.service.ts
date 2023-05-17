@@ -191,6 +191,26 @@ export class WalletService {
     }
 
     /**
+     * Verifies that the given address signed the given message.
+     *
+     * @param address The address to verify.
+     * @param message The message that was signed.
+     * @param signature The signature of the message.
+     * @returns a Wallet object.
+     */
+    async verifyWallet(address: string, message: string, signature: string): Promise<Wallet | null> {
+        if (ethers.utils.verifyMessage(message, signature).toLowerCase() === address.toLowerCase()) {
+            await this.walletRespository.upsert([{ address }], {
+                conflictPaths: ['address'],
+                skipUpdateIfNoValuesChanged: true,
+            });
+
+            return this.walletRespository.findOneBy({ address });
+        }
+        return null;
+    }
+
+    /**
      * Parses out the given EIP-3770 address into the network and chainId information, if possible.
      *
      * @param address The address to parse.
@@ -219,7 +239,7 @@ export class WalletService {
      * @param address The address of the wallet to retrieve.
      * @returns The `Minted` details + mint sale transactions associated with the given address.
      */
-    async getMintedByAddress(address: string): Promise<any> {
+    async getMintedByAddress(address: string): Promise<Minted[]> {
         const wallet = await this.getWalletByAddress(address);
         if (!wallet) throw new Error(`Wallet with address ${address} doesn't exist.`);
 
@@ -238,7 +258,7 @@ export class WalletService {
                     .andWhere('tier.tierId = :tierId', { tierId })
                     .getOne();
 
-                return { ...mintSaleTransaction, tier };
+                return { ...mintSaleTransaction, tier } as unknown as Minted;
             })
         );
         return minted;

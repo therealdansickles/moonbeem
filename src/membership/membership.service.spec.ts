@@ -126,14 +126,11 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            const result = await service.createMembership(
-                {
-                    organizationId: newOrganization.id,
-                    userId: newUser.id,
-                    canDeploy: true,
-                },
-                owner
-            );
+            const result = await service.createMembership({
+                organizationId: newOrganization.id,
+                userId: newUser.id,
+                canDeploy: true,
+            });
             expect(result.id).toBeDefined();
             expect(result.canDeploy).toBeTruthy();
             expect(result.organization.id).toEqual(newOrganization.id);
@@ -163,9 +160,8 @@ describe('MembershipService', () => {
             });
 
             await expect(async () => {
-                await service.createMembership({ organizationId: newOrganization.id, userId: newUser.id }, owner);
-                await service.createMembership({ organizationId: newOrganization.id, userId: newUser.id }, owner);
-                await service.createMembership({ organizationId: newOrganization.id, userId: newUser.id }, owner);
+                await service.createMembership({ organizationId: newOrganization.id, userId: newUser.id });
+                await service.createMembership({ organizationId: newOrganization.id, userId: newUser.id });
             }).rejects.toThrow();
         });
     });
@@ -192,13 +188,10 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            const membership = await service.createMembership(
-                {
-                    organizationId: organization.id,
-                    userId: user.id,
-                },
-                owner
-            );
+            const membership = await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
 
             const result = await service.updateMembership(membership.id, { canEdit: true });
             expect(result.canEdit).toBeTruthy();
@@ -227,13 +220,10 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            const membership = await service.createMembership(
-                {
-                    organizationId: organization.id,
-                    userId: user.id,
-                },
-                owner
-            );
+            const membership = await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
 
             const result = await service.acceptMembership({
                 userId: user.id,
@@ -265,13 +255,10 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            await service.createMembership(
-                {
-                    organizationId: organization.id,
-                    userId: user.id,
-                },
-                owner
-            );
+            await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
 
             await expect(async () => {
                 await service.acceptMembership({ userId: user.id, organizationId: organization.id, inviteCode: '' });
@@ -301,13 +288,10 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            const membership = await service.createMembership(
-                {
-                    organizationId: organization.id,
-                    userId: user.id,
-                },
-                owner
-            );
+            const membership = await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
 
             const result = await service.declineMembership({
                 userId: user.id,
@@ -339,13 +323,10 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            await service.createMembership(
-                {
-                    organizationId: organization.id,
-                    userId: user.id,
-                },
-                owner
-            );
+            await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
 
             await expect(async () => {
                 await service.declineMembership({ userId: user.id, organizationId: organization.id, inviteCode: '' });

@@ -15,6 +15,52 @@ type FactoryConfigRspDto {
   total: Int!
 }
 
+type User {
+  id: ID!
+
+  """The username of the user."""
+  username: String
+
+  """The name of the user."""
+  name: String
+
+  """The email of the user."""
+  email: String!
+
+  """The password of the user."""
+  password: String
+
+  """The avatarUrl of the user."""
+  avatarUrl: String
+
+  """The URL pointing to the user's background."""
+  backgroundUrl: String
+
+  """The description for the user."""
+  about: String
+
+  """The url of the user's website."""
+  websiteUrl: String
+
+  """The twitter handle for the user."""
+  twitter: String
+
+  """The instagram handle for the user."""
+  instagram: String
+
+  """The discord handle for the user."""
+  discord: String
+
+  """The wallets of the user."""
+  wallets: [Wallet!]
+
+  """Returns the memberships for the given user"""
+  memberships: [Membership!]!
+
+  """Returns the memberships for the given user"""
+  organizations: [Organization!]!
+}
+
 type Organization {
   id: ID!
 
@@ -77,55 +123,6 @@ type Organization {
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
-
-type CollaboratorOutput {
-  """The collaborator role of the collaboration."""
-  role: String!
-
-  """The collaborator name of the collaboration."""
-  name: String!
-
-  """The user address of the collaboration."""
-  address: String!
-
-  """The royalty rate of the collaboration."""
-  rate: Int!
-}
-
-type Collaboration {
-  """The ID of the collaboration."""
-  id: String!
-
-  """The template name of this collaboration."""
-  name: String
-
-  """The wallet of the collaboration."""
-  wallet: Wallet
-
-  """The collection of the collaboration."""
-  collection: Collection
-
-  """The address of the collaboration contract."""
-  address: String
-
-  """The user of the collaboration."""
-  user: User
-
-  """The organization of the collaboration."""
-  organization: Organization
-
-  """All collaborators of this collaboration."""
-  collaborators: [CollaboratorOutput!]
-
-  """The royalty rate of the collaboration."""
-  royaltyRate: Float
-
-  """The created datetime of the collaboration."""
-  createdAt: DateTime!
-
-  """The updated datetime of the collaboration."""
-  updatedAt: DateTime!
-}
 
 type MintSaleContract {
   id: ID!
@@ -593,102 +590,53 @@ type EstimatedValue {
   totalUSDC: String
 }
 
-type User {
-  id: ID!
+type CollaboratorOutput {
+  """The collaborator role of the collaboration."""
+  role: String!
 
-  """The username of the user."""
-  username: String
+  """The collaborator name of the collaboration."""
+  name: String!
 
-  """The name of the user."""
+  """The user address of the collaboration."""
+  address: String!
+
+  """The royalty rate of the collaboration."""
+  rate: Int!
+}
+
+type Collaboration {
+  """The ID of the collaboration."""
+  id: String!
+
+  """The template name of this collaboration."""
   name: String
 
-  """The email of the user."""
-  email: String!
+  """The wallet of the collaboration."""
+  wallet: Wallet
 
-  """The password of the user."""
-  password: String
+  """The collection of the collaboration."""
+  collection: Collection
 
-  """The avatarUrl of the user."""
-  avatarUrl: String
+  """The address of the collaboration contract."""
+  address: String
 
-  """The URL pointing to the user's background."""
-  backgroundUrl: String
+  """The user of the collaboration."""
+  user: User
 
-  """The description for the user."""
-  about: String
+  """The organization of the collaboration."""
+  organization: Organization
 
-  """The url of the user's website."""
-  websiteUrl: String
+  """All collaborators of this collaboration."""
+  collaborators: [CollaboratorOutput!]
 
-  """The twitter handle for the user."""
-  twitter: String
+  """The royalty rate of the collaboration."""
+  royaltyRate: Float
 
-  """The instagram handle for the user."""
-  instagram: String
+  """The created datetime of the collaboration."""
+  createdAt: DateTime!
 
-  """The discord handle for the user."""
-  discord: String
-
-  """The wallets of the user."""
-  wallets: [Wallet!]
-
-  """Returns the memberships for the given user"""
-  memberships: [Membership!]!
-
-  """Returns the memberships for the given user"""
-  organizations: [Organization!]!
-}
-
-type VIPriceType {
-  price: String!
-  token: EthereumAddress!
-}
-
-type VUserWalletInfo {
-  id: ID!
-  address: EthereumAddress!
-  name: String!
-  avatar: String
-  customUrl: String!
-  description: String!
-  discordLink: String!
-  facebookLink: String!
-  twitterLink: String!
-  followerCount: Int!
-  followingCount: Int!
-  isFollow: Boolean
-  holding: Int
-  fansCount: Int
-  estimatedValues: [VIPriceType!]
-}
-
-type LoginWithWalletResponse {
-  sessionToken: String!
-  item: Wallet!
-}
-
-type LoginWithEmailResponse {
-  sessionToken: String!
-  user: User!
-}
-
-type VFollowingInfo {
-  name: String!
-  address: EthereumAddress!
-  avatar: String!
-  followingCount: Float!
-  followerCount: Float!
-  isFollowed: Boolean
-}
-
-type VUserFollowingListRspDto {
-  data: [VFollowingInfo!]!
-  total: Float!
-}
-
-type VUserFollowerListRspDto {
-  data: [VFollowingInfo!]!
-  total: Float!
+  """The updated datetime of the collaboration."""
+  updatedAt: DateTime!
 }
 
 type Membership {
@@ -1029,6 +977,48 @@ type GlobalSearchResult {
   users: UserSearchResults!
 }
 
+type VIPriceType {
+  price: String!
+  token: EthereumAddress!
+}
+
+type VUserWalletInfo {
+  id: ID!
+  address: EthereumAddress!
+  name: String!
+  avatar: String
+  customUrl: String!
+  description: String!
+  discordLink: String!
+  facebookLink: String!
+  twitterLink: String!
+  followerCount: Int!
+  followingCount: Int!
+  isFollow: Boolean
+  holding: Int
+  fansCount: Int
+  estimatedValues: [VIPriceType!]
+}
+
+type VFollowingInfo {
+  name: String!
+  address: EthereumAddress!
+  avatar: String!
+  followingCount: Float!
+  followerCount: Float!
+  isFollowed: Boolean
+}
+
+type VUserFollowingListRspDto {
+  data: [VFollowingInfo!]!
+  total: Float!
+}
+
+type VUserFollowerListRspDto {
+  data: [VFollowingInfo!]!
+  total: Float!
+}
+
 type Royalty {
   id: ID!
 
@@ -1223,6 +1213,17 @@ type Waitlist {
   kind: String
 }
 
+type Session {
+  """The JWT session token."""
+  token: String!
+
+  """The wallet for the session."""
+  wallet: Wallet!
+
+  """The user for the session."""
+  user: User!
+}
+
 """Ethereum Address custom scalar type"""
 scalar EthereumAddress
 
@@ -1230,9 +1231,6 @@ type Query {
   getHealth: String!
   getTxStatus(chain: String!, txHash: String!): Boolean!
   getFactoryConfig(chainId: Int = 0): FactoryConfigRspDto!
-
-  """Returns an user for the given id or username"""
-  user(id: String, username: String): User
 
   """returns a collaboration for a given uuid"""
   collaboration(id: String!): Collaboration
@@ -1246,9 +1244,14 @@ type Query {
   """Returns an organization for the given uuid"""
   organization(id: String!): Organization
 
-  """Retrieve a membership by id."""
-  membership(id: String!): Membership
-  memberships(userId: String!): [Membership!]!
+  """Returns an user for the given id or username"""
+  user(id: String, username: String): User
+
+  """Retrieves a wallet by its ethereum or EIP-3770 address."""
+  wallet(
+    """an ethereum or EIP-3770 address."""
+    address: String!
+  ): Wallet
 
   """returns a contract for a given uuid"""
   mintSaleContract(id: String!): MintSaleContract!
@@ -1280,14 +1283,9 @@ type Query {
   """returns coin list for a given chainId"""
   coins(chainId: Int!, enable: Boolean): [Coin!]!
 
-  """Retrieves a wallet by its ethereum or EIP-3770 address."""
-  wallet(
-    """an ethereum or EIP-3770 address."""
-    address: String!
-  ): Wallet
-  getAddressInfo(address: EthereumAddress!): VUserWalletInfo!
-  getUserFollowingList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowingListRspDto!
-  getUserFollowerList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowerListRspDto!
+  """Retrieve a membership by id."""
+  membership(id: String!): Membership
+  memberships(userId: String!): [Membership!]!
   getLandingPageCollections(skip: Int = 0, take: Int = 10, status: BasicCollectionStatus, type: BasicCollectionType, chainId: Int = 0): LandingPageCollectionRspDto!
   getRankingOfCreators(skip: Int = 0, take: Int = 10, startTime: Int = 0, endTime: Int = 0, chainId: Int = 0): LandingPageRankingOfCreatorsRspDto!
   getRankingOfItems(skip: Int = 0, take: Int = 10, chainId: Int = 0): LandingPageRankingOfItemsRspDto!
@@ -1297,6 +1295,9 @@ type Query {
   getCollectionActivities(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VCollectionActivityRspDto!
   globalSearch(input: GloablSearchInput!): GlobalSearchResult!
   globalSearchV1(input: GloablSearchInput!): GlobalSearchResult!
+  getAddressInfo(address: EthereumAddress!): VUserWalletInfo!
+  getUserFollowingList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowingListRspDto!
+  getUserFollowerList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowerListRspDto!
   royalty(id: String!): Royalty!
 
   """returns a asset for a given uuid"""
@@ -1344,14 +1345,6 @@ input GetWaitlistInput {
 }
 
 type Mutation {
-  loginWithWallet(input: LoginWithWalletInput!): LoginWithWalletResponse!
-  loginWithEmail(input: LoginWithEmailInput!): LoginWithEmailResponse!
-  logout(input: LogoutInput!): Boolean!
-  createUserWithEmail(input: CreateUserWithEmailInput!): LoginWithEmailResponse!
-
-  """update the given user."""
-  updateUser(input: UpdateUserInput!): User!
-
   """create a collaboration"""
   createCollaboration(input: CreateCollaborationInput!): Collaboration!
 
@@ -1379,6 +1372,33 @@ type Mutation {
   """Transfer an organization to another user."""
   transferOrganization(input: TransferOrganizationInput!): Organization!
 
+  """update the given user."""
+  updateUser(input: UpdateUserInput!): User!
+
+  """creates a wallet"""
+  createWallet(input: CreateWalletInput!): Wallet!
+
+  """Binds a wallet to the current user."""
+  bindWallet(input: BindWalletInput!): Wallet!
+
+  """Unbinds a wallet from the current user."""
+  unbindWallet(input: UnbindWalletInput!): Wallet!
+
+  """update the given wallet"""
+  updateWallet(input: UpdateWalletInput!): Wallet!
+
+  """Create merekleTree"""
+  createMerkleRoot(input: CreateMerkleRootInput!): CreateMerkleRootOutput!
+
+  """Create a new tier."""
+  createTier(input: CreateTierInput!): Tier!
+
+  """Update a tier."""
+  updateTier(input: UpdateTierInput!): Boolean!
+
+  """Delete a tier."""
+  deleteTier(input: DeleteTierInput!): Boolean!
+
   """Create a new membership."""
   createMembership(input: CreateMembershipInput!): Membership!
 
@@ -1393,30 +1413,6 @@ type Mutation {
 
   """Deletes a membership."""
   deleteMembership(input: DeleteMembershipInput!): Boolean!
-
-  """Create merekleTree"""
-  createMerkleRoot(input: CreateMerkleRootInput!): CreateMerkleRootOutput!
-
-  """Create a new tier."""
-  createTier(input: CreateTierInput!): Tier!
-
-  """Update a tier."""
-  updateTier(input: UpdateTierInput!): Boolean!
-
-  """Delete a tier."""
-  deleteTier(input: DeleteTierInput!): Boolean!
-
-  """creates a wallet"""
-  createWallet(input: CreateWalletInput!): Wallet!
-
-  """Binds a wallet to the current user."""
-  bindWallet(input: BindWalletInput!): Wallet!
-
-  """Unbinds a wallet from the current user."""
-  unbindWallet(input: UnbindWalletInput!): Wallet!
-
-  """update the given wallet"""
-  updateWallet(input: UpdateWalletInput!): Wallet!
   followUserWallet(address: EthereumAddress!, isFollowed: Boolean): Boolean!
   updateAddressInfo(name: String, avatar: String, customUrl: String, description: String, discordLink: String, facebookLink: String, twitterLink: String): Boolean!
 
@@ -1425,65 +1421,12 @@ type Mutation {
 
   """claim a waitlist item"""
   claimWaitlist(input: ClaimWaitlistInput!): Boolean!
-}
 
-input LoginWithWalletInput {
-  address: EthereumAddress!
-  message: String!
-  signature: String!
-}
+  """Create a session."""
+  createSession(input: CreateSessionInput!): Session
 
-input LoginWithEmailInput {
-  email: String!
-  password: String!
-}
-
-input LogoutInput {
-  email: String
-  address: EthereumAddress
-}
-
-input CreateUserWithEmailInput {
-  email: String!
-  password: String!
-  username: String
-  name: String
-  avatarUrl: String
-  inviteCode: String
-}
-
-input UpdateUserInput {
-  id: ID
-
-  """The username of the user."""
-  username: String
-
-  """The name of the user."""
-  name: String
-
-  """The email of the user."""
-  email: String
-
-  """The avatarUrl of the user."""
-  avatarUrl: String
-
-  """The URL pointing to the user's background."""
-  backgroundUrl: String
-
-  """The description for the user."""
-  about: String
-
-  """The url of the user's website."""
-  websiteUrl: String
-
-  """The twitter handle for the user."""
-  twitter: String
-
-  """The instagram handle for the user."""
-  instagram: String
-
-  """The discord handle for the user."""
-  discord: String
+  """Create a session from email."""
+  createSessionFromEmail(input: CreateSessionFromEmailInput!): Session
 }
 
 input CreateCollaborationInput {
@@ -1806,54 +1749,94 @@ input TransferOrganizationInput {
   ownerId: String!
 }
 
-input CreateMembershipInput {
-  """The user that is a member of this organization."""
-  userId: String
+input UpdateUserInput {
+  id: ID
 
-  """The email of the user"""
+  """The username of the user."""
+  username: String
+
+  """The name of the user."""
+  name: String
+
+  """The email of the user."""
   email: String
 
-  """The organization that this user is a member of."""
-  organizationId: String!
+  """The avatarUrl of the user."""
+  avatarUrl: String
 
-  """Whether or not this user can edit."""
-  canEdit: Boolean
+  """The URL pointing to the user's background."""
+  backgroundUrl: String
 
-  """Whether or not this user can manage."""
-  canManage: Boolean
+  """The description for the user."""
+  about: String
 
-  """Whether or not this user can deploy a collection."""
-  canDeploy: Boolean
+  """The url of the user's website."""
+  websiteUrl: String
+
+  """The twitter handle for the user."""
+  twitter: String
+
+  """The instagram handle for the user."""
+  instagram: String
+
+  """The discord handle for the user."""
+  discord: String
 }
 
-input MembershipRequestInput {
-  """The user that is a member of this organization."""
-  userId: String!
+input CreateWalletInput {
+  """The address for a wallet."""
+  address: String!
 
-  """The organization that this user is a member of."""
-  organizationId: String!
-
-  """The unique user invite code for the membership"""
-  inviteCode: String!
+  """The id for the owner."""
+  ownerId: String
 }
 
-input UpdateMembershipInput {
-  """The id for a membership."""
+input BindWalletInput {
+  """an ethereum or EIP-3770 address."""
+  address: String!
+
+  """The signing message"""
+  message: String!
+
+  """The signature from the front-end to verify"""
+  signature: String!
+
+  """the owner uuid of the wallet."""
+  owner: UserInput!
+}
+
+input UnbindWalletInput {
+  """an ethereum or EIP-3770 address."""
+  address: String!
+
+  """the owner uuid of the wallet."""
+  owner: UserInput!
+}
+
+input UpdateWalletInput {
+  """The id for the wallet."""
   id: String!
 
-  """Whether or not this user can edit."""
-  canEdit: Boolean
+  """The name for the wallet."""
+  name: String
 
-  """Whether or not this user can manage."""
-  canManage: Boolean
+  """The URL pointing to the wallet's avatar."""
+  avatarUrl: String
 
-  """Whether or not this user can deploy a collection."""
-  canDeploy: Boolean
-}
+  """The description for the wallet."""
+  about: String
 
-input DeleteMembershipInput {
-  """The id for a membership."""
-  id: String!
+  """The twitter handle for the wallet."""
+  twitter: String
+
+  """The instagram handle for the wallet."""
+  instagram: String
+
+  """The discord handle for the wallet."""
+  discord: String
+
+  """The spotify handle for the wallet.."""
+  spotify: String
 }
 
 input CreateMerkleRootInput {
@@ -1968,60 +1951,54 @@ input DeleteTierInput {
   id: String!
 }
 
-input CreateWalletInput {
-  """The address for a wallet."""
-  address: String!
+input CreateMembershipInput {
+  """The user that is a member of this organization."""
+  userId: String
 
-  """The id for the owner."""
-  ownerId: String
+  """The email of the user"""
+  email: String
+
+  """The organization that this user is a member of."""
+  organizationId: String!
+
+  """Whether or not this user can edit."""
+  canEdit: Boolean
+
+  """Whether or not this user can manage."""
+  canManage: Boolean
+
+  """Whether or not this user can deploy a collection."""
+  canDeploy: Boolean
 }
 
-input BindWalletInput {
-  """an ethereum or EIP-3770 address."""
-  address: String!
+input MembershipRequestInput {
+  """The user that is a member of this organization."""
+  userId: String!
 
-  """The signing message"""
-  message: String!
+  """The organization that this user is a member of."""
+  organizationId: String!
 
-  """The signature from the front-end to verify"""
-  signature: String!
-
-  """the owner uuid of the wallet."""
-  owner: UserInput!
+  """The unique user invite code for the membership"""
+  inviteCode: String!
 }
 
-input UnbindWalletInput {
-  """an ethereum or EIP-3770 address."""
-  address: String!
-
-  """the owner uuid of the wallet."""
-  owner: UserInput!
-}
-
-input UpdateWalletInput {
-  """The id for the wallet."""
+input UpdateMembershipInput {
+  """The id for a membership."""
   id: String!
 
-  """The name for the wallet."""
-  name: String
+  """Whether or not this user can edit."""
+  canEdit: Boolean
 
-  """The URL pointing to the wallet's avatar."""
-  avatarUrl: String
+  """Whether or not this user can manage."""
+  canManage: Boolean
 
-  """The description for the wallet."""
-  about: String
+  """Whether or not this user can deploy a collection."""
+  canDeploy: Boolean
+}
 
-  """The twitter handle for the wallet."""
-  twitter: String
-
-  """The instagram handle for the wallet."""
-  instagram: String
-
-  """The discord handle for the wallet."""
-  discord: String
-
-  """The spotify handle for the wallet.."""
-  spotify: String
+input DeleteMembershipInput {
+  """The id for a membership."""
+  id: String!
 }
 
 input CreateWaitlistInput {
@@ -2052,4 +2029,23 @@ input ClaimWaitlistInput {
 
   """The signature from the front-end to verify"""
   signature: String!
+}
+
+input CreateSessionInput {
+  """The wallet address."""
+  address: String!
+
+  """The message to sign."""
+  message: String!
+
+  """The signature of the message."""
+  signature: String!
+}
+
+input CreateSessionFromEmailInput {
+  """The user email."""
+  email: String!
+
+  """The hashed password for the user."""
+  password: String!
 }

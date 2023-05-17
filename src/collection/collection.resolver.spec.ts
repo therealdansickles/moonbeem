@@ -8,18 +8,16 @@ import { faker } from '@faker-js/faker';
 import { Repository } from 'typeorm';
 import { postgresConfig } from '../lib/configs/db.config';
 
-import { AuthModule } from '../auth/auth.module';
-import { AuthService } from '../auth/auth.service';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import { CollaborationService } from '../collaboration/collaboration.service';
 import { Collection, CollectionKind } from './collection.entity';
 import { CollectionModule } from './collection.module';
 import { CollectionService } from './collection.service';
-import { OrganizationService } from '../organization/organization.service';
-import { UserService } from '../user/user.service';
-import { TierService } from '../tier/tier.service';
-import { CoinService } from '../sync-chain/coin/coin.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { CollaborationService } from '../collaboration/collaboration.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { OrganizationService } from '../organization/organization.service';
+import { TierService } from '../tier/tier.service';
+import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 
 export const gql = String.raw;
@@ -28,7 +26,6 @@ describe('CollectionResolver', () => {
     let repository: Repository<Collection>;
     let service: CollectionService;
     let app: INestApplication;
-    let authService: AuthService;
     let organizationService: OrganizationService;
     let userService: UserService;
     let tierService: TierService;
@@ -62,19 +59,17 @@ describe('CollectionResolver', () => {
                     logging: false,
                     dropSchema: true,
                 }),
-                AuthModule,
                 CollectionModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
-                    include: [AuthModule, CollectionModule],
+                    include: [CollectionModule],
                 }),
             ],
         }).compile();
 
         repository = module.get('CollectionRepository');
         service = module.get<CollectionService>(CollectionService);
-        authService = module.get<AuthService>(AuthService);
         organizationService = module.get<OrganizationService>(OrganizationService);
         collaborationService = module.get<CollaborationService>(CollaborationService);
         userService = module.get<UserService>(UserService);
@@ -496,15 +491,11 @@ describe('CollectionResolver', () => {
         });
 
         it('should allow authenticated users to create a collection', async () => {
-            const credentials = await authService.createUserWithEmail({
-                email: faker.internet.email(),
-                password: faker.internet.password(),
-            });
-
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
+
             const wallet1 = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
 
             const collaboration = await collaborationService.createCollaboration({
@@ -562,7 +553,6 @@ describe('CollectionResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
-                .auth(credentials.sessionToken, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {

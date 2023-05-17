@@ -10,9 +10,15 @@ import {
     VUserFollowerListReqDto,
 } from '../dto/user.wallet.dto';
 import { Public } from '../lib/decorators/public.decorator';
-import { AuthPayload } from '../auth/auth.service';
 import { JWTService } from '../services/jwt.service';
 import { UserWalletService } from '../services/user.wallet.service';
+
+interface AuthPayload {
+    id?: string;
+    address?: string;
+    signature?: string;
+    email?: string;
+}
 
 @Resolver('UserWallet')
 export class UserWalletResolver {

@@ -13,9 +13,15 @@ import {
 } from '../dto/user.wallet.dto';
 import { Public } from '../lib/decorators/public.decorator';
 import { IResponse, ResponseSucc, ResponseInternalError } from '../lib/interfaces/response.interface';
-import { AuthPayload } from '../auth/auth.service';
 import { JWTService } from '../services/jwt.service';
 import { UserWalletService } from '../services/user.wallet.service';
+
+interface AuthPayload {
+    id?: string;
+    address?: string;
+    signature?: string;
+    email?: string;
+}
 
 @ApiTags('Wallet')
 @ApiSecurity('session') // swagger authentication, in header.session

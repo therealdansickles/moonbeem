@@ -13,7 +13,6 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './controllers/app.controller';
 import { AppResolver } from './resolvers/app.resolver';
 import { AppService } from './services/app.service';
-import { AuthModule } from './auth/auth.module';
 import { BetaWaitlistModule } from './modules/beta.waitlist.module';
 import { CollaborationModule } from './collaboration/collaboration.module';
 import { CollectionModule } from './collection/collection.module';
@@ -35,10 +34,10 @@ import { WalletModule } from './wallet/wallet.module';
 import { SyncChainModule } from './sync-chain/sync-chain.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { PollerModule } from './poller/poller.module';
+import { SessionModule } from './session/session.module';
 
 @Module({
     imports: [
-        AuthModule,
         BetaWaitlistModule,
         CollaborationModule,
         CollectionModule,
@@ -71,6 +70,7 @@ import { PollerModule } from './poller/poller.module';
             synchronize: true,
             logging: true,
         }),
+        SessionModule,
     ],
     controllers: [AppController],
     providers: [

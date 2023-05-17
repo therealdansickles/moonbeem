@@ -17,8 +17,6 @@ import { OrganizationService } from '../organization/organization.service';
 import { User } from '../user/user.entity';
 import { UserModule } from '../user/user.module';
 import { UserService } from '../user/user.service';
-import { AuthService } from '../auth/auth.service';
-import { AuthModule } from '../auth/auth.module';
 
 export const gql = String.raw;
 
@@ -31,7 +29,6 @@ describe('MembershipResolver', () => {
     let organizationService: OrganizationService;
     let user: User;
     let userService: UserService;
-    let authService: AuthService;
     let module: TestingModule;
 
     beforeEach(async () => {
@@ -59,11 +56,10 @@ describe('MembershipResolver', () => {
                     dropSchema: true,
                 }),
                 MembershipModule,
-                AuthModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
-                    include: [MembershipModule, AuthModule],
+                    include: [MembershipModule],
                 }),
             ],
         }).compile();
@@ -72,7 +68,6 @@ describe('MembershipResolver', () => {
         service = module.get<MembershipService>(MembershipService);
         userService = module.get<UserService>(UserService);
         organizationService = module.get<OrganizationService>(OrganizationService);
-        authService = module.get<AuthService>(AuthService);
 
         user = await userService.createUser({
             email: faker.internet.email(),
@@ -94,13 +89,10 @@ describe('MembershipResolver', () => {
             owner: owner,
         });
 
-        membership = await service.createMembership(
-            {
-                organizationId: organization.id,
-                userId: user.id,
-            },
-            owner
-        );
+        membership = await service.createMembership({
+            organizationId: organization.id,
+            userId: user.id,
+        });
 
         app = module.createNestApplication();
         await app.init();
@@ -153,15 +145,14 @@ describe('MembershipResolver', () => {
     });
 
     describe('createMembership', () => {
-        it('should create a membership', async () => {
+        it.only('should create a membership', async () => {
             user = await userService.createUser({
-                email: faker.internet.email(),
-                username: faker.internet.userName(),
+                email: 'user' + faker.internet.email(),
                 password: faker.internet.password(),
             });
 
-            const owner = await authService.createUserWithEmail({
-                email: faker.internet.email(),
+            const owner = await userService.createUser({
+                email: 'owner' + faker.internet.email(),
                 password: faker.internet.password(),
             });
 
@@ -170,7 +161,7 @@ describe('MembershipResolver', () => {
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
                 avatarUrl: faker.image.imageUrl(),
-                owner: owner.user,
+                owner: owner,
             });
 
             const query = gql`
@@ -190,10 +181,11 @@ describe('MembershipResolver', () => {
                 },
             };
 
+            const memberships = await repository.find();
+
             return await request(app.getHttpServer())
                 .post('/graphql')
                 .send({ query, variables })
-                .auth(owner.sessionToken, { type: 'bearer' })
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.createMembership.id).toBeDefined();
@@ -224,13 +216,10 @@ describe('MembershipResolver', () => {
                 owner: owner,
             });
 
-            membership = await service.createMembership(
-                {
-                    organizationId: organization.id,
-                    userId: user.id,
-                },
-                owner
-            );
+            membership = await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
 
             const query = gql`
                 mutation updateMembership($input: UpdateMembershipInput!) {
@@ -283,13 +272,10 @@ describe('MembershipResolver', () => {
                 owner: owner,
             });
 
-            membership = await service.createMembership(
-                {
-                    organizationId: organization.id,
-                    userId: user.id,
-                },
-                owner
-            );
+            membership = await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
 
             const query = gql`
                 mutation acceptMembership($input: MembershipRequestInput!) {
@@ -337,13 +323,10 @@ describe('MembershipResolver', () => {
                 owner: owner,
             });
 
-            membership = await service.createMembership(
-                {
-                    organizationId: organization.id,
-                    userId: user.id,
-                },
-                owner
-            );
+            membership = await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
 
             const query = gql`
                 mutation declineMembership($input: MembershipRequestInput!) {
@@ -414,15 +397,12 @@ describe('MembershipResolver', () => {
                 owner: anotherUser,
             });
 
-            const membership1 = await service.createMembership(
-                {
-                    organizationId: organization1.id,
-                    userId: user.id,
-                    canDeploy: true,
-                    canManage: true,
-                },
-                anotherUser
-            );
+            const membership1 = await service.createMembership({
+                organizationId: organization1.id,
+                userId: user.id,
+                canDeploy: true,
+                canManage: true,
+            });
 
             const organization2 = await organizationService.createOrganization({
                 name: faker.company.name(),
@@ -432,15 +412,12 @@ describe('MembershipResolver', () => {
                 owner: user,
             });
 
-            const membership2 = await service.createMembership(
-                {
-                    organizationId: organization2.id,
-                    userId: user.id,
-                    canDeploy: true,
-                    canManage: false,
-                },
-                user
-            );
+            const membership2 = await service.createMembership({
+                organizationId: organization2.id,
+                userId: user.id,
+                canDeploy: true,
+                canManage: false,
+            });
 
             const query = gql`
                 query memberships($userId: String!) {

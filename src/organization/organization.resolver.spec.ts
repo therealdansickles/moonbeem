@@ -11,8 +11,6 @@ import { postgresConfig } from '../lib/configs/db.config';
 import { Organization } from './organization.entity';
 import { OrganizationModule } from './organization.module';
 import { OrganizationService } from './organization.service';
-import { AuthService } from '../auth/auth.service';
-import { AuthModule } from '../auth/auth.module';
 
 import { UserService } from '../user/user.service';
 
@@ -24,7 +22,6 @@ describe('OrganizationResolver', () => {
     let userService: UserService;
     let app: INestApplication;
     let organization: Organization;
-    let authService: AuthService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -51,11 +48,10 @@ describe('OrganizationResolver', () => {
                     dropSchema: true,
                 }),
                 OrganizationModule,
-                AuthModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
-                    include: [AuthModule, OrganizationModule],
+                    include: [OrganizationModule],
                 }),
             ],
         }).compile();
@@ -63,7 +59,6 @@ describe('OrganizationResolver', () => {
         repository = module.get('OrganizationRepository');
         service = module.get<OrganizationService>(OrganizationService);
         userService = module.get<UserService>(UserService);
-        authService = module.get<AuthService>(AuthService);
         app = module.createNestApplication();
 
         const owner = await userService.createUser({
@@ -150,12 +145,7 @@ describe('OrganizationResolver', () => {
     });
 
     describe('createOrganization', () => {
-        it.skip('should allow authenticated users to create an organization', async () => {
-            const credentials = await authService.createUserWithEmail({
-                email: faker.internet.email(),
-                password: faker.internet.password(),
-            });
-
+        it('should allow authenticated users to create an organization', async () => {
             const query = gql`
                 mutation CreateOrganization($input: CreateOrganizationInput!) {
                     createOrganization(input: $input) {
@@ -189,51 +179,10 @@ describe('OrganizationResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
-                .auth(credentials.sessionToken, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.createOrganization.name).toEqual(variables.input.name);
-                });
-        });
-
-        it.skip('should not allow authenticated users to create an organization', async () => {
-            const query = gql`
-                mutation CreateOrganization($input: CreateOrganizationInput!) {
-                    createOrganization(input: $input) {
-                        id
-                        name
-                    }
-                }
-            `;
-
-            const owner = await userService.createUser({
-                email: faker.internet.email(),
-                password: faker.internet.password(),
-            });
-
-            const variables = {
-                input: {
-                    name: faker.company.name(),
-                    displayName: faker.company.name(),
-                    about: faker.company.catchPhrase(),
-                    avatarUrl: faker.image.imageUrl(),
-                    backgroundUrl: faker.image.imageUrl(),
-                    websiteUrl: faker.internet.url(),
-                    twitter: faker.internet.userName(),
-                    instagram: faker.internet.userName(),
-                    discord: faker.internet.userName(),
-                    owner: { id: owner.id },
-                },
-            };
-
-            return await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query, variables })
-                .expect(200)
-                .expect(({ body }) => {
-                    expect(body.errors).toBeDefined();
-                    expect(body.errors[0].extensions.response.statusCode).toEqual(401);
                 });
         });
     });

@@ -7,6 +7,7 @@ import { captureException } from '@sentry/node';
 import { OrganizationService } from '../organization/organization.service';
 import { OrganizationKind } from '../organization/organization.entity';
 import * as randomstring from 'randomstring';
+import { verify as verifyPassword } from 'argon2';
 
 interface GetUserInput {
     id?: string;
@@ -44,15 +45,7 @@ export class UserService {
     async createUserWithOrganization(payload: Partial<User>): Promise<User> {
         try {
             const user = await this.createUser(payload);
-            const pseudoOrgName = randomstring.generate(12);
-            const defaultOrgPayload = {
-                name: pseudoOrgName,
-                displayName: pseudoOrgName,
-                kind: OrganizationKind.personal,
-                owner: { id: user.id },
-                invites: [{ email: user.email, canManage: true, canDeploy: true, canEdit: true }],
-            };
-            await this.organizationService.createOrganization(defaultOrgPayload);
+            await this.organizationService.createPersonalOrganization(user);
             return user;
         } catch (e) {
             captureException(e);
@@ -76,12 +69,8 @@ export class UserService {
      */
     async createUser(payload: Partial<User>): Promise<User> {
         try {
-            const { email, ...userProps } = payload;
-            const userPayload = {
-                email: email.toLowerCase(),
-                ...userProps,
-            };
-            return this.userRepository.save(userPayload);
+            await this.userRepository.insert(payload);
+            return await this.userRepository.findOneBy({ email: payload.email });
         } catch (e) {
             captureException(e);
             throw new GraphQLError(`Failed to create user ${payload.name}`, {
@@ -112,5 +101,23 @@ export class UserService {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
         }
+    }
+
+    /**
+     * Verify user credentials.
+     *
+     * @param email user email
+     * @param password user hashed password
+     *
+     * @returns The user if credentials are valid.
+     */
+    async verifyUser(email: string, password: string): Promise<User | null> {
+        const user = await this.userRepository.findOneBy({ email });
+
+        if (user && (await verifyPassword(password, user.password))) {
+            return user;
+        }
+
+        return null;
     }
 }

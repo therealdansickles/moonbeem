@@ -232,6 +232,16 @@ describe('WalletService', () => {
         });
     });
 
+    describe('verifyWallet', () => {
+        it('should return a valid wallet if the signature is valid', async () => {
+            const wallet = ethers.Wallet.createRandom();
+            const message = 'Hi from tests!';
+            const signature = await wallet.signMessage(message);
+            const result = await service.verifyWallet(wallet.address, message, signature);
+            expect(result.address).toEqual(wallet.address);
+        });
+    });
+
     describe('parseEIP3770Address', () => {
         it('parses a valid EIP-3770 address', () => {
             const input = 'eth:0x7cef3dbc9cb5b25f8de7f1a48fa8bcbdbe42caf7';

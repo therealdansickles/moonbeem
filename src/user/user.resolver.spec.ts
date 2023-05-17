@@ -10,9 +10,7 @@ import { postgresConfig } from '../lib/configs/db.config';
 
 import { User } from './user.entity';
 import { UserModule } from './user.module';
-import { AuthModule } from '../auth/auth.module';
 import { UserService } from '../user/user.service';
-import { AuthService } from '../auth/auth.service';
 
 export const gql = String.raw;
 
@@ -20,7 +18,6 @@ describe('UserResolver', () => {
     let repository: Repository<User>;
     let service: UserService;
     let app: INestApplication;
-    let authService: AuthService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -47,18 +44,16 @@ describe('UserResolver', () => {
                     dropSchema: true,
                 }),
                 UserModule,
-                AuthModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
-                    include: [AuthModule, UserModule],
+                    include: [UserModule],
                 }),
             ],
         }).compile();
 
         service = module.get<UserService>(UserService);
         repository = module.get('UserRepository');
-        authService = module.get<AuthService>(AuthService);
         app = module.createNestApplication();
 
         await app.init();
@@ -71,11 +66,11 @@ describe('UserResolver', () => {
 
     describe('getUser', () => {
         it('should get an user', async () => {
-            const credentials = await authService.createUserWithEmail({
+            const user = await service.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
-            const user = credentials.user;
+
             const query = gql`
                 query GetUser($id: String!) {
                     user(id: $id) {
@@ -107,7 +102,6 @@ describe('UserResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
-                .auth(credentials.sessionToken, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -129,11 +123,10 @@ describe('UserResolver', () => {
 
     describe('updateUser', () => {
         it('should update an user', async () => {
-            const credentials = await authService.createUserWithEmail({
+            const user = await service.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
-            const user = credentials.user;
             const query = gql`
                 mutation updateUser($input: UpdateUserInput!) {
                     updateUser(input: $input) {
@@ -156,7 +149,6 @@ describe('UserResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
-                .auth(credentials.sessionToken, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {

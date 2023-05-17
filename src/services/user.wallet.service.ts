@@ -13,7 +13,13 @@ import {
 } from '../lib/modules/db.module';
 import { TotalRecord, UserFollowingRec, TokenPrice } from '../lib/modules/db.record.module';
 import { v4 as uuidV4 } from 'uuid';
-import { AuthPayload } from '../auth/auth.service';
+
+interface AuthPayload {
+    id?: string;
+    address?: string;
+    signature?: string;
+    email?: string;
+}
 
 @Injectable()
 export class UserWalletService {

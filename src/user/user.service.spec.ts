@@ -8,6 +8,7 @@ import { UserService } from './user.service';
 import { User } from './user.entity';
 import { OrganizationModule } from '../organization/organization.module';
 import { OrganizationService } from '../organization/organization.service';
+import { hash as hashPassword } from 'argon2';
 
 describe('UserService', () => {
     let service: UserService;
@@ -118,6 +119,30 @@ describe('UserService', () => {
             const updateUser = await repository.findOneBy({ id: user.id });
             expect(updateUser.username).toEqual(updatedUsername);
             expect(updateUser.avatarUrl).toEqual(updatedAvatarUrl);
+        });
+    });
+
+    describe('verifyUser', () => {
+        it('should verify user', async () => {
+            let email = faker.internet.email();
+            let password = faker.internet.password();
+            await repository.insert({ email, password });
+
+            let hashed = await hashPassword(password);
+
+            const result = await service.verifyUser(email, hashed);
+            expect(result.email).toEqual(email);
+        });
+
+        it('should return null on invalid credentials', async () => {
+            let email = faker.internet.email();
+            let password = faker.internet.password();
+            await repository.insert({ email, password });
+
+            let hashed = await hashPassword('invalid password');
+
+            const result = await service.verifyUser(email, hashed);
+            expect(result).toBeNull();
         });
     });
 });

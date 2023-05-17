@@ -2,8 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { captureException } from '@sentry/node';
+import { generate as generateString } from 'randomstring';
 
-import { Organization } from './organization.entity';
+import { Organization, OrganizationKind } from './organization.entity';
 import { CreateOrganizationInput, UpdateOrganizationInput } from './organization.dto';
 import { User } from '../user/user.entity';
 import { GraphQLError } from 'graphql';
@@ -49,16 +50,13 @@ export class OrganizationService {
 
         if (invites) {
             for (const invite of invites) {
-                await this.membershipService.createMembership(
-                    {
-                        email: invite.email.toLowerCase(),
-                        organizationId: organization.id,
-                        canEdit: invite.canEdit,
-                        canDeploy: invite.canDeploy,
-                        canManage: invite.canManage,
-                    },
-                    owner
-                );
+                await this.membershipService.createMembership({
+                    email: invite.email.toLowerCase(),
+                    organizationId: organization.id,
+                    canEdit: invite.canEdit,
+                    canDeploy: invite.canDeploy,
+                    canManage: invite.canManage,
+                });
             }
         }
 
@@ -66,6 +64,25 @@ export class OrganizationService {
             where: { id: organization.id },
             relations: ['owner'],
         });
+    }
+
+    /**
+     * Create a default (personal) organization for a user.
+     *
+     * @param user The user to create the default organization for.
+     * @returns The created default organization.
+     */
+    async createPersonalOrganization(user: User): Promise<Organization> {
+        const pseudoOrgName = generateString(12);
+        const defaultOrgPayload = {
+            name: pseudoOrgName,
+            displayName: pseudoOrgName,
+            kind: OrganizationKind.personal,
+            owner: { id: user.id },
+            invites: [{ email: user.email, canManage: true, canDeploy: true, canEdit: true }],
+        };
+
+        return await this.createOrganization(defaultOrgPayload);
     }
 
     /**

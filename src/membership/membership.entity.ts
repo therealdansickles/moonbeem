@@ -1,13 +1,15 @@
 import {
-    Entity,
-    Column,
-    JoinColumn,
-    PrimaryGeneratedColumn,
-    CreateDateColumn,
-    UpdateDateColumn,
     BaseEntity,
-    ManyToOne,
+    BeforeInsert,
+    BeforeUpdate,
+    Column,
+    CreateDateColumn,
+    Entity,
     Index,
+    JoinColumn,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 import { Organization } from '../organization/organization.entity';
 import { User } from '../user/user.entity';
@@ -60,4 +62,19 @@ export class Membership extends BaseEntity {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @BeforeInsert()
+    async setInviteCode(): Promise<void> {
+        if (!this.inviteCode) {
+            this.inviteCode = Math.random().toString(36).substring(2, 15);
+        }
+    }
+
+    @BeforeInsert()
+    @BeforeUpdate()
+    async lowercaseEmail(): Promise<void> {
+        if (this.email) {
+            this.email = this.email.toLowerCase();
+        }
+    }
 }

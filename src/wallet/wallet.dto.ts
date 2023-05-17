@@ -31,37 +31,37 @@ export class Wallet {
     @IsString()
     @Field({ nullable: true, description: 'The name for the wallet.' })
     @IsOptional()
-    name?: string;
+    readonly name?: string;
 
     @IsString()
     @Field({ nullable: true, description: "The URL pointing to the wallet's avatar." })
     @IsOptional()
-    avatarUrl?: string;
+    readonly avatarUrl?: string;
 
     @IsString()
     @Field({ nullable: true, description: 'The description for the wallet.' })
     @IsOptional()
-    about?: string;
+    readonly about?: string;
 
     @IsString()
     @Field({ nullable: true, description: 'The twitter handle for the wallet.' })
     @IsOptional()
-    twitter?: string;
+    readonly twitter?: string;
 
     @IsString()
     @Field({ nullable: true, description: 'The instagram handle for the wallet.' })
     @IsOptional()
-    instagram?: string;
+    readonly instagram?: string;
 
     @IsString()
     @Field({ nullable: true, description: 'The discord handle for the wallet.' })
     @IsOptional()
-    discord?: string;
+    readonly discord?: string;
 
     @IsString()
     @Field({ nullable: true, description: 'The spotify handle for the wallet..' })
     @IsOptional()
-    spotify?: string;
+    readonly spotify?: string;
 }
 
 @ObjectType('Minted', { description: 'The NFT minted by a wallet.' })

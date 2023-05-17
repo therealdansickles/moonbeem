@@ -12,8 +12,6 @@ import { ethers } from 'ethers';
 import { Wallet } from './wallet.entity';
 import { WalletModule } from './wallet.module';
 import { WalletService } from './wallet.service';
-import { AuthService } from '../auth/auth.service';
-import { AuthModule } from '../auth/auth.module';
 import { CollaborationModule } from '../collaboration/collaboration.module';
 import { UserModule } from '../user/user.module';
 import { UserService } from '../user/user.service';
@@ -34,7 +32,6 @@ export const gql = String.raw;
 describe('WalletResolver', () => {
     let repository: Repository<Wallet>;
     let service: WalletService;
-    let authService: AuthService;
     let collectionService: CollectionService;
     let mintSaleTransactionService: MintSaleTransactionService;
     let mintSaleContractService: MintSaleContractService;
@@ -68,18 +65,16 @@ describe('WalletResolver', () => {
                     dropSchema: true,
                 }),
                 WalletModule,
-                AuthModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
-                    include: [AuthModule, WalletModule],
+                    include: [WalletModule],
                 }),
             ],
         }).compile();
 
         repository = module.get('WalletRepository');
         service = module.get<WalletService>(WalletService);
-        authService = module.get<AuthService>(AuthService);
         collectionService = module.get<CollectionService>(CollectionService);
         mintSaleTransactionService = module.get<MintSaleTransactionService>(MintSaleTransactionService);
         mintSaleContractService = module.get<MintSaleContractService>(MintSaleContractService);
@@ -117,7 +112,7 @@ describe('WalletResolver', () => {
 
         it('should create a wallet', async () => {
             address = faker.finance.ethereumAddress();
-            const user = await authService.createUserWithEmail({
+            const user = await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -138,7 +133,7 @@ describe('WalletResolver', () => {
             const variables = {
                 input: {
                     address,
-                    ownerId: user.user.id,
+                    ownerId: user.id,
                 },
             };
 
@@ -148,7 +143,7 @@ describe('WalletResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.createWallet.address).toEqual(address);
-                    expect(body.data.createWallet.owner.id).toEqual(user.user.id);
+                    expect(body.data.createWallet.owner.id).toEqual(user.id);
                 });
         });
     });
@@ -163,7 +158,7 @@ describe('WalletResolver', () => {
             const email = faker.internet.email();
             const password = faker.internet.password();
 
-            const owner = await authService.createUserWithEmail({
+            const owner = await userService.createUser({
                 name,
                 email,
                 password,
@@ -184,7 +179,7 @@ describe('WalletResolver', () => {
             const variables = {
                 input: {
                     address: wallet.address,
-                    owner: { id: owner.user.id },
+                    owner: { id: owner.id },
                     message,
                     signature,
                 },
@@ -192,7 +187,6 @@ describe('WalletResolver', () => {
 
             return request(app.getHttpServer())
                 .post('/graphql')
-                .auth(owner.sessionToken, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -205,11 +199,6 @@ describe('WalletResolver', () => {
         it('should unbind a wallet', async () => {
             const email = faker.internet.email();
             const password = faker.internet.password();
-
-            const credentials = await authService.createUserWithEmail({
-                email,
-                password,
-            });
 
             const randomWallet = ethers.Wallet.createRandom();
             const message = 'Hi from tests!';
@@ -248,7 +237,6 @@ describe('WalletResolver', () => {
 
             return request(app.getHttpServer())
                 .post('/graphql')
-                .auth(credentials.sessionToken, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {

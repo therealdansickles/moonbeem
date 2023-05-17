@@ -29,7 +29,7 @@ import { CoinModule } from '../sync-chain/coin/coin.module';
         forwardRef(() => UserModule),
         forwardRef(() => CoinModule),
     ],
-    exports: [WalletModule],
+    exports: [WalletModule, WalletService],
     providers: [WalletService, WalletResolver],
     controllers: [],
 })
