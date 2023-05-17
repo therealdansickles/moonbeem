@@ -56,6 +56,16 @@ describe('CollectionService', () => {
             const result = await service.getWaitlist({ address: waitlist.address });
             expect(result.id).toBeDefined();
         });
+
+        it('should get a waitlist item by address case insensitive', async () => {
+            const waitlist = await repository.save({
+                email: faker.internet.email(),
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const result = await service.getWaitlist({ address: waitlist.address.toUpperCase() });
+            expect(result.id).toBeDefined();
+        });
     });
 
     describe('createWaitlist', () => {

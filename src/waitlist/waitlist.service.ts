@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Waitlist } from './waitlist.entity';
-import { Repository, UpdateResult } from 'typeorm';
+import { ILike, Repository, UpdateResult } from 'typeorm';
 import { CreateWaitlistInput, GetWaitlistInput, ClaimWaitlistInput } from './waitlist.dto';
 import { ethers } from 'ethers';
 import { GraphQLError } from 'graphql';
@@ -21,7 +21,9 @@ export class WaitlistService {
         if (!input.email && !input.address) {
             return null;
         }
-        return this.waitlistRepository.findOne({ where: [{ email: input.email }, { address: input.address }] });
+        return this.waitlistRepository.findOne({
+            where: [{ email: ILike(input.email) }, { address: ILike(input.address) }],
+        });
     }
 
     /**
