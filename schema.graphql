@@ -1372,6 +1372,9 @@ type Mutation {
   """Transfer an organization to another user."""
   transferOrganization(input: TransferOrganizationInput!): Organization!
 
+  """create a new user with a default organization."""
+  createUser(input: CreateUserInput!): User!
+
   """update the given user."""
   updateUser(input: UpdateUserInput!): User!
 
@@ -1747,6 +1750,41 @@ input TransferOrganizationInput {
 
   """The new ownerId of the organization."""
   ownerId: String!
+}
+
+input CreateUserInput {
+  """The username of the user."""
+  username: String
+
+  """The name of the user."""
+  name: String
+
+  """The email of the user."""
+  email: String!
+
+  """The password of the user."""
+  password: String
+
+  """The avatarUrl of the user."""
+  avatarUrl: String
+
+  """The URL pointing to the user's background."""
+  backgroundUrl: String
+
+  """The description for the user."""
+  about: String
+
+  """The url of the user's website."""
+  websiteUrl: String
+
+  """The twitter handle for the user."""
+  twitter: String
+
+  """The instagram handle for the user."""
+  instagram: String
+
+  """The discord handle for the user."""
+  discord: String
 }
 
 input UpdateUserInput {

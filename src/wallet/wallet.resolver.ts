@@ -16,7 +16,7 @@ import { CollectionService } from '../collection/collection.service';
 
 @Resolver(() => Wallet)
 export class WalletResolver {
-    constructor(private readonly walletService: WalletService, private readonly collectionService: CollectionService) { }
+    constructor(private readonly walletService: WalletService, private readonly collectionService: CollectionService) {}
 
     @Public()
     @Query((returns) => Wallet, {

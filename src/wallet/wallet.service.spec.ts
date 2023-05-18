@@ -25,7 +25,6 @@ import { WalletModule } from './wallet.module';
 import { WalletService } from './wallet.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 
-
 describe('WalletService', () => {
     let address: string;
     let repository: Repository<Wallet>;
@@ -358,7 +357,7 @@ describe('WalletService', () => {
                 paymentTokenAddress: faker.finance.ethereumAddress(),
             });
 
-            const txTime = Math.floor(faker.date.recent().getTime() / 1000)
+            const txTime = Math.floor(faker.date.recent().getTime() / 1000);
 
             const mintedTransactions = await mintSaleTransactionService.createMintSaleTransaction({
                 height: parseInt(faker.random.numeric(5)),
@@ -402,7 +401,6 @@ describe('WalletService', () => {
             expect(mintItem.type).toEqual('Mint');
         });
     });
-
 
     describe('updateWallet', () => {
         it('should update wallet', async () => {

@@ -68,6 +68,9 @@ export class User {
 }
 
 @InputType()
+export class CreateUserInput extends OmitType(User, ['id', 'wallets'] as const, InputType) {}
+
+@InputType()
 export class UserInput extends PickType(User, ['id'] as const, InputType) {}
 
 @InputType()

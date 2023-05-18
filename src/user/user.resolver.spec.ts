@@ -121,6 +121,41 @@ describe('UserResolver', () => {
         });
     });
 
+    describe('createUser', () => {
+        it('should create an user', async () => {
+            const query = gql`
+                mutation CreateUser($input: CreateUserInput!) {
+                    createUser(input: $input) {
+                        id
+                        email
+                        username
+                        avatarUrl
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    username: faker.internet.userName(),
+                    email: faker.internet.email(),
+                    password: faker.internet.password(),
+                    avatarUrl: faker.internet.avatar(),
+                },
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.createUser.id).toBeDefined();
+                    expect(body.data.createUser.email).toEqual(variables.input.email);
+                    expect(body.data.createUser.username).toEqual(variables.input.username);
+                    expect(body.data.createUser.avatarUrl).toEqual(variables.input.avatarUrl);
+                });
+        });
+    });
+
     describe('updateUser', () => {
         it('should update an user', async () => {
             const user = await service.createUser({
