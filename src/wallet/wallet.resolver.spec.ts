@@ -113,7 +113,7 @@ describe('WalletResolver', () => {
         it('should get a wallet by name', async () => {
             const address = faker.finance.ethereumAddress();
             const name = 'dogvibe';
-            let wallet = await service.createWallet({ address, name });
+            const wallet = await service.createWallet({ address, name });
             const query = gql`
                 query GetWallet($name: String!) {
                     wallet(name: $name) {

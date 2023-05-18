@@ -7,51 +7,58 @@ import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sa
 @ObjectType('Wallet')
 export class Wallet {
     @IsString()
-    @Field((returns) => ID!, { description: 'The id for a wallet.' })
+    @Field(() => ID!, { description: 'The id for a wallet.' })
     readonly id: string;
 
-    @IsEthereumAddress()
     @Field({ description: 'The address for a wallet.' })
+    @IsEthereumAddress()
     readonly address: string;
 
-    @IsObject()
     @Field(() => User, { description: 'The owner of the wallet.', nullable: true })
+    @IsObject()
+    @IsOptional()
     readonly owner?: User;
 
-    @IsString()
     @Field({ nullable: true, description: 'The name for the wallet.' })
+    @IsString()
     @IsOptional()
     readonly name?: string;
 
+    @Field({ nullable: true, description: 'The URL pointing to the wallet\'s avatar.' })
     @IsString()
-    @Field({ nullable: true, description: "The URL pointing to the wallet's avatar." })
     @IsOptional()
     readonly avatarUrl?: string;
 
+    @Field({ description: 'The url of the user\'s website.', nullable: true })
     @IsString()
+    @IsOptional()
+    readonly websiteUrl?: string;
+
     @Field({ nullable: true, description: 'The description for the wallet.' })
+    @IsString()
     @IsOptional()
     readonly about?: string;
 
-    @IsString()
     @Field({ nullable: true, description: 'The twitter handle for the wallet.' })
+    @IsString()
     @IsOptional()
     readonly twitter?: string;
 
-    @IsString()
     @Field({ nullable: true, description: 'The instagram handle for the wallet.' })
+    @IsString()
     @IsOptional()
     readonly instagram?: string;
 
-    @IsString()
     @Field({ nullable: true, description: 'The discord handle for the wallet.' })
+    @IsString()
     @IsOptional()
     readonly discord?: string;
 
-    @IsString()
     @Field({ nullable: true, description: 'The spotify handle for the wallet..' })
+    @IsString()
     @IsOptional()
     readonly spotify?: string;
+
 }
 
 @ObjectType('Minted', { description: 'The NFT minted by a wallet.' })
@@ -108,17 +115,25 @@ export class EstimatedValue {
     readonly totalUSDC?: string;
 }
 
-@InputType()
+@InputType('CreateWalletInput')
 export class CreateWalletInput extends OmitType(Wallet, ['id', 'owner'], InputType) {
-    @IsString() // we can use IsEthereumAddress() here, but we want to support EIP-3770 address format.
+    @IsString()
+    @Field({ description: 'The id for the owner.', nullable: true })
+    readonly ownerId?: string;
+}
+
+@InputType('UpdateWalletInput')
+export class UpdateWalletInput extends OmitType(Wallet, ['owner'], InputType) {
+    @IsString()
     @Field({ description: 'The id for the owner.', nullable: true })
     readonly ownerId?: string;
 }
 
 @InputType('BindWalletInput')
+// export class BindWalletInput extends PickType(Wallet, ['address'] as const) {
 export class BindWalletInput {
-    @IsString()
-    @Field({ description: 'an ethereum or EIP-3770 address.' })
+    @Field({ description: 'The address for a wallet.' })
+    @IsEthereumAddress()
     readonly address: string;
 
     @Field({ description: 'The signing message' })
@@ -130,66 +145,25 @@ export class BindWalletInput {
     readonly signature: string;
 
     @IsObject()
-    @Field((type) => UserInput, { description: 'the owner uuid of the wallet.' })
+    @Field(() => UserInput, { description: 'the owner uuid of the wallet.' })
     readonly owner: UserInput;
 }
 
 @InputType('UnbindWalletInput')
+// export class UnbindWalletInput extends PickType(Wallet, ['address'] as const) {
 export class UnbindWalletInput {
-    @IsString()
-    @Field({ description: 'an ethereum or EIP-3770 address.' })
+    @Field({ description: 'The address for a wallet.' })
+    @IsEthereumAddress()
     readonly address: string;
 
     @IsObject()
-    @Field((type) => UserInput, { description: 'the owner uuid of the wallet.' })
+    @Field(() => UserInput, { description: 'the owner uuid of the wallet.' })
     readonly owner: UserInput;
-}
-
-@InputType('UpdateWalletInput')
-export class UpdateWalletInput {
-    @IsString()
-    @Field({ description: 'The id for the wallet.' })
-    id: string;
-
-    @IsString()
-    @Field({ nullable: true, description: 'The name for the wallet.' })
-    @IsOptional()
-    name?: string;
-
-    @IsString()
-    @Field({ nullable: true, description: "The URL pointing to the wallet's avatar." })
-    @IsOptional()
-    avatarUrl?: string;
-
-    @IsString()
-    @Field({ nullable: true, description: 'The description for the wallet.' })
-    @IsOptional()
-    about?: string;
-
-    @IsString()
-    @Field({ nullable: true, description: 'The twitter handle for the wallet.' })
-    @IsOptional()
-    twitter?: string;
-
-    @IsString()
-    @Field({ nullable: true, description: 'The instagram handle for the wallet.' })
-    @IsOptional()
-    instagram?: string;
-
-    @IsString()
-    @Field({ nullable: true, description: 'The discord handle for the wallet.' })
-    @IsOptional()
-    discord?: string;
-
-    @IsString()
-    @Field({ nullable: true, description: 'The spotify handle for the wallet..' })
-    @IsOptional()
-    spotify?: string;
 }
 
 @InputType('WalletInput')
 export class WalletInput {
     @IsString()
-    @Field((returns) => ID!)
-    id: string;
+    @Field(() => ID!)
+    readonly id: string;
 }
