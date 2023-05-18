@@ -70,7 +70,7 @@ describe.only('CoinService', () => {
             expect(result.id).toEqual(coin.id);
         });
 
-        it('should get coin list', async () => {
+        it('should get coin list for chainId', async () => {
             const coin = await service.createCoin({
                 address: faker.finance.ethereumAddress(),
                 name: 'Tether USD',
@@ -82,6 +82,22 @@ describe.only('CoinService', () => {
             });
 
             const data = { chainId: 1 };
+            const result = await service.getCoins(data);
+            expect(result.length).toBeGreaterThanOrEqual(2);
+        });
+
+        it('should get the entire coin list', async () => {
+            const coin = await service.createCoin({
+                address: faker.finance.ethereumAddress(),
+                name: 'Tether USD',
+                symbol: 'USDT',
+                decimals: 6,
+                derivedETH: faker.random.numeric(5),
+                derivedUSDC: faker.random.numeric(5),
+                chainId: 1,
+            });
+
+            const data = { chainId: 0 };
             const result = await service.getCoins(data);
             expect(result.length).toBeGreaterThanOrEqual(2);
         });
