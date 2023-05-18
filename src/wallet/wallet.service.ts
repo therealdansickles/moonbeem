@@ -80,12 +80,23 @@ export class WalletService {
     }
 
     /**
+     * Retrieves the wallet associated with the given name.
+     *
+     * @param name The name of the wallet to retrieve.
+     * @returns The wallet associated with the given name.
+     */
+    async getWalletByName(name: string): Promise<Wallet> {
+        return this.walletRespository.findOneBy({ name });
+    }
+
+    /**
      * Creates a new wallet with the given data.
      *
      * @param address The address of the wallet to create.
      * @returns The newly created wallet.
      */
     async createWallet(input: CreateWalletInput): Promise<Wallet> {
+        const { ownerId, ...walletData } = input;
         try {
             let owner;
             if (input.ownerId) {
@@ -101,7 +112,7 @@ export class WalletService {
 
             return this.walletRespository.save({
                 owner: owner,
-                address: input.address.toLowerCase(),
+                ...walletData,
             });
         } catch (e) {
             captureException(e);

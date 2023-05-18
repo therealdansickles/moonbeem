@@ -1,4 +1,4 @@
-import { ArgsType, Field, Int, ObjectType, InputType, ID, PickType } from '@nestjs/graphql';
+import { ArgsType, Field, Int, ObjectType, OmitType, InputType, ID, PickType } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
 import {
     IsNumber,
@@ -116,11 +116,7 @@ export class EstimatedValue {
 }
 
 @InputType()
-export class CreateWalletInput {
-    @IsString() // we can use IsEthereumAddress() here, but we want to support EIP-3770 address format.
-    @Field({ description: 'The address for a wallet.' })
-    readonly address: string;
-
+export class CreateWalletInput extends OmitType(Wallet, ['id', 'owner'], InputType) {
     @IsString() // we can use IsEthereumAddress() here, but we want to support EIP-3770 address format.
     @Field({ description: 'The id for the owner.', nullable: true })
     readonly ownerId?: string;

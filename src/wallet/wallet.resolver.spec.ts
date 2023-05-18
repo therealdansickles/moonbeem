@@ -110,6 +110,29 @@ describe('WalletResolver', () => {
                 });
         });
 
+        it('should get a wallet by name', async () => {
+            const address = faker.finance.ethereumAddress();
+            const name = 'dogvibe';
+            let wallet = await service.createWallet({ address, name });
+            const query = gql`
+                query GetWallet($name: String!) {
+                    wallet(name: $name) {
+                        name
+                        address
+                    }
+                }
+            `;
+            const variables = { name };
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.wallet.address).toEqual(address);
+                    expect(body.data.wallet.name).toEqual(name);
+                });
+        });
+
         it('should create a wallet', async () => {
             address = faker.finance.ethereumAddress();
             const user = await userService.createUser({

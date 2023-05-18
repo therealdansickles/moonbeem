@@ -24,9 +24,14 @@ export class WalletResolver {
         nullable: true,
     })
     async wallet(
-        @Args('address', { description: 'an ethereum or EIP-3770 address.' }) address: string
+        @Args('address', { description: 'an ethereum or EIP-3770 address.', nullable: true }) address: string,
+        @Args('name', { description: 'a name of the wallet.', nullable: true }) name: string
     ): Promise<Wallet> {
-        return await this.walletService.getWalletByAddress(address);
+        if (address) {
+            return await this.walletService.getWalletByAddress(address);
+        }
+        let result = await this.walletService.getWalletByName(name);
+        return result;
     }
 
     @Public()

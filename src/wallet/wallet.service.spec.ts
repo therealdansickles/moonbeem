@@ -97,12 +97,25 @@ describe('WalletService', () => {
         });
     });
 
+    describe('getWalletByName', () => {
+        it('should return a wallet by name', async () => {
+            const wallet = await service.createWallet({
+                address: faker.finance.ethereumAddress().toLowerCase(),
+                name: 'dogvibe',
+            });
+            const result = await service.getWalletByName(wallet.name);
+            expect(result.name).toEqual(wallet.name);
+        });
+    });
+
     describe('createWallet', () => {
         it('should create a wallet', async () => {
             const walletAddress = faker.finance.ethereumAddress().toLowerCase();
-            const result = await service.createWallet({ address: walletAddress });
+            const result = await service.createWallet({ address: walletAddress, name: 'dog', about: 'hihi' });
             expect(result.id).toBeDefined();
             expect(result.address).toEqual(walletAddress.toLowerCase());
+            expect(result.name).toEqual('dog');
+            expect(result.about).toEqual('hihi');
         });
 
         it('should error if the wallet already exists', async () => {
