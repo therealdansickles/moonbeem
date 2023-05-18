@@ -130,7 +130,7 @@ describe('WalletService', () => {
         let unboundWallet: Wallet;
         let eipAddress: string;
         let ownerId: string;
-        let wallet: ethers.Wallet;
+        let wallet: ethers.HDNodeWallet;
         let message: string;
         let signature: string;
 
@@ -180,7 +180,7 @@ describe('WalletService', () => {
     describe('unbindWallet', () => {
         let boundWallet: Wallet;
         let address: string;
-        let wallet: ethers.Wallet;
+        let wallet: ethers.HDNodeWallet;
         let message: string;
         let signature: string;
 

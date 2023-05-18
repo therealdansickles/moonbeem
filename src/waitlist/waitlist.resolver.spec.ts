@@ -10,6 +10,7 @@ import { postgresConfig } from '../lib/configs/db.config';
 
 import { WaitlistModule } from './waitlist.module';
 import { WaitlistService } from './waitlist.service';
+import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
 
 export const gql = String.raw;
 
@@ -28,7 +29,20 @@ describe('WaitlistResolver', () => {
                     logging: false,
                     dropSchema: true,
                 }),
+                TypeOrmModule.forRoot({
+                    name: 'sync_chain',
+                    type: 'postgres',
+                    host: postgresConfig.syncChain.host,
+                    port: postgresConfig.syncChain.port,
+                    username: postgresConfig.syncChain.username,
+                    password: postgresConfig.syncChain.password,
+                    database: postgresConfig.syncChain.database,
+                    autoLoadEntities: true,
+                    synchronize: true,
+                    logging: false,
+                }),
                 WaitlistModule,
+                MintSaleTransactionModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,

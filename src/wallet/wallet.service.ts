@@ -133,7 +133,7 @@ export class WalletService {
         const { address: rawAddress, owner } = data;
         const address = rawAddress.toLowerCase();
 
-        const verifiedAddress = ethers.utils.verifyMessage(data.message, data.signature);
+        const verifiedAddress = ethers.verifyMessage(data.message, data.signature);
         if (address !== verifiedAddress.toLocaleLowerCase()) {
             throw new HttpException('signature verification failure', HttpStatus.BAD_REQUEST);
         }
@@ -210,7 +210,7 @@ export class WalletService {
      * @returns a Wallet object.
      */
     async verifyWallet(address: string, message: string, signature: string): Promise<Wallet | null> {
-        if (ethers.utils.verifyMessage(message, signature).toLowerCase() === address.toLowerCase()) {
+        if (ethers.verifyMessage(message, signature).toLowerCase() === address.toLowerCase()) {
             await this.walletRespository.upsert([{ address }], {
                 conflictPaths: ['address'],
                 skipUpdateIfNoValuesChanged: true,

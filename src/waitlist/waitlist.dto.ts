@@ -65,3 +65,20 @@ export class CreateWaitlistInput extends PickType(Waitlist, ['email', 'address',
 
 @InputType()
 export class ClaimWaitlistInput extends PickType(CreateWaitlistInput, ['address', 'message', 'signature'], InputType) {}
+
+@InputType()
+export class ClaimProfileInput extends PickType(
+    CreateWaitlistInput,
+    ['address', 'message', 'signature', 'kind', 'email'],
+    InputType
+) {}
+
+@ObjectType()
+export class ClaimProfileResult {
+    @Field(() => Boolean, { description: 'Whether the success claim' })
+    success: boolean;
+
+    @Field({ description: 'Returned tokenId' })
+    @IsNumber()
+    tokenId: string;
+}

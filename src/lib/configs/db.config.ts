@@ -30,3 +30,11 @@ export const mongoConfig = {
     url: process.env.MONGO_URL,
     db: process.env.MONGO_DATABASE || 'platform',
 };
+
+export const chainConfig = {
+    rpc: process.env.RPC_URL,
+    id: parseInt(process.env.CHAIN_ID ?? '1'),
+    name: process.env.NETWORK,
+    address: process.env.PROFILE_NFT_CONTRACT,
+    keystorePassword: process.env.KEYSTORE_PASSWORD,
+};

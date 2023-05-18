@@ -2,21 +2,21 @@ import { ethers } from 'ethers';
 import { chainList } from '../configs/chain.list.config';
 
 export class EthersClient {
-    private client: ethers.providers.JsonRpcProvider;
+    private client: ethers.JsonRpcProvider;
 
     constructor(rpcURL: string) {
         this.client = this.getConn(rpcURL);
     }
 
     getConn(url: string) {
-        return new ethers.providers.JsonRpcProvider(url);
+        return new ethers.JsonRpcProvider(url);
     }
 
     async blockNum() {
         return await this.client.getBlockNumber();
     }
 
-    async checkTxStatus(hash: string): Promise<ethers.providers.TransactionReceipt> {
+    async checkTxStatus(hash: string): Promise<ethers.TransactionReceipt> {
         const rsp = await this.client.getTransactionReceipt(hash);
         return rsp;
     }
