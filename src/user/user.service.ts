@@ -7,7 +7,7 @@ import { captureException } from '@sentry/node';
 import { OrganizationService } from '../organization/organization.service';
 import { OrganizationKind } from '../organization/organization.entity';
 import * as randomstring from 'randomstring';
-import { verify as verifyPassword } from 'argon2';
+import { compareSync as verifyPassword } from 'bcryptjs';
 
 interface GetUserInput {
     id?: string;
@@ -114,7 +114,7 @@ export class UserService {
     async verifyUser(email: string, password: string): Promise<User | null> {
         const user = await this.userRepository.findOneBy({ email });
 
-        if (user && (await verifyPassword(password, user.password))) {
+        if (user && (await verifyPassword(user.password, password))) {
             return user;
         }
 

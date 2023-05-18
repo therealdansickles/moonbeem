@@ -8,7 +8,7 @@ import { UserService } from './user.service';
 import { User } from './user.entity';
 import { OrganizationModule } from '../organization/organization.module';
 import { OrganizationService } from '../organization/organization.service';
-import { hash as hashPassword } from 'argon2';
+import { hashSync as hashPassword } from 'bcryptjs';
 
 describe('UserService', () => {
     let service: UserService;
@@ -128,7 +128,7 @@ describe('UserService', () => {
             let password = faker.internet.password();
             await repository.insert({ email, password });
 
-            let hashed = await hashPassword(password);
+            let hashed = await hashPassword(password, 10);
 
             const result = await service.verifyUser(email, hashed);
             expect(result.email).toEqual(email);

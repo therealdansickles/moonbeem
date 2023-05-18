@@ -1,11 +1,5 @@
 import { Field, ObjectType, InputType, ID, OmitType, PartialType, PickType, registerEnumType } from '@nestjs/graphql';
-import {
-    IsString,
-    IsEthereumAddress,
-    IsObject,
-    IsOptional,
-    IsEnum
-} from 'class-validator';
+import { IsString, IsEthereumAddress, IsObject, IsOptional, IsEnum } from 'class-validator';
 import { User, UserInput } from '../user/user.dto';
 import { Tier } from '../tier/tier.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
@@ -30,7 +24,7 @@ export class Wallet {
     readonly name?: string;
 
     @IsString()
-    @Field({ nullable: true, description: 'The URL pointing to the wallet\'s avatar.' })
+    @Field({ nullable: true, description: "The URL pointing to the wallet's avatar." })
     @IsOptional()
     readonly avatarUrl?: string;
 
@@ -76,22 +70,17 @@ export class Minted extends PickType(MintSaleTransaction, [
 
 export enum ActivityType {
     Mint = 'Mint',
-    Deploy = 'Deploy'
+    Deploy = 'Deploy',
 }
 
 registerEnumType(ActivityType, {
-    name: 'ActivityType'
+    name: 'ActivityType',
 });
 
 @ObjectType('Activity', { description: 'The activity for a wallet.' })
-export class Activity extends PartialType(PickType(MintSaleTransaction, [
-    'address',
-    'tokenAddress',
-    'paymentToken',
-    'tokenId',
-    'price',
-    'txTime',
-] as const)) {
+export class Activity extends PartialType(
+    PickType(MintSaleTransaction, ['address', 'tokenAddress', 'paymentToken', 'tokenId', 'price', 'txTime'] as const)
+) {
     @IsObject()
     @Field(() => Tier, { description: 'The tier of the minted token.', nullable: true })
     readonly tier: Tier;
@@ -168,7 +157,7 @@ export class UpdateWalletInput {
     name?: string;
 
     @IsString()
-    @Field({ nullable: true, description: 'The URL pointing to the wallet\'s avatar.' })
+    @Field({ nullable: true, description: "The URL pointing to the wallet's avatar." })
     @IsOptional()
     avatarUrl?: string;
 

@@ -6,7 +6,6 @@ import { postgresConfig } from '../lib/configs/db.config';
 
 import { UserModule } from './user.module';
 import { User } from './user.entity';
-import { hash as hashPassword, verify as verifyPassword } from 'argon2';
 
 describe('User', () => {
     let repository: Repository<User>;

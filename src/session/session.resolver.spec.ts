@@ -8,7 +8,7 @@ import { faker } from '@faker-js/faker';
 import { Repository } from 'typeorm';
 import { postgresConfig } from '../lib/configs/db.config';
 import { ethers } from 'ethers';
-import { hash as hashPassword } from 'argon2';
+import { hashSync as hashPassword } from 'bcryptjs';
 
 import { SessionModule } from './session.module';
 import { WalletModule } from '../wallet/wallet.module';
@@ -162,7 +162,7 @@ describe('SessionResolver', () => {
             const variables = {
                 input: {
                     email: user.email,
-                    password: await hashPassword('password'),
+                    password: await hashPassword('password', 10),
                 },
             };
 

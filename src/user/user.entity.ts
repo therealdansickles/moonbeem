@@ -11,7 +11,7 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { hash as hashPassword } from 'argon2';
+import { hashSync as hashPassword } from 'bcryptjs';
 
 import { Wallet } from '../wallet/wallet.entity';
 import { Membership } from '../membership/membership.entity';
@@ -92,7 +92,7 @@ export class User extends BaseEntity {
     @BeforeInsert()
     async storeHashedPassword() {
         if (this.password) {
-            this.password = await hashPassword(this.password);
+            this.password = await hashPassword(this.password, 10);
         }
     }
 }

@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ethers } from 'ethers';
 import { postgresConfig } from '../lib/configs/db.config';
-import { hash as hashPassword } from 'argon2';
+import { hashSync as hashPassword } from 'bcryptjs';
 
 import { SessionService } from './session.service';
 import { SessionModule } from './session.module';
@@ -73,7 +73,7 @@ describe('SessionService', () => {
             const email = 'engineering+sessionfromemail@vibe.xyz';
             const password = 'password';
             const user = await userService.createUser({ email, password });
-            const hashed = await hashPassword(password);
+            const hashed = await hashPassword(password, 10);
             const result = await service.createSessionFromEmail(email, hashed);
 
             expect(result.user.email).toEqual(email);
