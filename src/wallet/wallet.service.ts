@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { HttpException, HttpStatus, Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { ethers } from 'ethers';
 import BigNumber from 'bignumber.js';
 import { captureException } from '@sentry/node';
@@ -76,7 +76,7 @@ export class WalletService {
      * @returns The wallet associated with the given address.
      */
     async getWalletByAddress(address: string): Promise<Wallet> {
-        return this.walletRespository.findOneBy({ address: address.toLowerCase() });
+        return this.walletRespository.findOneBy({ address: ILike(address) });
     }
 
     /**
