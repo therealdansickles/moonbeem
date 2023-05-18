@@ -16,7 +16,7 @@ export class OrganizationService {
         @InjectRepository(Organization) private organizationRepository: Repository<Organization>,
         @InjectRepository(User) private userRepository: Repository<User>,
         private membershipService: MembershipService
-    ) {}
+    ) { }
 
     /**
      * Retrieve an organization by id.
@@ -47,6 +47,13 @@ export class OrganizationService {
         const { invites, ...createOrganizationData } = data;
 
         const organization = await this.organizationRepository.save(createOrganizationData);
+        await this.membershipService.createMembership({
+            userId: owner.id,
+            organizationId: organization.id,
+            canEdit: true,
+            canDeploy: true,
+            canManage: true
+        });
 
         if (invites) {
             for (const invite of invites) {
@@ -79,7 +86,7 @@ export class OrganizationService {
             displayName: pseudoOrgName,
             kind: OrganizationKind.personal,
             owner: { id: user.id },
-            invites: [{ email: user.email, canManage: true, canDeploy: true, canEdit: true }],
+            // invites: [{ email: user.email, canManage: true, canDeploy: true, canEdit: true }],
         };
 
         return await this.createOrganization(defaultOrgPayload);

@@ -28,7 +28,7 @@ export class UserService {
      */
     async getUser(input: GetUserInput): Promise<User> {
         if (!input.id && !input.username) {
-            throw new GraphQLError(`Either 'id' or 'username' have to be provided.`, {
+            throw new GraphQLError('Either \'id\' or \'username\' have to be provided.', {
                 extensions: { code: 'BAD_REQUEST' },
             });
         }
@@ -50,7 +50,7 @@ export class UserService {
         } catch (e) {
             captureException(e);
             if (e.routine === '_bt_check_unique') {
-                throw new GraphQLError(`User already exists.`, {
+                throw new GraphQLError('User already exists.', {
                     extensions: { code: 'BAD_REQUEST' },
                 });
             }

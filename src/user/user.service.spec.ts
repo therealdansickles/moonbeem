@@ -15,7 +15,7 @@ describe('UserService', () => {
     let repository: Repository<User>;
     let organizationService: OrganizationService;
 
-    beforeAll(async () => {
+    beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             imports: [
                 TypeOrmModule.forRoot({
@@ -124,22 +124,22 @@ describe('UserService', () => {
 
     describe('verifyUser', () => {
         it('should verify user', async () => {
-            let email = faker.internet.email();
-            let password = faker.internet.password();
+            const email = faker.internet.email();
+            const password = faker.internet.password();
             await repository.insert({ email, password });
 
-            let hashed = await hashPassword(password, 10);
+            const hashed = await hashPassword(password, 10);
 
             const result = await service.verifyUser(email, hashed);
             expect(result.email).toEqual(email);
         });
 
         it('should return null on invalid credentials', async () => {
-            let email = faker.internet.email();
-            let password = faker.internet.password();
+            const email = faker.internet.email();
+            const password = faker.internet.password();
             await repository.insert({ email, password });
 
-            let hashed = await hashPassword('invalid password');
+            const hashed = await hashPassword('invalid password');
 
             const result = await service.verifyUser(email, hashed);
             expect(result).toBeNull();

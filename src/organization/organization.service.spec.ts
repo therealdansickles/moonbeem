@@ -12,12 +12,14 @@ import { UserModule } from '../user/user.module';
 import { UserService } from '../user/user.service';
 import { MembershipService } from '../membership/membership.service';
 import { MembershipModule } from '../membership/membership.module';
+import { Membership } from '../membership/membership.entity';
 
 describe.only('OrganizationService', () => {
     let repository: Repository<Organization>;
     let service: OrganizationService;
     let userService: UserService;
     let membershipService: MembershipService;
+    let membershipRepository: Repository<Membership>;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -51,6 +53,7 @@ describe.only('OrganizationService', () => {
         service = module.get<OrganizationService>(OrganizationService);
         userService = module.get<UserService>(UserService);
         membershipService = module.get<MembershipService>(MembershipService);
+        membershipRepository = module.get('MembershipRepository');
     });
 
     afterAll(async () => {
@@ -86,6 +89,11 @@ describe.only('OrganizationService', () => {
         let organization: Organization;
         let owner: User;
 
+        beforeEach(async () => {
+            await repository.delete({});
+            await membershipRepository.delete({});
+        });
+
         it('should create an organization', async () => {
             owner = await userService.createUser({
                 email: faker.internet.email(),
@@ -107,6 +115,16 @@ describe.only('OrganizationService', () => {
             expect(organization.id).toBeDefined();
             expect(organization.owner.id).toEqual(owner.id);
             expect(organization.owner.email).toEqual(owner.email);
+
+            const memberships = await membershipRepository.findBy({
+                organization: { id: organization.id },
+                user: { id: owner.id }
+            });
+
+            expect(memberships.length).toEqual(1);
+            expect(memberships[0].canDeploy).toEqual(true);
+            expect(memberships[0].canEdit).toEqual(true);
+            expect(memberships[0].canManage).toEqual(true);
         });
 
         it.skip('should create an organization and invite users', async () => {
@@ -147,9 +165,22 @@ describe.only('OrganizationService', () => {
         });
 
         it('should throw an error when create a organization with an existed name', async () => {
+            const name = faker.company.name();
+            service.createOrganization({
+                name,
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
             await expect(() =>
                 service.createOrganization({
-                    name: organization.name,
+                    name,
                     displayName: faker.company.name(),
                     about: faker.company.catchPhrase(),
                     avatarUrl: faker.image.imageUrl(),
@@ -309,7 +340,7 @@ describe.only('OrganizationService', () => {
             });
 
             expect(() => service.transferOrganization(organization.id, faker.datatype.uuid())).rejects.toThrow(
-                "doesn't exist"
+                'doesn\'t exist'
             );
         });
     });
