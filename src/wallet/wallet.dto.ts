@@ -1,14 +1,10 @@
-import { ArgsType, Field, Int, ObjectType, OmitType, InputType, ID, PickType } from '@nestjs/graphql';
-import { ApiProperty } from '@nestjs/swagger';
+import { Field, ObjectType, InputType, ID, OmitType, PartialType, PickType, registerEnumType } from '@nestjs/graphql';
 import {
-    IsNumber,
     IsString,
-    IsDateString,
     IsEthereumAddress,
-    IsUrl,
-    ValidateIf,
     IsObject,
     IsOptional,
+    IsEnum
 } from 'class-validator';
 import { User, UserInput } from '../user/user.dto';
 import { Tier } from '../tier/tier.dto';
@@ -34,7 +30,7 @@ export class Wallet {
     readonly name?: string;
 
     @IsString()
-    @Field({ nullable: true, description: "The URL pointing to the wallet's avatar." })
+    @Field({ nullable: true, description: 'The URL pointing to the wallet\'s avatar.' })
     @IsOptional()
     readonly avatarUrl?: string;
 
@@ -78,23 +74,31 @@ export class Minted extends PickType(MintSaleTransaction, [
     readonly tier: Tier;
 }
 
+export enum ActivityType {
+    Mint = 'Mint',
+    Deploy = 'Deploy'
+}
+
+registerEnumType(ActivityType, {
+    name: 'ActivityType'
+});
+
 @ObjectType('Activity', { description: 'The activity for a wallet.' })
-export class Activity extends PickType(MintSaleTransaction, [
+export class Activity extends PartialType(PickType(MintSaleTransaction, [
     'address',
     'tokenAddress',
     'paymentToken',
     'tokenId',
     'price',
     'txTime',
-] as const) {
+] as const)) {
     @IsObject()
     @Field(() => Tier, { description: 'The tier of the minted token.', nullable: true })
     readonly tier: Tier;
 
-    // TODO: make it as enum later
-    @IsString()
-    @Field({ description: 'The activity type.' })
-    readonly type: string;
+    @IsEnum(ActivityType)
+    @Field(() => ActivityType, { description: 'The activity type.' })
+    readonly type: ActivityType;
 }
 
 @ObjectType('EstimatedValue', {
@@ -164,7 +168,7 @@ export class UpdateWalletInput {
     name?: string;
 
     @IsString()
-    @Field({ nullable: true, description: "The URL pointing to the wallet's avatar." })
+    @Field({ nullable: true, description: 'The URL pointing to the wallet\'s avatar.' })
     @IsOptional()
     avatarUrl?: string;
 

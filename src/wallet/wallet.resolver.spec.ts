@@ -381,6 +381,9 @@ describe('WalletResolver', () => {
                     wallet(address: $address) {
                         activities {
                             address
+                            type
+                            tokenAddress
+                            tokenId
 
                             tier {
                                 name
