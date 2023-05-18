@@ -123,7 +123,7 @@ export class CreateWalletInput extends OmitType(Wallet, ['id', 'owner'], InputTy
 }
 
 @InputType('UpdateWalletInput')
-export class UpdateWalletInput extends Partial(OmitType(Wallet, ['owner'], InputType)) {
+export class UpdateWalletInput extends PartialType(OmitType(Wallet, ['owner'], InputType)) {
     @IsString()
     @Field({ description: 'The id for the owner.', nullable: true })
     readonly ownerId?: string;
