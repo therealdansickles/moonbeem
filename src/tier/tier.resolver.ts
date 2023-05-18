@@ -14,6 +14,7 @@ export class TierResolver {
         return await this.tierService.getTier(id);
     }
 
+    @Public()
     @Query(() => [Tier], { description: 'Get tiers by collection id', nullable: true })
     async tiers(@Args('collectionId') collectionId: string): Promise<Tier[]> {
         return await this.tierService.getTiersByCollection(collectionId);

@@ -28,6 +28,7 @@ export class MembershipResolver {
         return await this.membershipService.getMembership(id);
     }
 
+    @Public()
     @Mutation(() => Membership, { description: 'Create a new membership.' })
     async createMembership(@Args('input') input: CreateMembershipInput): Promise<Membership> {
         return await this.membershipService.createMembership(input);

@@ -73,6 +73,7 @@ export class WalletResolver {
         return await this.walletService.updateWallet(id, payload);
     }
 
+    @Public()
     @ResolveField(() => [EstimatedValue], {
         description: 'Retrieve the estimated value of a address holdings/minted collections by address.',
     })
@@ -80,6 +81,7 @@ export class WalletResolver {
         return await this.walletService.getEstimatesByAddress(wallet.address);
     }
 
+    @Public()
     @ResolveField(() => [Collection], { description: 'Retrieve the owned collections by the wallet address.' })
     async createdCollections(@Parent() wallet: Wallet): Promise<Collection[]> {
         return await this.collectionService.getCreatedCollectionsByWalletId(wallet.id);
