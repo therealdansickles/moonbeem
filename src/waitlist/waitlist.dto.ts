@@ -45,7 +45,7 @@ export class Waitlist {
 }
 
 @InputType()
-export class GetWaitlistInput extends PickType(PartialType(Waitlist, InputType), ['email', 'address']) {}
+export class GetWaitlistInput extends PickType(PartialType(Waitlist, InputType), ['email', 'address', 'kind']) {}
 
 @InputType('CreateWaitlistInput')
 export class CreateWaitlistInput extends PickType(Waitlist, ['email', 'address', 'kind'], InputType) {

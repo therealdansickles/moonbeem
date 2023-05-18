@@ -55,7 +55,7 @@ describe.only('MintSaleTransactionService', () => {
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
-            const result = await service.getMintSaleTransaction(transaction.id);
+            const result = await service.getMintSaleTransaction({ id: transaction.id });
             expect(result.id).toEqual(transaction.id);
         });
     });

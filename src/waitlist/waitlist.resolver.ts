@@ -25,10 +25,4 @@ export class WaitlistResolver {
     async claimWaitlist(@Args('input') input: ClaimWaitlistInput): Promise<boolean> {
         return this.waitlistService.claimWaitlist(input);
     }
-
-    @Public()
-    @Mutation(() => ClaimProfileResult, { description: 'claim a profile nft' })
-    async claimProfile(@Args('input') input: ClaimProfileInput): Promise<ClaimProfileResult> {
-        return this.waitlistService.claimProfile(input);
-    }
 }

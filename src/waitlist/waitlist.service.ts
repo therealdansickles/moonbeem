@@ -13,15 +13,12 @@ import { ethers } from 'ethers';
 import { GraphQLError } from 'graphql';
 import { captureException } from '@sentry/node';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import { ProfileNFTAdapter } from '../lib/adapters/profile.nft.adapter';
-import { chainConfig } from '../lib/configs/db.config';
 
 @Injectable()
 export class WaitlistService {
     constructor(
         @InjectRepository(Waitlist) private waitlistRepository: Repository<Waitlist>,
-        @InjectRepository(MintSaleTransaction, 'sync_chain') private transaction: Repository<MintSaleTransaction>,
-        private readonly nft: ProfileNFTAdapter
+        @InjectRepository(MintSaleTransaction, 'sync_chain') private transaction: Repository<MintSaleTransaction>
     ) {}
 
     /**
@@ -86,53 +83,5 @@ export class WaitlistService {
 
         const result = await this.waitlistRepository.update({ address: input.address }, { isClaimed: true });
         return result.affected > 0;
-    }
-
-    async claimProfile(input: ClaimProfileInput): Promise<ClaimProfileResult> {
-        if (!input.kind || input.kind !== 'Profile') {
-            throw new GraphQLError(`Kind is Wrong`, { extensions: { code: 'BAD_REQUEST' } });
-        }
-
-        const verifiedAddress = ethers.verifyMessage(input.message, input.signature);
-        if (input.address.toLowerCase() !== verifiedAddress.toLocaleLowerCase()) {
-            throw new GraphQLError(`signature verification failure`, {
-                extensions: { code: 'BAD_REQUEST' },
-            });
-        }
-
-        try {
-            const waitlist = await this.waitlistRepository.findOneBy({ address: input.address, kind: input.kind });
-            if (!waitlist) {
-                console.log(waitlist);
-                const result = await this.waitlistRepository.save(input);
-                // mint
-                await this.nft.buyNFT(input.address);
-                await this.sleep(3); // Waiting for sync-chain to synchronize data
-                await this.waitlistRepository.update({ id: result.id }, { isClaimed: true });
-            }
-
-            const transaction = await this.transaction.findOneBy({
-                address: chainConfig.address.toLowerCase(),
-                recipient: input.address.toLowerCase(),
-            });
-
-            return { success: true, tokenId: transaction ? transaction.tokenId : '' };
-        } catch (e) {
-            console.log('error', e);
-            if (e.routine === '_bt_check_unique') {
-                throw new GraphQLError(`Email or wallet address already exists`, {
-                    extensions: { code: 'BAD_REQUEST' },
-                });
-            } else {
-                captureException(e);
-                throw new GraphQLError(`Failed to claim Profile`, {
-                    extensions: { code: 'INTERNAL_SERVER_ERROR' },
-                });
-            }
-        }
-    }
-
-    async sleep(ms: number) {
-        return new Promise((resolve) => setTimeout(resolve, ms * 10000));
     }
 }
