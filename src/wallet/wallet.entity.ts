@@ -1,14 +1,16 @@
 import {
-    Entity,
-    Column,
-    PrimaryGeneratedColumn,
-    CreateDateColumn,
-    UpdateDateColumn,
     BaseEntity,
-    OneToMany,
-    ManyToOne,
-    RelationId,
+    BeforeInsert,
+    BeforeUpdate,
+    Column,
+    CreateDateColumn,
+    Entity,
     JoinColumn,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    RelationId,
+    UpdateDateColumn,
 } from 'typeorm';
 import { Collection } from '../collection/collection.entity';
 import { User } from '../user/user.entity';
@@ -58,4 +60,16 @@ export class Wallet extends BaseEntity {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+    /**
+     * Lowercase the fields on the Wallet.
+     *
+     */
+    @BeforeInsert()
+    @BeforeUpdate()
+    async lowercaseFields() {
+        if (this.address) {
+            this.address = this.address.toLowerCase();
+        }
+    }
 }
