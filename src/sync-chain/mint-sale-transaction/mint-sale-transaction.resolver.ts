@@ -1,5 +1,5 @@
 import { Args, Query, Resolver } from '@nestjs/graphql';
-import { Public } from '../../lib/decorators/public.decorator';
+import { Public } from '../../session/session.decorator';
 import { LeaderboardRanking, MintSaleTransaction } from './mint-sale-transaction.dto';
 import { MintSaleTransactionService } from './mint-sale-transaction.service';
 

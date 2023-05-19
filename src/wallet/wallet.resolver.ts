@@ -9,7 +9,7 @@ import {
     Activity,
     EstimatedValue,
 } from './wallet.dto';
-import { Public } from '../lib/decorators/public.decorator';
+import { Public } from '../session/session.decorator';
 import { WalletService } from './wallet.service';
 import { Collection } from '../collection/collection.dto';
 import { CollectionService } from '../collection/collection.service';

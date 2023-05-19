@@ -285,3 +285,19 @@ export class DeleteTierInput {
     @Field({ description: 'The id for a tier.' })
     readonly id: string;
 }
+
+@ObjectType()
+export class BasicPriceInfo {
+    @Field()
+    @IsString()
+    readonly price: string;
+
+    @Field(() => String)
+    @IsString()
+    readonly token: string;
+
+    @Field(() => Int)
+    @IsNumber()
+    readonly chainId: number;
+}
+

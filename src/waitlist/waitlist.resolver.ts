@@ -1,5 +1,5 @@
 import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
-import { Public } from '../lib/decorators/public.decorator';
+import { Public } from '../session/session.decorator';
 
 import { WaitlistService } from './waitlist.service';
 import {

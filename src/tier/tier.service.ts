@@ -4,12 +4,11 @@ import { Repository, DeleteResult, UpdateResult } from 'typeorm';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { Collection, CollectionKind } from '../collection/collection.entity';
 import * as tierEntity from './tier.entity';
-import { CreateTierInput, UpdateTierInput, Tier, Profit } from './tier.dto';
+import { BasicPriceInfo, CreateTierInput, UpdateTierInput, Tier, Profit } from './tier.dto';
 import { GraphQLError } from 'graphql';
 import { captureException } from '@sentry/node';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import { BasicPriceInfo } from '../dto/basic.dto';
 import BigNumber from 'bignumber.js';
 
 @Injectable()

@@ -1,4 +1,4 @@
-import { Public } from '../lib/decorators/public.decorator';
+import { Public } from '../session/session.decorator';
 import { Resolver, Query, Args, Mutation, ResolveField, Parent } from '@nestjs/graphql';
 
 import {

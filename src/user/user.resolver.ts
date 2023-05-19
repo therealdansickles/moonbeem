@@ -1,5 +1,5 @@
 import { Resolver, Args, Query, Mutation, ResolveField, Parent } from '@nestjs/graphql';
-import { Public } from '../lib/decorators/public.decorator';
+import { Public } from '../session/session.decorator';
 import { UserService } from './user.service';
 import { User, CreateUserInput, UpdateUserInput } from './user.dto';
 import { Membership } from '../membership/membership.dto';
