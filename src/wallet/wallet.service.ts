@@ -110,9 +110,11 @@ export class WalletService {
                 owner = { id: this.unOwnedId };
             }
 
-            return this.walletRespository.save({
-                owner: owner,
-                ...walletData,
+            const wallet = await this.walletRespository.create({ owner: owner, ...walletData });
+            const result = await this.walletRespository.insert(wallet);
+            return await this.walletRespository.findOne({
+                where: { id: result.identifiers[0].id },
+                relations: ['owner'],
             });
         } catch (e) {
             captureException(e);

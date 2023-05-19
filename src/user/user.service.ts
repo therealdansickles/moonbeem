@@ -28,7 +28,7 @@ export class UserService {
      */
     async getUser(input: GetUserInput): Promise<User> {
         if (!input.id && !input.username) {
-            throw new GraphQLError('Either \'id\' or \'username\' have to be provided.', {
+            throw new GraphQLError("Either 'id' or 'username' have to be provided.", {
                 extensions: { code: 'BAD_REQUEST' },
             });
         }

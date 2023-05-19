@@ -2,7 +2,14 @@ import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
 import { Public } from '../lib/decorators/public.decorator';
 
 import { WaitlistService } from './waitlist.service';
-import { CreateWaitlistInput, GetWaitlistInput, Waitlist, ClaimWaitlistInput, ClaimProfileInput, ClaimProfileResult } from './waitlist.dto';
+import {
+    CreateWaitlistInput,
+    GetWaitlistInput,
+    Waitlist,
+    ClaimWaitlistInput,
+    ClaimProfileInput,
+    ClaimProfileResult,
+} from './waitlist.dto';
 
 @Resolver('Waitlist')
 export class WaitlistResolver {

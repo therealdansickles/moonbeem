@@ -16,7 +16,7 @@ export class OrganizationService {
         @InjectRepository(Organization) private organizationRepository: Repository<Organization>,
         @InjectRepository(User) private userRepository: Repository<User>,
         private membershipService: MembershipService
-    ) { }
+    ) {}
 
     /**
      * Retrieve an organization by id.
@@ -52,7 +52,7 @@ export class OrganizationService {
             organizationId: organization.id,
             canEdit: true,
             canDeploy: true,
-            canManage: true
+            canManage: true,
         });
 
         if (invites) {

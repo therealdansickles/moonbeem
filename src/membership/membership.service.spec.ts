@@ -79,7 +79,10 @@ describe('MembershipService', () => {
 
     describe('getMembership', () => {
         it('should return a membership', async () => {
-            const membership = await repository.findOneBy({ organization: { id: organization.id }, user: { id: user.id } });
+            const membership = await repository.findOneBy({
+                organization: { id: organization.id },
+                user: { id: user.id },
+            });
             const result = await service.getMembership(membership.id);
             expect(result.id).toEqual(membership.id);
             expect(result.user.id).toEqual(user.id);
@@ -316,7 +319,10 @@ describe('MembershipService', () => {
 
     describe('deleteMembership', () => {
         it('should delete a membership', async () => {
-            const membership = await repository.findOneBy({ organization: { id: organization.id }, user: { id: user.id } });
+            const membership = await repository.findOneBy({
+                organization: { id: organization.id },
+                user: { id: user.id },
+            });
             const result = await service.deleteMembership(membership.id);
             expect(result).toBeTruthy();
         });

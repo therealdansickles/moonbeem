@@ -110,7 +110,7 @@ describe('WalletService', () => {
 
     describe('createWallet', () => {
         it('should create a wallet', async () => {
-            const walletAddress = faker.finance.ethereumAddress().toLowerCase();
+            const walletAddress = faker.finance.ethereumAddress().toUpperCase();
             const result = await service.createWallet({ address: walletAddress, name: 'dog', about: 'hihi' });
             expect(result.id).toBeDefined();
             expect(result.address).toEqual(walletAddress.toLowerCase());
@@ -183,9 +183,10 @@ describe('WalletService', () => {
         let wallet: ethers.HDNodeWallet;
         let message: string;
         let signature: string;
+        let owner: any;
 
-        beforeEach(async () => {
-            const owner = await userService.createUser({
+        beforeAll(async () => {
+            owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -195,11 +196,7 @@ describe('WalletService', () => {
             signature = await wallet.signMessage(message);
             address = wallet.address.toLowerCase();
 
-            boundWallet = await service.createWallet({ address });
-        });
-
-        afterEach(async () => {
-            await repository.query('TRUNCATE TABLE "Wallet" CASCADE');
+            boundWallet = await service.createWallet({ address, ownerId: owner.id });
         });
 
         // NB: We don't test for a regular address because that defaults to ethereum.
@@ -213,7 +210,7 @@ describe('WalletService', () => {
         });
 
         it('should return a new unbound wallet if it the wallet does not exist', async () => {
-            const data = { address, owner: { id: boundWallet.owner.id } };
+            const data = { address, owner: { id: owner.id } };
             const result = await service.unbindWallet(data);
             expect(result.owner.id).not.toEqual(boundWallet.owner);
             expect(result.address).toEqual(address.toLowerCase());

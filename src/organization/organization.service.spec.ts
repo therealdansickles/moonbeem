@@ -118,7 +118,7 @@ describe.only('OrganizationService', () => {
 
             const memberships = await membershipRepository.findBy({
                 organization: { id: organization.id },
-                user: { id: owner.id }
+                user: { id: owner.id },
             });
 
             expect(memberships.length).toEqual(1);
@@ -340,7 +340,7 @@ describe.only('OrganizationService', () => {
             });
 
             expect(() => service.transferOrganization(organization.id, faker.datatype.uuid())).rejects.toThrow(
-                'doesn\'t exist'
+                "doesn't exist"
             );
         });
     });
