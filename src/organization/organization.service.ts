@@ -44,9 +44,7 @@ export class OrganizationService {
 
         const owner = await this.userRepository.findOneBy({ id: data.owner.id });
 
-        const { invites, ...createOrganizationData } = data;
-
-        const organization = await this.organizationRepository.save(createOrganizationData);
+        const organization = await this.organizationRepository.save(data);
         await this.membershipService.createMembership({
             userId: owner.id,
             organizationId: organization.id,
@@ -54,18 +52,6 @@ export class OrganizationService {
             canDeploy: true,
             canManage: true,
         });
-
-        if (invites) {
-            for (const invite of invites) {
-                await this.membershipService.createMembership({
-                    email: invite.email.toLowerCase(),
-                    organizationId: organization.id,
-                    canEdit: invite.canEdit,
-                    canDeploy: invite.canDeploy,
-                    canManage: invite.canManage,
-                });
-            }
-        }
 
         return await this.organizationRepository.findOne({
             where: { id: organization.id },
@@ -86,7 +72,6 @@ export class OrganizationService {
             displayName: pseudoOrgName,
             kind: OrganizationKind.personal,
             owner: { id: user.id },
-            // invites: [{ email: user.email, canManage: true, canDeploy: true, canEdit: true }],
         };
 
         return await this.createOrganization(defaultOrgPayload);

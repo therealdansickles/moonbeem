@@ -149,19 +149,11 @@ describe.only('OrganizationService', () => {
                 instagram: faker.internet.userName(),
                 discord: faker.internet.userName(),
                 owner: owner,
-                invites: [{ email: invitee.email, canDeploy: true }],
             });
 
             expect(organization.id).toBeDefined();
             expect(organization.owner.id).toEqual(owner.id);
             expect(organization.owner.email).toEqual(owner.email);
-
-            const pendingMemberships = await membershipService.getMembershipsByUserId(invitee.id);
-            expect(pendingMemberships.length).toBe(1);
-            expect(pendingMemberships[0].organization.id).toEqual(organization.id);
-            expect(pendingMemberships[0].canDeploy).toEqual(true);
-            expect(pendingMemberships[0].canEdit).toEqual(false);
-            expect(pendingMemberships[0].canManage).toEqual(false);
         });
 
         it('should throw an error when create a organization with an existed name', async () => {

@@ -153,11 +153,6 @@ export class CreateOrganizationInput {
     @Field({ description: "The discord handle associated with this organization, e.g. 'vibe-labs", nullable: true })
     @IsOptional()
     readonly discord?: string;
-
-    @IsArray()
-    @Field((type) => [OrganizationInviteItemInput], { description: 'emails to invite to the org', nullable: true })
-    @IsOptional()
-    readonly invites?: OrganizationInviteItemInput[];
 }
 
 @InputType('OrganizationInviteItemInput')
@@ -185,7 +180,7 @@ class OrganizationInviteItemInput {
 @InputType()
 export class UpdateOrganizationInput extends OmitType(
     PartialType(CreateOrganizationInput),
-    ['owner', 'invites'],
+    ['owner'],
     InputType
 ) {
     @IsString()
