@@ -1,0 +1,27 @@
+name: Migrate db schema
+
+on:
+  push:
+    branches: ["main", "release"]
+  pull_request:
+    branches: ["main", "release"]
+
+jobs:
+  schema-migration-staging:
+    runs-on: ubuntu-latest
+    if: github.ref_name == 'main'
+    steps:
+      - uses: actions/checkout@master
+      - run: yarn typeorm:generate
+        environment: staging
+      - run: yarn typeorm:migrate
+        environment: staging
+  schema-migration-prod:
+    runs-on: ubuntu-latest
+    if: github.ref_name == 'release'
+    steps:
+      - uses: actions/checkout@master
+      - run: yarn typeorm:generate
+        environment: production
+      - run: yarn typeorm:migrate
+        environment: production
