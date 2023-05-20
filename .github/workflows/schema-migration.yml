@@ -13,9 +13,8 @@ jobs:
     if: github.ref_name == 'main'
     steps:
       - uses: actions/checkout@master
-      - run: env
-      - run: env | grep NODE_ENV
-      - run: env | grep DATABASE
+      - run: echo $NODE_ENV
+      - run: echo $V1_DATABASE_URL
       - run: yarn typeorm:generate
       - run: yarn typeorm:migrate
   schema-migration-production:
