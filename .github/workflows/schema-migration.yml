@@ -2,7 +2,7 @@ name: Migrate db schema
 
 on:
   push:
-    branches: ["main", "release", "zach/db-migration"]
+    branches: ["main", "release"]
   pull_request:
     branches: ["main", "release"]
 
@@ -13,11 +13,7 @@ jobs:
     if: github.ref_name == 'main'
     steps:
       - uses: actions/checkout@master
-      - run: echo $NODE_ENV
-        env:
-          NODE_ENV: ${{ vars.NODE_ENV }}
-          V1_DATABASE_URL: ${{ secrets.V1_DATABASE_URL }}
-      - run: echo $V1_DATABASE_URL
+      - run: yarn typeorm:schema:log
         env:
           NODE_ENV: ${{ vars.NODE_ENV }}
           V1_DATABASE_URL: ${{ secrets.V1_DATABASE_URL }}
@@ -35,5 +31,15 @@ jobs:
     if: github.ref_name == 'release'
     steps:
       - uses: actions/checkout@master
+      - run: yarn typeorm:schema:log
+        env:
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          V1_DATABASE_URL: ${{ secrets.V1_DATABASE_URL }}
       - run: yarn typeorm:generate
+        env:
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          V1_DATABASE_URL: ${{ secrets.V1_DATABASE_URL }}
       - run: yarn typeorm:migrate
+        env:
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          V1_DATABASE_URL: ${{ secrets.V1_DATABASE_URL }}
