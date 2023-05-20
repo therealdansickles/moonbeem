@@ -21,8 +21,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json --forceExit",
     "test:ci": "jest --ci --forceExit --runInBand --logHeapUsage",
     "typeorm:create": "ts-node --transpile-only ./node_modules/typeorm/cli.js --config src/lib/configs/postgres.config.ts migration:create --",
-    "typeorm:generate": "yarn dlx -p ts-node -p typeorm typeorm-ts-node-commonjs migration:generate -d src/lib/configs/postgres.config.ts migrations/migration",
-    "typeorm:migrate": "yarn dlx -p ts-node -p typeorm typeorm-ts-node-commonjs migration:run -d src/lib/configs/postgres.config.ts"
+    "typeorm:generate": "yarn exec typeorm-ts-node-commonjs migration:generate -d src/lib/configs/postgres.config.ts migrations/migration",
+    "typeorm:migrate": "yarn exec typeorm-ts-node-commonjs migration:run -d src/lib/configs/postgres.config.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.319.0",
