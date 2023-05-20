@@ -2,7 +2,7 @@ name: Migrate db schema
 
 on:
   push:
-    branches: ["main", "release"]
+    branches: ["main", "release", "zach/db-migration"]
   pull_request:
     branches: ["main", "release"]
 
@@ -13,9 +13,12 @@ jobs:
     if: github.ref_name == 'main'
     steps:
       - uses: actions/checkout@master
+      - run: env
+      - run: env | grep NODE_ENV
+      - run: env | grep DATABASE
       - run: yarn typeorm:generate
       - run: yarn typeorm:migrate
-  schema-migration-prod:
+  schema-migration-production:
     runs-on: ubuntu-latest
     environment: production
     if: github.ref_name == 'release'
