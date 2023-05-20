@@ -14,9 +14,21 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - run: echo $NODE_ENV
+        with:
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          V1_DATABASE_URL: ${{ secrets.V1_DATABASE_URL }}
       - run: echo $V1_DATABASE_URL
+        with:
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          V1_DATABASE_URL: ${{ secrets.V1_DATABASE_URL }}
       - run: yarn typeorm:generate
+        with:
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          V1_DATABASE_URL: ${{ secrets.V1_DATABASE_URL }}
       - run: yarn typeorm:migrate
+        with:
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          V1_DATABASE_URL: ${{ secrets.V1_DATABASE_URL }}
   schema-migration-production:
     runs-on: ubuntu-latest
     environment: production
