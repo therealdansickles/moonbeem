@@ -68,15 +68,8 @@ export class UserService {
      * @returns The newly created user.
      */
     async createUser(payload: Partial<User>): Promise<User> {
-        try {
-            await this.userRepository.insert(payload);
-            return await this.userRepository.findOneBy({ email: payload.email });
-        } catch (e) {
-            captureException(e);
-            throw new GraphQLError(`Failed to create user ${payload.name}`, {
-                extensions: { code: 'INTERNAL_SERVER_ERROR' },
-            });
-        }
+        await this.userRepository.insert(payload);
+        return await this.userRepository.findOneBy({ email: payload.email });
     }
 
     /**

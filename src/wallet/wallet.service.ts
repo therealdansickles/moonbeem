@@ -97,31 +97,12 @@ export class WalletService {
      */
     async createWallet(input: CreateWalletInput): Promise<Wallet> {
         const { ownerId, ...walletData } = input;
-        try {
-            let owner;
-            if (input.ownerId) {
-                owner = await this.userRepository.findOneBy({ id: input.ownerId });
-                if (!owner) {
-                    throw new GraphQLError(`User with id ${input.ownerId} doesn't exist.`, {
-                        extensions: { code: 'BAD_REQUEST' },
-                    });
-                }
-            } else {
-                owner = { id: this.unOwnedId };
-            }
-
-            const wallet = await this.walletRespository.create({ owner: owner, ...walletData });
-            const result = await this.walletRespository.insert(wallet);
-            return await this.walletRespository.findOne({
-                where: { id: result.identifiers[0].id },
-                relations: ['owner'],
-            });
-        } catch (e) {
-            captureException(e);
-            throw new GraphQLError(`Failed to create wallet ${input.address}`, {
-                extensions: { code: 'INTERNAL_SERVER_ERROR' },
-            });
-        }
+        const wallet = await this.walletRespository.create({ owner: { id: ownerId }, ...walletData });
+        const result = await this.walletRespository.insert(wallet);
+        return await this.walletRespository.findOne({
+            where: { id: result.identifiers[0].id },
+            relations: ['owner'],
+        });
     }
 
     /**
@@ -218,7 +199,10 @@ export class WalletService {
                 skipUpdateIfNoValuesChanged: true,
             });
 
-            return this.walletRespository.findOneBy({ address });
+            return this.walletRespository.findOne({
+                where: { address },
+                relations: ['owner'],
+            });
         }
         return null;
     }
