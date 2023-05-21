@@ -194,13 +194,15 @@ export class WalletService {
      */
     async verifyWallet(address: string, message: string, signature: string): Promise<Wallet | null> {
         if (ethers.verifyMessage(message, signature).toLowerCase() === address.toLowerCase()) {
-            await this.walletRespository.upsert([{ address }], {
+            const wallet = this.walletRespository.create({ address });
+
+            await this.walletRespository.upsert([wallet], {
                 conflictPaths: ['address'],
                 skipUpdateIfNoValuesChanged: true,
             });
 
             return this.walletRespository.findOne({
-                where: { address },
+                where: { address: address.toLowerCase() },
                 relations: ['owner'],
             });
         }

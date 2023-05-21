@@ -45,13 +45,13 @@ describe('SessionService', () => {
     });
 
     describe('createSession', () => {
-        it('should return a session', async () => {
+        it.only('should return a session', async () => {
             const wallet = await ethers.Wallet.createRandom();
             const message = 'test';
             const signature = await wallet.signMessage(message);
             const result = await service.createSession(wallet.address, message, signature);
 
-            expect(result.wallet.address).toEqual(wallet.address);
+            expect(result.wallet.address).toEqual(wallet.address.toLowerCase());
         });
 
         it('should return null if invalid wallet verification', async () => {

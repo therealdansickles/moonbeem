@@ -133,7 +133,7 @@ describe('SessionGuard', () => {
             .expect(200)
             .expect(({ body }) => {
                 const { test } = body.data;
-                expect(test).toEqual(wallet.address);
+                expect(test).toEqual(wallet.address.toLowerCase());
             });
     });
 });

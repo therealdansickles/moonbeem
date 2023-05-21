@@ -11,5 +11,5 @@ export default new DataSource({
     name: 'default',
     entities: ['src/*/*.entity{.ts,.js}'],
     migrations: ['./migrations/*{.ts,.js}'],
-    url: process.env.V1_DATABASE_URL
+    url: process.env.V1_DATABASE_URL,
 });

@@ -300,4 +300,3 @@ export class BasicPriceInfo {
     @IsNumber()
     readonly chainId: number;
 }
-

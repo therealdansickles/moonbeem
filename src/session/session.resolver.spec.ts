@@ -94,7 +94,7 @@ describe('SessionResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.createSession.token).toBeDefined();
-                    expect(body.data.createSession.wallet.address).toEqual(wallet.address);
+                    expect(body.data.createSession.wallet.address).toEqual(wallet.address.toLowerCase());
                 });
         });
     });
@@ -131,7 +131,7 @@ describe('SessionResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.createSession.token).toBeDefined();
-                    expect(body.data.createSession.wallet.address).toEqual(wallet.address);
+                    expect(body.data.createSession.wallet.address).toEqual(wallet.address.toLowerCase());
                 });
         });
     });

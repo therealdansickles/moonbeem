@@ -178,11 +178,7 @@ class OrganizationInviteItemInput {
 }
 
 @InputType()
-export class UpdateOrganizationInput extends OmitType(
-    PartialType(CreateOrganizationInput),
-    ['owner'],
-    InputType
-) {
+export class UpdateOrganizationInput extends OmitType(PartialType(CreateOrganizationInput), ['owner'], InputType) {
     @IsString()
     @Field({ description: 'The id of the organization.' })
     readonly id: string;

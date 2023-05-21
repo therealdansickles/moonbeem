@@ -243,7 +243,7 @@ describe('WalletService', () => {
             const message = 'Hi from tests!';
             const signature = await wallet.signMessage(message);
             const result = await service.verifyWallet(wallet.address, message, signature);
-            expect(result.address).toEqual(wallet.address);
+            expect(result.address).toEqual(wallet.address.toLowerCase());
         });
     });
 
