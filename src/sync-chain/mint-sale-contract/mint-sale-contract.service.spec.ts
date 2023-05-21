@@ -13,7 +13,7 @@ import { OrganizationService } from '../../organization/organization.service';
 import { UserModule } from '../../user/user.module';
 import { OrganizationModule } from '../../organization/organization.module';
 
-describe.only('MintSaleContractService', () => {
+describe('MintSaleContractService', () => {
     let repository: Repository<MintSaleContract>;
     let service: MintSaleContractService;
     let collectionService: CollectionService;

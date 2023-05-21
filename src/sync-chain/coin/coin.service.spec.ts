@@ -7,7 +7,7 @@ import { CoinModule } from './coin.module';
 import { Coin } from './coin.entity';
 import { CoinService } from './coin.service';
 
-describe.only('CoinService', () => {
+describe('CoinService', () => {
     let repository: Repository<Coin>;
     let service: CoinService;
 

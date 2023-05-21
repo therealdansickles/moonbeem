@@ -7,7 +7,7 @@ import { MintSaleTransaction } from './mint-sale-transaction.entity';
 import { MintSaleTransactionModule } from './mint-sale-transaction.module';
 import { MintSaleTransactionService } from './mint-sale-transaction.service';
 
-describe.only('MintSaleTransactionService', () => {
+describe('MintSaleTransactionService', () => {
     let repository: Repository<MintSaleTransaction>;
     let service: MintSaleTransactionService;
 

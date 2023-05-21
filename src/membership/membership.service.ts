@@ -64,7 +64,7 @@ export class MembershipService {
      */
     async createMembership(data: CreateMembershipInput): Promise<Membership> {
         const { userId, organizationId, ...rest } = data;
-        const membership = rest as unknown as Membership;
+        const membership = await this.membershipRepository.create(rest);
         membership.organization = await this.organizationRepository.findOneBy({ id: organizationId });
         membership.user = await this.userRepository.findOneBy({ id: userId });
         await this.membershipRepository.insert(membership);

@@ -13,7 +13,7 @@ import { Record721Module } from './record721.module';
 
 export const gql = String.raw;
 
-describe.only('Record721Resolver', () => {
+describe('Record721Resolver', () => {
     let repository: Repository<Record721>;
     let service: Record721Service;
     let app: INestApplication;

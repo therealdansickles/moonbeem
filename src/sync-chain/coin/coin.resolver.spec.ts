@@ -13,7 +13,7 @@ import { CoinModule } from './coin.module';
 
 export const gql = String.raw;
 
-describe.only('CoinResolver', () => {
+describe('CoinResolver', () => {
     let repository: Repository<Coin>;
     let service: CoinService;
     let app: INestApplication;

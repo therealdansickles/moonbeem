@@ -7,7 +7,7 @@ import { Asset721Module } from './asset721.module';
 import { Asset721Service } from './asset721.service';
 import { Asset721 } from './asset721.entity';
 
-describe.only('Asset721Service', () => {
+describe('Asset721Service', () => {
     let repository: Repository<Asset721>;
     let service: Asset721Service;
 

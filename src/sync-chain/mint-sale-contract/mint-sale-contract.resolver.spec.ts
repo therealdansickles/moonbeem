@@ -13,7 +13,7 @@ import { MintSaleContractService } from './mint-sale-contract.service';
 
 export const gql = String.raw;
 
-describe.only('MintSaleContractResolver', () => {
+describe('MintSaleContractResolver', () => {
     let repository: Repository<MintSaleContract>;
     let service: MintSaleContractService;
     let app: INestApplication;

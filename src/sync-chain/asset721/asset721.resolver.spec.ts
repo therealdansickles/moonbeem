@@ -13,7 +13,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 
 export const gql = String.raw;
 
-describe.only('Asset721Resolver', () => {
+describe('Asset721Resolver', () => {
     let repository: Repository<Asset721>;
     let service: Asset721Service;
     let app: INestApplication;

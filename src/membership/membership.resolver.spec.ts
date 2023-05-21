@@ -141,7 +141,7 @@ describe('MembershipResolver', () => {
     });
 
     describe('createMembership', () => {
-        it.only('should create a membership', async () => {
+        it('should create a membership', async () => {
             user = await userService.createUser({
                 email: 'user' + faker.internet.email(),
                 password: faker.internet.password(),
@@ -405,7 +405,7 @@ describe('MembershipResolver', () => {
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
                 avatarUrl: faker.image.imageUrl(),
-                owner: user,
+                owner: anotherUser,
             });
 
             const membership2 = await service.createMembership({

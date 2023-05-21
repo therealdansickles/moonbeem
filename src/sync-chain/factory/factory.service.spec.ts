@@ -7,7 +7,7 @@ import { ContractType, Factory } from './factory.entity';
 import { FactoryService } from './factory.service';
 import { FactoryModule } from './factory.module';
 
-describe.only('FactoryService', () => {
+describe('FactoryService', () => {
     let repository: Repository<Factory>;
     let service: FactoryService;
 

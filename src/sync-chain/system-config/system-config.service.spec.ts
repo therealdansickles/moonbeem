@@ -7,7 +7,7 @@ import { SystemConfigModule } from './system-config.module';
 import { SystemConfigService } from './system-config.service';
 import { SystemConfig } from './system-config.entity';
 
-describe.only('SystemConfigService', () => {
+describe('SystemConfigService', () => {
     let repository: Repository<SystemConfig>;
     let service: SystemConfigService;
 

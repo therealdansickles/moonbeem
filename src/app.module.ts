@@ -72,4 +72,4 @@ import { postgresConfig } from './lib/configs/db.config';
     ],
     exports: [],
 })
-export class AppModule { }
+export class AppModule {}

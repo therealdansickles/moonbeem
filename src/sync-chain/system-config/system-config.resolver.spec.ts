@@ -13,7 +13,7 @@ import { SystemConfigService } from './system-config.service';
 
 export const gql = String.raw;
 
-describe.only('SystemConfigResolver', () => {
+describe('SystemConfigResolver', () => {
     let repository: Repository<SystemConfig>;
     let service: SystemConfigService;
     let app: INestApplication;

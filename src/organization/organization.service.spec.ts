@@ -14,7 +14,7 @@ import { MembershipService } from '../membership/membership.service';
 import { MembershipModule } from '../membership/membership.module';
 import { Membership } from '../membership/membership.entity';
 
-describe.only('OrganizationService', () => {
+describe('OrganizationService', () => {
     let repository: Repository<Organization>;
     let service: OrganizationService;
     let userService: UserService;

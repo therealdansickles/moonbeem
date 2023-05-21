@@ -45,7 +45,7 @@ describe('SessionService', () => {
     });
 
     describe('createSession', () => {
-        it.only('should return a session', async () => {
+        it('should return a session', async () => {
             const wallet = await ethers.Wallet.createRandom();
             const message = 'test';
             const signature = await wallet.signMessage(message);

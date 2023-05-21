@@ -7,7 +7,7 @@ import { History721, History721Type } from './history721.entity';
 import { History721Module } from './history721.module';
 import { History721Service } from './history721.service';
 
-describe.only('History721Service', () => {
+describe('History721Service', () => {
     let repository: Repository<History721>;
     let service: History721Service;
 
