@@ -1,0 +1,26 @@
+name: Migrate production db schema
+
+on:
+  push:
+    branches: ["release"]
+  pull_request:
+    branches: ["release"]
+
+jobs:
+  schema-migration-production:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@master
+      - run: yarn typeorm:schema:log
+        env:
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          V1_DATABASE_URL: ${{ secrets.V1_DATABASE_URL }}
+      - run: yarn typeorm:generate
+        env:
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          V1_DATABASE_URL: ${{ secrets.V1_DATABASE_URL }}
+      - run: yarn typeorm:migrate
+        env:
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          V1_DATABASE_URL: ${{ secrets.V1_DATABASE_URL }}
