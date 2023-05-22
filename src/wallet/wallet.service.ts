@@ -37,7 +37,7 @@ export class WalletService {
         @InjectRepository(MintSaleContract, 'sync_chain')
         private mintSaleContractRepository: Repository<MintSaleContract>,
         private coinService: CoinService
-    ) {}
+    ) { }
 
     /**
      * This is the uuid for the ownerId for all unbound wallets, e.g the blackhole.
@@ -284,6 +284,8 @@ export class WalletService {
         const mintList = mintedTransactions.map((tx) => ({
             type: 'Mint',
             txTime: tx.txTime,
+            txHash: tx.txHash,
+            chainId: tx.chainId,
             address: tx.address,
             paymentToken: tx.paymentToken,
             price: tx.price,
@@ -293,6 +295,8 @@ export class WalletService {
         const deployList = deployedTransactions.map((tx) => ({
             type: 'Deploy',
             txTime: tx.txTime,
+            txHash: tx.txHash,
+            chainId: tx.chainId,
             address: tx.address,
             paymentToken: tx.paymentToken,
             price: tx.price,

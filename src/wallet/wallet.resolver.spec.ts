@@ -299,6 +299,7 @@ describe('WalletResolver', () => {
                 tokenId: faker.random.numeric(3),
                 price: faker.random.numeric(19),
                 paymentToken: faker.finance.ethereumAddress(),
+                chainId: faker.random.numeric(5)
             });
 
             const query = gql`
@@ -306,6 +307,9 @@ describe('WalletResolver', () => {
                     wallet(address: $address) {
                         minted {
                             address
+                            txTime
+                            txHash
+                            chainId
 
                             tier {
                                 name
@@ -330,6 +334,9 @@ describe('WalletResolver', () => {
                 .expect(({ body }) => {
                     const [firstMint, ..._rest] = body.data.wallet.minted;
                     expect(firstMint.address).toEqual(collection.address); // NOTE: These horrible `address` namings, which one is it???
+                    expect(firstMint.txTime).toEqual(transaction.txTime);
+                    expect(firstMint.txHash).toEqual(transaction.txHash);
+                    expect(firstMint.chainId).toEqual(transaction.chainId);
                     expect(firstMint.tier.name).toEqual(tier.name);
                     expect(firstMint.tier.collection.name).toEqual(collection.name);
                 });
@@ -370,6 +377,7 @@ describe('WalletResolver', () => {
                 tokenId: faker.random.numeric(3),
                 price: faker.random.numeric(19),
                 paymentToken: faker.finance.ethereumAddress(),
+                chainId: faker.random.numeric(5)
             });
 
             const query = gql`
@@ -380,6 +388,9 @@ describe('WalletResolver', () => {
                             type
                             tokenAddress
                             tokenId
+                            txTime
+                            txHash
+                            chainId
 
                             tier {
                                 name
@@ -404,6 +415,9 @@ describe('WalletResolver', () => {
                 .expect(({ body }) => {
                     const [firstMint, ..._rest] = body.data.wallet.activities;
                     expect(firstMint.address).toEqual(collection.address); // NOTE: These horrible `address` namings, which one is it???
+                    expect(firstMint.txTime).toEqual(transaction.txTime);
+                    expect(firstMint.txHash).toEqual(transaction.txHash);
+                    expect(firstMint.chainId).toEqual(transaction.chainId);
                     expect(firstMint.tier.name).toEqual(tier.name);
                     expect(firstMint.tier.collection.name).toEqual(collection.name);
                 });
