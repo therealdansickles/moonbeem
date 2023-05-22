@@ -12,7 +12,6 @@ import { MembershipService } from './membership.service';
 import { Organization } from '../organization/organization.dto';
 import { OrganizationService } from '../organization/organization.service';
 import { MailService } from '../mail/mail.service';
-import { CurrentUser } from '../lib/decorators/current-user.decorator';
 
 @Resolver(() => Membership)
 export class MembershipResolver {

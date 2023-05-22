@@ -300,7 +300,7 @@ describe('WalletResolver', () => {
                 tokenId: faker.random.numeric(3),
                 price: faker.random.numeric(19),
                 paymentToken: faker.finance.ethereumAddress(),
-                chainId: faker.random.numeric(5)
+                chainId: faker.random.numeric(5),
             });
 
             const query = gql`
@@ -378,7 +378,7 @@ describe('WalletResolver', () => {
                 tokenId: faker.random.numeric(3),
                 price: faker.random.numeric(19),
                 paymentToken: faker.finance.ethereumAddress(),
-                chainId: faker.random.numeric(5)
+                chainId: faker.random.numeric(5),
             });
 
             const query = gql`
