@@ -259,8 +259,9 @@ describe('WalletResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.data.unbindWallet.owner.id).not.toEqual(owner.id);
-                    expect(body.data.unbindWallet.owner.id).toEqual('00000000-0000-0000-0000-000000000000');
+                    expect(body.data.unbindWallet.owner).toEqual(null);
+                    // expect(body.data.unbindWallet.owner.id).not.toEqual(owner.id);
+                    // expect(body.data.unbindWallet.owner.id).toEqual('00000000-0000-0000-0000-000000000000');
                 });
         });
     });

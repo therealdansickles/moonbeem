@@ -22,7 +22,7 @@ export class Wallet {
     @Field({ nullable: true, description: 'The name for the wallet.' })
     @IsString()
     @IsOptional()
-    readonly name?: string;
+    name?: string;
 
     @Field({ nullable: true, description: 'The URL pointing to the wallet\'s avatar.' })
     @IsString()
