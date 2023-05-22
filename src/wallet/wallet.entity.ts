@@ -43,10 +43,10 @@ export class Wallet extends BaseEntity {
     @Column({ unique: true, comment: 'The name for the wallet.' })
     name?: string;
 
-    @Column({ nullable: true, comment: 'The url of the user\'s website. ' })
+    @Column({ nullable: true, comment: "The url of the user's website. " })
     readonly websiteUrl?: string;
 
-    @Column({ nullable: true, comment: 'The URL pointing to the wallet\'s avatar.' })
+    @Column({ nullable: true, comment: "The URL pointing to the wallet's avatar." })
     avatarUrl?: string;
 
     @Column({ nullable: true, comment: 'The description for the wallet.' })

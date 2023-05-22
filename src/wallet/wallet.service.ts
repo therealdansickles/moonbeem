@@ -102,9 +102,10 @@ export class WalletService {
             walletData.name = walletData.address.toLowerCase();
         }
         const existedWallet = await this.getWalletByName(walletData.name);
-        if (existedWallet) throw new GraphQLError(`Wallet name ${input.name} already existed.`, {
-            extensions: { code: 'BAD_REQUEST' },
-        });
+        if (existedWallet)
+            throw new GraphQLError(`Wallet name ${input.name} already existed.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
         const wallet = await this.walletRespository.create({ owner: { id: ownerId }, ...walletData });
         const result = await this.walletRespository.insert(wallet);
         return await this.walletRespository.findOne({
@@ -129,9 +130,10 @@ export class WalletService {
         }
         if (payload.name && payload.name !== '') {
             const existedWallet = await this.getWalletByName(payload.name);
-            if (existedWallet && existedWallet.id !== id) throw new GraphQLError(`Wallet name ${payload.name} already existed.`, {
-                extensions: { code: 'BAD_REQUEST' },
-            });
+            if (existedWallet && existedWallet.id !== id)
+                throw new GraphQLError(`Wallet name ${payload.name} already existed.`, {
+                    extensions: { code: 'BAD_REQUEST' },
+                });
         }
         if (payload.ownerId) {
             walletUpdate.owner = { id: payload.ownerId } as User;

@@ -132,11 +132,9 @@ describe('WalletService', () => {
             const name = faker.hacker.noun();
             await service.createWallet({
                 address: faker.finance.ethereumAddress(),
-                name
+                name,
             });
-            expect(() =>
-                service.createWallet({ address: faker.finance.ethereumAddress(), name })
-            ).rejects.toThrow();
+            expect(() => service.createWallet({ address: faker.finance.ethereumAddress(), name })).rejects.toThrow();
         });
     });
 
