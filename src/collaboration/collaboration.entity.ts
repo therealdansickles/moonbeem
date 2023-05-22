@@ -14,6 +14,7 @@ import { Collection } from '../collection/collection.entity';
 import { Organization } from '../organization/organization.entity';
 import { User } from '../user/user.entity';
 import { Wallet } from '../wallet/wallet.entity';
+import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
 
 @Entity({ name: 'Collaboration' })
 export class Collaboration extends BaseEntity {
@@ -23,7 +24,13 @@ export class Collaboration extends BaseEntity {
     @Column({ nullable: true, comment: 'The template name of this collaboration.' })
     name?: string;
 
-    @Column({ nullable: true, length: 64, unique: true, comment: 'The Ethereum address' })
+    @Column({
+        nullable: true,
+        length: 64,
+        unique: true,
+        comment: 'The Ethereum address',
+        transformer: lowercaseTransformer,
+    })
     address?: string;
 
     @Column({ default: 100, comment: 'The royalty rate in percentage.' })

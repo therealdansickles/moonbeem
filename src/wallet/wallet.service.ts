@@ -5,6 +5,7 @@ import { ILike, Repository } from 'typeorm';
 import { ethers } from 'ethers';
 import BigNumber from 'bignumber.js';
 import { captureException } from '@sentry/node';
+import { omit } from 'lodash';
 
 import {
     BindWalletInput,
@@ -37,7 +38,7 @@ export class WalletService {
         @InjectRepository(MintSaleContract, 'sync_chain')
         private mintSaleContractRepository: Repository<MintSaleContract>,
         private coinService: CoinService
-    ) {}
+    ) { }
 
     /**
      * This is the uuid for the ownerId for all unbound wallets, e.g the blackhole.
@@ -97,12 +98,53 @@ export class WalletService {
      */
     async createWallet(input: CreateWalletInput): Promise<Wallet> {
         const { ownerId, ...walletData } = input;
+        if (!walletData.name || walletData.name === '') {
+            walletData.name = walletData.address.toLowerCase();
+        }
+        const existedWallet = await this.getWalletByName(walletData.name);
+        if (existedWallet) throw new GraphQLError(`Wallet name ${input.name} already existed.`, {
+            extensions: { code: 'BAD_REQUEST' },
+        });
         const wallet = await this.walletRespository.create({ owner: { id: ownerId }, ...walletData });
         const result = await this.walletRespository.insert(wallet);
         return await this.walletRespository.findOne({
             where: { id: result.identifiers[0].id },
             relations: ['owner'],
         });
+    }
+
+    /**
+     * Update a wallet with the given data.
+     * @param id
+     * @param payload
+     * @returns
+     */
+    async updateWallet(id: string, payload: Partial<Omit<UpdateWalletInput, 'id'>>): Promise<Wallet> {
+        const wallet = await this.walletRespository.findOneBy({ id });
+        const walletUpdate: Partial<Wallet> = { ...wallet, ...payload };
+        if (!wallet) {
+            throw new GraphQLError(`Wallet with id ${id} doesn't exist.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
+        }
+        if (payload.name && payload.name !== '') {
+            const existedWallet = await this.getWalletByName(payload.name);
+            if (existedWallet && existedWallet.id !== id) throw new GraphQLError(`Wallet name ${payload.name} already existed.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
+        }
+        if (payload.ownerId) {
+            walletUpdate.owner = { id: payload.ownerId } as User;
+        }
+
+        try {
+            return this.walletRespository.save(walletUpdate);
+        } catch (e) {
+            captureException(e);
+            throw new GraphQLError(`Failed to update wallet ${id}`, {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
+        }
     }
 
     /**
@@ -138,12 +180,13 @@ export class WalletService {
         }
 
         try {
-            await this.walletRespository.save({ ...wallet, owner });
+            await this.updateWallet(wallet.id, { ...omit(wallet, 'owner'), ownerId: owner.id });
             return this.walletRespository.findOne({
-                where: { address, owner },
+                where: { address },
                 relations: ['owner'],
             });
         } catch (e) {
+            console.log(e);
             captureException(e);
             throw new GraphQLError(`Failed to bind wallet ${address}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
@@ -175,7 +218,11 @@ export class WalletService {
         }
 
         try {
-            return this.walletRespository.save({ ...wallet, owner: { id: this.unOwnedId } });
+            await this.updateWallet(wallet.id, { ...omit(wallet, 'owner'), ownerId: this.unOwnedId });
+            return this.walletRespository.findOne({
+                where: { address },
+                relations: ['owner'],
+            });
         } catch (e) {
             captureException(e);
             throw new GraphQLError(`Failed to unbind wallet ${address}`, {
@@ -194,7 +241,7 @@ export class WalletService {
      */
     async verifyWallet(address: string, message: string, signature: string): Promise<Wallet | null> {
         if (ethers.verifyMessage(message, signature).toLowerCase() === address.toLowerCase()) {
-            const wallet = this.walletRespository.create({ address });
+            const wallet = this.walletRespository.create({ address, name: address.toLowerCase() });
 
             await this.walletRespository.upsert([wallet], {
                 conflictPaths: ['address'],
@@ -284,6 +331,8 @@ export class WalletService {
         const mintList = mintedTransactions.map((tx) => ({
             type: 'Mint',
             txTime: tx.txTime,
+            txHash: tx.txHash,
+            chainId: tx.chainId,
             address: tx.address,
             paymentToken: tx.paymentToken,
             price: tx.price,
@@ -293,6 +342,8 @@ export class WalletService {
         const deployList = deployedTransactions.map((tx) => ({
             type: 'Deploy',
             txTime: tx.txTime,
+            txHash: tx.txHash,
+            chainId: tx.chainId,
             address: tx.address,
             paymentToken: tx.paymentToken,
             price: tx.price,
@@ -317,23 +368,6 @@ export class WalletService {
         return activities;
     }
 
-    async updateWallet(id: string, payload: Partial<Omit<UpdateWalletInput, 'id'>>): Promise<Wallet> {
-        const wallet = await this.walletRespository.findOneBy({ id });
-        if (!wallet) {
-            throw new GraphQLError(`Wallet with id ${id} doesn't exist.`, {
-                extensions: { code: 'BAD_REQUEST' },
-            });
-        }
-
-        try {
-            return this.walletRespository.save({ ...wallet, ...payload });
-        } catch (e) {
-            captureException(e);
-            throw new GraphQLError(`Failed to update wallet ${id}`, {
-                extensions: { code: 'INTERNAL_SERVER_ERROR' },
-            });
-        }
-    }
     /**
      *
      * @param address

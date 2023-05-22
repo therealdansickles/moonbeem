@@ -12,6 +12,7 @@ import {
 import { Exclude } from 'class-transformer';
 import { Wallet } from '../wallet/wallet.entity';
 import { Collection } from '../collection/collection.entity';
+import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
 
 export class Attribute {
     display_type?: string;
@@ -48,6 +49,7 @@ export class Tier extends BaseEntity {
     @Column({
         nullable: true,
         comment: 'The contract address for the payment token associated with purchase of this tier.',
+        transformer: lowercaseTransformer,
     })
     paymentTokenAddress?: string;
 

@@ -10,13 +10,6 @@ export class SearchResolver {
 
     @Public()
     @Query(() => GlobalSearchResult)
-    public async globalSearch(@Args('input') input: GloablSearchInput): Promise<GlobalSearchResult> {
-        const rsp = await this.searchService.executeGlobalSearch(input);
-        return rsp;
-    }
-
-    @Public()
-    @Query(() => GlobalSearchResult)
     public async globalSearchV1(@Args('input') input: GloablSearchInput): Promise<GlobalSearchResult> {
         const rsp = await this.searchService.executeGlobalSearchV1(input);
         return rsp;

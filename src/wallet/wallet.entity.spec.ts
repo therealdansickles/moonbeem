@@ -43,8 +43,9 @@ describe('Wallet', () => {
 
     it('should lowercase the address', async () => {
         let wallet = new Wallet();
-        let address = faker.finance.ethereumAddress().toUpperCase();
+        const address = faker.finance.ethereumAddress().toUpperCase();
         wallet.address = address;
+        wallet.name = address.toLowerCase();
         await repository.save(wallet);
         wallet = await repository.findOneBy({ address: address.toLowerCase() });
         expect(wallet.address).toBe(address.toLowerCase());

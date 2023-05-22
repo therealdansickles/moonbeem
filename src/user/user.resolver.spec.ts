@@ -145,7 +145,7 @@ describe('UserResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.createUser.id).toBeDefined();
-                    expect(body.data.createUser.email).toEqual(variables.input.email);
+                    expect(body.data.createUser.email).toEqual(variables.input.email.toLowerCase());
                     expect(body.data.createUser.username).toEqual(variables.input.username);
                     expect(body.data.createUser.avatarUrl).toEqual(variables.input.avatarUrl);
                 });

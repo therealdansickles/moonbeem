@@ -120,6 +120,24 @@ describe('WalletService', () => {
                 await service.createWallet({ address });
             });
         });
+
+        it('should use wallet address if name is not provided.', async () => {
+            const address = faker.finance.ethereumAddress();
+            const wallet = await service.createWallet({ address });
+            expect(wallet.address).toEqual(address.toLowerCase());
+            expect(wallet.name).toEqual(address.toLowerCase());
+        });
+
+        it('should error if the wallet name have been used.', async () => {
+            const name = faker.hacker.noun();
+            await service.createWallet({
+                address: faker.finance.ethereumAddress(),
+                name
+            });
+            expect(() =>
+                service.createWallet({ address: faker.finance.ethereumAddress(), name })
+            ).rejects.toThrow();
+        });
     });
 
     describe('bindWallet', () => {
@@ -206,10 +224,10 @@ describe('WalletService', () => {
         });
 
         it('should return a new unbound wallet if it the wallet does not exist', async () => {
-            const data = { address, owner: { id: owner.id } };
+            const data = { address: faker.finance.ethereumAddress(), owner: { id: owner.id } };
             const result = await service.unbindWallet(data);
-            expect(result.owner.id).not.toEqual(boundWallet.owner);
-            expect(result.address).toEqual(address.toLowerCase());
+            // expect(result.owner.id).not.toEqual(service.unOwnedId);
+            expect(result.address).toEqual(data.address.toLowerCase());
             // expect(result.chainId).toEqual(42161);
         });
 

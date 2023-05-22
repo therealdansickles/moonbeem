@@ -16,6 +16,7 @@ import { Wallet } from '../wallet/wallet.entity';
 import { Organization } from '../organization/organization.entity';
 import { Collaboration } from '../collaboration/collaboration.entity';
 import { Tier } from '../tier/tier.entity';
+import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
 
 // see https://stackoverflow.com/questions/55598213/enums-not-working-with-nestjs-and-graphql
 export enum CollectionKind {
@@ -54,7 +55,7 @@ export class Collection extends BaseEntity {
     @Column({ length: 64, comment: 'The displayed name for the collection.', nullable: true })
     displayName?: string;
 
-    @Column({ nullable: true, comment: 'The collection address' })
+    @Column({ nullable: true, comment: 'The collection address', transformer: lowercaseTransformer })
     address?: string;
 
     @Column({ nullable: true, comment: 'The description for the collection.' })
