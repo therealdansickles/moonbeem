@@ -1,0 +1,27 @@
+name: Migrate staging db schema
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  schema-migration-staging:
+    runs-on: ubuntu-latest
+    environment: staging
+    if: github.ref_name == 'main'
+    steps:
+      - uses: actions/checkout@master
+      - run: yarn typeorm:schema:log
+        env:
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          V1_DATABASE_URL: ${{ secrets.V1_DATABASE_URL }}
+      - run: yarn typeorm:generate
+        env:
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          V1_DATABASE_URL: ${{ secrets.V1_DATABASE_URL }}
+      - run: yarn typeorm:migrate
+        env:
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          V1_DATABASE_URL: ${{ secrets.V1_DATABASE_URL }}
