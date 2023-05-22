@@ -17,6 +17,7 @@ import { Wallet } from '../wallet/wallet.entity';
 import { Membership } from '../membership/membership.entity';
 import { Organization } from '../organization/organization.entity';
 import { Collaboration } from '../collaboration/collaboration.entity';
+import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
 
 @Entity({ name: 'User' })
 export class User extends BaseEntity {
@@ -26,7 +27,7 @@ export class User extends BaseEntity {
     @Column({ nullable: true, comment: 'The username of the user.' })
     username?: string;
 
-    @Column({ unique: true, comment: 'The email of the user.' })
+    @Column({ unique: true, comment: 'The email of the user.', transformer: lowercaseTransformer })
     email: string;
 
     @Column({ nullable: true, comment: 'The hashed password of the user.' })
@@ -73,18 +74,6 @@ export class User extends BaseEntity {
 
     @UpdateDateColumn()
     updatedAt: Date;
-
-    /**
-     * Lowercase the fields on the User.
-     *
-     */
-    @BeforeInsert()
-    @BeforeUpdate()
-    async lowercaseFields() {
-        if (this.email) {
-            this.email = this.email.toLowerCase();
-        }
-    }
 
     /**
      * Hashes the password before inserting it into the database.

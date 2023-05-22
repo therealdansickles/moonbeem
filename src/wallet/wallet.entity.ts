@@ -15,13 +15,19 @@ import {
 import { Collection } from '../collection/collection.entity';
 import { User } from '../user/user.entity';
 import { Collaboration } from '../collaboration/collaboration.entity';
+import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
 
 @Entity({ name: 'Wallet' })
 export class Wallet extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ length: 64, unique: true, comment: 'The Ethereum address' })
+    @Column({
+        length: 64,
+        unique: true,
+        comment: 'The Ethereum address',
+        transformer: lowercaseTransformer,
+    })
     address: string;
 
     @OneToMany(() => Collection, (collection) => collection.creator)
@@ -37,10 +43,10 @@ export class Wallet extends BaseEntity {
     @Column({ nullable: true, comment: 'The name for the wallet.' })
     name?: string;
 
-    @Column({ nullable: true, comment: 'The url of the user\'s website. ' })
+    @Column({ nullable: true, comment: "The url of the user's website. " })
     readonly websiteUrl?: string;
 
-    @Column({ nullable: true, comment: 'The URL pointing to the wallet\'s avatar.' })
+    @Column({ nullable: true, comment: "The URL pointing to the wallet's avatar." })
     avatarUrl?: string;
 
     @Column({ nullable: true, comment: 'The description for the wallet.' })
@@ -63,16 +69,4 @@ export class Wallet extends BaseEntity {
 
     @UpdateDateColumn()
     updatedAt: Date;
-
-    /**
-     * Lowercase the fields on the Wallet.
-     *
-     */
-    @BeforeInsert()
-    @BeforeUpdate()
-    async lowercaseFields() {
-        if (this.address) {
-            this.address = this.address.toLowerCase();
-        }
-    }
 }

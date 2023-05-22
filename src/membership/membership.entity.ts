@@ -13,6 +13,7 @@ import {
 } from 'typeorm';
 import { Organization } from '../organization/organization.entity';
 import { User } from '../user/user.entity';
+import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
 
 @Entity({ name: 'Membership' })
 @Index(['user.id', 'organization.id'], { unique: true })
@@ -29,7 +30,7 @@ export class Membership extends BaseEntity {
     @JoinColumn()
     user?: User;
 
-    @Column({ nullable: true, comment: 'The email of the invited user' })
+    @Column({ nullable: true, comment: 'The email of the invited user', transformer: lowercaseTransformer })
     email?: string;
 
     @ManyToOne(() => Organization, (organization) => organization.membership, {
@@ -67,14 +68,6 @@ export class Membership extends BaseEntity {
     async setInviteCode(): Promise<void> {
         if (!this.inviteCode) {
             this.inviteCode = Math.random().toString(36).substring(2, 15);
-        }
-    }
-
-    @BeforeInsert()
-    @BeforeUpdate()
-    async lowercaseEmail(): Promise<void> {
-        if (this.email) {
-            this.email = this.email.toLowerCase();
         }
     }
 }

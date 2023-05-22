@@ -93,8 +93,8 @@ describe('WaitlistResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.data.getWaitlist.email).toEqual(email);
-                    expect(body.data.getWaitlist.address).toEqual(randomWallet.address);
+                    expect(body.data.getWaitlist.email).toEqual(email.toLowerCase());
+                    expect(body.data.getWaitlist.address).toEqual(randomWallet.address.toLowerCase());
                 });
         });
 
@@ -133,8 +133,8 @@ describe('WaitlistResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.data.getWaitlist.email).toEqual(email);
-                    expect(body.data.getWaitlist.address).toEqual(randomWallet.address);
+                    expect(body.data.getWaitlist.email).toEqual(email.toLowerCase());
+                    expect(body.data.getWaitlist.address).toEqual(randomWallet.address.toLowerCase());
                 });
         });
     });

@@ -10,16 +10,22 @@ import {
     Index,
     Generated,
 } from 'typeorm';
+import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
 
 @Entity({ name: 'Waitlist' })
 export class Waitlist extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ unique: true, comment: 'The email of the user.' })
+    @Column({ unique: true, comment: 'The email of the user.', transformer: lowercaseTransformer })
     email: string;
 
-    @Column({ length: 64, unique: true, comment: 'The Ethereum address of the user wallet' })
+    @Column({
+        length: 64,
+        unique: true,
+        comment: 'The Ethereum address of the user wallet',
+        transformer: lowercaseTransformer,
+    })
     address: string;
 
     @Column({ comment: 'The user position in the waitinglist', default: false })

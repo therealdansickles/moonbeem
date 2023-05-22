@@ -57,7 +57,7 @@ describe('UserService', () => {
             });
             const result = await service.getUser({ id: user.id });
             expect(result.username).toEqual(user.username);
-            expect(result.email).toEqual(user.email);
+            expect(result.email).toEqual(user.email.toLowerCase());
         });
 
         it('should return user info by username', async () => {
@@ -68,7 +68,7 @@ describe('UserService', () => {
             });
             const result = await service.getUser({ username: user.username });
             expect(result.username).toEqual(user.username);
-            expect(result.email).toEqual(user.email);
+            expect(result.email).toEqual(user.email.toLowerCase());
         });
     });
 
@@ -127,7 +127,7 @@ describe('UserService', () => {
             const hashed = await hashPassword(password, 10);
 
             const result = await service.verifyUser(email, hashed);
-            expect(result.email).toEqual(email);
+            expect(result.email).toEqual(email.toLowerCase());
         });
 
         it('should return null on invalid credentials', async () => {
