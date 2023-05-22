@@ -1,10 +1,10 @@
 name: Migrate production db schema
 
 on:
-  push:
-    branches: ["release"]
-  pull_request:
-    branches: ["release"]
+  workflow_run:
+    workflows: ['Deploy to Release']
+    types:
+      - requested
 
 jobs:
   schema-migration-production:
