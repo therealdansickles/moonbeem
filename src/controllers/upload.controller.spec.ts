@@ -9,7 +9,6 @@ import { UploadService } from '../services/upload.service';
 import { AWSAdapter } from '../lib/adapters/aws.adapter';
 import { RpcClient } from '../lib/adapters/eth.client.adapter';
 import { RedisAdapter } from '../lib/adapters/redis.adapter';
-import { PostgresAdapter } from '../lib/adapters/postgres.adapter';
 
 describe('UploadController', () => {
     let app: INestApplication;
@@ -20,12 +19,10 @@ describe('UploadController', () => {
     let requestService: HttpService;
     let rpcClient: RpcClient;
     let redisClient: RedisAdapter;
-    let postgresClient: PostgresAdapter;
 
     beforeAll(async () => {
         rpcClient = new RpcClient();
         redisClient = new RedisAdapter();
-        postgresClient = new PostgresAdapter();
 
         awsAdapter = new AWSAdapter();
         uploadService = new UploadService(awsAdapter);

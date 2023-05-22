@@ -14,7 +14,6 @@ import { MembershipModule } from './membership/membership.module';
 import { MongoAdapter } from './lib/adapters/mongo.adapter';
 import { OrganizationModule } from './organization/organization.module';
 import { PollerModule } from './poller/poller.module';
-import { PostgresAdapter } from './lib/adapters/postgres.adapter';
 import { RavenModule, RavenInterceptor } from 'nest-raven';
 import { RedisAdapter } from './lib/adapters/redis.adapter';
 import { RpcClient } from './lib/adapters/eth.client.adapter';
@@ -66,7 +65,6 @@ import { postgresConfig } from './lib/configs/db.config';
             useValue: new RavenInterceptor(),
         },
         MongoAdapter,
-        PostgresAdapter,
         RedisAdapter,
         RpcClient,
     ],
