@@ -1,6 +1,6 @@
 {
   "name": "server-restful",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Vibe Restful Api",
   "author": "ritter@vibe.xyz",
   "private": true,

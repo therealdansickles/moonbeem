@@ -24,12 +24,12 @@ export class Wallet {
     @IsOptional()
     name?: string;
 
-    @Field({ nullable: true, description: 'The URL pointing to the wallet\'s avatar.' })
+    @Field({ nullable: true, description: "The URL pointing to the wallet's avatar." })
     @IsString()
     @IsOptional()
     readonly avatarUrl?: string;
 
-    @Field({ description: 'The url of the user\'s website.', nullable: true })
+    @Field({ description: "The url of the user's website.", nullable: true })
     @IsString()
     @IsOptional()
     readonly websiteUrl?: string;
@@ -69,7 +69,7 @@ export class Minted extends PickType(MintSaleTransaction, [
     'price',
     'txTime',
     'txHash',
-    'chainId'
+    'chainId',
 ] as const) {
     @IsObject()
     @Field(() => Tier, { description: 'The tier of the minted token.', nullable: true })
@@ -87,7 +87,16 @@ registerEnumType(ActivityType, {
 
 @ObjectType('Activity', { description: 'The activity for a wallet.' })
 export class Activity extends PartialType(
-    PickType(MintSaleTransaction, ['address', 'tokenAddress', 'paymentToken', 'tokenId', 'price', 'txTime', 'txHash', 'chainId'] as const)
+    PickType(MintSaleTransaction, [
+        'address',
+        'tokenAddress',
+        'paymentToken',
+        'tokenId',
+        'price',
+        'txTime',
+        'txHash',
+        'chainId',
+    ] as const)
 ) {
     @IsObject()
     @Field(() => Tier, { description: 'The tier of the minted token.', nullable: true })

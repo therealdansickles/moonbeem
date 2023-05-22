@@ -16,7 +16,6 @@ import { OrganizationModule } from './organization/organization.module';
 import { PollerModule } from './poller/poller.module';
 import { RavenModule, RavenInterceptor } from 'nest-raven';
 import { RedisAdapter } from './lib/adapters/redis.adapter';
-import { RpcClient } from './lib/adapters/eth.client.adapter';
 import { SearchModule } from './search/search.module';
 import { SessionModule } from './session/session.module';
 import { SyncChainModule } from './sync-chain/sync-chain.module';
@@ -66,7 +65,6 @@ import { postgresConfig } from './lib/configs/db.config';
         },
         MongoAdapter,
         RedisAdapter,
-        RpcClient,
     ],
     exports: [],
 })

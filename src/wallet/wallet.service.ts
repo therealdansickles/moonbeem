@@ -38,7 +38,7 @@ export class WalletService {
         @InjectRepository(MintSaleContract, 'sync_chain')
         private mintSaleContractRepository: Repository<MintSaleContract>,
         private coinService: CoinService
-    ) { }
+    ) {}
 
     /**
      * This is the uuid for the ownerId for all unbound wallets, e.g the blackhole.
@@ -242,16 +242,15 @@ export class WalletService {
     async verifyWallet(address: string, message: string, signature: string): Promise<Wallet | null> {
         if (ethers.verifyMessage(message, signature).toLowerCase() === address.toLowerCase()) {
             const wallet = this.walletRespository.create({ address, name: address.toLowerCase() });
-
-            await this.walletRespository.upsert([wallet], {
-                conflictPaths: ['address'],
-                skipUpdateIfNoValuesChanged: true,
-            });
-
-            return this.walletRespository.findOne({
-                where: { address: address.toLowerCase() },
-                relations: ['owner'],
-            });
+            const existedWallet = await this.walletRespository.findOneBy({ address: wallet.address });
+            if (existedWallet) return existedWallet
+            else {
+                await this.walletRespository.insert(wallet);
+                return this.walletRespository.findOne({
+                    where: { address: address.toLowerCase() },
+                    relations: ['owner'],
+                });
+            }
         }
         return null;
     }
