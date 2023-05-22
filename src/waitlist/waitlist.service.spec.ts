@@ -24,12 +24,25 @@ describe('CollectionService', () => {
                     logging: false,
                     dropSchema: true,
                 }),
+                TypeOrmModule.forRoot({
+                    name: 'sync_chain',
+                    type: 'postgres',
+                    url: postgresConfig.syncChain.url,
+                    autoLoadEntities: true,
+                    synchronize: true,
+                    logging: false,
+                    dropSchema: true,
+                }),
                 WaitlistModule,
             ],
         }).compile();
 
         repository = module.get('WaitlistRepository');
         service = module.get<WaitlistService>(WaitlistService);
+    });
+
+    afterAll(async () => {
+        global.gc && global.gc();
     });
 
     describe('getWaitlist', () => {
@@ -50,6 +63,16 @@ describe('CollectionService', () => {
             });
 
             const result = await service.getWaitlist({ address: waitlist.address });
+            expect(result.id).toBeDefined();
+        });
+
+        it('should get a waitlist item by address case insensitive', async () => {
+            const waitlist = await repository.save({
+                email: faker.internet.email(),
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const result = await service.getWaitlist({ address: waitlist.address.toUpperCase() });
             expect(result.id).toBeDefined();
         });
     });

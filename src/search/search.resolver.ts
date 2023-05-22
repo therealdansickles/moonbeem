@@ -1,5 +1,5 @@
 import { Args, Context, Query, Resolver } from '@nestjs/graphql';
-import { Public } from '../lib/decorators/public.decorator';
+import { Public } from '../session/session.decorator';
 
 import { SearchService } from './search.service';
 import { GlobalSearchResult, GloablSearchInput } from './search.dto';

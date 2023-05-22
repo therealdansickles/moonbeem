@@ -1,5 +1,14 @@
 import { ArgsType, Field, Int, ObjectType, InputType, ID, PickType, PartialType } from '@nestjs/graphql';
-import { IsNumber, IsString, IsDateString, IsUrl, ValidateIf, IsOptional, IsEthereumAddress, IsBoolean } from 'class-validator';
+import {
+    IsNumber,
+    IsString,
+    IsDateString,
+    IsUrl,
+    ValidateIf,
+    IsOptional,
+    IsEthereumAddress,
+    IsBoolean,
+} from 'class-validator';
 
 @ObjectType('Waitlist')
 export class Waitlist {
@@ -29,14 +38,14 @@ export class Waitlist {
     @IsOptional()
     isClaimed?: boolean;
 
-    @Field({ nullable: true, description: 'The kind of the waitlist.'})
+    @Field({ nullable: true, description: 'The kind of the waitlist.' })
     @IsString()
     @IsOptional()
     kind?: string;
 }
 
 @InputType()
-export class GetWaitlistInput extends PickType(PartialType(Waitlist, InputType), ['email', 'address']) {}
+export class GetWaitlistInput extends PickType(PartialType(Waitlist, InputType), ['email', 'address', 'kind']) {}
 
 @InputType('CreateWaitlistInput')
 export class CreateWaitlistInput extends PickType(Waitlist, ['email', 'address', 'kind'], InputType) {
@@ -56,3 +65,20 @@ export class CreateWaitlistInput extends PickType(Waitlist, ['email', 'address',
 
 @InputType()
 export class ClaimWaitlistInput extends PickType(CreateWaitlistInput, ['address', 'message', 'signature'], InputType) {}
+
+@InputType()
+export class ClaimProfileInput extends PickType(
+    CreateWaitlistInput,
+    ['address', 'message', 'signature', 'kind', 'email'],
+    InputType
+) {}
+
+@ObjectType()
+export class ClaimProfileResult {
+    @Field(() => Boolean, { description: 'Whether the success claim' })
+    success: boolean;
+
+    @Field({ description: 'Returned tokenId' })
+    @IsNumber()
+    tokenId: string;
+}

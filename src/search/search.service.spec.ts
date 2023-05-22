@@ -9,14 +9,14 @@ import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
 import { WalletService } from '../wallet/wallet.service';
 import { WalletModule } from '../wallet/wallet.module';
-import { AuthService } from '../auth/auth.service';
-import { AuthModule } from '../auth/auth.module';
+import { UserService } from '../user/user.service';
+import { UserModule } from '../user/user.module';
 
 describe('SearchService', () => {
     let service: SearchService;
     let collectionService: CollectionService;
     let walletService: WalletService;
-    let authService: AuthService;
+    let userService: UserService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -43,17 +43,19 @@ describe('SearchService', () => {
                 SearchModule,
                 CollectionModule,
                 WalletModule,
-                AuthModule,
+                UserModule,
             ],
         }).compile();
 
         service = module.get<SearchService>(SearchService);
         collectionService = module.get<CollectionService>(CollectionService);
         walletService = module.get<WalletService>(WalletService);
-        authService = module.get<AuthService>(AuthService);
+        userService = module.get<UserService>(UserService);
     });
 
-    afterAll(async () => {});
+    afterAll(async () => {
+        global.gc && global.gc();
+    });
 
     describe('executeGlobalSearchV1', () => {
         it('should perform search for collection', async () => {
@@ -78,14 +80,14 @@ describe('SearchService', () => {
 
         it('should perform search for user', async () => {
             const name = faker.name.fullName();
-            const user = await authService.createUserWithEmail({
+            const user = await userService.createUser({
                 name,
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
             const wallet = await walletService.createWallet({
                 address: faker.finance.ethereumAddress(),
-                ownerId: user.user.id,
+                ownerId: user.id,
             });
 
             const result = await service.executeGlobalSearchV1({ searchTerm: wallet.address });

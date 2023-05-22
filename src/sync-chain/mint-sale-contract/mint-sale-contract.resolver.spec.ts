@@ -13,7 +13,7 @@ import { MintSaleContractService } from './mint-sale-contract.service';
 
 export const gql = String.raw;
 
-describe.only('MintSaleContractResolver', () => {
+describe('MintSaleContractResolver', () => {
     let repository: Repository<MintSaleContract>;
     let service: MintSaleContractService;
     let app: INestApplication;
@@ -25,11 +25,7 @@ describe.only('MintSaleContractResolver', () => {
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
                     type: 'postgres',
-                    host: postgresConfig.syncChain.host,
-                    port: postgresConfig.syncChain.port,
-                    username: postgresConfig.syncChain.username,
-                    password: postgresConfig.syncChain.password,
-                    database: postgresConfig.syncChain.database,
+                    url: postgresConfig.syncChain.url,
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
@@ -73,6 +69,7 @@ describe.only('MintSaleContractResolver', () => {
     });
 
     afterAll(async () => {
+        global.gc && global.gc();
         await app.close();
     });
 

@@ -13,7 +13,7 @@ import { OrganizationService } from '../../organization/organization.service';
 import { UserModule } from '../../user/user.module';
 import { OrganizationModule } from '../../organization/organization.module';
 
-describe.only('MintSaleContractService', () => {
+describe('MintSaleContractService', () => {
     let repository: Repository<MintSaleContract>;
     let service: MintSaleContractService;
     let collectionService: CollectionService;
@@ -34,11 +34,7 @@ describe.only('MintSaleContractService', () => {
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
                     type: 'postgres',
-                    host: postgresConfig.syncChain.host,
-                    port: postgresConfig.syncChain.port,
-                    username: postgresConfig.syncChain.username,
-                    password: postgresConfig.syncChain.password,
-                    database: postgresConfig.syncChain.database,
+                    url: postgresConfig.syncChain.url,
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
@@ -56,6 +52,10 @@ describe.only('MintSaleContractService', () => {
         collectionService = module.get<CollectionService>(CollectionService);
         userService = module.get<UserService>(UserService);
         organizationService = module.get<OrganizationService>(OrganizationService);
+    });
+
+    afterAll(async () => {
+        global.gc && global.gc();
     });
 
     describe('MintSaleContract', () => {

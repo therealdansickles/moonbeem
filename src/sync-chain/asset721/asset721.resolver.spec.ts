@@ -13,7 +13,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 
 export const gql = String.raw;
 
-describe.only('Asset721Resolver', () => {
+describe('Asset721Resolver', () => {
     let repository: Repository<Asset721>;
     let service: Asset721Service;
     let app: INestApplication;
@@ -25,11 +25,7 @@ describe.only('Asset721Resolver', () => {
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
                     type: 'postgres',
-                    host: postgresConfig.syncChain.host,
-                    port: postgresConfig.syncChain.port,
-                    username: postgresConfig.syncChain.username,
-                    password: postgresConfig.syncChain.password,
-                    database: postgresConfig.syncChain.database,
+                    url: postgresConfig.syncChain.url,
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
@@ -61,6 +57,7 @@ describe.only('Asset721Resolver', () => {
     });
 
     afterAll(async () => {
+        global.gc && global.gc();
         await app.close();
     });
 

@@ -13,7 +13,7 @@ import { SystemConfigService } from './system-config.service';
 
 export const gql = String.raw;
 
-describe.only('SystemConfigResolver', () => {
+describe('SystemConfigResolver', () => {
     let repository: Repository<SystemConfig>;
     let service: SystemConfigService;
     let app: INestApplication;
@@ -25,11 +25,7 @@ describe.only('SystemConfigResolver', () => {
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
                     type: 'postgres',
-                    host: postgresConfig.syncChain.host,
-                    port: postgresConfig.syncChain.port,
-                    username: postgresConfig.syncChain.username,
-                    password: postgresConfig.syncChain.password,
-                    database: postgresConfig.syncChain.database,
+                    url: postgresConfig.syncChain.url,
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
@@ -59,6 +55,7 @@ describe.only('SystemConfigResolver', () => {
     });
 
     afterAll(async () => {
+        global.gc && global.gc();
         await app.close();
     });
 

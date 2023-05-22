@@ -8,13 +8,14 @@ import { UserService } from './user.service';
 import { User } from './user.entity';
 import { OrganizationModule } from '../organization/organization.module';
 import { OrganizationService } from '../organization/organization.service';
+import { hashSync as hashPassword } from 'bcryptjs';
 
 describe('UserService', () => {
     let service: UserService;
     let repository: Repository<User>;
     let organizationService: OrganizationService;
 
-    beforeAll(async () => {
+    beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             imports: [
                 TypeOrmModule.forRoot({
@@ -28,11 +29,7 @@ describe('UserService', () => {
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
                     type: 'postgres',
-                    host: postgresConfig.syncChain.host,
-                    port: postgresConfig.syncChain.port,
-                    username: postgresConfig.syncChain.username,
-                    password: postgresConfig.syncChain.password,
-                    database: postgresConfig.syncChain.database,
+                    url: postgresConfig.syncChain.url,
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
@@ -45,6 +42,10 @@ describe('UserService', () => {
         service = module.get<UserService>(UserService);
         repository = module.get('UserRepository');
         organizationService = module.get<OrganizationService>(OrganizationService);
+    });
+
+    afterAll(async () => {
+        global.gc && global.gc();
     });
 
     describe('getUser', () => {
@@ -114,6 +115,30 @@ describe('UserService', () => {
             const updateUser = await repository.findOneBy({ id: user.id });
             expect(updateUser.username).toEqual(updatedUsername);
             expect(updateUser.avatarUrl).toEqual(updatedAvatarUrl);
+        });
+    });
+
+    describe('verifyUser', () => {
+        it('should verify user', async () => {
+            const email = faker.internet.email();
+            const password = faker.internet.password();
+            await repository.insert({ email, password });
+
+            const hashed = await hashPassword(password, 10);
+
+            const result = await service.verifyUser(email, hashed);
+            expect(result.email).toEqual(email);
+        });
+
+        it('should return null on invalid credentials', async () => {
+            const email = faker.internet.email();
+            const password = faker.internet.password();
+            await repository.insert({ email, password });
+
+            const hashed = await hashPassword('invalid password');
+
+            const result = await service.verifyUser(email, hashed);
+            expect(result).toBeNull();
         });
     });
 });

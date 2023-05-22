@@ -7,7 +7,7 @@ import { ContractType, Factory } from './factory.entity';
 import { FactoryService } from './factory.service';
 import { FactoryModule } from './factory.module';
 
-describe.only('FactoryService', () => {
+describe('FactoryService', () => {
     let repository: Repository<Factory>;
     let service: FactoryService;
 
@@ -17,11 +17,7 @@ describe.only('FactoryService', () => {
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
                     type: 'postgres',
-                    host: postgresConfig.syncChain.host,
-                    port: postgresConfig.syncChain.port,
-                    username: postgresConfig.syncChain.username,
-                    password: postgresConfig.syncChain.password,
-                    database: postgresConfig.syncChain.database,
+                    url: postgresConfig.syncChain.url,
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
@@ -35,7 +31,7 @@ describe.only('FactoryService', () => {
     });
 
     afterAll(async () => {
-        await repository.query('TRUNCATE TABLE "Factory" CASCADE');
+        global.gc && global.gc();
     });
 
     describe('getFactory', () => {

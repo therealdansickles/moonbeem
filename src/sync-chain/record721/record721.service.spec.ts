@@ -7,7 +7,7 @@ import { Record721 } from './record721.entity';
 import { Record721Module } from './record721.module';
 import { Record721Service } from './record721.service';
 
-describe.only('Record721Service', () => {
+describe('Record721Service', () => {
     let repository: Repository<Record721>;
     let service: Record721Service;
 
@@ -17,11 +17,7 @@ describe.only('Record721Service', () => {
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
                     type: 'postgres',
-                    host: postgresConfig.syncChain.host,
-                    port: postgresConfig.syncChain.port,
-                    username: postgresConfig.syncChain.username,
-                    password: postgresConfig.syncChain.password,
-                    database: postgresConfig.syncChain.database,
+                    url: postgresConfig.syncChain.url,
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
@@ -33,6 +29,10 @@ describe.only('Record721Service', () => {
 
         repository = module.get('sync_chain_Record721Repository');
         service = module.get<Record721Service>(Record721Service);
+    });
+
+    afterAll(async () => {
+        global.gc && global.gc();
     });
 
     describe('erc721 record', () => {

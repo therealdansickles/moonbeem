@@ -1,6 +1,6 @@
 import { Args, Resolver, Query, Int } from '@nestjs/graphql';
 import { Factory, GetFactoriesInput } from './factory.dto';
-import { Public } from '../../lib/decorators/public.decorator';
+import { Public } from '../../session/session.decorator';
 import { FactoryService } from './factory.service';
 
 @Resolver('Factory')

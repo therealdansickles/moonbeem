@@ -16,13 +16,14 @@ import { UserService } from '../user/user.service';
 describe('MembershipService', () => {
     let repository: Repository<Membership>;
     let service: MembershipService;
-    let membership: Membership;
     let organization: Organization;
     let organizationService: OrganizationService;
+    let organizationRepository: Repository<Organization>;
     let user: User;
     let userService: UserService;
+    let userRepository: Repository<User>;
 
-    beforeAll(async () => {
+    beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             imports: [
                 TypeOrmModule.forRoot({
@@ -36,11 +37,7 @@ describe('MembershipService', () => {
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
                     type: 'postgres',
-                    host: postgresConfig.syncChain.host,
-                    port: postgresConfig.syncChain.port,
-                    username: postgresConfig.syncChain.username,
-                    password: postgresConfig.syncChain.password,
-                    database: postgresConfig.syncChain.database,
+                    url: postgresConfig.syncChain.url,
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
@@ -53,15 +50,11 @@ describe('MembershipService', () => {
         repository = module.get('MembershipRepository');
         service = module.get<MembershipService>(MembershipService);
         userService = module.get<UserService>(UserService);
+        userRepository = module.get('UserRepository');
         organizationService = module.get<OrganizationService>(OrganizationService);
+        organizationRepository = module.get('OrganizationRepository');
 
         user = await userService.createUser({
-            email: faker.internet.email(),
-            username: faker.internet.userName(),
-            password: faker.internet.password(),
-        });
-
-        const owner = await userService.createUser({
             email: faker.internet.email(),
             username: faker.internet.userName(),
             password: faker.internet.password(),
@@ -72,17 +65,20 @@ describe('MembershipService', () => {
             displayName: faker.company.name(),
             about: faker.company.catchPhrase(),
             avatarUrl: faker.image.imageUrl(),
-            owner: owner,
+            owner: user,
         });
+    });
 
-        membership = await repository.save({
-            organization: organization,
-            user: user,
-        });
+    afterAll(async () => {
+        global.gc && global.gc();
     });
 
     describe('getMembership', () => {
         it('should return a membership', async () => {
+            const membership = await repository.findOneBy({
+                organization: { id: organization.id },
+                user: { id: user.id },
+            });
             const result = await service.getMembership(membership.id);
             expect(result.id).toEqual(membership.id);
             expect(result.user.id).toEqual(user.id);
@@ -94,7 +90,6 @@ describe('MembershipService', () => {
         it('should return memberships', async () => {
             const result = await service.getMembershipsByOrganizationId(organization.id);
             expect(result.length).toEqual(1);
-            expect(result[0].id).toEqual(membership.id);
             expect(result[0].user.id).toEqual(user.id);
             expect(result[0].organization.id).toEqual(organization.id);
         });
@@ -122,14 +117,11 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            const result = await service.createMembership(
-                {
-                    organizationId: newOrganization.id,
-                    userId: newUser.id,
-                    canDeploy: true,
-                },
-                owner
-            );
+            const result = await service.createMembership({
+                organizationId: newOrganization.id,
+                userId: newUser.id,
+                canDeploy: true,
+            });
             expect(result.id).toBeDefined();
             expect(result.canDeploy).toBeTruthy();
             expect(result.organization.id).toEqual(newOrganization.id);
@@ -138,12 +130,6 @@ describe('MembershipService', () => {
         });
 
         it('should prevent duplicate memberships', async () => {
-            const newUser = await userService.createUser({
-                email: faker.internet.email(),
-                username: faker.internet.userName(),
-                password: faker.internet.password(),
-            });
-
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
@@ -159,9 +145,7 @@ describe('MembershipService', () => {
             });
 
             await expect(async () => {
-                await service.createMembership({ organizationId: newOrganization.id, userId: newUser.id }, owner);
-                await service.createMembership({ organizationId: newOrganization.id, userId: newUser.id }, owner);
-                await service.createMembership({ organizationId: newOrganization.id, userId: newUser.id }, owner);
+                await service.createMembership({ organizationId: newOrganization.id, userId: owner.id });
             }).rejects.toThrow();
         });
     });
@@ -188,13 +172,10 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            const membership = await service.createMembership(
-                {
-                    organizationId: organization.id,
-                    userId: user.id,
-                },
-                owner
-            );
+            const membership = await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
 
             const result = await service.updateMembership(membership.id, { canEdit: true });
             expect(result.canEdit).toBeTruthy();
@@ -223,13 +204,10 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            const membership = await service.createMembership(
-                {
-                    organizationId: organization.id,
-                    userId: user.id,
-                },
-                owner
-            );
+            const membership = await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
 
             const result = await service.acceptMembership({
                 userId: user.id,
@@ -261,13 +239,10 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            await service.createMembership(
-                {
-                    organizationId: organization.id,
-                    userId: user.id,
-                },
-                owner
-            );
+            await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
 
             await expect(async () => {
                 await service.acceptMembership({ userId: user.id, organizationId: organization.id, inviteCode: '' });
@@ -297,13 +272,10 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            const membership = await service.createMembership(
-                {
-                    organizationId: organization.id,
-                    userId: user.id,
-                },
-                owner
-            );
+            const membership = await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
 
             const result = await service.declineMembership({
                 userId: user.id,
@@ -335,14 +307,6 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            await service.createMembership(
-                {
-                    organizationId: organization.id,
-                    userId: user.id,
-                },
-                owner
-            );
-
             await expect(async () => {
                 await service.declineMembership({ userId: user.id, organizationId: organization.id, inviteCode: '' });
             }).rejects.toThrow();
@@ -351,6 +315,10 @@ describe('MembershipService', () => {
 
     describe('deleteMembership', () => {
         it('should delete a membership', async () => {
+            const membership = await repository.findOneBy({
+                organization: { id: organization.id },
+                user: { id: user.id },
+            });
             const result = await service.deleteMembership(membership.id);
             expect(result).toBeTruthy();
         });

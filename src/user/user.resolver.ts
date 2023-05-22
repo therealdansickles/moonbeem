@@ -1,8 +1,7 @@
 import { Resolver, Args, Query, Mutation, ResolveField, Parent } from '@nestjs/graphql';
-import { Public } from '../lib/decorators/public.decorator';
+import { Public } from '../session/session.decorator';
 import { UserService } from './user.service';
-// import { User } from './user.entity';
-import { User, UpdateUserInput } from './user.dto';
+import { User, CreateUserInput, UpdateUserInput } from './user.dto';
 import { Membership } from '../membership/membership.dto';
 import { MembershipService } from '../membership/membership.service';
 import { Organization } from '../organization/organization.dto';
@@ -23,6 +22,12 @@ export class UserResolver {
         @Args({ name: 'username', nullable: true }) username: string
     ): Promise<User> {
         return await this.userService.getUser({ id, username });
+    }
+
+    @Public()
+    @Mutation(() => User, { description: 'create a new user with a default organization.' })
+    async createUser(@Args('input') input: CreateUserInput): Promise<User> {
+        return await this.userService.createUserWithOrganization(input);
     }
 
     @Public()

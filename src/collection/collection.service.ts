@@ -10,6 +10,7 @@ import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-con
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Wallet } from '../wallet/wallet.entity';
 import { Collaboration } from '../collaboration/collaboration.entity';
+import * as Sentry from '@sentry/node';
 
 @Injectable()
 export class CollectionService {
@@ -108,6 +109,7 @@ export class CollectionService {
         try {
             return this.collectionRepository.save(data);
         } catch (e) {
+            Sentry.captureException(e);
             throw new GraphQLError('Failed to create new collection.', {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
@@ -125,6 +127,7 @@ export class CollectionService {
             const result: UpdateResult = await this.collectionRepository.update(id, data);
             return result.affected > 0;
         } catch (e) {
+            Sentry.captureException(e);
             throw new GraphQLError(`Failed to update collection ${id}.`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
@@ -142,6 +145,7 @@ export class CollectionService {
             const result: UpdateResult = await this.collectionRepository.update(id, { publishedAt: new Date() });
             return result.affected > 0;
         } catch (e) {
+            Sentry.captureException(e);
             throw new GraphQLError(`Failed to publish collection ${id}.`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
@@ -158,9 +162,12 @@ export class CollectionService {
      */
     async deleteCollection(id: string): Promise<boolean> {
         try {
+            // remove the collection tiers first
+            await this.tierRepository.delete({ collection: { id } });
             const result = await this.collectionRepository.delete({ id, publishedAt: IsNull() });
             return result.affected > 0;
         } catch (e) {
+            Sentry.captureException(e);
             throw new GraphQLError(`Failed to delete collection ${id}.`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
@@ -175,7 +182,7 @@ export class CollectionService {
      * @returns The newly created collection.
      */
     async createCollectionWithTiers(data: CreateCollectionInput) {
-        const { tiers, collaboration, ...collection } = data;
+        const { tiers, ...collection } = data;
         const kind = collectionEntity.CollectionKind;
         if ([kind.whitelistEdition, kind.whitelistTiered, kind.whitelistBulk].indexOf(collection.kind) >= 0) {
             tiers.forEach((tier) => {
@@ -186,26 +193,31 @@ export class CollectionService {
 
         const createResult = await this.collectionRepository.save(collection as Collection);
 
-        if (data.tiers) {
-            tiers.forEach(async (tier) => {
+        if (tiers) {
+            for (const tier of tiers) {
                 const dd = tier as unknown as Tier;
                 dd.collection = createResult.id as unknown as collectionEntity.Collection;
-                const attributesJson = JSON.stringify(tier.attributes);
-                dd.attributes = attributesJson;
+                if (tier.attributes) {
+                    tier.attributes.forEach((attribute) =>
+                        Object.keys(attribute).forEach((key) => attribute[key] === '' && delete attribute[key])
+                    );
+                    const attributesJson = JSON.stringify(tier.attributes);
+                    dd.attributes = attributesJson;
+                }
 
                 try {
-                    return await this.tierRepository.save(dd);
+                    await this.tierRepository.save(dd);
                 } catch (e) {
                     throw new GraphQLError(`Failed to create tier ${data.name}`, {
                         extensions: { code: 'INTERNAL_SERVER_ERROR' },
                     });
                 }
-            });
+            }
         }
 
         const result = await this.collectionRepository.findOne({
             where: { id: createResult.id },
-            relations: ['tiers', 'organization'],
+            relations: ['tiers', 'organization', 'collaboration'],
         });
         return result;
     }

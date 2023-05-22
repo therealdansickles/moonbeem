@@ -1,14 +1,18 @@
 import {
-    Entity,
-    Column,
-    PrimaryGeneratedColumn,
-    CreateDateColumn,
-    UpdateDateColumn,
     BaseEntity,
-    OneToMany,
-    ManyToOne,
+    BeforeInsert,
+    BeforeUpdate,
+    Column,
+    CreateDateColumn,
+    Entity,
     JoinColumn,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
+import { hashSync as hashPassword } from 'bcryptjs';
+
 import { Wallet } from '../wallet/wallet.entity';
 import { Membership } from '../membership/membership.entity';
 import { Organization } from '../organization/organization.entity';
@@ -69,4 +73,26 @@ export class User extends BaseEntity {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+    /**
+     * Lowercase the fields on the User.
+     *
+     */
+    @BeforeInsert()
+    @BeforeUpdate()
+    async lowercaseFields() {
+        if (this.email) {
+            this.email = this.email.toLowerCase();
+        }
+    }
+
+    /**
+     * Hashes the password before inserting it into the database.
+     */
+    @BeforeInsert()
+    async storeHashedPassword() {
+        if (this.password) {
+            this.password = await hashPassword(this.password, 10);
+        }
+    }
 }

@@ -1,15 +1,25 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Waitlist } from './waitlist.entity';
-import { Repository, UpdateResult } from 'typeorm';
-import { CreateWaitlistInput, GetWaitlistInput, ClaimWaitlistInput } from './waitlist.dto';
+import { ILike, Repository, UpdateResult } from 'typeorm';
+import {
+    CreateWaitlistInput,
+    GetWaitlistInput,
+    ClaimWaitlistInput,
+    ClaimProfileInput,
+    ClaimProfileResult,
+} from './waitlist.dto';
 import { ethers } from 'ethers';
 import { GraphQLError } from 'graphql';
-import * as Sentry from '@sentry/node';
+import { captureException } from '@sentry/node';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 
 @Injectable()
 export class WaitlistService {
-    constructor(@InjectRepository(Waitlist) private waitlistRepository: Repository<Waitlist>) {}
+    constructor(
+        @InjectRepository(Waitlist) private waitlistRepository: Repository<Waitlist>,
+        @InjectRepository(MintSaleTransaction, 'sync_chain') private transaction: Repository<MintSaleTransaction>
+    ) {}
 
     /**
      * Retrieves a waitlist item associated with the given email.
@@ -21,7 +31,9 @@ export class WaitlistService {
         if (!input.email && !input.address) {
             return null;
         }
-        return this.waitlistRepository.findOne({ where: [{ email: input.email }, { address: input.address }] });
+        return this.waitlistRepository.findOne({
+            where: [{ email: ILike(input.email) }, { address: ILike(input.address) }],
+        });
     }
 
     /**
@@ -31,7 +43,7 @@ export class WaitlistService {
      * @returns The created waitlist item.
      */
     async createWaitlist(input: CreateWaitlistInput): Promise<Waitlist> {
-        const verifiedAddress = ethers.utils.verifyMessage(input.message, input.signature);
+        const verifiedAddress = ethers.verifyMessage(input.message, input.signature);
         if (input.address.toLowerCase() !== verifiedAddress.toLocaleLowerCase()) {
             throw new GraphQLError(`signature verification failure`, {
                 extensions: { code: 'BAD_REQUEST' },
@@ -46,7 +58,7 @@ export class WaitlistService {
                     extensions: { code: 'BAD_REQUEST' },
                 });
             } else {
-                Sentry.captureException(e);
+                captureException(e);
                 throw new GraphQLError(`Failed to create waitlist item`, {
                     extensions: { code: 'INTERNAL_SERVER_ERROR' },
                 });
@@ -61,7 +73,7 @@ export class WaitlistService {
      * @returns A boolean whether or not if the waitlist was claimed.
      */
     async claimWaitlist(input: ClaimWaitlistInput): Promise<boolean> {
-        const verifiedAddress = ethers.utils.verifyMessage(input.message, input.signature);
+        const verifiedAddress = ethers.verifyMessage(input.message, input.signature);
 
         if (input.address.toLowerCase() !== verifiedAddress.toLocaleLowerCase()) {
             throw new GraphQLError(`signature verification failure`, {

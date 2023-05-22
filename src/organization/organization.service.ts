@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as Sentry from '@sentry/node';
+import { captureException } from '@sentry/node';
+import { generate as generateString } from 'randomstring';
 
-import { Organization } from './organization.entity';
+import { Organization, OrganizationKind } from './organization.entity';
 import { CreateOrganizationInput, UpdateOrganizationInput } from './organization.dto';
 import { User } from '../user/user.entity';
 import { GraphQLError } from 'graphql';
@@ -43,29 +44,37 @@ export class OrganizationService {
 
         const owner = await this.userRepository.findOneBy({ id: data.owner.id });
 
-        const { invites, ...createOrganizationData } = data;
-
-        const organization = await this.organizationRepository.save(createOrganizationData);
-
-        if (invites) {
-            for (const invite of invites) {
-                await this.membershipService.createMembership(
-                    {
-                        email: invite.email.toLowerCase(),
-                        organizationId: organization.id,
-                        canEdit: invite.canEdit,
-                        canDeploy: invite.canDeploy,
-                        canManage: invite.canManage,
-                    },
-                    owner
-                );
-            }
-        }
+        const organization = await this.organizationRepository.save(data);
+        await this.membershipService.createMembership({
+            userId: owner.id,
+            organizationId: organization.id,
+            canEdit: true,
+            canDeploy: true,
+            canManage: true,
+        });
 
         return await this.organizationRepository.findOne({
             where: { id: organization.id },
             relations: ['owner'],
         });
+    }
+
+    /**
+     * Create a default (personal) organization for a user.
+     *
+     * @param user The user to create the default organization for.
+     * @returns The created default organization.
+     */
+    async createPersonalOrganization(user: User): Promise<Organization> {
+        const pseudoOrgName = generateString(12);
+        const defaultOrgPayload = {
+            name: pseudoOrgName,
+            displayName: pseudoOrgName,
+            kind: OrganizationKind.personal,
+            owner: { id: user.id },
+        };
+
+        return await this.createOrganization(defaultOrgPayload);
     }
 
     /**
@@ -99,7 +108,7 @@ export class OrganizationService {
                 relations: ['owner'],
             });
         } catch (e) {
-            Sentry.captureException(e);
+            captureException(e);
             throw new GraphQLError(`Failed to update organization ${id}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
@@ -158,7 +167,7 @@ export class OrganizationService {
         try {
             return this.organizationRepository.save(organization);
         } catch (e) {
-            Sentry.captureException(e);
+            captureException(e);
             throw new GraphQLError(`Failed to transfer organization ${id} to user ${ownerId}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });

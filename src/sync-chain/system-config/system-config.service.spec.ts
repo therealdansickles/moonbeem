@@ -7,7 +7,7 @@ import { SystemConfigModule } from './system-config.module';
 import { SystemConfigService } from './system-config.service';
 import { SystemConfig } from './system-config.entity';
 
-describe.only('SystemConfigService', () => {
+describe('SystemConfigService', () => {
     let repository: Repository<SystemConfig>;
     let service: SystemConfigService;
 
@@ -17,11 +17,7 @@ describe.only('SystemConfigService', () => {
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
                     type: 'postgres',
-                    host: postgresConfig.syncChain.host,
-                    port: postgresConfig.syncChain.port,
-                    username: postgresConfig.syncChain.username,
-                    password: postgresConfig.syncChain.password,
-                    database: postgresConfig.syncChain.database,
+                    url: postgresConfig.syncChain.url,
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
@@ -33,6 +29,10 @@ describe.only('SystemConfigService', () => {
 
         repository = module.get('sync_chain_SystemConfigRepository');
         service = module.get<SystemConfigService>(SystemConfigService);
+    });
+
+    afterAll(async () => {
+        global.gc && global.gc();
     });
 
     describe('system config', () => {

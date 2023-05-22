@@ -7,7 +7,7 @@ import { CoinModule } from './coin.module';
 import { Coin } from './coin.entity';
 import { CoinService } from './coin.service';
 
-describe.only('CoinService', () => {
+describe('CoinService', () => {
     let repository: Repository<Coin>;
     let service: CoinService;
 
@@ -17,11 +17,7 @@ describe.only('CoinService', () => {
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
                     type: 'postgres',
-                    host: postgresConfig.syncChain.host,
-                    port: postgresConfig.syncChain.port,
-                    username: postgresConfig.syncChain.username,
-                    password: postgresConfig.syncChain.password,
-                    database: postgresConfig.syncChain.database,
+                    url: postgresConfig.syncChain.url,
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
@@ -33,6 +29,10 @@ describe.only('CoinService', () => {
 
         repository = module.get('sync_chain_CoinRepository');
         service = module.get<CoinService>(CoinService);
+    });
+
+    afterAll(async () => {
+        global.gc && global.gc();
     });
 
     describe('coin', () => {
@@ -66,7 +66,7 @@ describe.only('CoinService', () => {
             expect(result.id).toEqual(coin.id);
         });
 
-        it('should get coin list', async () => {
+        it('should get coin list for chainId', async () => {
             const coin = await service.createCoin({
                 address: faker.finance.ethereumAddress(),
                 name: 'Tether USD',
@@ -78,6 +78,22 @@ describe.only('CoinService', () => {
             });
 
             const data = { chainId: 1 };
+            const result = await service.getCoins(data);
+            expect(result.length).toBeGreaterThanOrEqual(2);
+        });
+
+        it('should get the entire coin list', async () => {
+            const coin = await service.createCoin({
+                address: faker.finance.ethereumAddress(),
+                name: 'Tether USD',
+                symbol: 'USDT',
+                decimals: 6,
+                derivedETH: faker.random.numeric(5),
+                derivedUSDC: faker.random.numeric(5),
+                chainId: 1,
+            });
+
+            const data = { chainId: 0 };
             const result = await service.getCoins(data);
             expect(result.length).toBeGreaterThanOrEqual(2);
         });

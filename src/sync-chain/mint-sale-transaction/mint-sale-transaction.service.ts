@@ -3,6 +3,13 @@ import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { MintSaleTransaction } from './mint-sale-transaction.entity';
 import { LeaderboardRanking } from './mint-sale-transaction.dto';
+import { GraphQLError } from 'graphql';
+
+interface GetTransactionInput {
+    id?: string;
+    address?: string;
+    recipient?: string;
+}
 
 @Injectable()
 export class MintSaleTransactionService {
@@ -15,8 +22,13 @@ export class MintSaleTransactionService {
         return await this.transactionRepository.save(data);
     }
 
-    async getMintSaleTransaction(id: string): Promise<MintSaleTransaction> {
-        return await this.transactionRepository.findOneBy({ id });
+    async getMintSaleTransaction(input: GetTransactionInput): Promise<MintSaleTransaction> {
+        if (!input.id && !input.address && !input.recipient) {
+            throw new GraphQLError("Either 'id' or 'address' or 'recipient' have to be provided.", {
+                extensions: { code: 'BAD_REQUEST' },
+            });
+        }
+        return await this.transactionRepository.findOneBy(input);
     }
 
     async getLeaderboard(address: string): Promise<LeaderboardRanking[]> {

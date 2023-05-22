@@ -6,22 +6,18 @@ import { faker } from '@faker-js/faker';
 import { AppModule } from '../app.module';
 import { UploadController } from './upload.controller';
 import { UploadService } from '../services/upload.service';
-import { AppController } from './app.controller';
 import { AWSAdapter } from '../lib/adapters/aws.adapter';
-import { AppService } from '../services/app.service';
 import { RpcClient } from '../lib/adapters/eth.client.adapter';
 import { RedisAdapter } from '../lib/adapters/redis.adapter';
 import { PostgresAdapter } from '../lib/adapters/postgres.adapter';
 
 describe('UploadController', () => {
     let app: INestApplication;
-    let appController: AppController;
     let uploadService: UploadService;
     let uploadController: UploadController;
 
     let awsAdapter: AWSAdapter;
     let requestService: HttpService;
-    let appService: AppService;
     let rpcClient: RpcClient;
     let redisClient: RedisAdapter;
     let postgresClient: PostgresAdapter;
@@ -30,7 +26,6 @@ describe('UploadController', () => {
         rpcClient = new RpcClient();
         redisClient = new RedisAdapter();
         postgresClient = new PostgresAdapter();
-        appService = new AppService(rpcClient, redisClient, postgresClient);
 
         awsAdapter = new AWSAdapter();
         uploadService = new UploadService(awsAdapter);
@@ -38,10 +33,7 @@ describe('UploadController', () => {
 
         const module: TestingModule = await Test.createTestingModule({
             imports: [AppModule, HttpModule],
-        })
-            .overrideProvider(AppService)
-            .useValue(appService)
-            .compile();
+        }).compile();
 
         requestService = module.get<HttpService>(HttpService);
         app = module.createNestApplication();

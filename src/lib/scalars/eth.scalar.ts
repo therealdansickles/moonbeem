@@ -7,7 +7,7 @@ export class EthereumAddress implements CustomScalar<string, string> {
     description = 'Ethereum Address custom scalar type';
 
     parseValue(value: string): string {
-        if (ethers.utils.isAddress(value)) {
+        if (ethers.isAddress(value)) {
             return value.toLowerCase();
         }
         throw new GraphQLError(`EthereumAddress cannot represent a non ethereum address value: ${value}`);

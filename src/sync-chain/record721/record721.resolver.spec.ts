@@ -13,7 +13,7 @@ import { Record721Module } from './record721.module';
 
 export const gql = String.raw;
 
-describe.only('Record721Resolver', () => {
+describe('Record721Resolver', () => {
     let repository: Repository<Record721>;
     let service: Record721Service;
     let app: INestApplication;
@@ -25,11 +25,7 @@ describe.only('Record721Resolver', () => {
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
                     type: 'postgres',
-                    host: postgresConfig.syncChain.host,
-                    port: postgresConfig.syncChain.port,
-                    username: postgresConfig.syncChain.username,
-                    password: postgresConfig.syncChain.password,
-                    database: postgresConfig.syncChain.database,
+                    url: postgresConfig.syncChain.url,
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
@@ -63,6 +59,7 @@ describe.only('Record721Resolver', () => {
     });
 
     afterAll(async () => {
+        global.gc && global.gc();
         await app.close();
     });
 

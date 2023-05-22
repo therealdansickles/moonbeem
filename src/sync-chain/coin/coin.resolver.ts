@@ -1,5 +1,5 @@
 import { Args, Int, Query, Resolver } from '@nestjs/graphql';
-import { Public } from '../../lib/decorators/public.decorator';
+import { Public } from '../../session/session.decorator';
 import { Coin } from './coin.dto';
 import { CoinService } from './coin.service';
 

@@ -9,7 +9,7 @@ import {
     Activity,
     EstimatedValue,
 } from './wallet.dto';
-import { Public } from '../lib/decorators/public.decorator';
+import { Public } from '../session/session.decorator';
 import { WalletService } from './wallet.service';
 import { Collection } from '../collection/collection.dto';
 import { CollectionService } from '../collection/collection.service';
@@ -24,9 +24,14 @@ export class WalletResolver {
         nullable: true,
     })
     async wallet(
-        @Args('address', { description: 'an ethereum or EIP-3770 address.' }) address: string
+        @Args('address', { description: 'an ethereum or EIP-3770 address.', nullable: true }) address: string,
+        @Args('name', { description: 'a name of the wallet.', nullable: true }) name: string
     ): Promise<Wallet> {
-        return await this.walletService.getWalletByAddress(address);
+        if (address) {
+            return await this.walletService.getWalletByAddress(address);
+        }
+        let result = await this.walletService.getWalletByName(name);
+        return result;
     }
 
     @Public()
@@ -57,8 +62,8 @@ export class WalletResolver {
     @Public()
     @ResolveField(() => [Activity], { description: 'Retrieves the activity for the given wallet.', nullable: true })
     async activities(@Parent() wallet: Wallet): Promise<Activity[]> {
-        const activities = await this.walletService.getMintedByAddress(wallet.address);
-        return activities.map((activity) => ({ type: 'Mint', ...activity }));
+        const activities = await this.walletService.getActivitiesByAddress(wallet.address);
+        return activities;
     }
 
     @Public()
@@ -68,6 +73,7 @@ export class WalletResolver {
         return await this.walletService.updateWallet(id, payload);
     }
 
+    @Public()
     @ResolveField(() => [EstimatedValue], {
         description: 'Retrieve the estimated value of a address holdings/minted collections by address.',
     })
@@ -75,6 +81,7 @@ export class WalletResolver {
         return await this.walletService.getEstimatesByAddress(wallet.address);
     }
 
+    @Public()
     @ResolveField(() => [Collection], { description: 'Retrieve the owned collections by the wallet address.' })
     async createdCollections(@Parent() wallet: Wallet): Promise<Collection[]> {
         return await this.collectionService.getCreatedCollectionsByWalletId(wallet.id);

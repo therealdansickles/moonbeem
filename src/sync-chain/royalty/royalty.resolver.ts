@@ -1,5 +1,5 @@
 import { Args, Resolver, Query } from '@nestjs/graphql';
-import { Public } from '../../lib/decorators/public.decorator';
+import { Public } from '../../session/session.decorator';
 import { RoyaltyService } from './royalty.service';
 import { Royalty } from './royalty.dto';
 

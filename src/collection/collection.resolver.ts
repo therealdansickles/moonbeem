@@ -1,5 +1,5 @@
 import { Resolver, Query, Args, Mutation, ResolveField, Parent } from '@nestjs/graphql';
-import { Public } from '../lib/decorators/public.decorator';
+import { Public } from '../session/session.decorator';
 import { CollectionService } from './collection.service';
 import { Collection, CollectionInput, CreateCollectionInput, UpdateCollectionInput } from './collection.dto';
 import { Wallet } from '../wallet/wallet.dto';

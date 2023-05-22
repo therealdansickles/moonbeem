@@ -20,6 +20,10 @@ export class CoinService {
     }
 
     async getCoins(data: any): Promise<Coin[]> {
+        if (data.chainId === 0) {
+            const { enable } = data;
+            return await this.coinRepository.find({ where: { enable } });
+        }
         return await this.coinRepository.find({ where: data });
     }
 }

@@ -11,17 +11,17 @@ import { CollectionService } from '../collection/collection.service';
 import { SearchModule } from './search.module';
 import { CollectionModule } from '../collection/collection.module';
 import { WalletService } from '../wallet/wallet.service';
-import { AuthService } from '../auth/auth.service';
-import { AuthModule } from '../auth/auth.module';
 import { WalletModule } from '../wallet/wallet.module';
+import { UserService } from '../user/user.service';
+import { UserModule } from '../user/user.module';
 
 export const gql = String.raw;
 
 describe('SearchResolver', () => {
     let walletService: WalletService;
-    let authService: AuthService;
     let collectionService: CollectionService;
     let app: INestApplication;
+    let userService: UserService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -46,25 +46,26 @@ describe('SearchResolver', () => {
                     logging: false,
                 }),
                 SearchModule,
-                AuthModule,
                 CollectionModule,
                 WalletModule,
+                UserModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
-                    include: [SearchModule, WalletModule, AuthModule],
+                    include: [SearchModule, WalletModule],
                 }),
             ],
         }).compile();
 
+        userService = module.get<UserService>(UserService);
         walletService = module.get<WalletService>(WalletService);
-        authService = module.get<AuthService>(AuthService);
         collectionService = module.get<CollectionService>(CollectionService);
         app = module.createNestApplication();
         await app.init();
     });
 
     afterAll(async () => {
+        global.gc && global.gc();
         await app.close();
     });
 
@@ -122,14 +123,14 @@ describe('SearchResolver', () => {
 
         it('should perform search for user', async () => {
             const name = faker.company.name();
-            const user = await authService.createUserWithEmail({
+            const user = await userService.createUser({
                 name,
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
             const wallet = await walletService.createWallet({
                 address: faker.finance.ethereumAddress(),
-                ownerId: user.user.id,
+                ownerId: user.id,
             });
 
             const query = gql`

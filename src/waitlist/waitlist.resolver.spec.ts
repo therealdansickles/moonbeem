@@ -10,6 +10,7 @@ import { postgresConfig } from '../lib/configs/db.config';
 
 import { WaitlistModule } from './waitlist.module';
 import { WaitlistService } from './waitlist.service';
+import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
 
 export const gql = String.raw;
 
@@ -28,7 +29,16 @@ describe('WaitlistResolver', () => {
                     logging: false,
                     dropSchema: true,
                 }),
+                TypeOrmModule.forRoot({
+                    name: 'sync_chain',
+                    type: 'postgres',
+                    url: postgresConfig.syncChain.url,
+                    autoLoadEntities: true,
+                    synchronize: true,
+                    logging: false,
+                }),
                 WaitlistModule,
+                MintSaleTransactionModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
@@ -43,6 +53,7 @@ describe('WaitlistResolver', () => {
     });
 
     afterAll(async () => {
+        global.gc && global.gc();
         await app.close();
     });
 
@@ -152,7 +163,7 @@ describe('WaitlistResolver', () => {
                     address: randomWallet.address,
                     message,
                     signature,
-                    kind: faker.hacker.noun()
+                    kind: faker.hacker.noun(),
                 },
             };
 
@@ -164,7 +175,7 @@ describe('WaitlistResolver', () => {
                     expect(body.data.createWaitlist.email).toEqual(email);
                     expect(body.data.createWaitlist.id).toBeDefined();
                     expect(body.data.createWaitlist.seatNumber).toBeDefined();
-                    expect(body.data.createWaitlist.kind).toEqual(variables.input.kind)
+                    expect(body.data.createWaitlist.kind).toEqual(variables.input.kind);
                 });
         });
 

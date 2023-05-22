@@ -15,6 +15,7 @@ import { TierModule } from '../tier/tier.module';
 import { faker } from '@faker-js/faker';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { PollerModule } from './poller.module';
+import { Coin } from 'src/sync-chain/coin/coin.dto';
 
 describe('PollerService', () => {
     let service: PollerService;
@@ -22,6 +23,7 @@ describe('PollerService', () => {
     let coinService: CoinService;
     let tierService: TierService;
     let mintSaleTransactionService: MintSaleTransactionService;
+    let coin: Coin;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -59,19 +61,13 @@ describe('PollerService', () => {
         coinService = module.get<CoinService>(CoinService);
     });
 
+    afterAll(async () => {
+        global.gc && global.gc();
+    });
+
     describe('#getSaleRecord', () => {
         beforeEach(async () => {
-            const collection = await collectionService.createCollection({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                artists: [],
-                tags: [],
-                kind: CollectionKind.tiered,
-                address: faker.finance.ethereumAddress(),
-            });
-
-            const coin = await coinService.createCoin({
+            coin = await coinService.createCoin({
                 address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
                 name: 'Wrapped Ether',
                 symbol: 'WETH',
@@ -80,6 +76,18 @@ describe('PollerService', () => {
                 derivedUSDC: 1,
                 enabled: true,
                 chainId: 1,
+            });
+        });
+
+        it('should return sale records for tier without attributes', async () => {
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.tiered,
+                address: faker.finance.ethereumAddress(),
             });
 
             const tier = await tierService.createTier({
@@ -105,12 +113,116 @@ describe('PollerService', () => {
                 collectionId: collection.id,
                 paymentToken: faker.finance.ethereumAddress(),
             });
-        });
 
-        it('should return sale records', async () => {
             const result = await service.getSaleRecord();
             expect(result).toBeDefined();
             expect(result.length).toBeGreaterThanOrEqual(1);
+        });
+
+        it('should return sale records for tier with attributes', async () => {
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.tiered,
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '100',
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+                attributes: [
+                    {
+                        trait_type: 'Powerup',
+                        value: '1000',
+                    },
+                ],
+            });
+
+            const txn = await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collection.address,
+                tierId: tier.tierId,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                collectionId: collection.id,
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
+            const result = await service.getSaleRecord();
+            expect(result).toBeDefined();
+            expect(result.length).toBeGreaterThanOrEqual(1);
+
+            const returnedRecord = result.find((r) => r.collection_id === collection.id);
+
+            expect(returnedRecord.attributes.length).toBeGreaterThanOrEqual(1);
+            expect(returnedRecord.attributes[0].trait_type).toBe('Powerup');
+        });
+
+        it('should return sale records for tier while removing empty display_type', async () => {
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.tiered,
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '100',
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+                attributes: [
+                    {
+                        trait_type: 'Powerup',
+                        value: '1000',
+                    },
+                    {
+                        display_type: '',
+                        trait_type: 'Sword',
+                        value: '20',
+                    },
+                ],
+            });
+
+            const txn = await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collection.address,
+                tierId: tier.tierId,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                collectionId: collection.id,
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
+            const result = await service.getSaleRecord();
+            expect(result).toBeDefined();
+            expect(result.length).toBeGreaterThanOrEqual(1);
+
+            const returnedRecord = result.find((r) => r.collection_id === collection.id);
+            expect(returnedRecord.attributes.find((a) => a.trait_type === 'Sword')).toBeDefined();
+            expect(returnedRecord.attributes.find((a) => a.trait_type === 'Sword').display_type).not.toBeDefined();
         });
     });
 });

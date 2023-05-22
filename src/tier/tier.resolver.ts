@@ -1,4 +1,4 @@
-import { Public } from '../lib/decorators/public.decorator';
+import { Public } from '../session/session.decorator';
 import { Resolver, Query, Args, Mutation, ResolveField, Parent, Int } from '@nestjs/graphql';
 
 import { Tier, CreateTierInput, UpdateTierInput, DeleteTierInput, Profit } from './tier.dto';
@@ -14,6 +14,7 @@ export class TierResolver {
         return await this.tierService.getTier(id);
     }
 
+    @Public()
     @Query(() => [Tier], { description: 'Get tiers by collection id', nullable: true })
     async tiers(@Args('collectionId') collectionId: string): Promise<Tier[]> {
         return await this.tierService.getTiersByCollection(collectionId);

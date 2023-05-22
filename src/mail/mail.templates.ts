@@ -1,4 +1,9 @@
-import { AuthPayload } from 'src/auth/auth.service';
+interface AuthPayload {
+    id?: string;
+    address?: string;
+    signature?: string;
+    email?: string;
+}
 
 export const getVerificationEmailTemplate = (url: string): string => {
     return `<div style='background: #F7F8FC'>

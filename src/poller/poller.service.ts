@@ -10,6 +10,7 @@ import { MetadataPollerItem } from 'src/lib/modules/db.record.module';
 import { AWSAdapter, ResourceType } from '../lib/adapters/aws.adapter';
 import { Collection } from '../collection/collection.entity';
 import { omit } from 'lodash';
+import * as Sentry from '@sentry/node';
 
 export interface IMetadataForOpensea {
     id: string;
@@ -52,6 +53,20 @@ export class PollerService {
                     tierId: record.tierId,
                     collection: { id: collection.id },
                 });
+                let attributes: IAttributeForOpensea[] = [];
+                if (tier?.attributes) {
+                    try {
+                        attributes = JSON.parse(tier.attributes);
+                    } catch (e) {
+                        Sentry.captureException(e);
+                    }
+                }
+
+                // check for empty properties (i.e display_type) and remove them
+                attributes.forEach((attribute) =>
+                    Object.keys(attribute).forEach((key) => attribute[key] === '' && delete attribute[key])
+                );
+
                 result.push({
                     id: record.id,
                     token: record.address,
@@ -61,7 +76,7 @@ export class PollerService {
                     description: tier?.description,
                     image: tier?.image,
                     external_url: tier?.externalUrl,
-                    attributes: JSON.parse(tier?.attributes),
+                    attributes,
                 });
             }
         }

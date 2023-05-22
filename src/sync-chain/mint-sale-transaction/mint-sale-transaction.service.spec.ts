@@ -7,7 +7,7 @@ import { MintSaleTransaction } from './mint-sale-transaction.entity';
 import { MintSaleTransactionModule } from './mint-sale-transaction.module';
 import { MintSaleTransactionService } from './mint-sale-transaction.service';
 
-describe.only('MintSaleTransactionService', () => {
+describe('MintSaleTransactionService', () => {
     let repository: Repository<MintSaleTransaction>;
     let service: MintSaleTransactionService;
 
@@ -17,11 +17,7 @@ describe.only('MintSaleTransactionService', () => {
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
                     type: 'postgres',
-                    host: postgresConfig.syncChain.host,
-                    port: postgresConfig.syncChain.port,
-                    username: postgresConfig.syncChain.username,
-                    password: postgresConfig.syncChain.password,
-                    database: postgresConfig.syncChain.database,
+                    url: postgresConfig.syncChain.url,
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
@@ -33,6 +29,10 @@ describe.only('MintSaleTransactionService', () => {
 
         repository = module.get('sync_chain_MintSaleTransactionRepository');
         service = module.get<MintSaleTransactionService>(MintSaleTransactionService);
+    });
+
+    afterAll(async () => {
+        global.gc && global.gc();
     });
 
     describe('MintSaleTransaction', () => {
@@ -51,7 +51,7 @@ describe.only('MintSaleTransactionService', () => {
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
-            const result = await service.getMintSaleTransaction(transaction.id);
+            const result = await service.getMintSaleTransaction({ id: transaction.id });
             expect(result.id).toEqual(transaction.id);
         });
     });

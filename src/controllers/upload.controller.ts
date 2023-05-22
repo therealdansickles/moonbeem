@@ -3,7 +3,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { VUploadImageRsp, VUploadImageReqDto } from '../dto/upload.dto';
-import { Public } from '../lib/decorators/public.decorator';
+import { Public } from '../session/session.decorator';
 import { IResponse, ResponseSucc, ResponseInternalError } from '../lib/interfaces/response.interface';
 import { UploadService } from '../services/upload.service';
 

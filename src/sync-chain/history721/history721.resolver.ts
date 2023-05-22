@@ -1,5 +1,5 @@
 import { Args, Resolver, Query } from '@nestjs/graphql';
-import { Public } from '../../lib/decorators/public.decorator';
+import { Public } from '../../session/session.decorator';
 import { History721 } from './history721.dto';
 import { History721Service } from './history721.service';
 

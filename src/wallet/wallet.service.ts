@@ -1,10 +1,10 @@
 import { GraphQLError } from 'graphql';
 import { HttpException, HttpStatus, Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { ethers } from 'ethers';
 import BigNumber from 'bignumber.js';
-import * as Sentry from '@sentry/node';
+import { captureException } from '@sentry/node';
 
 import {
     BindWalletInput,
@@ -76,7 +76,17 @@ export class WalletService {
      * @returns The wallet associated with the given address.
      */
     async getWalletByAddress(address: string): Promise<Wallet> {
-        return this.walletRespository.findOneBy({ address: address.toLowerCase() });
+        return this.walletRespository.findOneBy({ address: ILike(address) });
+    }
+
+    /**
+     * Retrieves the wallet associated with the given name.
+     *
+     * @param name The name of the wallet to retrieve.
+     * @returns The wallet associated with the given name.
+     */
+    async getWalletByName(name: string): Promise<Wallet> {
+        return this.walletRespository.findOneBy({ name });
     }
 
     /**
@@ -86,29 +96,13 @@ export class WalletService {
      * @returns The newly created wallet.
      */
     async createWallet(input: CreateWalletInput): Promise<Wallet> {
-        try {
-            let owner;
-            if (input.ownerId) {
-                owner = await this.userRepository.findOneBy({ id: input.ownerId });
-                if (!owner) {
-                    throw new GraphQLError(`User with id ${input.ownerId} doesn't exist.`, {
-                        extensions: { code: 'BAD_REQUEST' },
-                    });
-                }
-            } else {
-                owner = { id: this.unOwnedId };
-            }
-
-            return this.walletRespository.save({
-                owner: owner,
-                address: input.address.toLowerCase(),
-            });
-        } catch (e) {
-            Sentry.captureException(e);
-            throw new GraphQLError(`Failed to create wallet ${input.address}`, {
-                extensions: { code: 'INTERNAL_SERVER_ERROR' },
-            });
-        }
+        const { ownerId, ...walletData } = input;
+        const wallet = await this.walletRespository.create({ owner: { id: ownerId }, ...walletData });
+        const result = await this.walletRespository.insert(wallet);
+        return await this.walletRespository.findOne({
+            where: { id: result.identifiers[0].id },
+            relations: ['owner'],
+        });
     }
 
     /**
@@ -122,7 +116,7 @@ export class WalletService {
         const { address: rawAddress, owner } = data;
         const address = rawAddress.toLowerCase();
 
-        const verifiedAddress = ethers.utils.verifyMessage(data.message, data.signature);
+        const verifiedAddress = ethers.verifyMessage(data.message, data.signature);
         if (address !== verifiedAddress.toLocaleLowerCase()) {
             throw new HttpException('signature verification failure', HttpStatus.BAD_REQUEST);
         }
@@ -150,7 +144,7 @@ export class WalletService {
                 relations: ['owner'],
             });
         } catch (e) {
-            Sentry.captureException(e);
+            captureException(e);
             throw new GraphQLError(`Failed to bind wallet ${address}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
@@ -183,11 +177,36 @@ export class WalletService {
         try {
             return this.walletRespository.save({ ...wallet, owner: { id: this.unOwnedId } });
         } catch (e) {
-            Sentry.captureException(e);
+            captureException(e);
             throw new GraphQLError(`Failed to unbind wallet ${address}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
         }
+    }
+
+    /**
+     * Verifies that the given address signed the given message.
+     *
+     * @param address The address to verify.
+     * @param message The message that was signed.
+     * @param signature The signature of the message.
+     * @returns a Wallet object.
+     */
+    async verifyWallet(address: string, message: string, signature: string): Promise<Wallet | null> {
+        if (ethers.verifyMessage(message, signature).toLowerCase() === address.toLowerCase()) {
+            const wallet = this.walletRespository.create({ address });
+
+            await this.walletRespository.upsert([wallet], {
+                conflictPaths: ['address'],
+                skipUpdateIfNoValuesChanged: true,
+            });
+
+            return this.walletRespository.findOne({
+                where: { address: address.toLowerCase() },
+                relations: ['owner'],
+            });
+        }
+        return null;
     }
 
     /**
@@ -219,7 +238,7 @@ export class WalletService {
      * @param address The address of the wallet to retrieve.
      * @returns The `Minted` details + mint sale transactions associated with the given address.
      */
-    async getMintedByAddress(address: string): Promise<any> {
+    async getMintedByAddress(address: string): Promise<Minted[]> {
         const wallet = await this.getWalletByAddress(address);
         if (!wallet) throw new Error(`Wallet with address ${address} doesn't exist.`);
 
@@ -233,14 +252,69 @@ export class WalletService {
                 const tier = await this.tierRepository
                     .createQueryBuilder('tier')
                     .leftJoinAndSelect('tier.collection', 'collection')
+                    .leftJoinAndSelect('collection.collaboration', 'collaboration')
                     .where('collection.address = :address', { address })
                     .andWhere('tier.tierId = :tierId', { tierId })
                     .getOne();
 
-                return { ...mintSaleTransaction, tier };
+                return { ...mintSaleTransaction, tier } as unknown as Minted;
             })
         );
         return minted;
+    }
+
+    /**
+     *
+     * The `Minted` list + `Deply` list
+     *
+     * @param address
+     * @returns
+     */
+    async getActivitiesByAddress(address: string): Promise<any> {
+        const wallet = await this.getWalletByAddress(address);
+        if (!wallet) throw new Error(`Wallet with address ${address} doesn't exist.`);
+
+        // TODO:
+        // it would be difficult if we want to paginate for the service
+        const [mintedTransactions, deployedTransactions] = await Promise.all([
+            this.mintSaleTransactionRepository.find({ where: { recipient: address } }),
+            this.mintSaleContractRepository.find({ where: { sender: address } }),
+        ]);
+
+        const mintList = mintedTransactions.map((tx) => ({
+            type: 'Mint',
+            txTime: tx.txTime,
+            address: tx.address,
+            paymentToken: tx.paymentToken,
+            price: tx.price,
+            tokenId: tx.tokenId,
+            tierId: tx.tierId,
+        }));
+        const deployList = deployedTransactions.map((tx) => ({
+            type: 'Deploy',
+            txTime: tx.txTime,
+            address: tx.address,
+            paymentToken: tx.paymentToken,
+            price: tx.price,
+            // tokenId: tx.tokenId,
+            tierId: tx.tierId,
+        }));
+        const mergedList = [...(mintList || []), ...(deployList || [])].sort((item) => item.txTime * -1);
+
+        const activities = await Promise.all(
+            mergedList.map(async (item) => {
+                const { tierId, address } = item;
+                const tier = await this.tierRepository
+                    .createQueryBuilder('tier')
+                    .leftJoinAndSelect('tier.collection', 'collection')
+                    .where('collection.address = :address', { address })
+                    .andWhere('tier.tierId = :tierId', { tierId })
+                    .getOne();
+
+                return { ...item, tier };
+            })
+        );
+        return activities;
     }
 
     async updateWallet(id: string, payload: Partial<Omit<UpdateWalletInput, 'id'>>): Promise<Wallet> {
@@ -254,7 +328,7 @@ export class WalletService {
         try {
             return this.walletRespository.save({ ...wallet, ...payload });
         } catch (e) {
-            Sentry.captureException(e);
+            captureException(e);
             throw new GraphQLError(`Failed to update wallet ${id}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
@@ -310,7 +384,7 @@ export class WalletService {
                 .getRawMany();
             return records;
         } catch (e) {
-            Sentry.captureException(e);
+            captureException(e);
             return [];
         }
     }
