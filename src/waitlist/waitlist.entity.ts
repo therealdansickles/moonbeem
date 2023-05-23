@@ -13,16 +13,16 @@ import {
 import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
 
 @Entity({ name: 'Waitlist' })
+@Index(['email', 'address', 'kind'], { unique: true })
 export class Waitlist extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ unique: true, comment: 'The email of the user.', transformer: lowercaseTransformer })
+    @Column({ comment: 'The email of the user.', transformer: lowercaseTransformer })
     email: string;
 
     @Column({
         length: 64,
-        unique: true,
         comment: 'The Ethereum address of the user wallet',
         transformer: lowercaseTransformer,
     })
@@ -31,8 +31,8 @@ export class Waitlist extends BaseEntity {
     @Column({ comment: 'The user position in the waitinglist', default: false })
     isClaimed: boolean;
 
-    @Column({ nullable: true, comment: 'The kind of the waitlist' })
-    kind?: string;
+    @Column({ default: 'Other', comment: 'The kind of the waitlist' })
+    kind: string;
 
     @Column({ comment: 'The user seat number in the waitinglist' })
     @Generated('increment')
