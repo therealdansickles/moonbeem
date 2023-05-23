@@ -53,20 +53,8 @@ export class PollerService {
                     tierId: record.tierId,
                     collection: { id: collection.id },
                 });
-                let attributes: IAttributeForOpensea[] = [];
-                if (tier?.attributes) {
-                    try {
-                        attributes = JSON.parse(tier.attributes);
-                    } catch (e) {
-                        Sentry.captureException(e);
-                    }
-                }
-
-                // check for empty properties (i.e display_type) and remove them
-                attributes.forEach((attribute) =>
-                    Object.keys(attribute).forEach((key) => attribute[key] === '' && delete attribute[key])
-                );
-
+                let attributes: IAttributeForOpensea[] = tier?.attributes ? tier.attributes as IAttributeForOpensea[]:[];
+                
                 result.push({
                     id: record.id,
                     token: record.address,

@@ -14,12 +14,6 @@ import { Wallet } from '../wallet/wallet.entity';
 import { Collection } from '../collection/collection.entity';
 import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
 
-export class Attribute {
-    display_type?: string;
-    trait_type: string;
-    value: any;
-}
-
 @Entity({ name: 'Tier' })
 export class Tier extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
@@ -94,26 +88,26 @@ export class Tier extends BaseEntity {
     description?: string;
 
     @Column({
-        nullable: true,
         type: 'jsonb',
+        default: [],
         comment:
             'A JSON object with arbitrary data. This can be used to store any additional information about the item.',
     })
-    attributes?: string;
+    attributes?: Attribute[];
 
     @Column({
-        nullable: true,
+        default: [],
         type: 'jsonb',
         comment: 'A JSON object containing the data of the conditions of this item.',
     })
-    conditions?: string;
+    conditions?: Condition[];
 
     @Column({
-        nullable: true,
+        default: [],
         type: 'jsonb',
         comment: 'A JSON object containing the data of the tier plugins data.',
     })
-    plugins?: string;
+    plugins?: Plugin[];
 
     @Column({
         nullable: true,
@@ -127,4 +121,20 @@ export class Tier extends BaseEntity {
 
     @Column({ nullable: true, length: 500, comment: 'A URL to a multi-media attachment for the item.' })
     animationUrl?: string;
+}
+
+export class Attribute {
+    trait_type: string;
+    value: any;
+}
+
+export class Condition {
+    trait_type: string;
+    rules: Attribute;
+    update: Attribute;
+}
+
+export class Plugin {
+    type: string;
+    path: string;
 }

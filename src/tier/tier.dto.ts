@@ -1,28 +1,10 @@
-import { ArgsType, Field, Int, ObjectType, InputType, ID, createUnionType } from '@nestjs/graphql';
-import {
-    IsNumber,
-    IsString,
-    IsNumberString,
-    IsDateString,
-    IsUrl,
-    ValidateIf,
-    IsObject,
-    IsOptional,
-    IsArray,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { Field, Int, ObjectType, InputType, OmitType } from '@nestjs/graphql';
+import { IsNumber, IsString, IsNumberString, IsObject, IsOptional, IsArray } from 'class-validator';
 import { Collection, CollectionInput } from '../collection/collection.dto';
 import { Coin } from '../sync-chain/coin/coin.dto';
-import { Any } from 'typeorm';
-import { GraphQLJSONObject } from 'graphql-type-json';
 
-@InputType()
-export class Attribute {
-    @IsString()
-    @Field({ description: 'The display type for the attribute', nullable: true })
-    @IsOptional()
-    display_type?: string;
-
+@ObjectType('AttributeOutput')
+export class AttributeOutput {
     @IsString()
     @Field({ description: 'The trait type of the attribute' })
     trait_type: string;
@@ -31,9 +13,36 @@ export class Attribute {
     @Field({ description: 'The value of the attribute' })
     value: string;
 }
+@InputType('AttributeInput')
+export class AttributeInput extends OmitType(AttributeOutput, [], InputType) {}
 
-@InputType()
-export class Plugin {
+@ObjectType('ConditionOutput')
+export class ConditionOutput {
+    @IsString()
+    @Field({ description: 'The trait type of the condition' })
+    trait_type: string;
+
+    @IsObject()
+    @Field(() => AttributeOutput, { description: 'The rule of the condition' })
+    rules: AttributeOutput;
+
+    @IsObject()
+    @Field({ description: 'The update of the condition' })
+    update: AttributeOutput;
+}
+@InputType('ConditionInput')
+export class ConditionInput extends OmitType(ConditionOutput, ['rules', 'update'], InputType) {
+    @IsObject()
+    @Field(() => AttributeInput, { description: 'The rule of the condition' })
+    rules: AttributeInput;
+
+    @IsObject()
+    @Field(() => AttributeInput, { description: 'The update of the condition' })
+    update: AttributeInput;
+}
+
+@ObjectType()
+export class PluginOutput {
     @IsString()
     @Field({ description: 'The type for the plugin. can be `github`, `vibe` etc.' })
     type: string;
@@ -41,11 +50,9 @@ export class Plugin {
     @IsString()
     @Field({ description: 'The path for the plugin.' })
     path: string;
-
-    @Field((type) => GraphQLJSONObject, { description: 'The path for the plugin.', nullable: true })
-    @IsOptional()
-    config?: { [key: string]: any };
 }
+@InputType()
+export class PluginInput extends OmitType(PluginOutput, [], InputType) {}
 
 @ObjectType()
 export class Profit {
@@ -113,23 +120,28 @@ export class Tier {
     @IsOptional()
     readonly merkleRoot?: string;
 
-    @IsString()
-    @Field({ description: 'A JSON object containing the attributes of the tier.', nullable: true })
-    @IsOptional()
-    readonly attributes?: string;
+    @Field((type) => [AttributeOutput], {
+        description: 'A JSON object containing the attributes of the tier.',
+        nullable: true,
+    })
+    @IsArray()
+    readonly attributes?: AttributeOutput[];
 
-    @IsString()
-    @Field({ description: 'A JSON object containing the conditions of the tier.', nullable: true })
+    @Field((type) => [ConditionOutput], {
+        description: 'A JSON object containing the conditions of the tier.',
+        nullable: true,
+    })
+    @IsArray()
     @IsOptional()
-    readonly conditions?: string;
+    readonly conditions?: ConditionOutput[];
 
-    @IsString()
-    @Field({
+    @Field((type) => [PluginOutput], {
         description: 'A JSON object containing the plugins of the tier.',
         nullable: true,
     })
+    @IsArray()
     @IsOptional()
-    readonly plugins?: string;
+    readonly plugins?: PluginOutput[];
 
     @Field(() => Coin, { description: 'The tier coin', nullable: true })
     @IsOptional()
@@ -185,23 +197,22 @@ export class CreateTierInput {
     @IsOptional()
     readonly animationUrl?: string;
 
-    @Field((type) => [Attribute], { description: 'The tier attributes', nullable: true })
+    @Field(() => [AttributeInput], { description: 'The tier attributes', nullable: true })
     @IsArray()
-    @IsOptional()
-    readonly attributes?: Attribute[];
+    readonly attributes?: AttributeInput[];
 
-    @Field((type) => [GraphQLJSONObject], { description: 'The tier conditions', nullable: true })
+    @Field((type) => [ConditionInput], { description: 'The tier conditions', nullable: true })
     @IsOptional()
     @IsArray()
-    readonly conditions?: { [key: string]: any }[];
+    readonly conditions?: ConditionInput[];
 
     @IsArray()
-    @Field((type) => [GraphQLJSONObject], {
+    @Field((type) => [PluginInput], {
         description: 'A JSON object containing the plugins of the tier.',
         nullable: true,
     })
     @IsOptional()
-    readonly plugins?: Plugin[];
+    readonly plugins?: PluginInput[];
 
     @IsString()
     @Field({ nullable: true, description: 'This merekleRoot of tier.' })
@@ -255,23 +266,23 @@ export class UpdateTierInput {
     @IsOptional()
     readonly animationUrl?: string;
 
-    @Field((type) => [Attribute], { description: 'The tier attributes', nullable: true })
+    @Field(() => [AttributeInput], { description: 'The tier attributes', nullable: true })
     @IsArray()
     @IsOptional()
-    readonly attributes?: Attribute[];
+    readonly attributes?: AttributeInput[];
 
-    @Field((type) => [GraphQLJSONObject], { description: 'The tier conditions', nullable: true })
+    @Field((type) => [ConditionInput], { description: 'The tier conditions', nullable: true })
     @IsOptional()
     @IsArray()
-    readonly conditions?: (typeof GraphQLJSONObject)[];
+    readonly conditions?: ConditionInput[];
 
     @IsArray()
-    @Field((type) => [GraphQLJSONObject], {
+    @Field((type) => [PluginInput], {
         description: 'A JSON object containing the plugins of the tier.',
         nullable: true,
     })
     @IsOptional()
-    readonly plugins?: Plugin[];
+    readonly plugins?: PluginInput[];
 
     @IsString()
     @Field({ nullable: true, description: 'This merekleRoot of tier.' })

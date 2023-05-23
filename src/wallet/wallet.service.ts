@@ -38,7 +38,7 @@ export class WalletService {
         @InjectRepository(MintSaleContract, 'sync_chain')
         private mintSaleContractRepository: Repository<MintSaleContract>,
         private coinService: CoinService
-    ) {}
+    ) { }
 
     /**
      * This is the uuid for the ownerId for all unbound wallets, e.g the blackhole.
@@ -81,6 +81,20 @@ export class WalletService {
     }
 
     /**
+     * check if the wallet is existed or not
+     * if existed, return wallet info
+     * else throw error
+     * 
+     * @param address
+     * @returns
+     */
+    async checkWalletExistence(address: string): Promise<Wallet> {
+        const wallet = this.getWalletByAddress(address.toLowerCase());
+        if (!wallet) throw new GraphQLError(`wallet ${address} doesn't exist.`);
+        return wallet;
+    }
+
+    /**
      * Retrieves the wallet associated with the given name.
      *
      * @param name The name of the wallet to retrieve.
@@ -102,9 +116,10 @@ export class WalletService {
             walletData.name = walletData.address.toLowerCase();
         }
         const existedWallet = await this.getWalletByName(walletData.name);
-        if (existedWallet) throw new GraphQLError(`Wallet name ${input.name} already existed.`, {
-            extensions: { code: 'BAD_REQUEST' },
-        });
+        if (existedWallet)
+            throw new GraphQLError(`Wallet name ${input.name} already existed.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
         const wallet = await this.walletRespository.create({ owner: { id: ownerId }, ...walletData });
         const result = await this.walletRespository.insert(wallet);
         return await this.walletRespository.findOne({
@@ -129,9 +144,10 @@ export class WalletService {
         }
         if (payload.name && payload.name !== '') {
             const existedWallet = await this.getWalletByName(payload.name);
-            if (existedWallet && existedWallet.id !== id) throw new GraphQLError(`Wallet name ${payload.name} already existed.`, {
-                extensions: { code: 'BAD_REQUEST' },
-            });
+            if (existedWallet && existedWallet.id !== id)
+                throw new GraphQLError(`Wallet name ${payload.name} already existed.`, {
+                    extensions: { code: 'BAD_REQUEST' },
+                });
         }
         if (payload.ownerId) {
             walletUpdate.owner = { id: payload.ownerId } as User;

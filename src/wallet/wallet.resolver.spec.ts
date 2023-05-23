@@ -26,6 +26,7 @@ import { TierModule } from '../tier/tier.module';
 import { Collection, CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
 import { CollectionModule } from '../collection/collection.module';
+import { RelationshipService } from '../relationship/relationship.service';
 
 export const gql = String.raw;
 
@@ -37,6 +38,7 @@ describe('WalletResolver', () => {
     let mintSaleContractService: MintSaleContractService;
     let tierService: TierService;
     let userService: UserService;
+    let relationshipService: RelationshipService
     let app: INestApplication;
     let address: string;
 
@@ -76,6 +78,7 @@ describe('WalletResolver', () => {
         mintSaleContractService = module.get<MintSaleContractService>(MintSaleContractService);
         tierService = module.get<TierService>(TierService);
         userService = module.get<UserService>(UserService);
+        relationshipService = module.get<RelationshipService>(RelationshipService);
         app = module.createNestApplication();
         await app.init();
     });
@@ -262,6 +265,48 @@ describe('WalletResolver', () => {
                     expect(body.data.unbindWallet.owner).toEqual(null);
                     // expect(body.data.unbindWallet.owner.id).not.toEqual(owner.id);
                     // expect(body.data.unbindWallet.owner.id).toEqual('00000000-0000-0000-0000-000000000000');
+                });
+        });
+    });
+
+    describe('relationships', () => {
+        it('should return followersTotal and followingsTotal', async () => {
+            const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
+            const followingWallet1 = await service.createWallet({ address: faker.finance.ethereumAddress() });
+            const followingWallet2 = await service.createWallet({ address: faker.finance.ethereumAddress() });
+            const followerWallet1 = await service.createWallet({ address: faker.finance.ethereumAddress() });
+            const followerWallet2 = await service.createWallet({ address: faker.finance.ethereumAddress() });
+            const followerWallet3 = await service.createWallet({ address: faker.finance.ethereumAddress() });
+
+            await relationshipService.createRelationshipByAddress({ followingAddress: wallet.address, followerAddress: followerWallet1.address })
+            await relationshipService.createRelationshipByAddress({ followingAddress: wallet.address, followerAddress: followerWallet2.address })
+            await relationshipService.createRelationshipByAddress({ followingAddress: wallet.address, followerAddress: followerWallet3.address })
+            await relationshipService.createRelationshipByAddress({ followingAddress: followingWallet1.address, followerAddress: wallet.address })
+            await relationshipService.createRelationshipByAddress({ followingAddress: followingWallet2.address, followerAddress: wallet.address })
+
+
+            const query = gql`
+                query Wallet($address: String!) {
+                    wallet(address: $address) {
+                        id
+                        address
+                        followingsTotal
+                        followersTotal
+                    }
+                }
+            `;
+
+            const variables = {
+                address: wallet.address,
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.wallet.followingsTotal).toEqual(2);
+                    expect(body.data.wallet.followersTotal).toEqual(3);
                 });
         });
     });

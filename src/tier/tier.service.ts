@@ -68,6 +68,17 @@ export class TierService {
         return result;
     }
 
+    private filterObject(payload: object[]) {
+        return payload.map((attribute) => {
+            const filteredAttribute = Object.keys(attribute).reduce((accu, key) => {
+                if ((attribute[key] !== '' && attribute[key] !== undefined) || attribute[key] !== null)
+                    accu[key] = attribute[key];
+                return accu;
+            }, {});
+            return filteredAttribute;
+        });
+    }
+
     /**
      * Create a new tier.
      *
@@ -84,21 +95,6 @@ export class TierService {
 
         const dd = data as unknown as tierEntity.Tier;
         dd.collection = data.collection as unknown as Collection;
-        if (data.attributes) {
-            data.attributes.forEach((attribute) =>
-                Object.keys(attribute).forEach((key) => attribute[key] === '' && delete attribute[key])
-            );
-            const attributesJson = JSON.stringify(data.attributes);
-            dd.attributes = attributesJson;
-        }
-
-        if (data.conditions) {
-            dd.conditions = JSON.stringify(data.conditions);
-        }
-
-        if (data.plugins) {
-            dd.plugins = JSON.stringify(data.plugins);
-        }
 
         try {
             return await this.tierRepository.save(dd);
@@ -120,17 +116,6 @@ export class TierService {
     async updateTier(id: string, data: Omit<UpdateTierInput, 'id'>): Promise<boolean> {
         try {
             const dd = data as unknown as tierEntity.Tier;
-            if (data.attributes) {
-                dd.attributes = JSON.stringify(data.attributes);
-            }
-
-            if (data.conditions) {
-                dd.conditions = JSON.stringify(data.conditions);
-            }
-
-            if (data.plugins) {
-                dd.plugins = JSON.stringify(data.plugins);
-            }
             const result: UpdateResult = await this.tierRepository.update(id, dd);
             return result.affected > 0;
         } catch (e) {
