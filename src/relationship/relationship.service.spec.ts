@@ -205,5 +205,26 @@ describe('RelationshipService', () => {
             })
             expect(relationships.length).toEqual(2)
         })
+
+        it('duplicated data wont create', async () => {
+            const wallet1 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
+            const wallet2 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
+            await service.createRelationshipByAddress({ followingAddress: wallet1.address, followerAddress: wallet2.address });
+            await service.createRelationshipByAddress({ followingAddress: wallet1.address, followerAddress: wallet2.address });
+
+            const relationships = await repository.findBy({ following: { id: wallet1.id }, follower: { id: wallet2.id } })
+            expect(relationships.length).toEqual(1)
+        })
+    })
+
+    describe('deleteRelationshipByAddress', () => {
+        it('should work', async () => {
+            const wallet1 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
+            const wallet2 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
+            await service.createRelationshipByAddress({ followingAddress: wallet1.address, followerAddress: wallet2.address });
+
+            const rs1 = await service.deleteRelationshipByAddress({ followingAddress: wallet1.address, followerAddress: wallet2.address })
+            expect(rs1).toEqual(true)
+        })
     })
 });

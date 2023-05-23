@@ -31,6 +31,9 @@ export class CreateRelationshipByAddressInput {
 }
 
 @InputType()
+export class DeleteRelationshipByAddressInput extends CreateRelationshipByAddressInput { }
+
+@InputType()
 export class CreateRelationshipInput {
     @Field({ description: 'The following wallet id.' })
     following: WalletInput
@@ -38,3 +41,6 @@ export class CreateRelationshipInput {
     @Field({ description: 'The follower wallet id.' })
     follower: WalletInput
 }
+
+@InputType()
+export class DeleteRelationshipInput extends CreateRelationshipInput { }

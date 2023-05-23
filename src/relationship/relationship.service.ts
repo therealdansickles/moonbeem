@@ -3,7 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GraphQLError } from "graphql";
 import { WalletService } from "../wallet/wallet.service";
-import { CreateRelationshipByAddressInput, CreateRelationshipInput } from './relationship.dto';
+import {
+    CreateRelationshipByAddressInput,
+    CreateRelationshipInput,
+    DeleteRelationshipByAddressInput,
+    DeleteRelationshipInput
+} from './relationship.dto';
 import { Relationship } from './relationship.entity';
 
 @Injectable()
@@ -19,7 +24,7 @@ export class RelationshipService {
      * @param address
      * @returns
      */
-    async getFollowersByAddress(address: string): Relationship {
+    async getFollowersByAddress(address: string): Promise<Relationship[]> {
         const wallet = await this.walletService.checkWalletExistence(address);
         return this.getFollowers(wallet.id);
     }
@@ -30,7 +35,7 @@ export class RelationshipService {
      * @param followingWalletId
      * @returns
      */
-    async getFollowers(followingWalletId: string) {
+    async getFollowers(followingWalletId: string): Promise<Relationship[]> {
         return this.relationshipRepository.find({
             where: { following: { id: followingWalletId } },
             relations: ['following', 'follower']
@@ -43,7 +48,7 @@ export class RelationshipService {
      * @param address
      * @returns
      */
-    async getFollowingsByAddress(address: string) {
+    async getFollowingsByAddress(address: string): Promise<Relationship[]> {
         const wallet = await this.walletService.checkWalletExistence(address);
         return this.getFollowings(wallet.id);
     }
@@ -54,7 +59,7 @@ export class RelationshipService {
      * @param followerWalletId
      * @returns
      */
-    async getFollowings(followerWalletId: string) {
+    async getFollowings(followerWalletId: string): Promise<Relationship[]> {
         return this.relationshipRepository.find({
             where: { follower: { id: followerWalletId } },
             relations: ['following', 'follower']
@@ -67,7 +72,7 @@ export class RelationshipService {
      * @param address
      * @returns
      */
-    async countFollowersByAddress(address: string) {
+    async countFollowersByAddress(address: string): Promise<number> {
         const wallet = await this.walletService.checkWalletExistence(address);
         return this.countFollowers(wallet.id)
     }
@@ -78,7 +83,7 @@ export class RelationshipService {
      * @param followerWalletId
      * @returns
      */
-    async countFollowers(followerWalletId: string) {
+    async countFollowers(followerWalletId: string): Promise<number> {
         return this.relationshipRepository.countBy({ following: { id: followerWalletId } });
     }
 
@@ -87,7 +92,7 @@ export class RelationshipService {
      * 
      * @param address
      */
-    async countFollowingsByAddress(address: string) {
+    async countFollowingsByAddress(address: string): Promise<number> {
         const wallet = await this.walletService.checkWalletExistence(address);
         return this.countFollowings(wallet.id);
     }
@@ -98,7 +103,7 @@ export class RelationshipService {
      * @param address
      * @returns
      */
-    async countFollowings(followerWalletId: string) {
+    async countFollowings(followerWalletId: string): Promise<number> {
         return this.relationshipRepository.countBy({ follower: { id: followerWalletId } });
     }
 
@@ -108,7 +113,7 @@ export class RelationshipService {
      * @param input
      * @returns
      */
-    async createRelationshipByAddress(input: CreateRelationshipByAddressInput) {
+    async createRelationshipByAddress(input: CreateRelationshipByAddressInput): Promise<Relationship> {
         const followerWallet = await this.walletService.checkWalletExistence(input.followerAddress);
         const followingWallet = await this.walletService.checkWalletExistence(input.followingAddress);
         return this.createRelationship({
@@ -124,10 +129,39 @@ export class RelationshipService {
      * @returns
      */
     private async createRelationship(input: CreateRelationshipInput): Promise<Relationship> {
-        const relationship = await this.relationshipRepository.save(input)
+        await this.relationshipRepository.upsert(input, {
+            skipUpdateIfNoValuesChanged: true,
+            conflictPaths: ['follower', 'following']
+        });
         return await this.relationshipRepository.findOne({
-            where: { id: relationship.id },
+            where: { follower: input.follower, following: input.following },
             relations: ['following', 'follower']
         });
+    }
+
+    /**
+     * Create relationship between two addresses
+     * 
+     * @param input
+     * @returns
+     */
+    async deleteRelationshipByAddress(input: DeleteRelationshipByAddressInput): Promise<Boolean> {
+        const followerWallet = await this.walletService.checkWalletExistence(input.followerAddress);
+        const followingWallet = await this.walletService.checkWalletExistence(input.followingAddress);
+        return this.deleteRelationship({
+            follower: { id: followerWallet.id },
+            following: { id: followingWallet.id }
+        });
+    }
+
+    /**
+     * Create relationship between two wallet id
+     * 
+     * @param input
+     * @returns
+     */
+    private async deleteRelationship(input: DeleteRelationshipInput): Promise<Boolean> {
+        const result = await this.relationshipRepository.delete(input)
+        return result.affected > 0;
     }
 }

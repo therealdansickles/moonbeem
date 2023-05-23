@@ -5,6 +5,7 @@ import { RelationshipService } from './relationship.service';
 import {
     Relationship,
     CreateRelationshipByAddressInput,
+    DeleteRelationshipByAddressInput,
 } from './relationship.dto';
 
 @Resolver('Relationship')
@@ -29,5 +30,11 @@ export class RelationshipResolver {
     @Mutation(() => Relationship, { description: 'create relationship.' })
     async followByAddress(@Args('input') input: CreateRelationshipByAddressInput): Promise<Relationship> {
         return this.relationshipService.createRelationshipByAddress(input);
+    }
+
+    @Public()
+    @Mutation(() => Boolean, { description: 'create relationship.' })
+    async unfollowByAddress(@Args('input') input: DeleteRelationshipByAddressInput): Promise<Boolean> {
+        return this.relationshipService.deleteRelationshipByAddress(input);
     }
 }

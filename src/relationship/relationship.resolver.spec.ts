@@ -60,7 +60,7 @@ describe('RelationshipResolver', () => {
         await app.close();
     });
 
-    describe('createRelationship', () => {
+    describe('followByAddress', () => {
         it('should work', async () => {
             const wallet1 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
             const wallet2 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
@@ -94,6 +94,35 @@ describe('RelationshipResolver', () => {
                     expect(body.data.followByAddress.id).toBeTruthy()
                     expect(body.data.followByAddress.follower.address).toEqual(wallet2.address.toLowerCase());
                     expect(body.data.followByAddress.following.address).toEqual(wallet1.address.toLowerCase());
+                });
+        });
+    });
+
+    describe('unfollowByAddress', () => {
+        it('should work', async () => {
+            const wallet1 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
+            const wallet2 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
+
+            await service.createRelationshipByAddress({ followerAddress: wallet1.address, followingAddress: wallet2.address })
+            const query = gql`
+                mutation UnfollowByAddress($input: DeleteRelationshipByAddressInput!) {
+                    unfollowByAddress(input: $input)
+                }
+            `;
+
+            const variables = {
+                input: {
+                    followerAddress: wallet1.address,
+                    followingAddress: wallet2.address
+                },
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.unfollowByAddress).toBeTruthy()
                 });
         });
     });

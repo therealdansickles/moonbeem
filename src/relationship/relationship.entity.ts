@@ -12,6 +12,7 @@ import {
 import { Wallet } from '../wallet/wallet.entity';
 
 @Entity({ name: 'Relationship' })
+@Index(['follower', 'following'], { unique: true })
 export class Relationship extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;

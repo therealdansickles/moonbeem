@@ -282,7 +282,7 @@ describe('WalletResolver', () => {
             await relationshipService.createRelationshipByAddress({ followingAddress: wallet.address, followerAddress: followerWallet2.address })
             await relationshipService.createRelationshipByAddress({ followingAddress: wallet.address, followerAddress: followerWallet3.address })
             await relationshipService.createRelationshipByAddress({ followingAddress: followingWallet1.address, followerAddress: wallet.address })
-            await relationshipService.createRelationshipByAddress({ followingAddress: followingWallet1.address, followerAddress: wallet.address })
+            await relationshipService.createRelationshipByAddress({ followingAddress: followingWallet2.address, followerAddress: wallet.address })
 
 
             const query = gql`
