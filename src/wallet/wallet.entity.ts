@@ -16,6 +16,7 @@ import { Collection } from '../collection/collection.entity';
 import { User } from '../user/user.entity';
 import { Collaboration } from '../collaboration/collaboration.entity';
 import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
+import { Relationship } from "../relationship/relationship.entity";
 
 @Entity({ name: 'Wallet' })
 export class Wallet extends BaseEntity {
@@ -42,6 +43,12 @@ export class Wallet extends BaseEntity {
 
     @Column({ unique: true, comment: 'The name for the wallet.' })
     name?: string;
+
+    @OneToMany(() => Relationship, (relationship) => relationship.follower)
+    followers?: Relationship[];
+
+    @OneToMany(() => Relationship, (relationship) => relationship.following)
+    followings?: Relationship[];
 
     @Column({ nullable: true, comment: "The url of the user's website. " })
     readonly websiteUrl?: string;

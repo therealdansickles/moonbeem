@@ -16,6 +16,7 @@ import { OrganizationModule } from './organization/organization.module';
 import { PollerModule } from './poller/poller.module';
 import { RavenModule, RavenInterceptor } from 'nest-raven';
 import { RedisAdapter } from './lib/adapters/redis.adapter';
+import { RelationshipModule } from './relationship/relationship.module';
 import { SearchModule } from './search/search.module';
 import { SessionModule } from './session/session.module';
 import { SyncChainModule } from './sync-chain/sync-chain.module';
@@ -41,6 +42,7 @@ import { postgresConfig } from './lib/configs/db.config';
         UserModule,
         WaitlistModule,
         WalletModule,
+        RelationshipModule,
         // integration graphql
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver, // GraphQL server adapter
@@ -68,4 +70,4 @@ import { postgresConfig } from './lib/configs/db.config';
     ],
     exports: [],
 })
-export class AppModule {}
+export class AppModule { }

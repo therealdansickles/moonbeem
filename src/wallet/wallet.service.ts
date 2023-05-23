@@ -38,7 +38,7 @@ export class WalletService {
         @InjectRepository(MintSaleContract, 'sync_chain')
         private mintSaleContractRepository: Repository<MintSaleContract>,
         private coinService: CoinService
-    ) {}
+    ) { }
 
     /**
      * This is the uuid for the ownerId for all unbound wallets, e.g the blackhole.
@@ -78,6 +78,20 @@ export class WalletService {
      */
     async getWalletByAddress(address: string): Promise<Wallet> {
         return this.walletRespository.findOneBy({ address: ILike(address) });
+    }
+
+    /**
+     * check if the wallet is existed or not
+     * if existed, return wallet info
+     * else throw error
+     * 
+     * @param address
+     * @returns
+     */
+    async checkWalletExistence(address: string): Promise<Wallet> {
+        const wallet = this.getWalletByAddress(address.toLowerCase());
+        if (!wallet) throw new GraphQLError(`wallet ${address} doesn't exist.`);
+        return wallet;
     }
 
     /**

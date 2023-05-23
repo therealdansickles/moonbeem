@@ -13,10 +13,15 @@ import { Public } from '../session/session.decorator';
 import { WalletService } from './wallet.service';
 import { Collection } from '../collection/collection.dto';
 import { CollectionService } from '../collection/collection.service';
+import { RelationshipService } from '../relationship/relationship.service';
 
 @Resolver(() => Wallet)
 export class WalletResolver {
-    constructor(private readonly walletService: WalletService, private readonly collectionService: CollectionService) {}
+    constructor(
+        private readonly walletService: WalletService,
+        private readonly collectionService: CollectionService,
+        private readonly relationshipService: RelationshipService
+    ) { }
 
     @Public()
     @Query((returns) => Wallet, {
@@ -50,6 +55,20 @@ export class WalletResolver {
     @Mutation((returns) => Wallet, { description: 'Unbinds a wallet from the current user.' })
     async unbindWallet(@Args('input') input: UnbindWalletInput): Promise<Wallet> {
         return await this.walletService.unbindWallet(input);
+    }
+
+    @Public()
+    @ResolveField(() => Number, { description: 'The total count of followers.' })
+    async followersTotal(@Parent() wallet: Wallet): Promise<number> {
+        const followersTotal = await this.relationshipService.countFollowersByAddress(wallet.address);
+        return followersTotal;
+    }
+
+    @Public()
+    @ResolveField(() => Number, { description: 'The total count of followings.' })
+    async followingsTotal(@Parent() wallet: Wallet): Promise<number> {
+        const followingsTotal = await this.relationshipService.countFollowingsByAddress(wallet.address);
+        return followingsTotal;
     }
 
     @Public()

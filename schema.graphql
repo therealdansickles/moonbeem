@@ -1,0 +1,2141 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type FactoryConfigData {
+  name: String!
+  value: String!
+  type: String!
+  comment: String!
+  chainId: Int!
+}
+
+type FactoryConfigRspDto {
+  data: [FactoryConfigData!]!
+  total: Int!
+}
+
+type User {
+  id: ID!
+
+  """The username of the user."""
+  username: String
+
+  """The name of the user."""
+  name: String
+
+  """The email of the user."""
+  email: String!
+
+  """The password of the user."""
+  password: String
+
+  """The avatarUrl of the user."""
+  avatarUrl: String
+
+  """The URL pointing to the user's background."""
+  backgroundUrl: String
+
+  """The description for the user."""
+  about: String
+
+  """The url of the user's website."""
+  websiteUrl: String
+
+  """The twitter handle for the user."""
+  twitter: String
+
+  """The instagram handle for the user."""
+  instagram: String
+
+  """The discord handle for the user."""
+  discord: String
+
+  """The wallets of the user."""
+  wallets: [Wallet!]
+
+  """Returns the memberships for the given user"""
+  memberships: [Membership!]!
+
+  """Returns the memberships for the given user"""
+  organizations: [Organization!]!
+}
+
+type Organization {
+  id: ID!
+
+  """The owner of the organization."""
+  owner: User!
+
+  """The unique URL-friendly identifier for a organization."""
+  name: String!
+
+  """The name that we display for the organization."""
+  displayName: String!
+
+  """The type of organization this is. e.g 'personal', 'general'."""
+  kind: String
+
+  """The description for the organization."""
+  about: String
+
+  """
+  The image url for the avatar of the organization. This is the profile picture.
+  """
+  avatarUrl: String
+
+  """The image url for the background of the organization."""
+  backgroundUrl: String
+
+  """The url for the website associated with this organization"""
+  websiteUrl: String
+
+  """The twitter handle associated with this organization, e.g. 'vibe-labs'"""
+  twitter: String
+
+  """
+  The instagram handle associated with this organization, e.g. 'vibe-labs'
+  """
+  instagram: String
+
+  """The discord handle associated with this organization, e.g. 'vibe-labs"""
+  discord: String
+
+  """
+  The DateTime that this organization was created(initially created as a draft).
+  """
+  createdAt: DateTime!
+
+  """The DateTime that this organization was last updated."""
+  updatedAt: DateTime!
+
+  """Returns the collections for the given organization"""
+  collections: [Collection!]!
+
+  """Returns the members for the given organization"""
+  memberships: [Membership!]!
+
+  """Returns the members for the given organization"""
+  collaborations: [Collaboration!]!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type MintSaleContract {
+  id: ID!
+
+  """Block height of transaction."""
+  height: Float!
+
+  """Transaction hash of transaction."""
+  txHash: String!
+
+  """Transaction time of transaction."""
+  txTime: Float!
+
+  """Transaction sender of transaction."""
+  sender: String!
+
+  """The contract address."""
+  address: String!
+
+  """The royalty contract of MintSale"""
+  royaltyReceiver: String!
+
+  """The royalty rate of MintSale"""
+  royaltyRate: Float!
+
+  """The derivative royalty rate of MintSale"""
+  derivativeRoyaltyRate: Float!
+
+  """Means whether this nft supports derivative royalty"""
+  isDerivativeAllowed: Boolean!
+
+  """The begin time of the MintSale"""
+  beginTime: Float!
+
+  """The end time of the MintSale"""
+  endTime: Float!
+
+  """The tier id of the MintSale"""
+  tierId: Float!
+
+  """The price of the tier"""
+  price: String!
+
+  """The payment token of the collection"""
+  paymentToken: String!
+
+  """The start id of the tier"""
+  startId: Float!
+
+  """The end id of the tier"""
+  endId: Float!
+
+  """The current id of the tier"""
+  currentId: Float!
+
+  """The token address(erc721 address) of the collection"""
+  tokenAddress: String!
+
+  """The type of Contract."""
+  kind: ContractType!
+
+  """The chain id for the transaction"""
+  chainId: Float!
+
+  """The DateTime of create."""
+  createdAt: DateTime!
+
+  """The DateTime that this contract was last updated."""
+  updatedAt: DateTime!
+}
+
+enum ContractType {
+  factory
+  erc20
+  erc721
+  simpleFactory
+  royaltyReceiver
+  mintSale
+  mintSaleMultiple
+  mintSaleWhitelisting
+  mintSaleMultipleWhitelisting
+  unknown
+}
+
+type CreateMerkleRootOutput {
+  """Status"""
+  success: Boolean!
+
+  """MerkleTree"""
+  merkleRoot: String!
+}
+
+type GetMerkleProofOutput {
+  """User Address"""
+  address: String!
+
+  """Available Amount"""
+  amount: String!
+
+  """Merkle Proof"""
+  proof: [String!]!
+
+  """Status"""
+  success: Boolean!
+
+  """Given merekleRoot and collection, return the number of available"""
+  usable: Int
+}
+
+type Collection {
+  """The ID for a collection"""
+  id: String!
+
+  """The unique URL-friendly identifier for a collection."""
+  name: String!
+
+  """The type of collection this is."""
+  kind: CollectionKind!
+
+  """The organization that owns the collection."""
+  organization: Organization!
+
+  """The name that we display for the collection."""
+  displayName: String
+
+  """The description for the collection."""
+  about: String
+
+  """
+  The address of the collection, e.g. '0x6bf9ec331e083627b0f48332ece2d99a7eb7fb0c'
+  """
+  address: String
+
+  """
+  The image url for the avatar of the collection. This is the profile picture.
+  """
+  avatarUrl: String
+
+  """The image url for the background of the collection."""
+  backgroundUrl: String
+
+  """The url for the website associated with this collection"""
+  websiteUrl: String
+
+  """The twitter handle associated with this collection, e.g. 'vibe-labs'"""
+  twitter: String
+
+  """The instagram handle associated with this collection, e.g. 'vibe-labs'"""
+  instagram: String
+
+  """The discord handle associated with this collection, e.g. 'vibe-labs"""
+  discord: String
+
+  """The tags associated with this organization."""
+  tags: [String!]
+
+  """The collection tiers"""
+  tiers: [Tier!]
+
+  """The DateTime that this collection was published."""
+  publishedAt: DateTime
+
+  """
+  The DateTime that this collection was created(initially created as a draft).
+  """
+  createdAt: DateTime!
+
+  """The DateTime that this collection was last updated."""
+  updatedAt: DateTime!
+
+  """The wallet that created the collection."""
+  creator: Wallet
+
+  """The collection contract"""
+  contract: MintSaleContract
+
+  """The collaboration of the collection."""
+  collaboration: Collaboration
+
+  """returns the buyers of a collection"""
+  buyers: [String!]!
+}
+
+enum CollectionKind {
+  edition
+  tiered
+  bulk
+  other
+  whitelistEdition
+  whitelistTiered
+  whitelistBulk
+}
+
+type Coin {
+  id: ID!
+
+  """The coin address."""
+  address: String!
+
+  """The name of coin."""
+  name: String!
+
+  """The symbol of coin."""
+  symbol: String!
+
+  """The decimals of coin."""
+  decimals: Float!
+
+  """Price of tokens converted to ETH. Required decimals are 18"""
+  derivedETH: String!
+
+  """Price of tokens converted to USDC. Required decimals are 18"""
+  derivedUSDC: String!
+
+  """Is this token address a native token"""
+  native: Boolean!
+
+  """Whether this token is open for use"""
+  enable: Boolean!
+
+  """The chain id for the coin."""
+  chainId: Float!
+
+  """The created time."""
+  createdAt: DateTime!
+
+  """The DateTime that this coin was last updated."""
+  updatedAt: DateTime!
+}
+
+type Profit {
+  """Profits in payment token"""
+  inPaymentToken: String
+
+  """Profits converted to USDC"""
+  inUSDC: String
+}
+
+type Tier {
+  """The id of the tier."""
+  id: String!
+
+  """The total number of mints for this tier."""
+  totalMints: Int!
+
+  """The price of the NFTs in this tier."""
+  price: String
+
+  """The tier id/index of the NFTs in this tier."""
+  tierId: Int!
+
+  """The name of the tier."""
+  name: String
+
+  """The collection associated with this tier."""
+  collection: Collection!
+
+  """The description of the tier."""
+  description: String
+
+  """This is the URL to the image of the tier."""
+  image: String
+
+  """
+  This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.
+  """
+  externalUrl: String
+
+  """This is the URL to the animation of the tier."""
+  animationUrl: String
+
+  """This merekleRoot of tier"""
+  merkleRoot: String
+
+  """A JSON object containing the attributes of the tier."""
+  attributes: JSON
+
+  """A JSON object containing the conditions of the tier."""
+  conditions: JSON
+
+  """A JSON object containing the plugins of the tier."""
+  plugins: JSON
+
+  """The tier coin"""
+  coin: Coin
+
+  """Returns the total sold for the given tier"""
+  totalSold: Int!
+
+  """Returns the total raised for the given tier"""
+  profit: Profit!
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
+type MintSaleTransaction {
+  id: ID!
+
+  """Block height of transaction."""
+  height: Float!
+
+  """Transaction hash of transaction."""
+  txHash: String!
+
+  """Transaction time of transaction."""
+  txTime: Float!
+
+  """Transaction sender of transaction."""
+  sender: String!
+
+  """NFT Recipient of current transaction."""
+  recipient: String!
+
+  """The contract address"""
+  address: String!
+
+  """The tier id for the collection."""
+  tierId: Float!
+
+  """Collection associated token contract address, Erc721 contract"""
+  tokenAddress: String!
+
+  """The token id received by the user"""
+  tokenId: String!
+
+  """The tier price"""
+  price: String!
+
+  """The payment token address"""
+  paymentToken: String!
+
+  """The chain id for the transaction"""
+  chainId: Float!
+
+  """The created time."""
+  createdAt: DateTime!
+
+  """The DateTime that this transaction was last updated."""
+  updatedAt: DateTime!
+}
+
+type LeaderboardRanking {
+  """Ranking of this leaderboard"""
+  rank: Int!
+
+  """return price"""
+  amount: String!
+
+  """Total number of buy"""
+  item: Int!
+
+  """The user address"""
+  address: EthereumAddress!
+
+  """The payment token address"""
+  paymentToken: EthereumAddress!
+}
+
+type Wallet {
+  """The id for a wallet."""
+  id: ID!
+
+  """The address for a wallet."""
+  address: String!
+
+  """The owner of the wallet."""
+  owner: User
+
+  """The name for the wallet."""
+  name: String
+
+  """The URL pointing to the wallet's avatar."""
+  avatarUrl: String
+
+  """The url of the user's website."""
+  websiteUrl: String
+
+  """The description for the wallet."""
+  about: String
+
+  """The twitter handle for the wallet."""
+  twitter: String
+
+  """The instagram handle for the wallet."""
+  instagram: String
+
+  """The discord handle for the wallet."""
+  discord: String
+
+  """The spotify handle for the wallet.."""
+  spotify: String
+
+  """Retrieves the minted NFTs for the given wallet."""
+  minted: [Minted!]
+
+  """Retrieves the activity for the given wallet."""
+  activities: [Activity!]
+
+  """
+  Retrieve the estimated value of a address holdings/minted collections by address.
+  """
+  estimatedValue: [EstimatedValue!]!
+
+  """Retrieve the owned collections by the wallet address."""
+  createdCollections: [Collection!]!
+}
+
+"""The NFT minted by a wallet."""
+type Minted {
+  """Transaction time of transaction."""
+  txTime: Float!
+
+  """The contract address"""
+  address: String!
+
+  """Collection associated token contract address, Erc721 contract"""
+  tokenAddress: String!
+
+  """The token id received by the user"""
+  tokenId: String!
+
+  """The tier price"""
+  price: String!
+
+  """The payment token address"""
+  paymentToken: String!
+
+  """The tier of the minted token."""
+  tier: Tier
+}
+
+"""The activity for a wallet."""
+type Activity {
+  """Transaction time of transaction."""
+  txTime: Float
+
+  """The contract address"""
+  address: String
+
+  """Collection associated token contract address, Erc721 contract"""
+  tokenAddress: String
+
+  """The token id received by the user"""
+  tokenId: String
+
+  """The tier price"""
+  price: String
+
+  """The payment token address"""
+  paymentToken: String
+
+  """The tier of the minted token."""
+  tier: Tier
+
+  """The activity type."""
+  type: ActivityType!
+}
+
+enum ActivityType {
+  Mint
+  Deploy
+}
+
+"""
+The estimated value of a address holdings/minted collections by address
+"""
+type EstimatedValue {
+  """the payment token used"""
+  paymentTokenAddress: String!
+
+  """The estimated value."""
+  total: String!
+
+  """The estimated value in USDC."""
+  totalUSDC: String
+}
+
+type CollaboratorOutput {
+  """The collaborator role of the collaboration."""
+  role: String!
+
+  """The collaborator name of the collaboration."""
+  name: String!
+
+  """The user address of the collaboration."""
+  address: String!
+
+  """The royalty rate of the collaboration."""
+  rate: Int!
+}
+
+type Collaboration {
+  """The ID of the collaboration."""
+  id: String!
+
+  """The template name of this collaboration."""
+  name: String
+
+  """The wallet of the collaboration."""
+  wallet: Wallet
+
+  """The collection of the collaboration."""
+  collection: Collection
+
+  """The address of the collaboration contract."""
+  address: String
+
+  """The user of the collaboration."""
+  user: User
+
+  """The organization of the collaboration."""
+  organization: Organization
+
+  """All collaborators of this collaboration."""
+  collaborators: [CollaboratorOutput!]
+
+  """The royalty rate of the collaboration."""
+  royaltyRate: Float
+
+  """The created datetime of the collaboration."""
+  createdAt: DateTime!
+
+  """The updated datetime of the collaboration."""
+  updatedAt: DateTime!
+}
+
+type Membership {
+  """The id of the membership."""
+  id: String!
+
+  """The user invited to this membership"""
+  user: User
+
+  """The email of the user invited to this membership"""
+  email: String
+
+  """The organization that this membership is for"""
+  organization: Organization!
+
+  """Whether or not this user can edit."""
+  canEdit: Boolean!
+
+  """Whether or not this user can manage."""
+  canManage: Boolean!
+
+  """Whether or not this user can deploy a collection."""
+  canDeploy: Boolean!
+}
+
+type Factory {
+  id: ID!
+
+  """Block height of transaction."""
+  height: Float!
+
+  """Transaction hash of transaction."""
+  txHash: String!
+
+  """Transaction time of transaction."""
+  txTime: Float!
+
+  """Transaction sender of transaction."""
+  sender: String!
+
+  """The contract address."""
+  address: String!
+
+  """The master contract address."""
+  masterAddress: String!
+
+  """The type of Contract."""
+  kind: ContractType!
+
+  """The chain id for the factory"""
+  chainId: Float!
+
+  """
+  The DateTime that this organization was created(initially created as a draft).
+  """
+  createdAt: DateTime!
+
+  """The DateTime that this organization was last updated."""
+  updatedAt: DateTime!
+}
+
+type BasicPriceInfo {
+  price: String!
+  token: EthereumAddress!
+  chainId: Int!
+}
+
+type BasicFloorPriceInfo {
+  price: String!
+  token: EthereumAddress!
+  chainId: Int!
+}
+
+type BasicAttributeInfo {
+  value: String!
+  traitType: String!
+  displayType: String
+}
+
+type BasicCollectionInfo {
+  name: String!
+  description: String!
+  avatar: String!
+  background: String!
+  address: EthereumAddress!
+  type: String!
+  chainId: Int!
+  orgId: ID!
+  creator: EthereumAddress!
+  paymentToken: EthereumAddress!
+  totalSupply: Int!
+  beginTime: Int!
+  endTime: Int!
+}
+
+type BasicTierInfo {
+  collection: EthereumAddress!
+  name: String!
+  description: String!
+  avatar: String!
+  id: Int!
+  startId: Int!
+  endId: Int!
+  currentId: Int!
+  price: BasicPriceInfo!
+  attributes: [BasicAttributeInfo!]!
+}
+
+type BasicCollectionRoyaltyInfo {
+  address: EthereumAddress!
+  rate: Int!
+}
+
+type BasicWalletInfo {
+  address: EthereumAddress!
+  name: String!
+  description: String!
+  avatar: String!
+  discord: String!
+  facebook: String!
+  twitter: String!
+  customUrl: String!
+}
+
+type BasicErc721Info {
+  token: EthereumAddress!
+  tokenId: String!
+  owner: EthereumAddress!
+}
+
+type LandingPageCollectionData {
+  creator: BasicWalletInfo!
+  collection: BasicCollectionInfo!
+  royalty: BasicCollectionRoyaltyInfo!
+  floorPrice: BasicFloorPriceInfo!
+  tiers: [BasicTierInfo!]!
+  attributeOverview: JSONObject!
+  chainId: Int
+}
+
+"""
+The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSONObject
+
+type LandingPageCollectionRspDto {
+  data: [LandingPageCollectionData!]!
+  total: Int!
+}
+
+type LandingPageRankingOfCreatorData {
+  user: BasicWalletInfo!
+  volume: BasicPriceInfo!
+}
+
+type LandingPageRankingOfCreatorsRspDto {
+  data: [LandingPageRankingOfCreatorData!]!
+  total: Int!
+}
+
+type LandingPageRankingOfItemData {
+  tier: BasicTierInfo!
+  collection: BasicCollectionInfo!
+}
+
+type LandingPageRankingOfItemsRspDto {
+  data: [LandingPageRankingOfItemData!]!
+  total: Int!
+}
+
+type VICollectionType {
+  address: EthereumAddress!
+  name: String!
+  avatar: String!
+  description: String!
+  background: String!
+  type: String!
+}
+
+type VITierAttr {
+  extra: String!
+  traitType: String!
+  value: String!
+}
+
+type VSecondaryMarketView {
+  onSale: Boolean!
+  onSalePrice: String!
+  maxSalePrice: String!
+  latestSalePrice: String!
+}
+
+type VCoin {
+  id: String!
+  chainId: Float!
+  contract: String!
+  name: String!
+  symbol: String!
+  decimals: Float!
+  derivedETH: String!
+  derivedUSDC: String!
+  native: Boolean!
+}
+
+type NftInfo {
+  collection: VICollectionType!
+  token: EthereumAddress!
+  tokenId: String!
+  name: String!
+  avatar: String!
+  description: String!
+  quantity: Int!
+  owner: EthereumAddress!
+  tierId: Int!
+  attributes: [VITierAttr!]!
+  currentPrice: String!
+  secondary: VSecondaryMarketView!
+  extensions: [String!]
+  priceInfo: VCoin!
+}
+
+type VAddressHoldingRspDto {
+  data: [NftInfo!]!
+  total: Int!
+}
+
+type MarketAddressActivityData {
+  collection: BasicCollectionInfo!
+  nft: BasicErc721Info!
+  tier: BasicTierInfo!
+  secondary: VSecondaryMarketView!
+  currentPrice: BasicPriceInfo!
+  recipient: EthereumAddress!
+  status: String!
+  extensions: [String!]
+}
+
+type MarketAddressActivitiesRspDto {
+  data: [MarketAddressActivityData!]!
+  total: Int!
+}
+
+type MarketAddressReleasedData {
+  collection: BasicCollectionInfo!
+  tier: BasicTierInfo!
+  quantity: Int!
+  currentPrice: BasicPriceInfo!
+  secondary: VSecondaryMarketView!
+  extensions: [String!]
+}
+
+type MarketAddressReleasedRspDto {
+  data: [MarketAddressReleasedData!]!
+  total: Int!
+}
+
+type VCollectionActivityInfo {
+  token: EthereumAddress!
+  tokenId: String!
+  txTime: Int!
+  status: String!
+  collection: VICollectionType!
+  owner: EthereumAddress!
+  recipient: EthereumAddress!
+  name: String!
+  avatar: String!
+  description: String!
+  secondary: VSecondaryMarketView!
+  attributes: [VITierAttr!]!
+  currentPrice: String!
+  extensions: [String!]
+}
+
+type VCollectionActivityRspDto {
+  data: [VCollectionActivityInfo!]!
+  total: Int!
+}
+
+type CollectionSearchResult {
+  """The collection name"""
+  name: String!
+
+  """
+  The image url for the avatar of the collection. This is the profile picture.
+  """
+  image: String
+
+  """
+  The address of the collection, e.g. '0x6bf9ec331e083627b0f48332ece2d99a7eb7fb0c'
+  """
+  address: EthereumAddress!
+
+  """The chainId of the collection."""
+  chainId: Int!
+
+  """The total number of items in this collection"""
+  itemsCount: Float!
+}
+
+type CollectionSearchResults {
+  """An array of collections that fits the search query"""
+  data: [CollectionSearchResult!]!
+
+  """A boolean indicating wether this is the last page of the pagination"""
+  isLastPage: Boolean!
+
+  """The total number of items that fits the search query"""
+  total: Float!
+}
+
+type UserSearchResult {
+  """The user's name"""
+  name: String!
+
+  """The user's avatar"""
+  avatar: String
+
+  """The user's wallet address"""
+  address: EthereumAddress!
+}
+
+type UserSearchResults {
+  """An array of users that fits the search query"""
+  data: [UserSearchResult!]!
+
+  """A boolean indicating wether this is the last page of the pagination"""
+  isLastPage: Boolean!
+
+  """The total number of items that fits the search query"""
+  total: Float!
+}
+
+type GlobalSearchResult {
+  """The data object of the collections that fit the search query"""
+  collections: CollectionSearchResults!
+
+  """The data object of the users that fit the search query"""
+  users: UserSearchResults!
+}
+
+type VIPriceType {
+  price: String!
+  token: EthereumAddress!
+}
+
+type VUserWalletInfo {
+  id: ID!
+  address: EthereumAddress!
+  name: String!
+  avatar: String
+  customUrl: String!
+  description: String!
+  discordLink: String!
+  facebookLink: String!
+  twitterLink: String!
+  followerCount: Int!
+  followingCount: Int!
+  isFollow: Boolean
+  holding: Int
+  fansCount: Int
+  estimatedValues: [VIPriceType!]
+}
+
+type VFollowingInfo {
+  name: String!
+  address: EthereumAddress!
+  avatar: String!
+  followingCount: Float!
+  followerCount: Float!
+  isFollowed: Boolean
+}
+
+type VUserFollowingListRspDto {
+  data: [VFollowingInfo!]!
+  total: Float!
+}
+
+type VUserFollowerListRspDto {
+  data: [VFollowingInfo!]!
+  total: Float!
+}
+
+type Royalty {
+  id: ID!
+
+  """Block height of transaction."""
+  height: Float!
+
+  """Transaction hash of transaction."""
+  txHash: String!
+
+  """Transaction time of transaction."""
+  txTime: String!
+
+  """Transaction sender of transaction."""
+  sender: String!
+
+  """The contract address."""
+  address: String!
+
+  """The master contract address."""
+  userAddress: String!
+
+  """The chain id for the factory"""
+  userRate: Float!
+
+  """The chain id for the factory"""
+  chainId: Float!
+
+  """
+  The DateTime that this organization was created(initially created as a draft).
+  """
+  createdAt: DateTime!
+
+  """The DateTime that this organization was last updated."""
+  updatedAt: DateTime!
+}
+
+type Asset721 {
+  id: ID!
+
+  """Block height of transaction."""
+  height: Float!
+
+  """Transaction hash of transaction."""
+  txHash: String!
+
+  """Transaction time of transaction."""
+  txTime: Float!
+
+  """The contract address."""
+  address: String!
+
+  """The token id of contract."""
+  tokenId: String!
+
+  """The owner of token id."""
+  owner: String!
+
+  """The chain id for the transaction"""
+  chainId: Float!
+
+  """
+  The DateTime that this organization was created(initially created as a draft).
+  """
+  createdAt: DateTime!
+
+  """The DateTime that this organization was last updated."""
+  updatedAt: DateTime!
+}
+
+type History721 {
+  id: ID!
+
+  """Block height of transaction."""
+  height: Float!
+
+  """Transaction hash of transaction."""
+  txHash: String!
+
+  """Transaction time of transaction."""
+  txTime: Float!
+
+  """The contract address."""
+  address: String!
+
+  """The token id of contract."""
+  tokenId: String!
+
+  """The owner of token id."""
+  receiver: String!
+
+  """Transaction type."""
+  kind: History721Type!
+
+  """The chain id for the transaction"""
+  chainId: Float!
+
+  """
+  The DateTime that this organization was created(initially created as a draft).
+  """
+  createdAt: DateTime!
+
+  """The DateTime that this organization was last updated."""
+  updatedAt: DateTime!
+}
+
+enum History721Type {
+  unknown
+  mint
+  transfer
+  burn
+}
+
+type SystemConfig {
+  id: ID!
+
+  """Config name."""
+  name: String!
+
+  """Config value."""
+  value: String!
+
+  """Type of config value. int64/string/int128"""
+  kind: String!
+
+  """Config comment."""
+  comment: String!
+
+  """The chain id for the config."""
+  chainId: Float!
+
+  """The created time."""
+  createdAt: DateTime!
+
+  """The DateTime that this config was last updated."""
+  updatedAt: DateTime!
+}
+
+type Record721 {
+  id: ID!
+
+  """Block height of transaction."""
+  height: Float!
+
+  """Transaction hash of transaction."""
+  txHash: String!
+
+  """Transaction time of transaction."""
+  txTime: Float!
+
+  """The contract address."""
+  address: String!
+
+  """The name of contract."""
+  name: String!
+
+  """The symbol of contract."""
+  symbol: String!
+
+  """The base uri of contract."""
+  baseUri: String!
+
+  """The owner of contract."""
+  owner: String!
+
+  """The chain id for the contract."""
+  chainId: Float!
+
+  """
+  The DateTime that this contract record was created(initially created as a draft).
+  """
+  createdAt: DateTime!
+
+  """The DateTime that this record was last updated."""
+  updatedAt: DateTime!
+}
+
+type Waitlist {
+  id: ID!
+  email: String!
+
+  """The address for a wallet."""
+  address: String!
+  seatNumber: Float!
+
+  """The twitter username"""
+  twitter: String
+
+  """Whether they have claimed the NFT"""
+  isClaimed: Boolean
+
+  """The kind of the waitlist."""
+  kind: String
+}
+
+type Session {
+  """The JWT session token."""
+  token: String!
+
+  """The wallet for the session."""
+  wallet: Wallet!
+
+  """The user for the session."""
+  user: User!
+}
+
+"""Ethereum Address custom scalar type"""
+scalar EthereumAddress
+
+type Query {
+  getHealth: String!
+  getTxStatus(chain: String!, txHash: String!): Boolean!
+  getFactoryConfig(chainId: Int = 0): FactoryConfigRspDto!
+
+  """returns a collaboration for a given uuid"""
+  collaboration(id: String!): Collaboration
+
+  """returns all collaborations for a given user and organization"""
+  collaborations(userId: String!, organizationId: String!): [Collaboration!]!
+
+  """returns a collection for a given uuid"""
+  collection(id: String, address: String): Collection
+
+  """Returns an organization for the given uuid"""
+  organization(id: String!): Organization
+
+  """Returns an user for the given id or username"""
+  user(id: String, username: String): User
+
+  """Retrieves a wallet by its ethereum or EIP-3770 address."""
+  wallet(
+    """an ethereum or EIP-3770 address."""
+    address: String
+
+    """a name of the wallet."""
+    name: String
+  ): Wallet
+
+  """returns a contract for a given uuid"""
+  mintSaleContract(id: String!): MintSaleContract!
+
+  """Merkle Tree Verify"""
+  getMerkleProof(address: String!, merkleRoot: String!, collectionAddress: String, tierId: Float): GetMerkleProofOutput
+
+  """returns transaction for a given uuid"""
+  transaction(id: String, address: String, recipient: String): MintSaleTransaction
+
+  """Get leaderboard for collection"""
+  leaderboard(address: String!): [LeaderboardRanking!]!
+
+  """returns a factory contract for a given uuid"""
+  factory(id: String!): Factory!
+
+  """returns a factory list for a given chain id"""
+  factories(chainId: Int!): [Factory!]!
+
+  """Get a specific tier by id."""
+  tier(id: String!): Tier
+
+  """Get tiers by collection id"""
+  tiers(collectionId: String!): [Tier!]
+
+  """returns coin for a given uuid"""
+  coin(id: String!): Coin!
+
+  """returns coin list for a given chainId"""
+  coins(chainId: Int!, enable: Boolean): [Coin!]!
+
+  """Retrieve a membership by id."""
+  membership(id: String!): Membership
+  memberships(userId: String!): [Membership!]!
+  getLandingPageCollections(skip: Int = 0, take: Int = 10, status: BasicCollectionStatus, type: BasicCollectionType, chainId: Int = 0): LandingPageCollectionRspDto!
+  getRankingOfCreators(skip: Int = 0, take: Int = 10, startTime: Int = 0, endTime: Int = 0, chainId: Int = 0): LandingPageRankingOfCreatorsRspDto!
+  getRankingOfItems(skip: Int = 0, take: Int = 10, chainId: Int = 0): LandingPageRankingOfItemsRspDto!
+  getAddressHoldings(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VAddressHoldingRspDto!
+  getAddressActivities(skip: Int = 0, take: Int = 10, address: EthereumAddress!, chainId: Int = 0): MarketAddressActivitiesRspDto!
+  getAddressReleased(skip: Int = 0, take: Int = 10, address: EthereumAddress!, chainId: Int = 0): MarketAddressReleasedRspDto!
+  getCollectionActivities(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VCollectionActivityRspDto!
+  globalSearch(input: GloablSearchInput!): GlobalSearchResult!
+  globalSearchV1(input: GloablSearchInput!): GlobalSearchResult!
+  getAddressInfo(address: EthereumAddress!): VUserWalletInfo!
+  getUserFollowingList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowingListRspDto!
+  getUserFollowerList(address: EthereumAddress!, skip: Int = 0, take: Int = 10): VUserFollowerListRspDto!
+  royalty(id: String!): Royalty!
+
+  """returns a asset for a given uuid"""
+  asset721(id: String!): Asset721!
+
+  """returns erc721 contract for a given uuid"""
+  record721(id: String!): Record721!
+
+  """returns a asset for a given uuid"""
+  history721(id: String!): History721!
+
+  """returns config for a given uuid"""
+  config(id: String!): SystemConfig!
+
+  """returns config for a given uuid"""
+  configs(chainId: Int): [SystemConfig!]!
+
+  """returns a waitlist for a given email"""
+  getWaitlist(input: GetWaitlistInput!): Waitlist
+}
+
+enum BasicCollectionStatus {
+  Upcoming
+  Live
+  Expired
+}
+
+enum BasicCollectionType {
+  Tiered
+  Edition
+  Custom
+}
+
+input GloablSearchInput {
+  searchTerm: String!
+  page: Float!
+  pageSize: Float!
+}
+
+input GetWaitlistInput {
+  email: String
+
+  """The address for a wallet."""
+  address: String
+
+  """The kind of the waitlist."""
+  kind: String
+}
+
+type Mutation {
+  """create a collaboration"""
+  createCollaboration(input: CreateCollaborationInput!): Collaboration!
+
+  """creates a collection"""
+  createCollection(input: CreateCollectionInput!): Collection!
+
+  """updates a collection"""
+  updateCollection(input: UpdateCollectionInput!): Boolean!
+
+  """publishes a collection"""
+  publishCollection(input: CollectionInput!): Boolean!
+
+  """delete a unpublished collection"""
+  deleteCollection(input: CollectionInput!): Boolean!
+
+  """Creates an organization."""
+  createOrganization(input: CreateOrganizationInput!): Organization!
+
+  """Update an organization."""
+  updateOrganization(input: UpdateOrganizationInput!): Organization!
+
+  """Delete an organization."""
+  deleteOrganization(input: OrganizationInput!): Boolean!
+
+  """Transfer an organization to another user."""
+  transferOrganization(input: TransferOrganizationInput!): Organization!
+
+  """create a new user with a default organization."""
+  createUser(input: CreateUserInput!): User!
+
+  """update the given user."""
+  updateUser(input: UpdateUserInput!): User!
+
+  """creates a wallet"""
+  createWallet(input: CreateWalletInput!): Wallet!
+
+  """Binds a wallet to the current user."""
+  bindWallet(input: BindWalletInput!): Wallet!
+
+  """Unbinds a wallet from the current user."""
+  unbindWallet(input: UnbindWalletInput!): Wallet!
+
+  """update the given wallet"""
+  updateWallet(input: UpdateWalletInput!): Wallet!
+
+  """Create merekleTree"""
+  createMerkleRoot(input: CreateMerkleRootInput!): CreateMerkleRootOutput!
+
+  """Create a new tier."""
+  createTier(input: CreateTierInput!): Tier!
+
+  """Update a tier."""
+  updateTier(input: UpdateTierInput!): Boolean!
+
+  """Delete a tier."""
+  deleteTier(input: DeleteTierInput!): Boolean!
+
+  """Create a new membership."""
+  createMembership(input: CreateMembershipInput!): Membership!
+
+  """Accept a membership request."""
+  acceptMembership(input: MembershipRequestInput!): Boolean!
+
+  """Accept a membership request."""
+  declineMembership(input: MembershipRequestInput!): Boolean!
+
+  """Update a membership."""
+  updateMembership(input: UpdateMembershipInput!): Membership!
+
+  """Deletes a membership."""
+  deleteMembership(input: DeleteMembershipInput!): Boolean!
+  followUserWallet(address: EthereumAddress!, isFollowed: Boolean): Boolean!
+  updateAddressInfo(name: String, avatar: String, customUrl: String, description: String, discordLink: String, facebookLink: String, twitterLink: String): Boolean!
+
+  """creates a waitlist item"""
+  createWaitlist(input: CreateWaitlistInput!): Waitlist!
+
+  """claim a waitlist item"""
+  claimWaitlist(input: ClaimWaitlistInput!): Boolean!
+
+  """Create a session."""
+  createSession(input: CreateSessionInput!): Session
+
+  """Create a session from email."""
+  createSessionFromEmail(input: CreateSessionFromEmailInput!): Session
+}
+
+input CreateCollaborationInput {
+  name: String
+
+  """The address of the collaboration contract."""
+  address: String
+
+  """The royalty rate of the collaboration."""
+  royaltyRate: Float
+  walletId: String
+  userId: String
+  organizationId: String
+
+  """All collaborators of this collaboration"""
+  collaborators: [CollaboratorInput!]
+}
+
+input CollaboratorInput {
+  """The collaborator role of the collaboration."""
+  role: String!
+
+  """The collaborator name of the collaboration."""
+  name: String!
+
+  """The user address of the collaboration."""
+  address: String!
+
+  """The royalty rate of the collaboration."""
+  rate: Int!
+}
+
+input CreateCollectionInput {
+  """The unique URL-friendly identifier for a collection."""
+  name: String
+
+  """The type of collection this is."""
+  kind: CollectionKind
+
+  """The name that we display for the collection."""
+  displayName: String
+
+  """The description for the collection."""
+  about: String
+
+  """
+  The address of the collection, e.g. '0x6bf9ec331e083627b0f48332ece2d99a7eb7fb0c'
+  """
+  address: String
+
+  """
+  The image url for the avatar of the collection. This is the profile picture.
+  """
+  avatarUrl: String
+
+  """The image url for the background of the collection."""
+  backgroundUrl: String
+
+  """The url for the website associated with this collection"""
+  websiteUrl: String
+
+  """The twitter handle associated with this collection, e.g. 'vibe-labs'"""
+  twitter: String
+
+  """The instagram handle associated with this collection, e.g. 'vibe-labs'"""
+  instagram: String
+
+  """The discord handle associated with this collection, e.g. 'vibe-labs"""
+  discord: String
+
+  """The tags associated with this organization."""
+  tags: [String!]
+
+  """The DateTime that this collection was published."""
+  publishedAt: DateTime
+
+  """
+  The DateTime that this collection was created(initially created as a draft).
+  """
+  createdAt: DateTime
+
+  """The DateTime that this collection was last updated."""
+  updatedAt: DateTime
+
+  """The wallet that created the collection."""
+  creator: WalletInput
+
+  """The organization that owns the collection."""
+  organization: OrganizationInput!
+
+  """The collaboration of the collection."""
+  collaboration: CollaborationInput
+
+  """This tiers for collection"""
+  tiers: [CreateTierInCollectionInput!]
+}
+
+input WalletInput {
+  id: ID!
+}
+
+input OrganizationInput {
+  id: ID!
+}
+
+input CollaborationInput {
+  """The ID of the collaboration."""
+  id: String!
+}
+
+input CreateTierInCollectionInput {
+  """The total number of mints for this tier."""
+  totalMints: Int!
+
+  """The name of the tier."""
+  name: String!
+
+  """The id of the tier. should start from 0"""
+  tierId: Float!
+
+  """the tier selected coin id"""
+  paymentTokenAddress: String!
+
+  """The description of the tier."""
+  description: String
+
+  """This is the URL to the image of the tier."""
+  image: String
+
+  """
+  This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.
+  """
+  externalUrl: String
+
+  """This is the URL to the animation of the tier."""
+  animationUrl: String
+
+  """The tier attributes"""
+  attributes: [Attribute!]
+
+  """This merekleRoot of tier."""
+  merkleRoot: String
+
+  """The price of NFTs in this tier."""
+  price: String
+}
+
+input Attribute {
+  """The display type for the attribute"""
+  display_type: String
+
+  """The trait type of the attribute"""
+  trait_type: String!
+
+  """The value of the attribute"""
+  value: String!
+}
+
+input UpdateCollectionInput {
+  """The unique URL-friendly identifier for a collection."""
+  name: String
+
+  """The type of collection this is."""
+  kind: CollectionKind
+
+  """The name that we display for the collection."""
+  displayName: String
+
+  """The description for the collection."""
+  about: String
+
+  """
+  The address of the collection, e.g. '0x6bf9ec331e083627b0f48332ece2d99a7eb7fb0c'
+  """
+  address: String
+
+  """
+  The image url for the avatar of the collection. This is the profile picture.
+  """
+  avatarUrl: String
+
+  """The image url for the background of the collection."""
+  backgroundUrl: String
+
+  """The url for the website associated with this collection"""
+  websiteUrl: String
+
+  """The twitter handle associated with this collection, e.g. 'vibe-labs'"""
+  twitter: String
+
+  """The instagram handle associated with this collection, e.g. 'vibe-labs'"""
+  instagram: String
+
+  """The discord handle associated with this collection, e.g. 'vibe-labs"""
+  discord: String
+
+  """The tags associated with this organization."""
+  tags: [String!]
+
+  """The DateTime that this collection was published."""
+  publishedAt: DateTime
+
+  """
+  The DateTime that this collection was created(initially created as a draft).
+  """
+  createdAt: DateTime
+
+  """The DateTime that this collection was last updated."""
+  updatedAt: DateTime
+
+  """The wallet that created the collection."""
+  creator: WalletInput
+
+  """The id for a collection."""
+  id: String!
+}
+
+input CollectionInput {
+  """The ID for a collection"""
+  id: String!
+}
+
+input CreateOrganizationInput {
+  """The unique URL-friendly identifier for a organization."""
+  name: String!
+
+  """The owner of the organization."""
+  owner: UserInput!
+
+  """The name that we display for the organization."""
+  displayName: String
+
+  """The description for the organization."""
+  about: String
+
+  """
+  The image url for the avatar of the organization. This is the profile picture.
+  """
+  avatarUrl: String
+
+  """The image url for the background of the organization."""
+  backgroundUrl: String
+
+  """The url for the website associated with this organization"""
+  websiteUrl: String
+
+  """The twitter handle associated with this organization, e.g. 'vibe-labs'"""
+  twitter: String
+
+  """
+  The instagram handle associated with this organization, e.g. 'vibe-labs'
+  """
+  instagram: String
+
+  """The discord handle associated with this organization, e.g. 'vibe-labs"""
+  discord: String
+
+  """emails to invite to the org"""
+  invites: [OrganizationInviteItemInput!]
+}
+
+input UserInput {
+  id: ID!
+}
+
+input OrganizationInviteItemInput {
+  """emails to invite to the org."""
+  email: String!
+
+  """canEdit for the membership."""
+  canEdit: Boolean!
+
+  """canDeploy for the membership."""
+  canDeploy: Boolean!
+
+  """canManage for the membership."""
+  canManage: Boolean!
+}
+
+input UpdateOrganizationInput {
+  """The unique URL-friendly identifier for a organization."""
+  name: String
+
+  """The name that we display for the organization."""
+  displayName: String
+
+  """The description for the organization."""
+  about: String
+
+  """
+  The image url for the avatar of the organization. This is the profile picture.
+  """
+  avatarUrl: String
+
+  """The image url for the background of the organization."""
+  backgroundUrl: String
+
+  """The url for the website associated with this organization"""
+  websiteUrl: String
+
+  """The twitter handle associated with this organization, e.g. 'vibe-labs'"""
+  twitter: String
+
+  """
+  The instagram handle associated with this organization, e.g. 'vibe-labs'
+  """
+  instagram: String
+
+  """The discord handle associated with this organization, e.g. 'vibe-labs"""
+  discord: String
+
+  """The id of the organization."""
+  id: String!
+}
+
+input TransferOrganizationInput {
+  id: ID!
+
+  """The new ownerId of the organization."""
+  ownerId: String!
+}
+
+input CreateUserInput {
+  """The username of the user."""
+  username: String
+
+  """The name of the user."""
+  name: String
+
+  """The email of the user."""
+  email: String!
+
+  """The password of the user."""
+  password: String
+
+  """The avatarUrl of the user."""
+  avatarUrl: String
+
+  """The URL pointing to the user's background."""
+  backgroundUrl: String
+
+  """The description for the user."""
+  about: String
+
+  """The url of the user's website."""
+  websiteUrl: String
+
+  """The twitter handle for the user."""
+  twitter: String
+
+  """The instagram handle for the user."""
+  instagram: String
+
+  """The discord handle for the user."""
+  discord: String
+}
+
+input UpdateUserInput {
+  id: ID
+
+  """The username of the user."""
+  username: String
+
+  """The name of the user."""
+  name: String
+
+  """The email of the user."""
+  email: String
+
+  """The avatarUrl of the user."""
+  avatarUrl: String
+
+  """The URL pointing to the user's background."""
+  backgroundUrl: String
+
+  """The description for the user."""
+  about: String
+
+  """The url of the user's website."""
+  websiteUrl: String
+
+  """The twitter handle for the user."""
+  twitter: String
+
+  """The instagram handle for the user."""
+  instagram: String
+
+  """The discord handle for the user."""
+  discord: String
+}
+
+input CreateWalletInput {
+  """The address for a wallet."""
+  address: String!
+
+  """The name for the wallet."""
+  name: String
+
+  """The URL pointing to the wallet's avatar."""
+  avatarUrl: String
+
+  """The url of the user's website."""
+  websiteUrl: String
+
+  """The description for the wallet."""
+  about: String
+
+  """The twitter handle for the wallet."""
+  twitter: String
+
+  """The instagram handle for the wallet."""
+  instagram: String
+
+  """The discord handle for the wallet."""
+  discord: String
+
+  """The spotify handle for the wallet.."""
+  spotify: String
+
+  """The id for the owner."""
+  ownerId: String
+}
+
+input BindWalletInput {
+  """The address for a wallet."""
+  address: String!
+
+  """The signing message"""
+  message: String!
+
+  """The signature from the front-end to verify"""
+  signature: String!
+
+  """the owner uuid of the wallet."""
+  owner: UserInput!
+}
+
+input UnbindWalletInput {
+  """The address for a wallet."""
+  address: String!
+
+  """the owner uuid of the wallet."""
+  owner: UserInput!
+}
+
+input UpdateWalletInput {
+  """The id for a wallet."""
+  id: ID
+
+  """The address for a wallet."""
+  address: String
+
+  """The name for the wallet."""
+  name: String
+
+  """The URL pointing to the wallet's avatar."""
+  avatarUrl: String
+
+  """The url of the user's website."""
+  websiteUrl: String
+
+  """The description for the wallet."""
+  about: String
+
+  """The twitter handle for the wallet."""
+  twitter: String
+
+  """The instagram handle for the wallet."""
+  instagram: String
+
+  """The discord handle for the wallet."""
+  discord: String
+
+  """The spotify handle for the wallet.."""
+  spotify: String
+
+  """The id for the owner."""
+  ownerId: String
+}
+
+input CreateMerkleRootInput {
+  """Create data for merkle."""
+  data: [CreateMerkleRootData!]!
+
+  """MerkleRoot association to collection."""
+  organization: OrganizationInput
+}
+
+input CreateMerkleRootData {
+  """Address added to merkleTree"""
+  address: String!
+
+  """
+  Amount available, using string, the merkleTree can be expanded to erc20 tokens
+  """
+  amount: String!
+}
+
+input CreateTierInput {
+  """The collection associated with this tier."""
+  collection: CollectionInput!
+
+  """The total number of mints for this tier."""
+  totalMints: Int!
+
+  """The price of the NFTs in this tier."""
+  price: String
+
+  """The tier id/index of the NFTs in this tier."""
+  tierId: Int!
+
+  """The name of the tier."""
+  name: String
+
+  """the tier selected coin id"""
+  paymentTokenAddress: String
+
+  """The description of the tier."""
+  description: String
+
+  """This is the URL to the image of the tier."""
+  image: String
+
+  """
+  This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.
+  """
+  externalUrl: String
+
+  """This is the URL to the animation of the tier."""
+  animationUrl: String
+
+  """The tier attributes"""
+  attributes: JSON
+
+  """The tier conditions"""
+  conditions: JSON
+
+  """A JSON object containing the plugins of the tier."""
+  plugins: JSON
+
+  """This merekleRoot of tier."""
+  merkleRoot: String
+}
+
+input UpdateTierInput {
+  """The id of the tier."""
+  id: String!
+
+  """The total number of mints for this tier."""
+  totalMints: Int
+
+  """The price of the NFTs in this tier."""
+  price: String
+
+  """The tier id/index of the NFTs in this tier."""
+  tierId: Int
+
+  """The name of the tier."""
+  name: String
+
+  """The description of the tier."""
+  description: String
+
+  """This is the URL to the image of the tier."""
+  image: String
+
+  """
+  This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.
+  """
+  externalUrl: String
+
+  """This is the URL to the animation of the tier."""
+  animationUrl: String
+
+  """The tier attributes"""
+  attributes: JSON
+
+  """The tier conditions"""
+  conditions: JSON
+
+  """A JSON object containing the plugins of the tier."""
+  plugins: JSON
+
+  """This merekleRoot of tier."""
+  merkleRoot: String
+}
+
+input DeleteTierInput {
+  """The id for a tier."""
+  id: String!
+}
+
+input CreateMembershipInput {
+  """The user that is a member of this organization."""
+  userId: String
+
+  """The email of the user"""
+  email: String
+
+  """The organization that this user is a member of."""
+  organizationId: String!
+
+  """Whether or not this user can edit."""
+  canEdit: Boolean
+
+  """Whether or not this user can manage."""
+  canManage: Boolean
+
+  """Whether or not this user can deploy a collection."""
+  canDeploy: Boolean
+}
+
+input MembershipRequestInput {
+  """The user that is a member of this organization."""
+  userId: String!
+
+  """The organization that this user is a member of."""
+  organizationId: String!
+
+  """The unique user invite code for the membership"""
+  inviteCode: String!
+}
+
+input UpdateMembershipInput {
+  """The id for a membership."""
+  id: String!
+
+  """Whether or not this user can edit."""
+  canEdit: Boolean
+
+  """Whether or not this user can manage."""
+  canManage: Boolean
+
+  """Whether or not this user can deploy a collection."""
+  canDeploy: Boolean
+}
+
+input DeleteMembershipInput {
+  """The id for a membership."""
+  id: String!
+}
+
+input CreateWaitlistInput {
+  email: String!
+
+  """The address for a wallet."""
+  address: String!
+
+  """The kind of the waitlist."""
+  kind: String
+
+  """The signing message"""
+  message: String!
+
+  """The signature from the front-end to verify"""
+  signature: String!
+
+  """The email of the user"""
+  twitter: String
+}
+
+input ClaimWaitlistInput {
+  """The address for a wallet."""
+  address: String!
+
+  """The signing message"""
+  message: String!
+
+  """The signature from the front-end to verify"""
+  signature: String!
+}
+
+input CreateSessionInput {
+  """The wallet address."""
+  address: String!
+
+  """The message to sign."""
+  message: String!
+
+  """The signature of the message."""
+  signature: String!
+}
+
+input CreateSessionFromEmailInput {
+  """The user email."""
+  email: String!
+
+  """The hashed password for the user."""
+  password: String!
+}

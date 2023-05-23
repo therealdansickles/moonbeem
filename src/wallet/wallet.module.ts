@@ -17,20 +17,24 @@ import { Collection } from '../collection/collection.entity';
 import { CollectionModule } from '../collection/collection.module';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinModule } from '../sync-chain/coin/coin.module';
+import { Relationship } from '../relationship/relationship.entity';
+import { RelationshipModule } from '../relationship/relationship.module';
+import { RelationshipService } from '../relationship/relationship.service';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Wallet, User, Collaboration, Collection, Tier]),
+        TypeOrmModule.forFeature([Wallet, Relationship, User, Collaboration, Collection, Tier]),
         TypeOrmModule.forFeature([MintSaleTransaction, MintSaleContract, Coin], 'sync_chain'),
         forwardRef(() => CollaborationModule),
         forwardRef(() => CollectionModule),
         forwardRef(() => MintSaleTransactionModule),
+        forwardRef(() => RelationshipModule),
         forwardRef(() => TierModule),
         forwardRef(() => UserModule),
         forwardRef(() => CoinModule),
     ],
     exports: [WalletModule, WalletService],
-    providers: [WalletService, WalletResolver],
+    providers: [RelationshipService, WalletService, WalletResolver],
     controllers: [],
 })
-export class WalletModule {}
+export class WalletModule { }
