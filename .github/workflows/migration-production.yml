@@ -16,11 +16,7 @@ jobs:
         env:
           NODE_ENV: ${{ vars.NODE_ENV }}
           V1_DATABASE_URL: ${{ secrets.V1_DATABASE_URL }}
-      - run: yarn typeorm:generate
-        env:
-          NODE_ENV: ${{ vars.NODE_ENV }}
-          V1_DATABASE_URL: ${{ secrets.V1_DATABASE_URL }}
-      - run: yarn typeorm:migrate
+      - run: yarn typeorm:schema:sync
         env:
           NODE_ENV: ${{ vars.NODE_ENV }}
           V1_DATABASE_URL: ${{ secrets.V1_DATABASE_URL }}
