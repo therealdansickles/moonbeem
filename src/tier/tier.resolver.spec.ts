@@ -241,25 +241,24 @@ describe('TierResolver', () => {
                 conditions: [
                     {
                         trait_type: 'Ranking',
-                        equal: 'Platinum',
+                        rules: {
+                            trait_type: 'greater_than',
+                            value: '10',
+                        },
                         update: {
                             trait_type: 'Claimble',
-                            value: true,
+                            value: 'true',
                         },
                     },
                 ],
                 plugins: [
                     {
-                        type: 'gituub',
+                        type: 'gitub',
                         path: 'vibexyz/vibes',
                     },
                     {
                         type: 'vibe',
                         path: 'points',
-                        config: {
-                            initial: 0,
-                            increment: 1,
-                        },
                     },
                 ],
             });
@@ -272,9 +271,25 @@ describe('TierResolver', () => {
                         coin {
                             address
                         }
-                        plugins
-                        attributes
-                        conditions
+                        attributes {
+                            trait_type
+                            value
+                        }
+                        conditions {
+                            trait_type
+                            rules {
+                                trait_type
+                                value
+                            }
+                            update {
+                                trait_type
+                                value
+                            }
+                        }
+                        plugins {
+                            type
+                            path
+                        }
                     }
                 }
             `;
@@ -290,9 +305,9 @@ describe('TierResolver', () => {
                 .expect(({ body }) => {
                     expect(body.data.tier.id).toBe(tier.id);
                     expect(body.data.tier.name).toBe(tier.name);
-                    expect(body.data.tier.plugins).toBe(tier.plugins);
-                    expect(body.data.tier.attributes).toBe(tier.attributes);
-                    expect(body.data.tier.conditions).toBe(tier.conditions);
+                    expect(body.data.tier.plugins).toStrictEqual(tier.plugins);
+                    expect(body.data.tier.attributes).toStrictEqual(tier.attributes);
+                    expect(body.data.tier.conditions).toStrictEqual(tier.conditions);
                 });
         });
     });

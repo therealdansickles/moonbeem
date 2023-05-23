@@ -13,7 +13,7 @@ import {
 import { IsNumber, IsString, IsDateString, IsUrl, IsOptional, IsArray, IsObject } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CollectionKind } from './collection.entity';
-import { Attribute, Tier } from '../tier/tier.dto';
+import { AttributeInput, Tier, PluginInput, ConditionInput } from '../tier/tier.dto';
 import { Organization, OrganizationInput } from '../organization/organization.dto';
 import { CollaborationInput } from '../collaboration/collaboration.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
@@ -195,10 +195,20 @@ export class CreateTierInCollectionInput {
     @IsOptional()
     readonly animationUrl?: string;
 
-    @Field((type) => [Attribute], { description: 'The tier attributes', nullable: true })
+    @Field((type) => [AttributeInput], { description: 'The tier attributes', nullable: true })
     @IsArray()
     @IsOptional()
-    readonly attributes?: Attribute[];
+    readonly attributes?: AttributeInput[];
+
+    @Field((type) => [ConditionInput], { description: 'The tier attributes', nullable: true })
+    @IsArray()
+    @IsOptional()
+    readonly conditions?: ConditionInput[];
+
+    @Field((type) => [PluginInput], { description: 'The tier attributes', nullable: true })
+    @IsArray()
+    @IsOptional()
+    readonly plugins?: PluginInput[];
 
     @IsString()
     @Field({ nullable: true, description: 'This merekleRoot of tier.' })

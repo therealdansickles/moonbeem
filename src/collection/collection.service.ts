@@ -11,6 +11,7 @@ import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sa
 import { Wallet } from '../wallet/wallet.entity';
 import { Collaboration } from '../collaboration/collaboration.entity';
 import * as Sentry from '@sentry/node';
+import { TierService } from '../tier/tier.service';
 
 @Injectable()
 export class CollectionService {
@@ -23,11 +24,11 @@ export class CollectionService {
         private readonly walletRepository: Repository<Wallet>,
         @InjectRepository(Collaboration)
         private readonly collaborationRepository: Repository<Collaboration>,
-
         @InjectRepository(MintSaleContract, 'sync_chain')
         private readonly mintSaleContractRepository: Repository<MintSaleContract>,
         @InjectRepository(MintSaleTransaction, 'sync_chain')
-        private readonly mintSaleTransactionRepository: Repository<MintSaleTransaction>
+        private readonly mintSaleTransactionRepository: Repository<MintSaleTransaction>,
+        private tierService: TierService
     ) {}
 
     /**
@@ -195,23 +196,7 @@ export class CollectionService {
 
         if (tiers) {
             for (const tier of tiers) {
-                const dd = tier as unknown as Tier;
-                dd.collection = createResult.id as unknown as collectionEntity.Collection;
-                if (tier.attributes) {
-                    tier.attributes.forEach((attribute) =>
-                        Object.keys(attribute).forEach((key) => attribute[key] === '' && delete attribute[key])
-                    );
-                    const attributesJson = JSON.stringify(tier.attributes);
-                    dd.attributes = attributesJson;
-                }
-
-                try {
-                    await this.tierRepository.save(dd);
-                } catch (e) {
-                    throw new GraphQLError(`Failed to create tier ${data.name}`, {
-                        extensions: { code: 'INTERNAL_SERVER_ERROR' },
-                    });
-                }
+                await this.tierService.createTier({ collection: { id: createResult.id }, ...tier });
             }
         }
 

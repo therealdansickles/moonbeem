@@ -44,3 +44,6 @@ lerna-debug.log*
 
 # migration files
 migration/*
+
+# schema files
+schema.graphql

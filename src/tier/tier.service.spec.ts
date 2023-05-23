@@ -130,20 +130,36 @@ describe('TierService', () => {
 
             const conditions = [
                 {
-                    trait_type: 'Holding Days',
-                    greater_than: 10,
-                    update: {
-                        trait_type: 'Ranking',
-                        value: 'Platinum',
-                    },
-                },
-                {
                     trait_type: 'Ranking',
-                    equal: 'Platinum',
+                    rules: {
+                        trait_type: 'greater_than',
+                        value: '10',
+                    },
                     update: {
                         trait_type: 'Claimble',
-                        value: true,
+                        value: 'true',
                     },
+                },
+            ];
+
+            const plugins = [
+                {
+                    type: 'gitub',
+                    path: 'vibexyz/vibes',
+                },
+                {
+                    type: 'vibe',
+                    path: 'points',
+                },
+            ];
+            const attributes = [
+                {
+                    trait_type: 'Base',
+                    value: 'Starfish',
+                },
+                {
+                    trait_type: 'Eyes',
+                    value: 'Big',
                 },
             ];
 
@@ -155,57 +171,14 @@ describe('TierService', () => {
                 paymentTokenAddress: coin.address,
                 tierId: 0,
                 conditions,
-                plugins: [
-                    {
-                        type: 'vibe',
-                        path: 'airdrop',
-                        config: {
-                            matching: {
-                                color: 'red',
-                            },
-                        },
-                    },
-                    {
-                        type: 'vibe',
-                        path: 'points',
-                        config: {
-                            initial: 0,
-                            increment: 1,
-                        },
-                    },
-                    {
-                        type: 'github',
-                        path: 'vibexyz/vibes',
-                    },
-                    {
-                        type: 'script',
-                        path: 'https://example.com/script.js',
-                    },
-                ],
-                attributes: [
-                    {
-                        trait_type: 'Base',
-                        value: 'Starfish',
-                    },
-                    {
-                        trait_type: 'Eyes',
-                        value: 'Big',
-                    },
-                ],
+                plugins,
+                attributes: attributes,
             });
 
             expect(tier).toBeDefined();
-            expect(tier.conditions).toBeDefined();
-            const receiverdConditions = JSON.parse(tier.conditions);
-
-            expect(receiverdConditions.length).toBe(2);
-            expect(receiverdConditions[0].trait_type).toBe(conditions[0].trait_type);
-            expect(receiverdConditions[1].trait_type).toBe(conditions[1].trait_type);
-            expect(receiverdConditions[1].equal).toBe(conditions[1].equal);
-            expect(tier.attributes).toBeDefined();
-            expect(JSON.parse(tier.attributes).length).toBe(2);
-            expect(tier.plugins).toBeDefined();
-            expect(JSON.parse(tier.plugins).length).toBe(4);
+            expect(tier.conditions).toStrictEqual(conditions);
+            expect(tier.attributes).toStrictEqual(attributes);
+            expect(tier.plugins).toStrictEqual(plugins);
         });
     });
 
