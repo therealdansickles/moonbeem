@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, UpdateResult, IsNull } from 'typeorm';
+import { isEmpty, isNil, omitBy } from 'lodash';
 
 import * as collectionEntity from './collection.entity';
 import { GraphQLError } from 'graphql';
@@ -13,6 +14,7 @@ import { Collaboration } from '../collaboration/collaboration.entity';
 import * as Sentry from '@sentry/node';
 import { TierService } from '../tier/tier.service';
 
+interface ICollectionQuery extends Partial<Pick<Collection, 'id' | 'address'>> {}
 @Injectable()
 export class CollectionService {
     constructor(
@@ -40,6 +42,21 @@ export class CollectionService {
     async getCollection(id: string): Promise<Collection | null> {
         return await this.collectionRepository.findOne({
             where: { id },
+            relations: ['organization', 'tiers', 'creator', 'collaboration'],
+        });
+    }
+
+    /**
+     * Retrieves the collection satisfied the given query.
+     *
+     * @param query The condition of the collection to retrieve.
+     * @returns The collection satisfied the given query.
+     */
+    async getCollectionByQuery(query: ICollectionQuery): Promise<Collection | null> {
+        query = omitBy(query, isNil);
+        if (isEmpty(query)) return null;
+        return await this.collectionRepository.findOne({
+            where: query,
             relations: ['organization', 'tiers', 'creator', 'collaboration'],
         });
     }

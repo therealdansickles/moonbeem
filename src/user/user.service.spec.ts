@@ -72,6 +72,40 @@ describe('UserService', () => {
         });
     });
 
+    describe('getUserByQuery', () => {
+        it('should return null if no parameter provided', async () => {
+            const user = await repository.save({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+            const result = await service.getUserByQuery({ });
+            expect(result).toBeNull();
+        });
+
+        it('should return user info by id', async () => {
+            const user = await repository.save({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+            const result = await service.getUserByQuery({ id: user.id });
+            expect(result.username).toEqual(user.username);
+            expect(result.email).toEqual(user.email.toLowerCase());
+        });
+
+        it('should return user info by username', async () => {
+            const user = await repository.save({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+            const result = await service.getUserByQuery({ username: user.username });
+            expect(result.username).toEqual(user.username);
+            expect(result.email).toEqual(user.email.toLowerCase());
+        });
+    });
+
     describe('createUser', () => {
         it('should create user', async () => {
             const user = await service.createUser({

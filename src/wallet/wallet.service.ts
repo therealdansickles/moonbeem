@@ -5,7 +5,7 @@ import { ILike, Repository } from 'typeorm';
 import { ethers } from 'ethers';
 import BigNumber from 'bignumber.js';
 import { captureException } from '@sentry/node';
-import { omit } from 'lodash';
+import { isEmpty, isNil, omit, omitBy } from 'lodash';
 
 import {
     BindWalletInput,
@@ -26,6 +26,8 @@ interface ITokenPrice {
     token: string;
     price: string;
 }
+
+interface IWalletQuery extends Partial<Pick<Wallet, 'name' | 'address'>> {}
 
 @Injectable()
 export class WalletService {
@@ -71,13 +73,16 @@ export class WalletService {
     }
 
     /**
-     * Retrieves the wallet associated with the given address.
+     * Retrieves the wallet satisfied the given query.
      *
-     * @param address The address of the wallet to retrieve.
-     * @returns The wallet associated with the given address.
+     * @param query The condition of the wallet to retrieve.
+     * @returns The wallet satisfied the given query.
      */
-    async getWalletByAddress(address: string): Promise<Wallet> {
-        return this.walletRespository.findOneBy({ address: ILike(address) });
+    async getWalletByQuery (query: IWalletQuery): Promise<Wallet> {
+        query = omitBy(query, isNil);
+        if (isEmpty(query)) return null;
+        if (query.address) query.address = query.address.toLowerCase();
+        return this.walletRespository.findOneBy(query);
     }
 
     /**
@@ -89,21 +94,11 @@ export class WalletService {
      * @returns
      */
     async checkWalletExistence(address: string): Promise<Wallet> {
-        const wallet = this.getWalletByAddress(address.toLowerCase());
+        const wallet = this.getWalletByQuery({ address });
         if (!wallet) throw new GraphQLError(`wallet ${address} doesn't exist.`);
         return wallet;
     }
-
-    /**
-     * Retrieves the wallet associated with the given name.
-     *
-     * @param name The name of the wallet to retrieve.
-     * @returns The wallet associated with the given name.
-     */
-    async getWalletByName(name: string): Promise<Wallet> {
-        return this.walletRespository.findOneBy({ name });
-    }
-
+    
     /**
      * Creates a new wallet with the given data.
      *
@@ -115,7 +110,7 @@ export class WalletService {
         if (!walletData.name || walletData.name === '') {
             walletData.name = walletData.address.toLowerCase();
         }
-        const existedWallet = await this.getWalletByName(walletData.name);
+        const existedWallet = await this.getWalletByQuery({ name: walletData.name });
         if (existedWallet)
             throw new GraphQLError(`Wallet name ${input.name} already existed.`, {
                 extensions: { code: 'BAD_REQUEST' },
@@ -143,7 +138,7 @@ export class WalletService {
             });
         }
         if (payload.name && payload.name !== '') {
-            const existedWallet = await this.getWalletByName(payload.name);
+            const existedWallet = await this.getWalletByQuery({ name: payload.name });
             if (existedWallet && existedWallet.id !== id)
                 throw new GraphQLError(`Wallet name ${payload.name} already existed.`, {
                     extensions: { code: 'BAD_REQUEST' },
@@ -301,7 +296,7 @@ export class WalletService {
      * @returns The `Minted` details + mint sale transactions associated with the given address.
      */
     async getMintedByAddress(address: string): Promise<Minted[]> {
-        const wallet = await this.getWalletByAddress(address);
+        const wallet = await this.getWalletByQuery({ address });
         if (!wallet) throw new Error(`Wallet with address ${address} doesn't exist.`);
 
         // FIXME: Need to setup pagination for this.
@@ -333,7 +328,7 @@ export class WalletService {
      * @returns
      */
     async getActivitiesByAddress(address: string): Promise<any> {
-        const wallet = await this.getWalletByAddress(address);
+        const wallet = await this.getWalletByQuery({ address });
         if (!wallet) throw new Error(`Wallet with address ${address} doesn't exist.`);
 
         // TODO:
@@ -390,7 +385,7 @@ export class WalletService {
      */
     async getEstimatesByAddress(address: string): Promise<EstimatedValue[]> {
         const values: EstimatedValue[] = [];
-        const wallet = await this.getWalletByAddress(address);
+        const wallet = await this.getWalletByQuery({ address });
         if (!wallet) throw new Error(`Wallet with address ${address} doesn't exist.`);
 
         const priceTokenGroups = await this.getValueGroupByToken(address);

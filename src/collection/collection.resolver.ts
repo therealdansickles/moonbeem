@@ -19,7 +19,7 @@ export class CollectionResolver {
         @Args({ name: 'id', nullable: true }) id: string,
         @Args({ name: 'address', nullable: true }) address: string
     ): Promise<Collection> {
-        return id ? this.collectionService.getCollection(id) : this.collectionService.getCollectionByAddress(address);
+        return this.collectionService.getCollectionByQuery({ id, address })
     }
 
     @Public()
