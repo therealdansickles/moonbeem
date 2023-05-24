@@ -31,9 +31,7 @@ export class WaitlistService {
         if (!input.email && !input.address) {
             return null;
         }
-        return this.waitlistRepository.findOne({
-            where: [{ email: ILike(input.email) }, { address: ILike(input.address) }],
-        });
+        return this.waitlistRepository.findOne({ where: input });
     }
 
     /**
