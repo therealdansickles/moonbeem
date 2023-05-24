@@ -85,21 +85,31 @@ describe('WalletService', () => {
         });
     });
 
-    describe('getWalletByAddress', () => {
-        it('should return a wallet by address', async () => {
-            const wallet = await service.createWallet({ address: faker.finance.ethereumAddress().toLowerCase() });
-            const result = await service.getWalletByAddress(wallet.address);
-            expect(result.address).toEqual(wallet.address.toLowerCase());
+    describe('getWalletByQuery', () => {
+        it('should return null if no parameter provided', async () => {
+            const wallet = await service.createWallet({
+                address: faker.finance.ethereumAddress(),
+                name: faker.hacker.noun(),
+            });
+            const result = await service.getWalletByQuery({ });
+            expect(result).toBeNull();
         });
-    });
 
-    describe('getWalletByName', () => {
         it('should return a wallet by name', async () => {
             const wallet = await service.createWallet({
-                address: faker.finance.ethereumAddress().toLowerCase(),
-                name: 'dogvibe',
+                address: faker.finance.ethereumAddress(),
+                name: faker.hacker.noun(),
             });
-            const result = await service.getWalletByName(wallet.name);
+            const result = await service.getWalletByQuery({ name: wallet.name });
+            expect(result.address).toEqual(wallet.address);
+        });
+
+        it('should return a wallet by address', async () => {
+            const wallet = await service.createWallet({
+                address: faker.finance.ethereumAddress(),
+                name: faker.hacker.noun(),
+            });
+            const result = await service.getWalletByQuery({ address: wallet.address });
             expect(result.name).toEqual(wallet.name);
         });
     });

@@ -5,7 +5,7 @@ import { Repository, UpdateResult } from 'typeorm';
 import { User } from './user.entity';
 import { captureException } from '@sentry/node';
 import { OrganizationService } from '../organization/organization.service';
-import { OrganizationKind } from '../organization/organization.entity';
+import { isEmpty, isNil, omitBy } from 'lodash'; 
 import * as randomstring from 'randomstring';
 import { compareSync as verifyPassword } from 'bcryptjs';
 
@@ -13,6 +13,8 @@ interface GetUserInput {
     id?: string;
     username?: string;
 }
+
+interface IUserQuery extends Partial<Pick<User, 'id' | 'username'>> {}
 
 @Injectable()
 export class UserService {
@@ -33,6 +35,18 @@ export class UserService {
             });
         }
         return await this.userRepository.findOneBy(input);
+    }
+
+    /**
+     * Retrieves the user satisfied the given query.
+     *
+     * @param query The condition of the user to retrieve.
+     * @returns The user satisfied the given query.
+     */
+    async getUserByQuery(query: IUserQuery): Promise<User> {
+        query = omitBy(query, isNil);
+        if (isEmpty(query)) return null;
+        return this.userRepository.findOneBy(query);
     }
 
     /**
