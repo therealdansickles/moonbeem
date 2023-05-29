@@ -19,7 +19,7 @@ export class MembershipResolver {
         private readonly membershipService: MembershipService,
         private readonly organizationService: OrganizationService,
         private mailService: MailService
-    ) {}
+    ) { }
 
     @Public()
     @Query(() => Membership, { description: 'Retrieve a membership by id.', nullable: true })
@@ -27,32 +27,27 @@ export class MembershipResolver {
         return await this.membershipService.getMembership(id);
     }
 
-    @Public()
     @Mutation(() => Membership, { description: 'Create a new membership.' })
     async createMembership(@Args('input') input: CreateMembershipInput): Promise<Membership> {
         return await this.membershipService.createMembership(input);
     }
 
-    @Public()
     @Mutation(() => Boolean, { description: 'Accept a membership request.' })
     async acceptMembership(@Args('input') input: MembershipRequestInput): Promise<boolean> {
         return await this.membershipService.acceptMembership(input);
     }
 
-    @Public()
     @Mutation(() => Boolean, { description: 'Accept a membership request.' })
     async declineMembership(@Args('input') input: MembershipRequestInput): Promise<boolean> {
         return await this.membershipService.declineMembership(input);
     }
 
-    @Public()
     @Mutation(() => Membership, { description: 'Update a membership.' })
     async updateMembership(@Args('input') input: UpdateMembershipInput): Promise<Membership> {
         const { id } = input;
         return await this.membershipService.updateMembership(id, input);
     }
 
-    @Public()
     @Mutation(() => Boolean, { description: 'Deletes a membership.' })
     async deleteMembership(@Args('input') input: DeleteMembershipInput): Promise<boolean> {
         const { id } = input;

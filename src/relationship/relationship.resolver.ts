@@ -26,13 +26,11 @@ export class RelationshipResolver {
         return relationships;
     }
 
-    @Public()
     @Mutation(() => Relationship, { description: 'create relationship.' })
     async followByAddress(@Args('input') input: CreateRelationshipByAddressInput): Promise<Relationship> {
         return this.relationshipService.createRelationshipByAddress(input);
     }
 
-    @Public()
     @Mutation(() => Boolean, { description: 'create relationship.' })
     async unfollowByAddress(@Args('input') input: DeleteRelationshipByAddressInput): Promise<Boolean> {
         return this.relationshipService.deleteRelationshipByAddress(input);

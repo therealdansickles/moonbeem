@@ -27,7 +27,7 @@ interface ITokenPrice {
     price: string;
 }
 
-interface IWalletQuery extends Partial<Pick<Wallet, 'name' | 'address'>> {}
+interface IWalletQuery extends Partial<Pick<Wallet, 'name' | 'address'>> { }
 
 @Injectable()
 export class WalletService {
@@ -78,7 +78,7 @@ export class WalletService {
      * @param query The condition of the wallet to retrieve.
      * @returns The wallet satisfied the given query.
      */
-    async getWalletByQuery (query: IWalletQuery): Promise<Wallet> {
+    async getWalletByQuery(query: IWalletQuery): Promise<Wallet> {
         query = omitBy(query, isNil);
         if (isEmpty(query)) return null;
         if (query.address) query.address = query.address.toLowerCase();
@@ -98,7 +98,7 @@ export class WalletService {
         if (!wallet) throw new GraphQLError(`wallet ${address} doesn't exist.`);
         return wallet;
     }
-    
+
     /**
      * Creates a new wallet with the given data.
      *
@@ -197,7 +197,6 @@ export class WalletService {
                 relations: ['owner'],
             });
         } catch (e) {
-            console.log(e);
             captureException(e);
             throw new GraphQLError(`Failed to bind wallet ${address}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },

@@ -27,6 +27,8 @@ import { Collection, CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
 import { CollectionModule } from '../collection/collection.module';
 import { RelationshipService } from '../relationship/relationship.service';
+import { SessionModule } from '../session/session.module';
+import { SessionService } from '../session/session.service';
 
 export const gql = String.raw;
 
@@ -38,7 +40,8 @@ describe('WalletResolver', () => {
     let mintSaleContractService: MintSaleContractService;
     let tierService: TierService;
     let userService: UserService;
-    let relationshipService: RelationshipService
+    let relationshipService: RelationshipService;
+    let sessionService: SessionService
     let app: INestApplication;
     let address: string;
 
@@ -68,6 +71,7 @@ describe('WalletResolver', () => {
                     autoSchemaFile: true,
                     include: [WalletModule],
                 }),
+                SessionModule,
             ],
         }).compile();
 
@@ -79,6 +83,7 @@ describe('WalletResolver', () => {
         tierService = module.get<TierService>(TierService);
         userService = module.get<UserService>(UserService);
         relationshipService = module.get<RelationshipService>(RelationshipService);
+        sessionService = module.get<SessionService>(SessionService);
         app = module.createNestApplication();
         await app.init();
     });
@@ -166,6 +171,141 @@ describe('WalletResolver', () => {
                 .expect(({ body }) => {
                     expect(body.data.createWallet.address).toEqual(address);
                     expect(body.data.createWallet.owner.id).toEqual(user.id);
+                });
+        });
+    });
+
+    describe('updateWallet', () => {
+        it('should update a wallet', async () => {
+            const randomWallet = ethers.Wallet.createRandom();
+            const message = 'Hi from tests!';
+            const signature = await randomWallet.signMessage(message);
+
+            const name = faker.internet.userName();
+            const email = faker.internet.email();
+            const password = faker.internet.password();
+
+            const owner = await userService.createUser({
+                name,
+                email,
+                password,
+            });
+            const wallet = await service.createWallet({ address: randomWallet.address });
+            const session = await sessionService.createSession(wallet.address, message, signature);
+
+            const query = gql`
+                mutation UpdateWallet($input: UpdateWalletInput!) {
+                    updateWallet(input: $input) {
+                        address
+                        name
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    id: wallet.id,
+                    address: wallet.address,
+                    name: faker.internet.userName()
+                },
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .auth(session.token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.updateWallet.name).toEqual(variables.input.name);
+                });
+        });
+
+        it('should forbid if no session provided', async () => {
+            const randomWallet = ethers.Wallet.createRandom();
+            const message = 'Hi from tests!';
+            const signature = await randomWallet.signMessage(message);
+
+            const name = faker.internet.userName();
+            const email = faker.internet.email();
+            const password = faker.internet.password();
+
+            const owner = await userService.createUser({
+                name,
+                email,
+                password,
+            });
+            const wallet = await service.createWallet({ address: randomWallet.address });
+
+            const query = gql`
+                mutation UpdateWallet($input: UpdateWalletInput!) {
+                    updateWallet(input: $input) {
+                        address
+                        name
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    address: wallet.address,
+                    name: faker.internet.userName()
+                },
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.errors).toBeTruthy()
+                    expect(body.data).toBeFalsy()
+                });
+        });
+
+        it('should forbid if candidate wallet id isn\'t equal the one extract from token', async () => {
+            const randomWallet = ethers.Wallet.createRandom();
+            const message = 'Hi from tests!';
+            const signature = await randomWallet.signMessage(message);
+
+            const name = faker.internet.userName();
+            const email = faker.internet.email();
+            const password = faker.internet.password();
+
+            const owner = await userService.createUser({
+                name,
+                email,
+                password,
+            });
+            const wallet = await service.createWallet({ address: randomWallet.address });
+            const session = await sessionService.createSession(wallet.address, message, signature);
+
+            const anotherWallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
+
+            const query = gql`
+                mutation UpdateWallet($input: UpdateWalletInput!) {
+                    updateWallet(input: $input) {
+                        address
+                        name
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    id: anotherWallet.id,
+                    address: wallet.address,
+                    name: faker.internet.userName()
+                },
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .auth(session.token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.errors).toBeTruthy()
+                    expect(body.data).toBeFalsy()
                 });
         });
     });

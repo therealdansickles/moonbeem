@@ -8,6 +8,7 @@ import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 import { appConfig } from './lib/configs/app.config';
 import * as Sentry from '@sentry/node';
+import { SessionGuard } from './session/session.guard'
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {

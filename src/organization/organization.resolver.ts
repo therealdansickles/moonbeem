@@ -22,7 +22,7 @@ export class OrganizationResolver {
         private readonly collaborationService: CollaborationService,
         private readonly membershipService: MembershipService,
         private readonly organizationService: OrganizationService
-    ) {}
+    ) { }
 
     @Public()
     @Query(() => Organization, { description: 'Returns an organization for the given uuid', nullable: true })
@@ -30,27 +30,23 @@ export class OrganizationResolver {
         return await this.organizationService.getOrganization(id);
     }
 
-    @Public()
     @Mutation(() => Organization, { description: 'Creates an organization.' })
     async createOrganization(@Args('input') input: CreateOrganizationInput): Promise<Organization> {
         return await this.organizationService.createOrganization(input);
     }
 
-    @Public()
     @Mutation(() => Organization, { description: 'Update an organization.' })
     async updateOrganization(@Args('input') input: UpdateOrganizationInput): Promise<Organization> {
         const { id } = input;
         return await this.organizationService.updateOrganization(id, input);
     }
 
-    @Public()
     @Mutation(() => Boolean, { description: 'Delete an organization.' })
     async deleteOrganization(@Args('input') input: OrganizationInput): Promise<boolean> {
         const { id } = input;
         return await this.organizationService.deleteOrganization(id);
     }
 
-    @Public()
     @Mutation(() => Organization, { description: 'Transfer an organization to another user.' })
     async transferOrganization(@Args('input') input: TransferOrganizationInput): Promise<Organization> {
         const { id, ownerId } = input;

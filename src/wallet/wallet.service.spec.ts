@@ -89,16 +89,16 @@ describe('WalletService', () => {
         it('should return null if no parameter provided', async () => {
             const wallet = await service.createWallet({
                 address: faker.finance.ethereumAddress(),
-                name: faker.hacker.noun(),
+                name: faker.internet.userName(),
             });
-            const result = await service.getWalletByQuery({ });
+            const result = await service.getWalletByQuery({});
             expect(result).toBeNull();
         });
 
         it('should return a wallet by name', async () => {
             const wallet = await service.createWallet({
                 address: faker.finance.ethereumAddress(),
-                name: faker.hacker.noun(),
+                name: faker.internet.userName(),
             });
             const result = await service.getWalletByQuery({ name: wallet.name });
             expect(result.address).toEqual(wallet.address);
@@ -107,7 +107,7 @@ describe('WalletService', () => {
         it('should return a wallet by address', async () => {
             const wallet = await service.createWallet({
                 address: faker.finance.ethereumAddress(),
-                name: faker.hacker.noun(),
+                name: faker.internet.userName(),
             });
             const result = await service.getWalletByQuery({ address: wallet.address });
             expect(result.name).toEqual(wallet.name);
@@ -139,7 +139,7 @@ describe('WalletService', () => {
         });
 
         it('should error if the wallet name have been used.', async () => {
-            const name = faker.hacker.noun();
+            const name = faker.internet.userName();
             await service.createWallet({
                 address: faker.finance.ethereumAddress(),
                 name,
