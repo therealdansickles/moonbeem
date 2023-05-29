@@ -38,7 +38,6 @@ async function bootstrap() {
             transform: true,
         })
     );
-    app.useGlobalGuards(SessionGuard);
 
     // configure: swagger
     if (appConfig.global.debug) {
