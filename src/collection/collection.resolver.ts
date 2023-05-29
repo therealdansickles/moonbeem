@@ -11,7 +11,7 @@ export class CollectionResolver {
     constructor(
         private readonly collectionService: CollectionService,
         private readonly MintSaleContractService: MintSaleContractService
-    ) {}
+    ) { }
 
     @Public()
     @Query(() => Collection, { description: 'returns a collection for a given uuid', nullable: true })
@@ -28,20 +28,17 @@ export class CollectionResolver {
         return this.collectionService.createCollectionWithTiers(input);
     }
 
-    @Public()
     @Mutation(() => Boolean, { description: 'updates a collection' })
     async updateCollection(@Args('input') input: UpdateCollectionInput): Promise<boolean> {
         const { id } = input;
         return this.collectionService.updateCollection(id, input);
     }
 
-    @Public()
     @Mutation(() => Boolean, { description: 'publishes a collection' })
     async publishCollection(@Args('input') input: CollectionInput): Promise<boolean> {
         return this.collectionService.publishCollection(input.id);
     }
 
-    @Public()
     @Mutation(() => Boolean, { description: 'delete a unpublished collection' })
     async deleteCollection(@Args('input') input: CollectionInput): Promise<boolean> {
         return await this.collectionService.deleteCollection(input.id);

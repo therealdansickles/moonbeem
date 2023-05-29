@@ -13,7 +13,7 @@ export class UserResolver {
         private readonly userService: UserService,
         private readonly membershipService: MembershipService,
         private readonly organizationService: OrganizationService
-    ) {}
+    ) { }
 
     @Public()
     @Query(() => User, { description: 'Returns an user for the given id or username', nullable: true })
@@ -30,7 +30,6 @@ export class UserResolver {
         return await this.userService.createUserWithOrganization(input);
     }
 
-    @Public()
     @Mutation(() => User, { description: 'update the given user.' })
     async updateUser(@Args('input') input: UpdateUserInput): Promise<User> {
         const { id } = input;

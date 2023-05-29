@@ -5,6 +5,7 @@ import { WalletService } from './wallet.service';
 import { WalletResolver } from './wallet.resolver';
 import { User } from '../user/user.entity';
 import { UserModule } from '../user/user.module';
+import { JwtModule } from '@nestjs/jwt';
 import { Collaboration } from '../collaboration/collaboration.entity';
 import { CollaborationModule } from '../collaboration/collaboration.module';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';

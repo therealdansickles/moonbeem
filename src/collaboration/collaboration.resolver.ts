@@ -6,7 +6,7 @@ import { CollaborationService } from './collaboration.service';
 
 @Resolver(() => Collaboration)
 export class CollaborationResolver {
-    constructor(private readonly collaborationService: CollaborationService) {}
+    constructor(private readonly collaborationService: CollaborationService) { }
 
     @Public()
     @Query(() => Collaboration, { description: 'returns a collaboration for a given uuid', nullable: true })
@@ -23,7 +23,6 @@ export class CollaborationResolver {
         return await this.collaborationService.getCollaborationsByUserIdAndOrganizationId(userId, organizationId);
     }
 
-    @Public()
     @Mutation(() => Collaboration, { description: 'create a collaboration' })
     async createCollaboration(@Args('input') input: CreateCollaborationInput): Promise<Collaboration> {
         return await this.collaborationService.createCollaboration(input);

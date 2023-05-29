@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 dotenv.config();
 
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { GraphQLModule } from '@nestjs/graphql';
 import { Module } from '@nestjs/common';
@@ -10,6 +10,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CollaborationModule } from './collaboration/collaboration.module';
 import { CollectionModule } from './collection/collection.module';
+import { JwtModule } from '@nestjs/jwt';
 import { MembershipModule } from './membership/membership.module';
 import { MongoAdapter } from './lib/adapters/mongo.adapter';
 import { OrganizationModule } from './organization/organization.module';
@@ -26,6 +27,7 @@ import { WaitlistModule } from './waitlist/waitlist.module';
 import { WalletModule } from './wallet/wallet.module';
 import { appConfig } from './lib/configs/app.config';
 import { postgresConfig } from './lib/configs/db.config';
+import { SessionGuard } from './session/session.guard';
 
 @Module({
     imports: [
@@ -59,11 +61,19 @@ import { postgresConfig } from './lib/configs/db.config';
             synchronize: true,
             logging: true,
         }),
+        JwtModule.register({
+            secret: process.env.SESSION_SECRET,
+            signOptions: { expiresIn: '1d' },
+        }),
     ],
     providers: [
         {
             provide: APP_INTERCEPTOR,
             useValue: new RavenInterceptor(),
+        },
+        {
+            provide: APP_GUARD,
+            useClass: SessionGuard
         },
         MongoAdapter,
         RedisAdapter,

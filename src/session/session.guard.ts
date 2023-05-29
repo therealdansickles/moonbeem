@@ -11,7 +11,7 @@ export class SessionGuard implements CanActivate {
         private reflector: Reflector,
         private readonly jwtService: JwtService,
         private readonly walletService: WalletService
-    ) {}
+    ) { }
 
     /**
      * Checks if the user is authenticated via the JWT token that was given to them.

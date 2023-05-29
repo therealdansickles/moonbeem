@@ -6,7 +6,7 @@ import { TierService } from './tier.service';
 
 @Resolver(() => Tier)
 export class TierResolver {
-    constructor(private readonly tierService: TierService) {}
+    constructor(private readonly tierService: TierService) { }
 
     @Public()
     @Query(() => Tier, { description: 'Get a specific tier by id.', nullable: true })
@@ -20,20 +20,17 @@ export class TierResolver {
         return await this.tierService.getTiersByCollection(collectionId);
     }
 
-    @Public()
     @Mutation(() => Tier, { description: 'Create a new tier.' })
     async createTier(@Args('input') input: CreateTierInput): Promise<Tier> {
         return await this.tierService.createTier(input);
     }
 
-    @Public()
     @Mutation(() => Boolean, { description: 'Update a tier.' })
     async updateTier(@Args('input') input: UpdateTierInput): Promise<boolean> {
         const { id } = input;
         return await this.tierService.updateTier(id, input);
     }
 
-    @Public()
     @Mutation(() => Boolean, { description: 'Delete a tier.' })
     async deleteTier(@Args('input') input: DeleteTierInput): Promise<boolean> {
         const { id } = input;

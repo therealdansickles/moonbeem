@@ -13,7 +13,7 @@ import {
 
 @Resolver('Waitlist')
 export class WaitlistResolver {
-    constructor(private readonly waitlistService: WaitlistService) {}
+    constructor(private readonly waitlistService: WaitlistService) { }
 
     @Public()
     @Query(() => Waitlist, { description: 'returns a waitlist for a given email', nullable: true })
@@ -21,13 +21,11 @@ export class WaitlistResolver {
         return this.waitlistService.getWaitlist(input);
     }
 
-    @Public()
     @Mutation(() => Waitlist, { description: 'creates a waitlist item' })
     async createWaitlist(@Args('input') input: CreateWaitlistInput): Promise<Waitlist> {
         return this.waitlistService.createWaitlist(input);
     }
 
-    @Public()
     @Mutation(() => Boolean, { description: 'claim a waitlist item' })
     async claimWaitlist(@Args('input') input: ClaimWaitlistInput): Promise<boolean> {
         return this.waitlistService.claimWaitlist(input);
