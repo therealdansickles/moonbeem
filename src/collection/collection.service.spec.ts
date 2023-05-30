@@ -219,7 +219,7 @@ describe('CollectionService', () => {
                 tags: [],
                 organization: organization,
             });
-            const result = await service.getCollectionByQuery({ });
+            const result = await service.getCollectionByQuery({});
             expect(result).toBeNull();
         });
 
@@ -253,7 +253,7 @@ describe('CollectionService', () => {
             });
             const result = await service.getCollectionByQuery({ id: collection.id });
             expect(result.id).toEqual(collection.id);
-            expect(result.address).toEqual(collection.address)
+            expect(result.address).toEqual(collection.address);
             expect(result.organization.name).not.toBeNull();
         });
 
@@ -287,7 +287,7 @@ describe('CollectionService', () => {
             });
             const result = await service.getCollectionByQuery({ address: collection.address });
             expect(result.id).toEqual(collection.id);
-            expect(result.address).toEqual(collection.address)
+            expect(result.address).toEqual(collection.address);
             expect(result.organization.name).not.toBeNull();
         });
     });
@@ -636,6 +636,54 @@ describe('CollectionService', () => {
 
             const [result, ...rest] = await service.getBuyers(collection.address);
             expect(result).toEqual(txn.recipient);
+        });
+    });
+
+    describe('getCollectionByQuery', () => {
+        it('should return tier info and the coin info contained in the tier', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const collection = await service.createCollectionWithTiers({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                organization: { id: organization.id },
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: 200,
+                        paymentTokenAddress: coin.address,
+                        tierId: 0,
+                        price: '200',
+                    },
+                ],
+            });
+
+            const result = await service.getCollectionByQuery({ id: collection.id });
+            expect(result.id).toEqual(collection.id);
+            expect(result.address).toEqual(collection.address);
+            expect(result.organization.name).not.toBeNull();
+            expect(result.tiers).not.toBeNull();
+            expect(result.tiers[0].coin).not.toBeNull();
+            expect(result.tiers[0].coin.address).toEqual(coin.address);
         });
     });
 });

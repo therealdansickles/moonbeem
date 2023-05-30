@@ -55,10 +55,13 @@ export class CollectionService {
     async getCollectionByQuery(query: ICollectionQuery): Promise<Collection | null> {
         query = omitBy(query, isNil);
         if (isEmpty(query)) return null;
-        return await this.collectionRepository.findOne({
+        const collection = await this.collectionRepository.findOne({
             where: query,
-            relations: ['organization', 'tiers', 'creator', 'collaboration'],
+            relations: ['organization', 'creator', 'collaboration'],
         });
+
+        collection.tiers = (await this.tierService.getTiersByCollection(collection.id)) as Tier[];
+        return collection;
     }
 
     /**

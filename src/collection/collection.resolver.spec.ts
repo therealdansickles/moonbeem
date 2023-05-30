@@ -672,4 +672,79 @@ describe('CollectionResolver', () => {
                 });
         });
     });
+
+    describe('collection', () => {
+        it('should return tier info and the coin info contained in the tier', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const collection = await service.createCollectionWithTiers({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                organization: { id: organization.id },
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: 200,
+                        paymentTokenAddress: coin.address,
+                        tierId: 0,
+                        price: '200',
+                    },
+                ],
+            });
+
+            const query = gql`
+                query GetCollection($address: String) {
+                    collection(address: $address) {
+                        tiers {
+                            coin {
+                                address
+                            }
+                        }
+                    }
+                }
+            `;
+            const variables = { address: collection.address };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.collection.tiers).not.toBeNull();
+                    expect(body.data.collection.tiers).not.toBeNull();
+                    expect(body.data.collection.tiers[0].coin).not.toBeNull();
+                    expect(body.data.collection.tiers[0].coin.address).not.toBeNull();
+                });
+        });
+    });
 });
