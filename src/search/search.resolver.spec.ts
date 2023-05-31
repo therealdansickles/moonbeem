@@ -5,7 +5,6 @@ import { INestApplication } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ApolloDriver } from '@nestjs/apollo';
 import { faker } from '@faker-js/faker';
-import { Repository } from 'typeorm';
 import { postgresConfig } from '../lib/configs/db.config';
 import { CollectionService } from '../collection/collection.service';
 import { SearchModule } from './search.module';
@@ -69,11 +68,24 @@ describe('SearchResolver', () => {
         await app.close();
     });
 
-    describe('globalSearchV1', () => {
-        it('should perform search for collection', async () => {
+    describe('search bar', () => {
+        it('should search all', async () => {
             const name = faker.company.name();
-            await collectionService.createCollection({
+            // create user
+            const user = await userService.createUser({
                 name,
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+            await userService.createUser({
+                name: faker.company.name(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            // create collection
+            const collection = await collectionService.createCollection({
+                name: `${name}'s collection`,
                 displayName: 'The best collection',
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -81,77 +93,43 @@ describe('SearchResolver', () => {
                 tags: [],
             });
 
-            const query = gql`
-                query search($input: GloablSearchInput!) {
-                    globalSearchV1(input: $input) {
-                        users {
-                            data {
-                                name
-                                avatar
-                            }
-                        }
-                        collections {
-                            data {
-                                name
-                                image
-                            }
-                            total
-                            isLastPage
-                        }
-                    }
-                }
-            `;
-
-            const variables = {
-                input: {
-                    searchTerm: name.toUpperCase(),
-                    page: 0,
-                    pageSize: 3,
-                },
-            };
-
-            return await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query, variables })
-                .expect(200)
-                .expect(({ body }) => {
-                    expect(body.data.globalSearchV1.collections.data.length).toEqual(1);
-                    expect(body.data.globalSearchV1.collections.data[0].name).toEqual(name);
-                    expect(body.data.globalSearchV1.collections.isLastPage).toBeTruthy();
-                });
-        });
-
-        it('should perform search for user', async () => {
-            const name = faker.company.name();
-            const user = await userService.createUser({
-                name,
-                email: faker.internet.email(),
-                password: faker.internet.password(),
-            });
+            // create wallet
             const wallet = await walletService.createWallet({
                 address: faker.finance.ethereumAddress(),
+                name: `first wallet of ${name}`,
+                ownerId: user.id,
+            });
+            const wallet2 = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+                name: `second wallet of ${name}`,
+                ownerId: user.id,
+            });
+            const wallet3 = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+                name: `third wallet of ${name}`,
                 ownerId: user.id,
             });
 
             const query = gql`
-                query search($input: GloablSearchInput!) {
-                    globalSearchV1(input: $input) {
-                        users {
-                            data {
+                query search($input: SearchInput!) {
+                    search {
+                        user(input: $input) {
+                            users {
                                 name
-                                avatar
-                                address
                             }
                             total
-                            isLastPage
                         }
-                        collections {
-                            data {
+                        collection(input: $input) {
+                            collections {
                                 name
-                                image
                             }
                             total
-                            isLastPage
+                        }
+                        wallet(input: $input) {
+                            wallets {
+                                name
+                            }
+                            total
                         }
                     }
                 }
@@ -159,9 +137,9 @@ describe('SearchResolver', () => {
 
             const variables = {
                 input: {
-                    searchTerm: wallet.address,
-                    page: 0,
-                    pageSize: 3,
+                    keyword: name,
+                    offset: 0,
+                    limit: 2,
                 },
             };
 
@@ -170,10 +148,17 @@ describe('SearchResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.data.globalSearchV1.users.data.length).toEqual(1);
-                    expect(body.data.globalSearchV1.users.data[0].name).toEqual(name);
-                    expect(body.data.globalSearchV1.users.data[0].address).toEqual(wallet.address);
-                    expect(body.data.globalSearchV1.users.isLastPage).toBeTruthy();
+                    expect(body.data.search.user.total).toEqual(1);
+                    expect(body.data.search.user.users).toBeDefined();
+                    expect(body.data.search.user.users[0].name).toEqual(name);
+
+                    expect(body.data.search.collection.total).toEqual(1);
+                    expect(body.data.search.collection.collections).toBeDefined();
+                    expect(body.data.search.collection.collections[0].name).toEqual(`${name}'s collection`);
+
+                    expect(body.data.search.wallet.total).toEqual(3);
+                    expect(body.data.search.wallet.wallets).toBeDefined();
+                    expect(body.data.search.wallet.wallets.length).toEqual(2);
                 });
         });
     });

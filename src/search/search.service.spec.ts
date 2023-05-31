@@ -1,4 +1,3 @@
-import { Repository } from 'typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { postgresConfig } from '../lib/configs/db.config';
@@ -57,10 +56,10 @@ describe('SearchService', () => {
         global.gc && global.gc();
     });
 
-    describe('executeGlobalSearchV1', () => {
+    describe('search bar', () => {
         it('should perform search for collection', async () => {
             const name = faker.company.name();
-            await collectionService.createCollection({
+            const collection = await collectionService.createCollection({
                 name,
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -69,13 +68,10 @@ describe('SearchService', () => {
                 tags: [],
             });
 
-            const result = await service.executeGlobalSearchV1({ searchTerm: name });
-
-            expect(result.collections.data).toBeDefined();
-            expect(result.users.data).toBeDefined();
-            expect(result.collections.total).toEqual(1);
-            expect(result.collections.isLastPage).toBeTruthy();
-            expect(result.collections.data[0].name).toEqual(name);
+            const result = await service.searchFromCollection({ keyword: collection.name });
+            expect(result.collections).toBeDefined();
+            expect(result.total).toEqual(1);
+            expect(result.collections[0].name).toEqual(name);
         });
 
         it('should perform search for user', async () => {
@@ -85,19 +81,31 @@ describe('SearchService', () => {
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
+
+            const result = await service.searchFromUser({ keyword: user.name });
+
+            expect(result.users).toBeDefined();
+            expect(result.total).toEqual(1);
+            expect(result.users[0].name).toEqual(name);
+        });
+
+        it('should perform search for wallet', async () => {
+            const name = faker.name.fullName();
+            const user = await userService.createUser({
+                name: faker.name.fullName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
             const wallet = await walletService.createWallet({
                 address: faker.finance.ethereumAddress(),
+                name: name,
                 ownerId: user.id,
             });
+            const result = await service.searchFromWallet({ keyword: wallet.name });
 
-            const result = await service.executeGlobalSearchV1({ searchTerm: wallet.address });
-
-            expect(result.collections.data).toBeDefined();
-            expect(result.users.data).toBeDefined();
-            expect(result.users.total).toEqual(1);
-            expect(result.users.isLastPage).toBeTruthy();
-            expect(result.users.data[0].address).toEqual(wallet.address);
-            expect(result.users.data[0].name).toEqual(name);
+            expect(result.wallets).toBeDefined();
+            expect(result.total).toEqual(1);
+            expect(result.wallets[0].name).toEqual(name);
         });
     });
 });

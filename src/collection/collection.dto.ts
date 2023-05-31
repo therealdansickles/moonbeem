@@ -1,17 +1,5 @@
-import {
-    ArgsType,
-    Field,
-    Int,
-    ObjectType,
-    InputType,
-    registerEnumType,
-    ID,
-    PartialType,
-    OmitType,
-    PickType,
-} from '@nestjs/graphql';
+import { Field, Int, ObjectType, InputType, registerEnumType, PartialType, OmitType, PickType } from '@nestjs/graphql';
 import { IsNumber, IsString, IsDateString, IsUrl, IsOptional, IsArray, IsObject } from 'class-validator';
-import { Type } from 'class-transformer';
 import { CollectionKind } from './collection.entity';
 import { AttributeInput, Tier, PluginInput, ConditionInput } from '../tier/tier.dto';
 import { Organization, OrganizationInput } from '../organization/organization.dto';
@@ -219,4 +207,36 @@ export class CreateTierInCollectionInput {
     @Field({ nullable: true, description: 'The price of NFTs in this tier.' })
     @IsOptional()
     readonly price?: string;
+}
+
+@ObjectType('CollectionOutput')
+export class CollectionOutput extends OmitType(
+    Collection,
+    [
+        'organization',
+        'websiteUrl',
+        'twitter',
+        'instagram',
+        'tiers',
+        'discord',
+        'tags',
+        'publishedAt',
+        'createdAt',
+        'updatedAt',
+        'creator',
+        'contract',
+        'collaboration',
+    ],
+    ObjectType
+) {}
+
+@ObjectType('SearchCollection')
+export class SearchCollection {
+    @Field(() => Int)
+    @IsNumber()
+    total: number;
+
+    @Field(() => [CollectionOutput])
+    @IsArray()
+    collections: CollectionOutput[];
 }

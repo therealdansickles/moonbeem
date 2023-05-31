@@ -1,82 +1,56 @@
 import { Injectable } from '@nestjs/common';
-import {
-    GloablSearchInput,
-    GlobalSearchResult,
-    UserSearchResult,
-    UserSearchResults,
-    CollectionSearchResult,
-    CollectionSearchResults,
-} from './search.dto';
-import { IRowCount } from '../lib/modules/db.module';
-import { SearchAccountItem, SearchCollectionItem } from '../lib/modules/db.record.module';
+import { SearchInput } from './search.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Collection } from '../collection/collection.entity';
-import { ILike, IsNull, Not, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { User } from '../user/user.entity';
+import { SearchUser } from '../user/user.dto';
+import { SearchWallet } from '../wallet/wallet.dto';
+import { SearchCollection } from '../collection/collection.dto';
+import { Wallet } from '../wallet/wallet.entity';
 
 @Injectable()
 export class SearchService {
     constructor(
-        @InjectRepository(Collection) private collectionRepository: Repository<Collection>,
-        @InjectRepository(User) private userRepository: Repository<User>
+        @InjectRepository(User) private userRepository: Repository<User>,
+        @InjectRepository(Wallet) private walletRepository: Repository<Wallet>,
+        @InjectRepository(Collection) private collectionRepository: Repository<Collection>
     ) {}
 
-    async executeGlobalSearchV1(input: GloablSearchInput): Promise<GlobalSearchResult> {
-        const page = input.page || 0;
-        const pageSize = input.pageSize || 10;
-        const offset = page * pageSize;
-        const searchTerm = input.searchTerm.toLowerCase();
-
-        const [collectionsResult, totalCollections] = await this.collectionRepository
-            .createQueryBuilder('collection')
-            .where('LOWER(name) LIKE :query OR LOWER(address) LIKE :query', {
-                query: `%${searchTerm}%`,
-            })
-            .andWhere('address is not null') // this is to prevent showing un-published / draft collections.
-            .skip(offset)
-            .take(pageSize)
-            .getManyAndCount();
-
-        const isLastCollectionPage = totalCollections - (offset + collectionsResult.length) <= 0;
-        const collectionData: CollectionSearchResult[] = collectionsResult.map((col) => ({
-            name: col.name,
-            image: col.avatarUrl,
-            address: col.address,
-            chainId: col.chainId,
-            itemsCount: col.tiers?.reduce((sum, item) => (sum += item.totalMints), 0) || 0,
-        }));
-
-        const [usersResult, totalUsers] = await this.userRepository
+    async searchFromUser(input: SearchInput): Promise<SearchUser> {
+        const [users, total] = await this.userRepository
             .createQueryBuilder('user')
-            .innerJoinAndSelect('user.wallets', 'wallet')
-            .where('LOWER(wallet.address) LIKE :query OR LOWER(user.name) LIKE :query', { query: `%${searchTerm}%` })
-            .skip(offset)
-            .take(pageSize)
+            .where('LOWER(name) LIKE :keyword OR LOWER(username) LIKE :keyword', {
+                keyword: `%${input.keyword.toLowerCase()}%`,
+            })
+            .skip(input.offset)
+            .limit(input.limit)
             .getManyAndCount();
 
-        const isLastAccountsPage = totalUsers - (offset + usersResult.length) <= 0;
+        return { users, total };
+    }
 
-        const accountsData: UserSearchResult[] = usersResult.map((acc) => ({
-            name: acc.name || acc.email,
-            address: acc.wallets[0]?.address,
-            avatar: acc.avatarUrl,
-        }));
+    async searchFromWallet(input: SearchInput): Promise<SearchWallet> {
+        const [wallets, total] = await this.walletRepository
+            .createQueryBuilder('wallet')
+            .where('LOWER(address) LIKE :keyword OR LOWER(name) LIKE :keyword', {
+                keyword: `%${input.keyword.toLowerCase()}%`,
+            })
+            .skip(input.offset)
+            .limit(input.limit)
+            .getManyAndCount();
+        return { wallets, total };
+    }
 
-        const collections: CollectionSearchResults = {
-            data: collectionData,
-            total: totalCollections,
-            isLastPage: isLastCollectionPage,
-        };
-
-        const users: UserSearchResults = {
-            data: accountsData,
-            total: totalUsers,
-            isLastPage: isLastAccountsPage,
-        };
-
-        return {
-            collections,
-            users,
-        };
+    async searchFromCollection(input: SearchInput): Promise<SearchCollection> {
+        const [collections, total] = await this.collectionRepository
+            .createQueryBuilder('collection')
+            .where('LOWER(name) LIKE :keyword OR LOWER("displayName") LIKE :keyword', {
+                keyword: `%${input.keyword.toLowerCase()}%`,
+            })
+            .skip(input.offset)
+            .limit(input.limit)
+            .getManyAndCount();
+        return { collections, total };
     }
 }

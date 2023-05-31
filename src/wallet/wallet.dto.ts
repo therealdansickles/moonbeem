@@ -1,5 +1,15 @@
-import { Field, ObjectType, InputType, ID, OmitType, PartialType, PickType, registerEnumType } from '@nestjs/graphql';
-import { IsString, IsEthereumAddress, IsObject, IsOptional, IsEnum } from 'class-validator';
+import {
+    Field,
+    ObjectType,
+    InputType,
+    ID,
+    OmitType,
+    PartialType,
+    PickType,
+    registerEnumType,
+    Int,
+} from '@nestjs/graphql';
+import { IsString, IsEthereumAddress, IsObject, IsOptional, IsEnum, IsNumber, IsArray } from 'class-validator';
 import { User, UserInput } from '../user/user.dto';
 import { Tier } from '../tier/tier.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
@@ -177,4 +187,22 @@ export class WalletInput {
     @IsString()
     @Field(() => ID!)
     readonly id: string;
+}
+
+@ObjectType('WalletOutput')
+export class WalletOutput extends OmitType(
+    Wallet,
+    ['websiteUrl', 'twitter', 'instagram', 'discord', 'spotify', 'owner'],
+    ObjectType
+) {}
+
+@ObjectType('SearchWallet')
+export class SearchWallet {
+    @Field(() => Int)
+    @IsNumber()
+    total: number;
+
+    @Field(() => [WalletOutput])
+    @IsArray()
+    wallets: WalletOutput[];
 }

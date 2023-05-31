@@ -1,6 +1,5 @@
-import { Field, ObjectType, InputType, ID, PickType, OmitType, PartialType } from '@nestjs/graphql';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional } from 'class-validator';
+import { Field, ObjectType, InputType, ID, PickType, OmitType, PartialType, Int } from '@nestjs/graphql';
+import { IsString, IsOptional, IsNumber, IsArray } from 'class-validator';
 import { Wallet } from '../wallet/wallet.dto';
 
 @ObjectType('User')
@@ -75,3 +74,21 @@ export class UserInput extends PickType(User, ['id'] as const, InputType) {}
 
 @InputType()
 export class UpdateUserInput extends PartialType(OmitType(User, ['password', 'wallets'] as const), InputType) {}
+
+@ObjectType()
+export class UserOutput extends OmitType(
+    User,
+    ['password', 'websiteUrl', 'twitter', 'instagram', 'discord', 'wallets'],
+    ObjectType
+) {}
+
+@ObjectType()
+export class SearchUser {
+    @Field(() => Int)
+    @IsNumber()
+    total: number;
+
+    @Field(() => [UserOutput])
+    @IsArray()
+    users: UserOutput[];
+}
