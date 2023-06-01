@@ -12,7 +12,7 @@ export class OpenseaService {
     constructor(private readonly httpRequest: HttpService) { }
 
     async getCollectionStat(slug: string): Promise<CollectionStatData> {
-        const endpoint = join('/api/v1/collection', slug)
+        const endpoint = join('/api/v1/collection', slug, '/stats')
         const url = new URL(endpoint, openseaConfig.url).toString()
         const headers = {
             'X-API-KEY': openseaConfig.apiKey,
@@ -28,19 +28,19 @@ export class OpenseaService {
         )
         return {
             volume: {
-                total: data.total_volume,
-                hourly: data.one_hour_volume,
-                daily: data.one_day_volume,
-                weekly: data.seven_day_sales,
+                total: data.stats?.total_volume,
+                hourly: data.stats?.one_hour_volume,
+                daily: data.stats?.one_day_volume,
+                weekly: data.stats?.seven_day_sales,
             },
             sales: {
-                total: data.total_sales,
-                hourly: data.one_hour_sales,
-                daily: data.one_day_sales,
-                weekly: data.seven_day_sales,
+                total: data.stats?.total_sales,
+                hourly: data.stats?.one_hour_sales,
+                daily: data.stats?.one_day_sales,
+                weekly: data.stats?.seven_day_sales,
             },
-            supply: data.total_supply,
-            floorPrice: data.floor_price
+            supply: data.stats?.total_supply,
+            floorPrice: data.stats?.floor_price
         }
     }
 }

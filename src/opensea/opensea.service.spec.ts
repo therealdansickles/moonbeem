@@ -34,10 +34,10 @@ describe('OpenseaService', () => {
                     daily: faker.datatype.float(),
                     weekly: faker.datatype.float(),
                     total: faker.datatype.float(),
-                },
+                }
             };
             jest.spyOn(service, 'getCollectionStat').mockImplementation(async () => mockResponse);
-            const result = await service.getCollectionStat('vibe-season-1-genesis-nft');
+            const result = await service.getCollectionStat('vibe-season-1-vibe-check');
             expect(result.supply).toBeTruthy();
             expect(result.floorPrice).toBeTruthy();
         })
