@@ -1,4 +1,4 @@
-import { Field, Int, ObjectType, InputType, registerEnumType, PartialType, OmitType, PickType } from '@nestjs/graphql';
+import { Field, Int, ObjectType, InputType, registerEnumType, PartialType, OmitType, PickType, Float } from '@nestjs/graphql';
 import { IsNumber, IsString, IsDateString, IsUrl, IsOptional, IsArray, IsObject } from 'class-validator';
 import { CollectionKind } from './collection.entity';
 import { AttributeInput, Tier, PluginInput, ConditionInput } from '../tier/tier.dto';
@@ -77,6 +77,10 @@ export class Collection {
     @IsArray()
     readonly tiers?: Tier[];
 
+    @Field(() => String, { nullable: true, description: 'Temporary field for store collection name in Opensea, while we can\'t retrieve collection stat by address' })
+    @IsString()
+    readonly nameOnOpensea?: string;
+
     @IsDateString()
     @Field({ description: 'The DateTime that this collection was published.', nullable: true })
     readonly publishedAt?: Date;
@@ -139,7 +143,7 @@ export class UpdateCollectionInput extends OmitType(CreateCollectionInput, ['org
 }
 
 @InputType()
-export class CollectionInput extends PickType(Collection, ['id'], InputType) {}
+export class CollectionInput extends PickType(Collection, ['id'], InputType) { }
 
 @InputType('CreateTierInCollectionInput')
 export class CreateTierInCollectionInput {
@@ -228,7 +232,7 @@ export class CollectionOutput extends OmitType(
         'collaboration',
     ],
     ObjectType
-) {}
+) { }
 
 @ObjectType('SearchCollection')
 export class SearchCollection {
@@ -240,3 +244,53 @@ export class SearchCollection {
     @IsArray()
     collections: CollectionOutput[];
 }
+
+@ObjectType('CollectionStatDataPeriodItem')
+export class CollectionStatDataPeriodItem {
+    @Field(() => Float, { nullable: true })
+    @IsNumber()
+    hourly?: number;
+
+    @Field(() => Float, { nullable: true })
+    @IsNumber()
+    daily?: number;
+
+    @Field(() => Float, { nullable: true })
+    @IsNumber()
+    weekly?: number;
+
+    @Field(() => Float, { nullable: true })
+    @IsNumber()
+    total?: number;
+}
+
+@ObjectType('CollectionStatData')
+export class CollectionStatData {
+    @Field(() => CollectionStatDataPeriodItem, { nullable: true })
+    @IsObject()
+    volume?: CollectionStatDataPeriodItem;
+
+    @Field(() => CollectionStatDataPeriodItem, { nullable: true })
+    @IsObject()
+    sales?: CollectionStatDataPeriodItem;
+
+    @Field(() => Float)
+    @IsNumber()
+    supply: number;
+
+    @Field(() => Float)
+    @IsNumber()
+    floorPrice: number;
+}
+
+@ObjectType('CollectionStat')
+export class CollectionStat {
+    @Field(() => String)
+    @IsString()
+    source: string;
+
+    @Field(() => CollectionStatData)
+    @IsObject()
+    data: CollectionStatData
+}
+

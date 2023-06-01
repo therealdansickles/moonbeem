@@ -1,7 +1,7 @@
 import { Resolver, Query, Args, Mutation, ResolveField, Parent } from '@nestjs/graphql';
 import { Public } from '../session/session.decorator';
 import { CollectionService } from './collection.service';
-import { Collection, CollectionInput, CreateCollectionInput, UpdateCollectionInput } from './collection.dto';
+import { Collection, CollectionInput, CreateCollectionInput, UpdateCollectionInput, CollectionStat } from './collection.dto';
 import { Wallet } from '../wallet/wallet.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
@@ -54,5 +54,14 @@ export class CollectionResolver {
     @ResolveField(() => MintSaleContract, { description: 'Returns the contract for the given collection' })
     async contract(@Parent() collection: Collection): Promise<MintSaleContract> {
         return await this.MintSaleContractService.getMintSaleContractByCollection(collection.id);
+    }
+
+    @Public()
+    @Query(() => [CollectionStat], { description: 'Get collection stat from secondary markets' })
+    async secondaryMarketStat(
+        @Args({ name: 'id', nullable: true }) id: string,
+        @Args({ name: 'address', nullable: true }) address: string
+    ): Promise<CollectionStat[]> {
+        return this.collectionService.getSecondartMarketStat({ id, address });
     }
 }

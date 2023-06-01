@@ -28,6 +28,7 @@ import { WalletModule } from './wallet/wallet.module';
 import { appConfig } from './lib/configs/app.config';
 import { postgresConfig } from './lib/configs/db.config';
 import { SessionGuard } from './session/session.guard';
+import { OpenseaModule } from './opensea/opensea.module';
 
 @Module({
     imports: [
@@ -65,6 +66,7 @@ import { SessionGuard } from './session/session.guard';
             secret: process.env.SESSION_SECRET,
             signOptions: { expiresIn: '1d' },
         }),
+        OpenseaModule,
     ],
     providers: [
         {

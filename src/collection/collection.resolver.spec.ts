@@ -137,7 +137,7 @@ describe('CollectionResolver', () => {
             return await request(app.getHttpServer())
                 .post('/graphql')
                 .send({ query, variables })
-                // .expect(200)
+                .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.collection.name).toEqual(collection.name);
                     expect(body.data.collection.displayName).toEqual(collection.displayName);
@@ -747,4 +747,164 @@ describe('CollectionResolver', () => {
                 });
         });
     });
+
+    describe('secondaryMarketStat', () => {
+        let collection: Collection;
+
+        beforeEach(async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            collection = await service.createCollectionWithTiers({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                organization: { id: organization.id },
+                nameOnOpensea: faker.finance.accountName(),
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: 200,
+                        paymentTokenAddress: coin.address,
+                        tierId: 0,
+                        price: '200',
+                    },
+                ],
+            });
+        })
+
+        afterEach(async () => {
+            await repository.query('TRUNCATE TABLE "User" CASCADE;')
+            await repository.query('TRUNCATE TABLE "Organization" CASCADE;')
+            await repository.query('TRUNCATE TABLE "Collection" CASCADE;')
+        });
+
+        it('should get stat data', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            collection = await service.createCollectionWithTiers({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                organization: { id: organization.id },
+                nameOnOpensea: faker.finance.accountName(),
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: 200,
+                        paymentTokenAddress: coin.address,
+                        tierId: 0,
+                        price: '200',
+                    },
+                ],
+            });
+
+            const query = gql`
+                query GetSecondaryMarketStat($address: String!) {
+                    secondaryMarketStat(address: $address) {
+                        source
+                        data {
+                            supply
+                            floorPrice
+
+                            volume {
+                                total
+                            }
+                        }
+                    }
+                }
+            `;
+
+            const variables = { address: collection.address };
+
+            const mockResponse = [{
+                source: 'opensea',
+                data: {
+                    supply: faker.datatype.float(),
+                    floorPrice: faker.datatype.float(),
+                    volume: {
+                        hourly: faker.datatype.float(),
+                        daily: faker.datatype.float(),
+                        weekly: faker.datatype.float(),
+                        total: faker.datatype.float(),
+                    },
+                    sales: {
+                        hourly: faker.datatype.float(),
+                        daily: faker.datatype.float(),
+                        weekly: faker.datatype.float(),
+                        total: faker.datatype.float(),
+                    },
+                }
+            }];
+            jest.spyOn(service, 'getSecondartMarketStat').mockImplementation(async () => mockResponse);
+            const result = await service.getSecondartMarketStat({ address: collection.address });
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(({ body }) => {
+                    expect(body.data.secondaryMarketStat.length).toEqual(1);
+                    const openseaData = body.data.secondaryMarketStat.find(data => data.source === 'opensea');
+                    expect(openseaData.data.supply).toEqual(mockResponse[0].data.supply);
+                    expect(openseaData.data.volume.total).toEqual(mockResponse[0].data.volume.total);
+                });
+        });
+    })
 });

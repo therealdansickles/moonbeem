@@ -686,4 +686,79 @@ describe('CollectionService', () => {
             expect(result.tiers[0].coin.address).toEqual(coin.address);
         });
     });
+
+    describe('getCollectionStat', () => {
+        let collection: Collection;
+
+        beforeEach(async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            collection = await service.createCollectionWithTiers({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                organization: { id: organization.id },
+                nameOnOpensea: faker.finance.accountName(),
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: 200,
+                        paymentTokenAddress: coin.address,
+                        tierId: 0,
+                        price: '200',
+                    },
+                ],
+            });
+        })
+
+        afterEach(async () => {
+            await repository.query('TRUNCATE TABLE "User" CASCADE;')
+            await repository.query('TRUNCATE TABLE "Organization" CASCADE;')
+            await repository.query('TRUNCATE TABLE "Collection" CASCADE;')
+        });
+
+        it('should return the right response from opensea', async () => {
+            const mockResponse = [{
+                source: 'opensea',
+                data: {
+                    supply: faker.datatype.float(),
+                    floorPrice: faker.datatype.float(),
+                    volume: {
+                        hourly: faker.datatype.float(),
+                        daily: faker.datatype.float(),
+                        weekly: faker.datatype.float(),
+                        total: faker.datatype.float(),
+                    },
+                    sales: {
+                        hourly: faker.datatype.float(),
+                        daily: faker.datatype.float(),
+                        weekly: faker.datatype.float(),
+                        total: faker.datatype.float(),
+                    },
+                }
+            }];
+            jest.spyOn(service, 'getSecondartMarketStat').mockImplementation(async () => mockResponse);
+            const result = await service.getSecondartMarketStat({ address: collection.address });
+            expect(result.length).toEqual(1);
+            expect(result[0].source).toEqual('opensea');
+        })
+    })
 });

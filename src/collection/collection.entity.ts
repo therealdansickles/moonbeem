@@ -103,6 +103,9 @@ export class Collection extends BaseEntity {
     @Column({ nullable: true, default: 1, comment: 'The chain id for the collection.' })
     chainId?: number;
 
+    @Column({ nullable: true, comment: 'Temporary field for store collection name in Opensea, while we can\'t retrieve collection stat by address' })
+    nameOnOpensea?: string;
+
     @Column({ nullable: true, comment: 'The DateTime when the collection was launched.' })
     publishedAt?: Date;
 

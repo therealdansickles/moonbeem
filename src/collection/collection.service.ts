@@ -6,15 +6,16 @@ import { isEmpty, isNil, omitBy } from 'lodash';
 import * as collectionEntity from './collection.entity';
 import { GraphQLError } from 'graphql';
 import { Tier } from '../tier/tier.entity';
-import { Collection, CreateCollectionInput } from './collection.dto';
+import { Collection, CollectionStat, CreateCollectionInput } from './collection.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Wallet } from '../wallet/wallet.entity';
 import { Collaboration } from '../collaboration/collaboration.entity';
 import * as Sentry from '@sentry/node';
 import { TierService } from '../tier/tier.service';
+import { OpenseaService } from '../opensea/opensea.service';
 
-interface ICollectionQuery extends Partial<Pick<Collection, 'id' | 'address'>> {}
+interface ICollectionQuery extends Partial<Pick<Collection, 'id' | 'address'>> { }
 @Injectable()
 export class CollectionService {
     constructor(
@@ -30,8 +31,9 @@ export class CollectionService {
         private readonly mintSaleContractRepository: Repository<MintSaleContract>,
         @InjectRepository(MintSaleTransaction, 'sync_chain')
         private readonly mintSaleTransactionRepository: Repository<MintSaleTransaction>,
-        private tierService: TierService
-    ) {}
+        private tierService: TierService,
+        private openseaService: OpenseaService,
+    ) { }
 
     /**
      * Retrieves the collection associated with the given id.
@@ -118,6 +120,28 @@ export class CollectionService {
             where: { creator: { id: walletId } },
             relations: ['organization', 'tiers', 'creator', 'collaboration'],
         });
+    }
+
+    /**
+     * Retrieve the collection stat from secondary markets.
+     * @param query The condition of the collection to retrieve.
+     */
+    async getSecondartMarketStat(query: ICollectionQuery): Promise<CollectionStat[]> {
+        query = omitBy(query, isNil);
+        if (isEmpty(query)) return null;
+        const collection = await this.collectionRepository.findOne({ where: query });
+        if (!collection) return null;
+        if (!collection.nameOnOpensea || collection.nameOnOpensea == '') {
+            throw new GraphQLError('The nameOnOpensea must provide', {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
+        }
+        const statFromOpensea = await this.openseaService.getCollectionStat(collection.nameOnOpensea);
+        // may have multiple sources, so make it as array
+        return [{
+            source: 'opensea',
+            data: statFromOpensea
+        }]
     }
 
     /**
