@@ -136,7 +136,7 @@ export class CreateCollectionInput extends OmitType(PartialType(Collection, Inpu
 }
 
 @InputType()
-export class UpdateCollectionInput extends OmitType(CreateCollectionInput, ['organization', 'collaboration', 'tiers']) {
+export class UpdateCollectionInput extends OmitType(CreateCollectionInput, ['organization', 'tiers']) {
     @IsString()
     @Field({ description: 'The id for a collection.' })
     readonly id: string;
