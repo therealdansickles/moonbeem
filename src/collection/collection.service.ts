@@ -15,7 +15,8 @@ import * as Sentry from '@sentry/node';
 import { TierService } from '../tier/tier.service';
 import { OpenseaService } from '../opensea/opensea.service';
 
-interface ICollectionQuery extends Partial<Pick<Collection, 'id' | 'address'>> { }
+interface ICollectionQuery extends Partial<Pick<Collection, 'id' | 'address' | 'name'>> { }
+
 @Injectable()
 export class CollectionService {
     constructor(
@@ -62,7 +63,7 @@ export class CollectionService {
             relations: ['organization', 'creator', 'collaboration'],
         });
 
-        collection.tiers = (await this.tierService.getTiersByCollection(collection.id)) as Tier[];
+        if (collection) collection.tiers = (await this.tierService.getTiersByCollection(collection.id)) as Tier[];
         return collection;
     }
 

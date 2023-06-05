@@ -17,9 +17,10 @@ export class CollectionResolver {
     @Query(() => Collection, { description: 'returns a collection for a given uuid', nullable: true })
     async collection(
         @Args({ name: 'id', nullable: true }) id: string,
-        @Args({ name: 'address', nullable: true }) address: string
+        @Args({ name: 'address', nullable: true }) address: string,
+        @Args({ name: 'name', nullable: true }) name: string
     ): Promise<Collection> {
-        return this.collectionService.getCollectionByQuery({ id, address })
+        return this.collectionService.getCollectionByQuery({ id, address, name })
     }
 
     @Public()
@@ -34,6 +35,7 @@ export class CollectionResolver {
         return this.collectionService.updateCollection(id, input);
     }
 
+    @Public()
     @Mutation(() => Boolean, { description: 'publishes a collection' })
     async publishCollection(@Args('input') input: CollectionInput): Promise<boolean> {
         return this.collectionService.publishCollection(input.id);

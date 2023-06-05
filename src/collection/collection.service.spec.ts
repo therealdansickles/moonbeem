@@ -290,6 +290,72 @@ describe('CollectionService', () => {
             expect(result.address).toEqual(collection.address);
             expect(result.organization.name).not.toBeNull();
         });
+
+        it('should get collections by name', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const collection = await repository.save({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+            });
+            const result = await service.getCollectionByQuery({ name: collection.name });
+            expect(result.id).toEqual(collection.id);
+            expect(result.name).toEqual(collection.name);
+            expect(result.organization.name).not.toBeNull();
+        });
+
+        it('should get nothing by an invalid name', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const collection = await repository.save({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+            });
+            const result = await service.getCollectionByQuery({ name: `${collection.name}+1` });
+            expect(result).toBeNull()
+        });
     });
 
     describe('getCollectionByAddress', () => {
