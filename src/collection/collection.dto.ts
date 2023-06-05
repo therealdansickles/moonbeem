@@ -1,4 +1,14 @@
-import { Field, Int, ObjectType, InputType, registerEnumType, PartialType, OmitType, PickType, Float } from '@nestjs/graphql';
+import {
+    Field,
+    Int,
+    ObjectType,
+    InputType,
+    registerEnumType,
+    PartialType,
+    OmitType,
+    PickType,
+    Float,
+} from '@nestjs/graphql';
 import { IsNumber, IsString, IsDateString, IsUrl, IsOptional, IsArray, IsObject } from 'class-validator';
 import { CollectionKind } from './collection.entity';
 import { AttributeInput, Tier, PluginInput, ConditionInput } from '../tier/tier.dto';
@@ -77,7 +87,11 @@ export class Collection {
     @IsArray()
     readonly tiers?: Tier[];
 
-    @Field(() => String, { nullable: true, description: 'Temporary field for store collection name in Opensea, while we can\'t retrieve collection stat by address' })
+    @Field(() => String, {
+        nullable: true,
+        description:
+            "Temporary field for store collection name in Opensea, while we can't retrieve collection stat by address",
+    })
     @IsString()
     readonly nameOnOpensea?: string;
 
@@ -143,7 +157,7 @@ export class UpdateCollectionInput extends OmitType(CreateCollectionInput, ['org
 }
 
 @InputType()
-export class CollectionInput extends PickType(Collection, ['id'], InputType) { }
+export class CollectionInput extends PickType(Collection, ['id'], InputType) {}
 
 @InputType('CreateTierInCollectionInput')
 export class CreateTierInCollectionInput {
@@ -232,7 +246,11 @@ export class CollectionOutput extends OmitType(
         'collaboration',
     ],
     ObjectType
-) { }
+) {
+    @Field(() => Int)
+    @IsNumber()
+    totalSupply: number;
+}
 
 @ObjectType('SearchCollection')
 export class SearchCollection {
@@ -291,6 +309,5 @@ export class CollectionStat {
 
     @Field(() => CollectionStatData)
     @IsObject()
-    data: CollectionStatData
+    data: CollectionStatData;
 }
-

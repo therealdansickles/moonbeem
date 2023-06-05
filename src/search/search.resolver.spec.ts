@@ -13,6 +13,7 @@ import { WalletService } from '../wallet/wallet.service';
 import { WalletModule } from '../wallet/wallet.module';
 import { UserService } from '../user/user.service';
 import { UserModule } from '../user/user.module';
+import { OrganizationService } from '../organization/organization.service';
 
 export const gql = String.raw;
 
@@ -21,6 +22,7 @@ describe('SearchResolver', () => {
     let collectionService: CollectionService;
     let app: INestApplication;
     let userService: UserService;
+    let organizationService: OrganizationService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -55,6 +57,7 @@ describe('SearchResolver', () => {
         userService = module.get<UserService>(UserService);
         walletService = module.get<WalletService>(WalletService);
         collectionService = module.get<CollectionService>(CollectionService);
+        organizationService = module.get<OrganizationService>(OrganizationService);
         app = module.createNestApplication();
         await app.init();
     });
@@ -80,13 +83,35 @@ describe('SearchResolver', () => {
             });
 
             // create collection
-            const collection = await collectionService.createCollection({
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: user,
+            });
+
+            const collection = await collectionService.createCollectionWithTiers({
                 name: `${name}'s collection`,
                 displayName: 'The best collection',
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
-                artists: [],
                 tags: [],
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: 200,
+                        paymentTokenAddress: faker.finance.ethereumAddress(),
+                        tierId: 0,
+                        price: '200',
+                    },
+                ],
+                organization: organization,
             });
 
             // create wallet
@@ -118,6 +143,7 @@ describe('SearchResolver', () => {
                         collection(input: $input) {
                             collections {
                                 name
+                                totalSupply
                             }
                             total
                         }
@@ -151,6 +177,7 @@ describe('SearchResolver', () => {
                     expect(body.data.search.collection.total).toEqual(1);
                     expect(body.data.search.collection.collections).toBeDefined();
                     expect(body.data.search.collection.collections[0].name).toEqual(`${name}'s collection`);
+                    expect(body.data.search.collection.collections[0].totalSupply).toEqual(200);
 
                     expect(body.data.search.wallet.total).toEqual(3);
                     expect(body.data.search.wallet.wallets).toBeDefined();
