@@ -5,9 +5,10 @@ import { Repository, UpdateResult } from 'typeorm';
 import { User } from './user.entity';
 import { captureException } from '@sentry/node';
 import { OrganizationService } from '../organization/organization.service';
-import { isEmpty, isNil, omitBy } from 'lodash'; 
-import * as randomstring from 'randomstring';
+import { isEmpty, isNil, omitBy } from 'lodash';
 import { compareSync as verifyPassword } from 'bcryptjs';
+import { google } from 'googleapis';
+import { googleConfig } from '../lib/configs/app.config';
 
 interface GetUserInput {
     id?: string;
@@ -126,5 +127,49 @@ export class UserService {
         }
 
         return null;
+    }
+
+    /**
+     * Verify user credentials.
+     *
+     * @param email user email
+     * @param password user hashed password
+     *
+     * @returns The user if credentials are valid.
+     */
+    async verifyUserFromGoogle(accessToken: string): Promise<User | null> {
+        try {
+            const googleClient = new google.auth.OAuth2({ clientId: googleConfig.clientId });
+            const tokenInfo = await googleClient.getTokenInfo(accessToken);
+            if (!tokenInfo || tokenInfo.aud != googleConfig.clientId) {
+                throw new Error('Field to getTokenInfo.');
+            }
+            googleClient.setCredentials({ access_token: accessToken });
+            const userInfo = await google.oauth2({ auth: googleClient, version: 'v2' }).userinfo.get();
+            if (!userInfo || userInfo.status != 200) {
+                throw new Error('Failed to get information from accessToken.');
+            }
+            if (!userInfo.data.email) {
+                throw new Error('google account not bound email.');
+            }
+
+            const existedUser = await this.userRepository.findOneBy({ email: userInfo.data.email });
+            if (existedUser) {
+                return existedUser;
+            } else {
+                const userData = {
+                    email: userInfo.data.email,
+                    name: userInfo.data.name,
+                    avatarUrl: userInfo.data.picture,
+                };
+                await this.createUserWithOrganization(userData);
+                return this.userRepository.findOneBy({ email: userInfo.data.email });
+            }
+        } catch (err) {
+            captureException(err);
+            throw new GraphQLError(`Failed to verify accessToken, ${(err as Error).message}`, {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
+        }
     }
 }

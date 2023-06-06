@@ -9,6 +9,7 @@ import { SessionModule } from './session.module';
 import { UserService } from '../user/user.service';
 import { UserModule } from '../user/user.module';
 import { WalletModule } from '../wallet/wallet.module';
+import { faker } from '@faker-js/faker';
 
 describe('SessionService', () => {
     let service: SessionService;
@@ -83,6 +84,21 @@ describe('SessionService', () => {
             const result = await service.createSessionFromEmail(email, hashed);
 
             expect(result).toBeNull();
+        });
+    });
+
+    describe('createSessionFromGoogle', () => {
+        it('should return a session', async () => {
+            const mockResponse = {
+                token: 'jwt_token',
+                user: {
+                    id: faker.datatype.uuid(),
+                    email: faker.internet.email(),
+                },
+            };
+            jest.spyOn(service, 'createSessionFromGoogle').mockImplementation(async () => mockResponse);
+            const result = await service.createSessionFromGoogle('access_token');
+            expect(result.token).toBeDefined();
         });
     });
 });

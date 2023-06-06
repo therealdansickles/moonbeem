@@ -55,3 +55,10 @@ export class CreateSessionFromEmailInput {
     @Field({ description: 'The hashed password for the user.' })
     password: string;
 }
+
+@InputType()
+export class CreateSessionFromGoogleInput {
+    @IsString()
+    @Field({ description: 'The user email.' })
+    accessToken: string;
+}

@@ -48,4 +48,21 @@ export class SessionService {
 
         return null;
     }
+
+    /**
+     * Create a session from google.
+     *
+     * @param accessToken The google authorized token.
+     * @returns The session.
+     */
+    async createSessionFromGoogle(accessToken: string): Promise<Session | null> {
+        const user = await this.userService.verifyUserFromGoogle(accessToken);
+
+        if (user) {
+            const token = await this.jwtService.signAsync({ userId: user.id });
+            return { token, user };
+        }
+
+        return null;
+    }
 }

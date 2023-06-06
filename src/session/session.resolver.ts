@@ -1,7 +1,7 @@
-import { Resolver, Query, Args, Mutation, ResolveField, Parent } from '@nestjs/graphql';
+import { Resolver, Args, Mutation } from '@nestjs/graphql';
 import { Public } from './session.decorator';
 
-import { Session, CreateSessionInput, CreateSessionFromEmailInput } from './session.dto';
+import { Session, CreateSessionInput, CreateSessionFromEmailInput, CreateSessionFromGoogleInput } from './session.dto';
 import { SessionService } from './session.service';
 
 @Resolver(() => Session)
@@ -20,5 +20,11 @@ export class SessionResolver {
     async createSessionFromEmail(@Args('input') input: CreateSessionFromEmailInput): Promise<Session | null> {
         const { email, password } = input;
         return this.sessionService.createSessionFromEmail(email, password);
+    }
+
+    @Public()
+    @Mutation((returns) => Session, { description: 'Create a session from google', nullable: true })
+    async createSessionFromGoogle(@Args('input') input: CreateSessionFromGoogleInput): Promise<Session | null> {
+        return this.sessionService.createSessionFromGoogle(input.accessToken);
     }
 }
