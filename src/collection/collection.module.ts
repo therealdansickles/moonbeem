@@ -20,15 +20,18 @@ import { TierService } from '../tier/tier.service';
 import { CollectionResolver } from './collection.resolver';
 import { OpenseaModule } from '../opensea/opensea.module';
 import { OpenseaService } from '../opensea/opensea.service';
+import { Asset721 } from '../sync-chain/asset721/asset721.entity';
+import { Asset721Module } from '../sync-chain/asset721/asset721.module';
 
 @Module({
     imports: [
         HttpModule,
         TypeOrmModule.forFeature([Collaboration, Collection, Organization, Tier, Wallet]),
-        TypeOrmModule.forFeature([Coin, MintSaleContract, MintSaleTransaction], 'sync_chain'),
+        TypeOrmModule.forFeature([Coin, MintSaleContract, MintSaleTransaction, Asset721], 'sync_chain'),
         forwardRef(() => CollaborationModule),
         forwardRef(() => MintSaleContractModule),
         forwardRef(() => MintSaleTransactionModule),
+        forwardRef(() => Asset721Module),
         forwardRef(() => OrganizationModule),
         forwardRef(() => TierModule),
         forwardRef(() => WalletModule),
@@ -38,4 +41,4 @@ import { OpenseaService } from '../opensea/opensea.service';
     providers: [OpenseaService, TierService, CollectionService, CollectionResolver],
     controllers: [],
 })
-export class CollectionModule { }
+export class CollectionModule {}

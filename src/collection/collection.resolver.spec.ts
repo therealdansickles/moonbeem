@@ -19,6 +19,7 @@ import { OrganizationService } from '../organization/organization.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 
 export const gql = String.raw;
 
@@ -34,6 +35,7 @@ describe('CollectionResolver', () => {
     let mintSaleContractService: MintSaleContractService;
     let collaborationService: CollaborationService;
     let walletService: WalletService;
+    let asset721Service: Asset721Service;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -73,6 +75,7 @@ describe('CollectionResolver', () => {
         coinService = module.get<CoinService>(CoinService);
         mintSaleTransactionService = module.get<MintSaleTransactionService>(MintSaleTransactionService);
         mintSaleContractService = module.get<MintSaleContractService>(MintSaleContractService);
+        asset721Service = module.get<Asset721Service>(Asset721Service);
         walletService = module.get<WalletService>(WalletService);
 
         app = module.createNestApplication();
@@ -799,12 +802,12 @@ describe('CollectionResolver', () => {
                     },
                 ],
             });
-        })
+        });
 
         afterEach(async () => {
-            await repository.query('TRUNCATE TABLE "User" CASCADE;')
-            await repository.query('TRUNCATE TABLE "Organization" CASCADE;')
-            await repository.query('TRUNCATE TABLE "Collection" CASCADE;')
+            await repository.query('TRUNCATE TABLE "User" CASCADE;');
+            await repository.query('TRUNCATE TABLE "Organization" CASCADE;');
+            await repository.query('TRUNCATE TABLE "Collection" CASCADE;');
         });
 
         it('should get stat data', async () => {
@@ -874,25 +877,27 @@ describe('CollectionResolver', () => {
 
             const variables = { address: collection.address };
 
-            const mockResponse = [{
-                source: 'opensea',
-                data: {
-                    supply: faker.datatype.float(),
-                    floorPrice: faker.datatype.float(),
-                    volume: {
-                        hourly: faker.datatype.float(),
-                        daily: faker.datatype.float(),
-                        weekly: faker.datatype.float(),
-                        total: faker.datatype.float(),
+            const mockResponse = [
+                {
+                    source: 'opensea',
+                    data: {
+                        supply: faker.datatype.float(),
+                        floorPrice: faker.datatype.float(),
+                        volume: {
+                            hourly: faker.datatype.float(),
+                            daily: faker.datatype.float(),
+                            weekly: faker.datatype.float(),
+                            total: faker.datatype.float(),
+                        },
+                        sales: {
+                            hourly: faker.datatype.float(),
+                            daily: faker.datatype.float(),
+                            weekly: faker.datatype.float(),
+                            total: faker.datatype.float(),
+                        },
                     },
-                    sales: {
-                        hourly: faker.datatype.float(),
-                        daily: faker.datatype.float(),
-                        weekly: faker.datatype.float(),
-                        total: faker.datatype.float(),
-                    },
-                }
-            }];
+                },
+            ];
             jest.spyOn(service, 'getSecondartMarketStat').mockImplementation(async () => mockResponse);
             const result = await service.getSecondartMarketStat({ address: collection.address });
 
@@ -901,10 +906,93 @@ describe('CollectionResolver', () => {
                 .send({ query, variables })
                 .expect(({ body }) => {
                     expect(body.data.secondaryMarketStat.length).toEqual(1);
-                    const openseaData = body.data.secondaryMarketStat.find(data => data.source === 'opensea');
+                    const openseaData = body.data.secondaryMarketStat.find((data) => data.source === 'opensea');
                     expect(openseaData.data.supply).toEqual(mockResponse[0].data.supply);
                     expect(openseaData.data.volume.total).toEqual(mockResponse[0].data.volume.total);
                 });
         });
-    })
+    });
+
+    describe('getHolders', () => {
+        it('should get holders', async () => {
+            const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
+            const collection = await repository.save({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: collectionAddress,
+                artists: [],
+                tags: [],
+                publishedAt: new Date(),
+            });
+
+            const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
+            const contract = await mintSaleContractService.createMintSaleContract({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                address: collectionAddress,
+                royaltyReceiver: faker.finance.ethereumAddress(),
+                royaltyRate: 10000,
+                derivativeRoyaltyRate: 1000,
+                isDerivativeAllowed: true,
+                beginTime: Math.floor(faker.date.recent().getTime() / 1000),
+                endTime: Math.floor(faker.date.recent().getTime() / 1000),
+                tierId: 0,
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+                startId: 1,
+                endId: 100,
+                currentId: 1,
+                tokenAddress: tokenAddress,
+                collectionId: collection.id,
+            });
+
+            let owner1 = faker.finance.ethereumAddress().toLowerCase();
+            let owner2 = faker.finance.ethereumAddress().toLowerCase();
+
+            const asset1 = await asset721Service.createAsset721({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address: tokenAddress,
+                tokenId: faker.random.numeric(5),
+                owner: owner1,
+            });
+            const asset2 = await asset721Service.createAsset721({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address: tokenAddress,
+                tokenId: faker.random.numeric(5),
+                owner: owner2,
+            });
+
+            const query = gql`
+                query GetCollection($id: String) {
+                    collection(id: $id) {
+                        holder {
+                            total
+                            data {
+                                quantity
+                            }
+                        }
+                    }
+                }
+            `;
+            const variables = { id: collection.id };
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    console.log(body);
+                    expect(body.data.collection.holder).toBeDefined();
+                    expect(body.data.collection.holder.total).toEqual(2);
+                    expect(body.data.collection.holder.data).toBeDefined();
+                    expect(body.data.collection.holder.data.length).toEqual(2);
+                });
+        });
+    });
 });

@@ -17,6 +17,8 @@ import { UserService } from '../user/user.service';
 import { Wallet } from '../wallet/wallet.entity';
 import { WalletService } from '../wallet/wallet.service';
 import { CollaborationService } from '../collaboration/collaboration.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
@@ -24,6 +26,8 @@ describe('CollectionService', () => {
     let coin: Coin;
     let coinService: CoinService;
     let mintSaleTransactionService: MintSaleTransactionService;
+    let mintSaleContractService: MintSaleContractService;
+    let asset721Service: Asset721Service;
     let organizationService: OrganizationService;
     let tierService: TierService;
     let userService: UserService;
@@ -58,11 +62,13 @@ describe('CollectionService', () => {
         service = module.get<CollectionService>(CollectionService);
         organizationService = module.get<OrganizationService>(OrganizationService);
         mintSaleTransactionService = module.get<MintSaleTransactionService>(MintSaleTransactionService);
+        mintSaleContractService = module.get<MintSaleContractService>(MintSaleContractService);
         userService = module.get<UserService>(UserService);
         tierService = module.get<TierService>(TierService);
         coinService = module.get<CoinService>(CoinService);
         walletService = module.get<WalletService>(WalletService);
         collaborationService = module.get<CollaborationService>(CollaborationService);
+        asset721Service = module.get<Asset721Service>(Asset721Service);
 
         coin = await coinService.createCoin({
             address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
@@ -852,38 +858,92 @@ describe('CollectionService', () => {
                     },
                 ],
             });
-        })
+        });
 
         afterEach(async () => {
-            await repository.query('TRUNCATE TABLE "User" CASCADE;')
-            await repository.query('TRUNCATE TABLE "Organization" CASCADE;')
-            await repository.query('TRUNCATE TABLE "Collection" CASCADE;')
+            await repository.query('TRUNCATE TABLE "User" CASCADE;');
+            await repository.query('TRUNCATE TABLE "Organization" CASCADE;');
+            await repository.query('TRUNCATE TABLE "Collection" CASCADE;');
         });
 
         it('should return the right response from opensea', async () => {
-            const mockResponse = [{
-                source: 'opensea',
-                data: {
-                    supply: faker.datatype.float(),
-                    floorPrice: faker.datatype.float(),
-                    volume: {
-                        hourly: faker.datatype.float(),
-                        daily: faker.datatype.float(),
-                        weekly: faker.datatype.float(),
-                        total: faker.datatype.float(),
+            const mockResponse = [
+                {
+                    source: 'opensea',
+                    data: {
+                        supply: faker.datatype.float(),
+                        floorPrice: faker.datatype.float(),
+                        volume: {
+                            hourly: faker.datatype.float(),
+                            daily: faker.datatype.float(),
+                            weekly: faker.datatype.float(),
+                            total: faker.datatype.float(),
+                        },
+                        sales: {
+                            hourly: faker.datatype.float(),
+                            daily: faker.datatype.float(),
+                            weekly: faker.datatype.float(),
+                            total: faker.datatype.float(),
+                        },
                     },
-                    sales: {
-                        hourly: faker.datatype.float(),
-                        daily: faker.datatype.float(),
-                        weekly: faker.datatype.float(),
-                        total: faker.datatype.float(),
-                    },
-                }
-            }];
+                },
+            ];
             jest.spyOn(service, 'getSecondartMarketStat').mockImplementation(async () => mockResponse);
             const result = await service.getSecondartMarketStat({ address: collection.address });
             expect(result.length).toEqual(1);
             expect(result[0].source).toEqual('opensea');
-        })
-    })
+        });
+    });
+
+    describe('getHolders', () => {
+        it('should get holders', async () => {
+            const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
+            const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
+            const contract = await mintSaleContractService.createMintSaleContract({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                address: collectionAddress,
+                royaltyReceiver: faker.finance.ethereumAddress(),
+                royaltyRate: 10000,
+                derivativeRoyaltyRate: 1000,
+                isDerivativeAllowed: true,
+                beginTime: Math.floor(faker.date.recent().getTime() / 1000),
+                endTime: Math.floor(faker.date.recent().getTime() / 1000),
+                tierId: 0,
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+                startId: 1,
+                endId: 100,
+                currentId: 1,
+                tokenAddress: tokenAddress,
+            });
+
+            let owner1 = faker.finance.ethereumAddress().toLowerCase();
+            let owner2 = faker.finance.ethereumAddress().toLowerCase();
+
+            const asset1 = await asset721Service.createAsset721({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address: tokenAddress,
+                tokenId: faker.random.numeric(5),
+                owner: owner1,
+            });
+            const asset2 = await asset721Service.createAsset721({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address: tokenAddress,
+                tokenId: faker.random.numeric(5),
+                owner: owner2,
+            });
+
+            const result = await service.getHolders(collectionAddress, 0, 10);
+            expect(result).toBeDefined();
+            expect(result.total).toEqual(2);
+            expect(result.data.length).toEqual(2);
+        });
+    });
 });

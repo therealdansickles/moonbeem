@@ -113,6 +113,11 @@ export class MintSaleContract {
     readonly chainId?: number;
 
     @ApiProperty()
+    @IsNumber()
+    @Field({ description: 'The collection address for the transaction' })
+    readonly collectionId?: string;
+
+    @ApiProperty()
     @IsDateString()
     @Field({ description: 'The DateTime of create.' })
     readonly createdAt: Date;

@@ -206,3 +206,21 @@ export class SearchWallet {
     @IsArray()
     wallets: WalletOutput[];
 }
+
+@ObjectType('CollectionHolderData')
+export class CollectionHolderData extends OmitType(Wallet, ['owner'], ObjectType) {
+    @Field(() => Int)
+    @IsNumber()
+    quantity: number;
+}
+
+@ObjectType('CollectionHolder')
+export class CollectionHolder {
+    @Field(() => Int)
+    @IsNumber()
+    total: number;
+
+    @Field(() => [CollectionHolderData])
+    @IsArray()
+    data: CollectionHolderData[];
+}

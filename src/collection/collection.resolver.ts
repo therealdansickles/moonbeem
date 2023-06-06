@@ -1,17 +1,23 @@
 import { Resolver, Query, Args, Mutation, ResolveField, Parent } from '@nestjs/graphql';
 import { Public } from '../session/session.decorator';
 import { CollectionService } from './collection.service';
-import { Collection, CollectionInput, CreateCollectionInput, UpdateCollectionInput, CollectionStat } from './collection.dto';
-import { Wallet } from '../wallet/wallet.dto';
+import {
+    Collection,
+    CollectionInput,
+    CreateCollectionInput,
+    UpdateCollectionInput,
+    CollectionStat,
+} from './collection.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { CollectionHolder } from '../wallet/wallet.dto';
 
 @Resolver(() => Collection)
 export class CollectionResolver {
     constructor(
         private readonly collectionService: CollectionService,
         private readonly MintSaleContractService: MintSaleContractService
-    ) { }
+    ) {}
 
     @Public()
     @Query(() => Collection, { description: 'returns a collection for a given uuid', nullable: true })
@@ -56,6 +62,16 @@ export class CollectionResolver {
     @ResolveField(() => MintSaleContract, { description: 'Returns the contract for the given collection' })
     async contract(@Parent() collection: Collection): Promise<MintSaleContract> {
         return await this.MintSaleContractService.getMintSaleContractByCollection(collection.id);
+    }
+
+    @Public()
+    @ResolveField(() => CollectionHolder, { description: 'Returns the holder for a collection.' })
+    async holder(
+        @Parent() collection: Collection,
+        @Args('offset', { nullable: true, defaultValue: 0 }) offset?: number,
+        @Args('limit', { nullable: true, defaultValue: 10 }) limit?: number
+    ): Promise<CollectionHolder> {
+        return this.collectionService.getHolders(collection.address, offset, limit);
     }
 
     @Public()

@@ -14,6 +14,8 @@ import { Collaboration } from '../collaboration/collaboration.entity';
 import * as Sentry from '@sentry/node';
 import { TierService } from '../tier/tier.service';
 import { OpenseaService } from '../opensea/opensea.service';
+import { CollectionHolder, CollectionHolderData } from '../wallet/wallet.dto';
+import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 
 interface ICollectionQuery extends Partial<Pick<Collection, 'id' | 'address' | 'name'>> { }
 
@@ -32,9 +34,11 @@ export class CollectionService {
         private readonly mintSaleContractRepository: Repository<MintSaleContract>,
         @InjectRepository(MintSaleTransaction, 'sync_chain')
         private readonly mintSaleTransactionRepository: Repository<MintSaleTransaction>,
+        @InjectRepository(Asset721, 'sync_chain')
+        private readonly asset721Repository: Repository<Asset721>,
         private tierService: TierService,
-        private openseaService: OpenseaService,
-    ) { }
+        private openseaService: OpenseaService
+    ) {}
 
     /**
      * Retrieves the collection associated with the given id.
@@ -139,10 +143,12 @@ export class CollectionService {
         }
         const statFromOpensea = await this.openseaService.getCollectionStat(collection.nameOnOpensea);
         // may have multiple sources, so make it as array
-        return [{
-            source: 'opensea',
-            data: statFromOpensea
-        }]
+        return [
+            {
+                source: 'opensea',
+                data: statFromOpensea,
+            },
+        ];
     }
 
     /**
@@ -270,5 +276,37 @@ export class CollectionService {
         // NOTE: use this when we wanna attach wallet. CURENTLY, we will not have wallet's for every address
         // so this WILL BREAK.
         //return await this.walletRepository.find({ where: { address: In(result.map((r) => r.recipient)) } });
+    }
+
+    async getHolders(address: string, offset: number, limit: number): Promise<CollectionHolder> {
+        const contract = await this.mintSaleContractRepository.findOneBy({ address });
+
+        const [holderResults, totalResult] = await Promise.all([
+            this.asset721Repository
+                .createQueryBuilder('asset')
+                .select('asset.owner', 'owner')
+                .addSelect('COUNT(asset.tokenId)', 'quantity')
+                .where('asset.address = :address', { address: contract.tokenAddress })
+                .offset(offset)
+                .limit(limit)
+                .groupBy('asset.owner')
+                .getRawMany(),
+            this.asset721Repository
+                .createQueryBuilder('asset')
+                .select('COUNT(DISTINCT(asset.owner)) AS count')
+                .where('asset.address = :address', { address: contract.tokenAddress })
+                .getRawOne(),
+        ]);
+
+        const data = await Promise.all(
+            holderResults.map(async (holder) => {
+                const wallet = await this.walletRepository.findOneBy({ address: holder.owner });
+                return {
+                    ...wallet,
+                    quantity: holder.quantity ? parseInt(holder.quantity) : 0,
+                };
+            })
+        );
+        return { total: totalResult ? parseInt(totalResult.count) : 0, data: data };
     }
 }
