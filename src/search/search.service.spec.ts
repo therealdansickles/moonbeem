@@ -83,11 +83,12 @@ describe('SearchService', () => {
                 owner: user,
             });
 
+            const collectionAddress = faker.finance.ethereumAddress();
             const collection = await collectionService.createCollectionWithTiers({
                 name: `${name}'s collection`,
                 displayName: 'The best collection',
                 about: 'The best collection ever',
-                address: faker.finance.ethereumAddress(),
+                address: collectionAddress,
                 tags: [],
                 tiers: [
                     {
@@ -117,6 +118,12 @@ describe('SearchService', () => {
             expect(collectionResult.total).toEqual(1);
             expect(collectionResult.collections[0].name).toEqual(`${name}'s collection`);
             expect(collectionResult.collections[0].totalSupply).toEqual(200);
+
+            const searchCollectionByAddress = await service.searchFromCollection({ keyword: collectionAddress });
+            expect(searchCollectionByAddress.collections).toBeDefined();
+            expect(searchCollectionByAddress.total).toEqual(1);
+            expect(searchCollectionByAddress.collections[0].address).toEqual(collectionAddress.toLowerCase());
+            expect(searchCollectionByAddress.collections[0].totalSupply).toEqual(200);
         });
     });
 });

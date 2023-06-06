@@ -96,11 +96,12 @@ describe('SearchResolver', () => {
                 owner: user,
             });
 
+            const collectionAddress = faker.finance.ethereumAddress();
             const collection = await collectionService.createCollectionWithTiers({
                 name: `${name}'s collection`,
                 displayName: 'The best collection',
                 about: 'The best collection ever',
-                address: faker.finance.ethereumAddress(),
+                address: collectionAddress,
                 tags: [],
                 tiers: [
                     {
@@ -130,6 +131,31 @@ describe('SearchResolver', () => {
                 name: `third wallet of ${name}`,
                 ownerId: user.id,
             });
+
+            const queryCollection = gql`
+                query search($input: SearchInput!) {
+                    search {
+                        collection(input: $input) {
+                            collections {
+                                address
+                                totalSupply
+                            }
+                            total
+                        }
+                    }
+                }
+            `;
+            const variablesForQueryCollection = { input: { keyword: collectionAddress } };
+            await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: queryCollection, variables: variablesForQueryCollection })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.search.collection.total).toEqual(1);
+                    expect(body.data.search.collection.collections).toBeDefined();
+                    expect(body.data.search.collection.collections[0].address).toEqual(collectionAddress.toLowerCase());
+                    expect(body.data.search.collection.collections[0].totalSupply).toEqual(200);
+                });
 
             const query = gql`
                 query search($input: SearchInput!) {

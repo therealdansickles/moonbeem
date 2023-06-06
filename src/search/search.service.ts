@@ -47,7 +47,7 @@ export class SearchService {
     async searchFromCollection(input: SearchInput): Promise<SearchCollection> {
         const [results, total] = await this.collectionRepository
             .createQueryBuilder('collection')
-            .where('LOWER(name) LIKE :keyword OR LOWER("displayName") LIKE :keyword', {
+            .where('LOWER(name) LIKE :keyword OR LOWER("displayName") LIKE :keyword OR LOWER(address) LIKE :keyword', {
                 keyword: `%${input.keyword.toLowerCase()}%`,
             })
             .skip(input.offset)
