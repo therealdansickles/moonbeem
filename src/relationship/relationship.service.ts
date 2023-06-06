@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { GraphQLError } from "graphql";
-import { WalletService } from "../wallet/wallet.service";
+import { GraphQLError } from 'graphql';
+import { WalletService } from '../wallet/wallet.service';
 import {
     CreateRelationshipByAddressInput,
     CreateRelationshipInput,
@@ -74,7 +74,7 @@ export class RelationshipService {
      */
     async countFollowersByAddress(address: string): Promise<number> {
         const wallet = await this.walletService.checkWalletExistence(address);
-        return this.countFollowers(wallet.id)
+        return this.countFollowers(wallet.id);
     }
 
     /**
@@ -145,7 +145,7 @@ export class RelationshipService {
      * @param input
      * @returns
      */
-    async deleteRelationshipByAddress(input: DeleteRelationshipByAddressInput): Promise<Boolean> {
+    async deleteRelationshipByAddress(input: DeleteRelationshipByAddressInput): Promise<boolean> {
         const followerWallet = await this.walletService.checkWalletExistence(input.followerAddress);
         const followingWallet = await this.walletService.checkWalletExistence(input.followingAddress);
         return this.deleteRelationship({
@@ -160,8 +160,8 @@ export class RelationshipService {
      * @param input
      * @returns
      */
-    private async deleteRelationship(input: DeleteRelationshipInput): Promise<Boolean> {
-        const result = await this.relationshipRepository.delete(input)
+    private async deleteRelationship(input: DeleteRelationshipInput): Promise<boolean> {
+        const result = await this.relationshipRepository.delete(input);
         return result.affected > 0;
     }
 }

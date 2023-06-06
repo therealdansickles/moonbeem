@@ -351,7 +351,7 @@ describe('CollectionService', () => {
             });
 
             const collection = await repository.save({
-                name: faker.company.name(),
+                name: `${faker.company.name()}${faker.random.numeric(5)}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),

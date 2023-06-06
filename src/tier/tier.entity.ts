@@ -14,6 +14,62 @@ import { Wallet } from '../wallet/wallet.entity';
 import { Collection } from '../collection/collection.entity';
 import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
 
+export class Attribute {
+    trait_type: string;
+    value: any;
+}
+
+export class Condition {
+    trait_type: string;
+    rules: Attribute;
+    update: Attribute;
+}
+
+export class Plugin {
+    type: string;
+    path: string;
+}
+
+export class MetadataProperty {
+    name: string;
+    type: string;
+    value: any;
+    display_value: string;
+}
+
+export class MetadataRule {
+    property: string;
+    rule: string;
+    value: any;
+    update: {
+        property: string;
+        value: any
+    };
+}
+
+export class MetadataTrigger {
+    type: string;
+    value: string;
+}
+
+export class MetadataCondition {
+    operator?: string;
+    rules: Array<MetadataRule>;
+    trigger: MetadataTrigger;
+}
+
+export class Metadata {
+    name: string;
+    type: string;
+    external_url?: string;
+    image?: string;
+    image_url?: string;
+    properties: {
+        [key: string]: MetadataProperty
+    };
+    conditions: Array<MetadataCondition>;
+}
+
 @Entity({ name: 'Tier' })
 export class Tier extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
@@ -71,7 +127,7 @@ export class Tier extends BaseEntity {
         nullable: true,
         length: 500,
         comment:
-            "This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the item on your site.",
+            'This is the URL that will appear with the asset\'s image and allow users to leave the marketplace and view the item on your site.',
     })
     externalUrl?: string;
 
@@ -121,20 +177,12 @@ export class Tier extends BaseEntity {
 
     @Column({ nullable: true, length: 500, comment: 'A URL to a multi-media attachment for the item.' })
     animationUrl?: string;
-}
 
-export class Attribute {
-    trait_type: string;
-    value: any;
-}
-
-export class Condition {
-    trait_type: string;
-    rules: Attribute;
-    update: Attribute;
-}
-
-export class Plugin {
-    type: string;
-    path: string;
+    @Column({
+        default: [],
+        type: 'jsonb',
+        nullable: true,
+        comment: 'Full metadata info for the tier.'
+    })
+    metadata?: Metadata;
 }
