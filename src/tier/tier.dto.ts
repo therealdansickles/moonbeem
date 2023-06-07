@@ -7,11 +7,11 @@ import { Coin } from '../sync-chain/coin/coin.dto';
 export class AttributeOutput {
     @IsString()
     @Field({ description: 'The trait type of the attribute' })
-    trait_type: string;
+        trait_type: string;
 
     @IsString()
     @Field({ description: 'The value of the attribute' })
-    value: string;
+        value: string;
 }
 @InputType('AttributeInput')
 export class AttributeInput extends OmitType(AttributeOutput, [], InputType) {}
@@ -20,36 +20,36 @@ export class AttributeInput extends OmitType(AttributeOutput, [], InputType) {}
 export class ConditionOutput {
     @IsString()
     @Field({ description: 'The trait type of the condition' })
-    trait_type: string;
+        trait_type: string;
 
     @IsObject()
     @Field(() => AttributeOutput, { description: 'The rule of the condition' })
-    rules: AttributeOutput;
+        rules: AttributeOutput;
 
     @IsObject()
     @Field({ description: 'The update of the condition' })
-    update: AttributeOutput;
+        update: AttributeOutput;
 }
 @InputType('ConditionInput')
 export class ConditionInput extends OmitType(ConditionOutput, ['rules', 'update'], InputType) {
     @IsObject()
     @Field(() => AttributeInput, { description: 'The rule of the condition' })
-    rules: AttributeInput;
+        rules: AttributeInput;
 
     @IsObject()
     @Field(() => AttributeInput, { description: 'The update of the condition' })
-    update: AttributeInput;
+        update: AttributeInput;
 }
 
 @ObjectType()
 export class PluginOutput {
     @IsString()
     @Field({ description: 'The type for the plugin. can be `github`, `vibe` etc.' })
-    type: string;
+        type: string;
 
     @IsString()
     @Field({ description: 'The path for the plugin.' })
-    path: string;
+        path: string;
 }
 @InputType()
 export class PluginInput extends OmitType(PluginOutput, [], InputType) {}
@@ -104,7 +104,7 @@ export class Tier {
     @IsString()
     @Field({
         description:
-            "This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.",
+            'This is the URL that will appear with the asset\'s image and allow users to leave the marketplace and view the tier on your site.',
         nullable: true,
     })
     @IsOptional()
@@ -158,6 +158,7 @@ export class CreateTierInput {
     @Field((type) => Int, { description: 'The total number of mints for this tier.' })
     readonly totalMints: number;
 
+    @IsNumberString()
     @Field({ description: 'The price of the NFTs in this tier.', nullable: true })
     readonly price?: string;
 
@@ -187,7 +188,7 @@ export class CreateTierInput {
     @Field({
         nullable: true,
         description:
-            "This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.",
+            'This is the URL that will appear with the asset\'s image and allow users to leave the marketplace and view the tier on your site.',
     })
     @IsOptional()
     readonly externalUrl?: string;
@@ -230,7 +231,7 @@ export class UpdateTierInput {
     @Field((type) => Int, { nullable: true, description: 'The total number of mints for this tier.' })
     readonly totalMints?: number;
 
-    @IsNumber()
+    @IsNumberString()
     @Field({ description: 'The price of the NFTs in this tier.', nullable: true })
     readonly price?: string;
 
@@ -256,7 +257,7 @@ export class UpdateTierInput {
     @Field({
         nullable: true,
         description:
-            "This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.",
+            'This is the URL that will appear with the asset\'s image and allow users to leave the marketplace and view the tier on your site.',
     })
     @IsOptional()
     readonly externalUrl?: string;
@@ -300,7 +301,7 @@ export class DeleteTierInput {
 @ObjectType()
 export class BasicPriceInfo {
     @Field()
-    @IsString()
+    @IsNumberString()
     readonly price: string;
 
     @Field(() => String)

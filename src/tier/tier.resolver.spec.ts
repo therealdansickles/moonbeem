@@ -390,6 +390,7 @@ describe('TierResolver', () => {
                 input: {
                     id: tier.id,
                     name: faker.company.name(),
+                    price: "1024"
                 },
             };
 
