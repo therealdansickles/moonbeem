@@ -26,7 +26,7 @@ export class CollectionResolver {
         @Args({ name: 'address', nullable: true }) address: string,
         @Args({ name: 'name', nullable: true }) name: string
     ): Promise<Collection> {
-        return this.collectionService.getCollectionByQuery({ id, address, name })
+        return this.collectionService.getCollectionByQuery({ id, address, name });
     }
 
     @Public()
@@ -72,6 +72,12 @@ export class CollectionResolver {
         @Args('limit', { nullable: true, defaultValue: 10 }) limit?: number
     ): Promise<CollectionHolder> {
         return this.collectionService.getHolders(collection.address, offset, limit);
+    }
+
+    @Public()
+    @ResolveField(() => Number, { description: 'Returns the unique holder count for collection.' })
+    async uniqueHolderCount(@Parent() collection: Collection): Promise<number> {
+        return this.collectionService.getUniqueHolderCount(collection.address);
     }
 
     @Public()

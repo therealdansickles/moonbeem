@@ -17,7 +17,7 @@ import { OpenseaService } from '../opensea/opensea.service';
 import { CollectionHolder, CollectionHolderData } from '../wallet/wallet.dto';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 
-interface ICollectionQuery extends Partial<Pick<Collection, 'id' | 'address' | 'name'>> { }
+type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name'>>;
 
 @Injectable()
 export class CollectionService {
@@ -284,16 +284,23 @@ export class CollectionService {
         const [holderResults, totalResult] = await Promise.all([
             this.asset721Repository
                 .createQueryBuilder('asset')
+                .leftJoinAndSelect(MintSaleTransaction, 'transaction', 'asset.tokenId = transaction.tokenId')
                 .select('asset.owner', 'owner')
+                .addSelect('asset.tokenId', 'tokenId')
                 .addSelect('COUNT(asset.tokenId)', 'quantity')
-                .where('asset.address = :address', { address: contract.tokenAddress })
+                .addSelect('transaction.tierId', 'tierId')
+                .where('asset.address = :address AND transaction.tokenAddress = :address', {
+                    address: contract.tokenAddress,
+                })
                 .offset(offset)
                 .limit(limit)
                 .groupBy('asset.owner')
+                .addGroupBy('asset.tokenId')
+                .addGroupBy('transaction.tierId')
                 .getRawMany(),
             this.asset721Repository
                 .createQueryBuilder('asset')
-                .select('COUNT(DISTINCT(asset.owner)) AS count')
+                .select('COUNT(asset.owner) AS count')
                 .where('asset.address = :address', { address: contract.tokenAddress })
                 .getRawOne(),
         ]);
@@ -301,12 +308,32 @@ export class CollectionService {
         const data = await Promise.all(
             holderResults.map(async (holder) => {
                 const wallet = await this.walletRepository.findOneBy({ address: holder.owner });
+
+                const tier = await this.tierRepository
+                    .createQueryBuilder('tier')
+                    .leftJoinAndSelect(collectionEntity.Collection, 'collection', 'tier.collectionId = collection.id')
+                    .where('tier.tierId = :tierId', { tierId: holder.tierId })
+                    .andWhere('collection.address = :address', { address })
+                    .getOne();
                 return {
                     ...wallet,
                     quantity: holder.quantity ? parseInt(holder.quantity) : 0,
+                    tier,
                 };
             })
         );
         return { total: totalResult ? parseInt(totalResult.count) : 0, data: data };
+    }
+
+    async getUniqueHolderCount(address: string): Promise<number> {
+        const contract = await this.mintSaleContractRepository.findOneBy({ address });
+
+        const total = await this.asset721Repository
+            .createQueryBuilder('asset')
+            .select('COUNT(DISTINCT(asset.owner)) AS count')
+            .where('asset.address = :address', { address: contract.tokenAddress })
+            .getRawOne();
+
+        return total ? parseInt(total.count) : 0;
     }
 }

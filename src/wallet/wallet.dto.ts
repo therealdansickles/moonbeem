@@ -32,14 +32,14 @@ export class Wallet {
     @Field({ nullable: true, description: 'The name for the wallet.' })
     @IsString()
     @IsOptional()
-    name?: string;
+    readonly name?: string;
 
-    @Field({ nullable: true, description: "The URL pointing to the wallet's avatar." })
+    @Field({ nullable: true, description: 'The URL pointing to the wallet\'s avatar.' })
     @IsString()
     @IsOptional()
     readonly avatarUrl?: string;
 
-    @Field({ description: "The url of the user's website.", nullable: true })
+    @Field({ description: 'The url of the user\'s website.', nullable: true })
     @IsString()
     @IsOptional()
     readonly websiteUrl?: string;
@@ -200,27 +200,31 @@ export class WalletOutput extends OmitType(
 export class SearchWallet {
     @Field(() => Int)
     @IsNumber()
-    total: number;
+    readonly total: number;
 
     @Field(() => [WalletOutput])
     @IsArray()
-    wallets: WalletOutput[];
+    readonly wallets: WalletOutput[];
 }
 
 @ObjectType('CollectionHolderData')
 export class CollectionHolderData extends OmitType(Wallet, ['owner'], ObjectType) {
     @Field(() => Int)
     @IsNumber()
-    quantity: number;
+    readonly quantity: number;
+
+    @Field((type) => Tier, { description: 'The collection tiers', nullable: true })
+    @IsObject()
+    readonly tier?: Tier;
 }
 
 @ObjectType('CollectionHolder')
 export class CollectionHolder {
     @Field(() => Int)
     @IsNumber()
-    total: number;
+    readonly total: number;
 
     @Field(() => [CollectionHolderData])
     @IsArray()
-    data: CollectionHolderData[];
+    readonly data: CollectionHolderData[];
 }
