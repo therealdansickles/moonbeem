@@ -11,28 +11,28 @@ export enum History721Type {
 @Entity({ name: 'History721' })
 export class History721 extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    readonly id: string;
 
     @Column({ comment: 'Block height of transaction.' })
-    height: number;
+    readonly height: number;
 
     @Column({ comment: 'Transaction hash of transaction.' })
-    txHash: string;
+    readonly txHash: string;
 
     @Column({ comment: 'Transaction time of transaction.' })
-    txTime: number;
+    readonly txTime: number;
 
     @Column({ comment: 'The contract address.' })
-    address: string;
+    readonly address: string;
 
     @Column({ comment: 'The token id of contract.' })
-    tokenId: string;
+    readonly tokenId: string;
 
     @Column({ comment: 'The sender of transaction.' })
-    sender: string;
+    readonly sender: string;
 
     @Column({ comment: 'The nft receiver of transaction.' })
-    receiver: string;
+    readonly receiver: string;
 
     @Column({
         type: 'enum',
@@ -40,16 +40,16 @@ export class History721 extends BaseEntity {
         default: History721Type.unknown,
         comment: 'Transaction type.',
     })
-    kind: History721Type;
+    readonly kind: History721Type;
 
     @Column({ default: 1, comment: 'The chain id for the transaction.' })
-    chainId?: number;
+    readonly chainId?: number;
 
     @CreateDateColumn()
     @Exclude()
-    createdAt: Date;
+    readonly createdAt: Date;
 
     @UpdateDateColumn()
     @Exclude()
-    updatedAt: Date;
+    readonly updatedAt: Date;
 }

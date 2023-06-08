@@ -11,7 +11,7 @@ export class SessionGuard implements CanActivate {
         private reflector: Reflector,
         private readonly jwtService: JwtService,
         private readonly walletService: WalletService
-    ) { }
+    ) {}
 
     /**
      * Checks if the user is authenticated via the JWT token that was given to them.
@@ -25,7 +25,7 @@ export class SessionGuard implements CanActivate {
         const token = this.extractToken(request);
         const isPublic = this.reflector.get<boolean>('isPublic', context.getHandler());
 
-        if (!!isPublic) return true;
+        if (isPublic) return true;
 
         try {
             const [walletId, wallet] = await this.getWalletFromToken(token);

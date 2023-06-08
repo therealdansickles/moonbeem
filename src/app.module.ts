@@ -75,11 +75,11 @@ import { OpenseaModule } from './opensea/opensea.module';
         },
         {
             provide: APP_GUARD,
-            useClass: SessionGuard
+            useClass: SessionGuard,
         },
         MongoAdapter,
         RedisAdapter,
     ],
     exports: [],
 })
-export class AppModule { }
+export class AppModule {}

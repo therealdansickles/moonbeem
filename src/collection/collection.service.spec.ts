@@ -1,4 +1,3 @@
-import { INestApplication } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -14,7 +13,6 @@ import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/
 import { OrganizationService } from '../organization/organization.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
-import { Wallet } from '../wallet/wallet.entity';
 import { WalletService } from '../wallet/wallet.service';
 import { CollaborationService } from '../collaboration/collaboration.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
@@ -216,7 +214,7 @@ describe('CollectionService', () => {
                 owner: owner,
             });
 
-            const collection = await repository.save({
+            await repository.save({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -419,7 +417,7 @@ describe('CollectionService', () => {
                 owner: owner,
             });
 
-            const collection = await repository.save({
+            await repository.save({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -510,7 +508,7 @@ describe('CollectionService', () => {
                 address: faker.finance.ethereumAddress(),
             });
 
-            const collection = await service.createCollection({
+            await service.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -523,7 +521,7 @@ describe('CollectionService', () => {
                 creator: { id: wallet.id },
             });
 
-            const [result, ..._rest] = await service.getCreatedCollectionsByWalletId(wallet.id);
+            const [result] = await service.getCreatedCollectionsByWalletId(wallet.id);
 
             expect(result).toBeDefined();
             expect(result.creator.id).toEqual(wallet.id);
@@ -765,7 +763,7 @@ describe('CollectionService', () => {
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
-            const [result, ...rest] = await service.getBuyers(collection.address);
+            const [result] = await service.getBuyers(collection.address);
             expect(result).toEqual(txn.recipient);
         });
     });
@@ -937,7 +935,7 @@ describe('CollectionService', () => {
                 ],
             });
 
-            const contract = await mintSaleContractService.createMintSaleContract({
+            await mintSaleContractService.createMintSaleContract({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
@@ -965,7 +963,7 @@ describe('CollectionService', () => {
             const owner2 = faker.finance.ethereumAddress().toLowerCase();
             const tokenId2 = faker.random.numeric(5);
 
-            const asset1 = await asset721Service.createAsset721({
+            await asset721Service.createAsset721({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
@@ -973,7 +971,7 @@ describe('CollectionService', () => {
                 tokenId: tokenId1,
                 owner: owner1,
             });
-            const asset2 = await asset721Service.createAsset721({
+            await asset721Service.createAsset721({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),

@@ -5,11 +5,9 @@ import { WalletService } from './wallet.service';
 import { WalletResolver } from './wallet.resolver';
 import { User } from '../user/user.entity';
 import { UserModule } from '../user/user.module';
-import { JwtModule } from '@nestjs/jwt';
 import { Collaboration } from '../collaboration/collaboration.entity';
 import { CollaborationModule } from '../collaboration/collaboration.module';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
 import { Tier } from '../tier/tier.entity';
 import { TierModule } from '../tier/tier.module';
@@ -38,4 +36,4 @@ import { RelationshipService } from '../relationship/relationship.service';
     providers: [RelationshipService, WalletService, WalletResolver],
     controllers: [],
 })
-export class WalletModule { }
+export class WalletModule {}

@@ -17,7 +17,7 @@ import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sa
 @ObjectType('Wallet')
 export class Wallet {
     @IsString()
-    @Field(() => ID!, { description: 'The id for a wallet.' })
+    @Field(() => ID, { description: 'The id for a wallet.' })
     readonly id: string;
 
     @Field({ description: 'The address for a wallet.' })
@@ -34,12 +34,12 @@ export class Wallet {
     @IsOptional()
     readonly name?: string;
 
-    @Field({ nullable: true, description: 'The URL pointing to the wallet\'s avatar.' })
+    @Field({ nullable: true, description: "The URL pointing to the wallet's avatar." })
     @IsString()
     @IsOptional()
     readonly avatarUrl?: string;
 
-    @Field({ description: 'The url of the user\'s website.', nullable: true })
+    @Field({ description: "The url of the user's website.", nullable: true })
     @IsString()
     @IsOptional()
     readonly websiteUrl?: string;
@@ -185,7 +185,7 @@ export class UnbindWalletInput {
 @InputType('WalletInput')
 export class WalletInput {
     @IsString()
-    @Field(() => ID!)
+    @Field(() => ID)
     readonly id: string;
 }
 
@@ -213,7 +213,7 @@ export class CollectionHolderData extends OmitType(Wallet, ['owner'], ObjectType
     @IsNumber()
     readonly quantity: number;
 
-    @Field((type) => Tier, { description: 'The collection tiers', nullable: true })
+    @Field(() => Tier, { description: 'The collection tiers', nullable: true })
     @IsObject()
     readonly tier?: Tier;
 }

@@ -1,13 +1,10 @@
 import * as request from 'supertest';
 import { Test, TestingModule } from '@nestjs/testing';
-import { RoyaltyResolver } from './royalty.resolver';
 import { ApolloDriver } from '@nestjs/apollo';
 import { INestApplication } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { postgresConfig } from '../../lib/configs/db.config';
-import { FactoryModule } from '../factory/factory.module';
 import { Royalty } from './royalty.entity';
 import { RoyaltyModule } from './royalty.module';
 import { RoyaltyService } from './royalty.service';
@@ -16,7 +13,6 @@ import { faker } from '@faker-js/faker';
 export const gql = String.raw;
 
 describe('RoyaltyResolver', () => {
-    let repository: Repository<Royalty>;
     let service: RoyaltyService;
     let app: INestApplication;
     let royalty: Royalty;
@@ -42,7 +38,6 @@ describe('RoyaltyResolver', () => {
             ],
         }).compile();
 
-        repository = module.get('sync_chain_RoyaltyRepository');
         service = module.get<RoyaltyService>(RoyaltyService);
         app = module.createNestApplication();
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { GraphQLError } from 'graphql';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, UpdateResult } from 'typeorm';
+import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { captureException } from '@sentry/node';
 import { OrganizationService } from '../organization/organization.service';
@@ -15,7 +15,7 @@ interface GetUserInput {
     username?: string;
 }
 
-interface IUserQuery extends Partial<Pick<User, 'id' | 'username'>> {}
+type IUserQuery = Partial<Pick<User, 'id' | 'username'>>;
 
 @Injectable()
 export class UserService {

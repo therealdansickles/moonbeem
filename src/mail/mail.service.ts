@@ -2,13 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { MailgunService, EmailOptions } from '@nextnm/nestjs-mailgun';
 // import { Mailable } from './interfaces/mail.interface';
 import { mailgunConfig } from '../lib/configs/mailgun.config';
-import {
-    getPasswordResetEmail,
-    getUserInviteEmail,
-    getVerificationEmailTemplate,
-    getWelcomeEmailTemplate,
-} from './mail.templates';
-import { User } from 'src/user/user.entity';
+import { getPasswordResetEmail, getVerificationEmailTemplate, getWelcomeEmailTemplate } from './mail.templates';
 import { captureException } from '@sentry/node';
 
 @Injectable()

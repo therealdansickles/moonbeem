@@ -7,11 +7,11 @@ import { Coin } from '../sync-chain/coin/coin.dto';
 export class AttributeOutput {
     @IsString()
     @Field({ description: 'The trait type of the attribute' })
-        trait_type: string;
+    readonly trait_type: string;
 
     @IsString()
     @Field({ description: 'The value of the attribute' })
-        value: string;
+    readonly value: string;
 }
 @InputType('AttributeInput')
 export class AttributeInput extends OmitType(AttributeOutput, [], InputType) {}
@@ -20,36 +20,36 @@ export class AttributeInput extends OmitType(AttributeOutput, [], InputType) {}
 export class ConditionOutput {
     @IsString()
     @Field({ description: 'The trait type of the condition' })
-        trait_type: string;
+    readonly trait_type: string;
 
     @IsObject()
     @Field(() => AttributeOutput, { description: 'The rule of the condition' })
-        rules: AttributeOutput;
+    readonly rules: AttributeOutput;
 
     @IsObject()
     @Field({ description: 'The update of the condition' })
-        update: AttributeOutput;
+    readonly update: AttributeOutput;
 }
 @InputType('ConditionInput')
 export class ConditionInput extends OmitType(ConditionOutput, ['rules', 'update'], InputType) {
     @IsObject()
     @Field(() => AttributeInput, { description: 'The rule of the condition' })
-        rules: AttributeInput;
+    readonly rules: AttributeInput;
 
     @IsObject()
     @Field(() => AttributeInput, { description: 'The update of the condition' })
-        update: AttributeInput;
+    readonly update: AttributeInput;
 }
 
 @ObjectType()
 export class PluginOutput {
     @IsString()
     @Field({ description: 'The type for the plugin. can be `github`, `vibe` etc.' })
-        type: string;
+    readonly type: string;
 
     @IsString()
     @Field({ description: 'The path for the plugin.' })
-        path: string;
+    readonly path: string;
 }
 @InputType()
 export class PluginInput extends OmitType(PluginOutput, [], InputType) {}
@@ -74,7 +74,7 @@ export class Tier {
     readonly id: string;
 
     @IsNumber()
-    @Field((type) => Int, { description: 'The total number of mints for this tier.' })
+    @Field(() => Int, { description: 'The total number of mints for this tier.' })
     readonly totalMints: number;
 
     @IsNumberString()
@@ -82,7 +82,7 @@ export class Tier {
     readonly price?: string;
 
     @IsNumber()
-    @Field((type) => Int, { description: 'The tier id/index of the NFTs in this tier.' })
+    @Field(() => Int, { description: 'The tier id/index of the NFTs in this tier.' })
     readonly tierId: number;
 
     @IsString()
@@ -104,7 +104,7 @@ export class Tier {
     @IsString()
     @Field({
         description:
-            'This is the URL that will appear with the asset\'s image and allow users to leave the marketplace and view the tier on your site.',
+            "This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.",
         nullable: true,
     })
     @IsOptional()
@@ -120,14 +120,14 @@ export class Tier {
     @IsOptional()
     readonly merkleRoot?: string;
 
-    @Field((type) => [AttributeOutput], {
+    @Field(() => [AttributeOutput], {
         description: 'A JSON object containing the attributes of the tier.',
         nullable: true,
     })
     @IsArray()
     readonly attributes?: AttributeOutput[];
 
-    @Field((type) => [ConditionOutput], {
+    @Field(() => [ConditionOutput], {
         description: 'A JSON object containing the conditions of the tier.',
         nullable: true,
     })
@@ -135,7 +135,7 @@ export class Tier {
     @IsOptional()
     readonly conditions?: ConditionOutput[];
 
-    @Field((type) => [PluginOutput], {
+    @Field(() => [PluginOutput], {
         description: 'A JSON object containing the plugins of the tier.',
         nullable: true,
     })
@@ -155,7 +155,7 @@ export class CreateTierInput {
     readonly collection: CollectionInput;
 
     @IsNumber()
-    @Field((type) => Int, { description: 'The total number of mints for this tier.' })
+    @Field(() => Int, { description: 'The total number of mints for this tier.' })
     readonly totalMints: number;
 
     @IsNumberString()
@@ -163,7 +163,7 @@ export class CreateTierInput {
     readonly price?: string;
 
     @IsNumber()
-    @Field((type) => Int, { description: 'The tier id/index of the NFTs in this tier.' })
+    @Field(() => Int, { description: 'The tier id/index of the NFTs in this tier.' })
     readonly tierId: number;
 
     @IsString()
@@ -188,7 +188,7 @@ export class CreateTierInput {
     @Field({
         nullable: true,
         description:
-            'This is the URL that will appear with the asset\'s image and allow users to leave the marketplace and view the tier on your site.',
+            "This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.",
     })
     @IsOptional()
     readonly externalUrl?: string;
@@ -202,13 +202,13 @@ export class CreateTierInput {
     @IsArray()
     readonly attributes?: AttributeInput[];
 
-    @Field((type) => [ConditionInput], { description: 'The tier conditions', nullable: true })
+    @Field(() => [ConditionInput], { description: 'The tier conditions', nullable: true })
     @IsOptional()
     @IsArray()
     readonly conditions?: ConditionInput[];
 
     @IsArray()
-    @Field((type) => [PluginInput], {
+    @Field(() => [PluginInput], {
         description: 'A JSON object containing the plugins of the tier.',
         nullable: true,
     })
@@ -228,7 +228,7 @@ export class UpdateTierInput {
     readonly id: string;
 
     @IsNumber()
-    @Field((type) => Int, { nullable: true, description: 'The total number of mints for this tier.' })
+    @Field(() => Int, { nullable: true, description: 'The total number of mints for this tier.' })
     readonly totalMints?: number;
 
     @IsNumberString()
@@ -236,7 +236,7 @@ export class UpdateTierInput {
     readonly price?: string;
 
     @IsNumber()
-    @Field((type) => Int, { nullable: true, description: 'The tier id/index of the NFTs in this tier.' })
+    @Field(() => Int, { nullable: true, description: 'The tier id/index of the NFTs in this tier.' })
     readonly tierId?: number;
 
     @IsString()
@@ -257,7 +257,7 @@ export class UpdateTierInput {
     @Field({
         nullable: true,
         description:
-            'This is the URL that will appear with the asset\'s image and allow users to leave the marketplace and view the tier on your site.',
+            "This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the tier on your site.",
     })
     @IsOptional()
     readonly externalUrl?: string;
@@ -272,13 +272,13 @@ export class UpdateTierInput {
     @IsOptional()
     readonly attributes?: AttributeInput[];
 
-    @Field((type) => [ConditionInput], { description: 'The tier conditions', nullable: true })
+    @Field(() => [ConditionInput], { description: 'The tier conditions', nullable: true })
     @IsOptional()
     @IsArray()
     readonly conditions?: ConditionInput[];
 
     @IsArray()
-    @Field((type) => [PluginInput], {
+    @Field(() => [PluginInput], {
         description: 'A JSON object containing the plugins of the tier.',
         nullable: true,
     })

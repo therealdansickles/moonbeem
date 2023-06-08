@@ -15,7 +15,7 @@ export class SystemConfigResolver {
 
     @Public()
     @Query(() => [SystemConfig], { description: 'returns config for a given uuid' })
-    async configs(@Args('chainId', { type: () => Int!, nullable: true }) chainId?: number): Promise<SystemConfig[]> {
+    async configs(@Args('chainId', { type: () => Int, nullable: true }) chainId?: number): Promise<SystemConfig[]> {
         return await this.systemConfigService.getConfigs(chainId);
     }
 }

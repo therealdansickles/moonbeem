@@ -1,33 +1,32 @@
 import {
-  BaseEntity,
-  Column,
-  CreateDateColumn,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
+    BaseEntity,
+    CreateDateColumn,
+    Entity,
+    Index,
+    JoinColumn,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 import { Wallet } from '../wallet/wallet.entity';
 
 @Entity({ name: 'Relationship' })
 @Index(['follower', 'following'], { unique: true })
 export class Relationship extends BaseEntity {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    readonly id: string;
 
-  @ManyToOne(() => Wallet, (wallet) => wallet.followers, { createForeignKeyConstraints: false })
-  @JoinColumn()
-  follower: Wallet;
+    @ManyToOne(() => Wallet, (wallet) => wallet.followers, { createForeignKeyConstraints: false })
+    @JoinColumn()
+    readonly follower: Wallet;
 
-  @ManyToOne(() => Wallet, (wallet) => wallet.followings, { createForeignKeyConstraints: false })
-  @JoinColumn()
-  following: Wallet;
+    @ManyToOne(() => Wallet, (wallet) => wallet.followings, { createForeignKeyConstraints: false })
+    @JoinColumn()
+    readonly following: Wallet;
 
-  @CreateDateColumn()
-  createdAt: Date;
+    @CreateDateColumn()
+    readonly createdAt: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+    @UpdateDateColumn()
+    readonly updatedAt: Date;
 }

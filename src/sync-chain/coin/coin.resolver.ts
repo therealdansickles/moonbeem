@@ -16,12 +16,8 @@ export class CoinResolver {
     @Public()
     @Query(() => [Coin], { description: 'returns coin list for a given chainId' })
     async coins(
-        @Args('chainId', { type: () => Int! }) chainId: number,
-        @Args('enable', {
-            type: () => Boolean,
-            nullable: true,
-        })
-        enable?: boolean
+        @Args('chainId', { type: () => Int }) chainId: number,
+        @Args('enable', { type: () => Boolean, nullable: true }) enable?: boolean
     ): Promise<Coin[]> {
         const data = { chainId, enable };
         return await this.coinService.getCoins(data);

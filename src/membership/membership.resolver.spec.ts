@@ -5,24 +5,20 @@ import { INestApplication } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ApolloDriver } from '@nestjs/apollo';
 import { faker } from '@faker-js/faker';
-import { Repository } from 'typeorm';
 import { postgresConfig } from '../lib/configs/db.config';
 
 import { Membership } from './membership.entity';
 import { MembershipModule } from './membership.module';
 import { MembershipService } from './membership.service';
 import { Organization } from '../organization/organization.entity';
-import { OrganizationModule } from '../organization/organization.module';
 import { OrganizationService } from '../organization/organization.service';
 import { User } from '../user/user.entity';
-import { UserModule } from '../user/user.module';
 import { UserService } from '../user/user.service';
 
 export const gql = String.raw;
 
 describe('MembershipResolver', () => {
     let app: INestApplication;
-    let repository: Repository<Membership>;
     let service: MembershipService;
     let membership: Membership;
     let organization: Organization;
@@ -60,7 +56,6 @@ describe('MembershipResolver', () => {
             ],
         }).compile();
 
-        repository = module.get('MembershipRepository');
         service = module.get<MembershipService>(MembershipService);
         userService = module.get<UserService>(UserService);
         organizationService = module.get<OrganizationService>(OrganizationService);
@@ -176,8 +171,6 @@ describe('MembershipResolver', () => {
                     canEdit: true,
                 },
             };
-
-            const memberships = await repository.find();
 
             return await request(app.getHttpServer())
                 .post('/graphql')

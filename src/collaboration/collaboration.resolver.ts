@@ -1,12 +1,12 @@
 import { Public } from '../session/session.decorator';
-import { Resolver, Query, Args, Mutation, ResolveField, Parent } from '@nestjs/graphql';
+import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
 
 import { Collaboration, CreateCollaborationInput } from './collaboration.dto';
 import { CollaborationService } from './collaboration.service';
 
 @Resolver(() => Collaboration)
 export class CollaborationResolver {
-    constructor(private readonly collaborationService: CollaborationService) { }
+    constructor(private readonly collaborationService: CollaborationService) {}
 
     @Public()
     @Query(() => Collaboration, { description: 'returns a collaboration for a given uuid', nullable: true })

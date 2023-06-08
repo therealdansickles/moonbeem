@@ -17,25 +17,25 @@ export enum ContractType {
 @Entity({ name: 'Factory' })
 export class Factory extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    readonly id: string;
 
     @Column({ comment: 'Block height of transaction.' })
-    height: number;
+    readonly height: number;
 
     @Column({ comment: 'Transaction hash of transaction.' })
-    txHash: string;
+    readonly txHash: string;
 
     @Column({ comment: 'Transaction time of transaction.' })
-    txTime: number;
+    readonly txTime: number;
 
     @Column({ comment: 'Transaction sender of transaction.' })
-    sender: string;
+    readonly sender: string;
 
     @Column({ comment: 'The contract address.' })
-    address: string;
+    readonly address: string;
 
     @Column({ comment: 'The master contract address.' })
-    masterAddress: string;
+    readonly masterAddress: string;
 
     @Column({
         type: 'enum',
@@ -43,16 +43,16 @@ export class Factory extends BaseEntity {
         default: ContractType.unknown,
         comment: 'The type of Contract.',
     })
-    kind: ContractType;
+    readonly kind: ContractType;
 
     @Column({ default: 1, comment: 'The chain id for the factory.' })
-    chainId?: number;
+    readonly chainId?: number;
 
     @CreateDateColumn()
     @Exclude()
-    createdAt: Date;
+    readonly createdAt: Date;
 
     @UpdateDateColumn()
     @Exclude()
-    updatedAt: Date;
+    readonly updatedAt: Date;
 }

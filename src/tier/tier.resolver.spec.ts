@@ -5,12 +5,10 @@ import { INestApplication } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ApolloDriver } from '@nestjs/apollo';
 import { faker } from '@faker-js/faker';
-import { Repository } from 'typeorm';
 import { postgresConfig } from '../lib/configs/db.config';
 
 import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
-import { Tier } from './tier.entity';
 import { TierModule } from './tier.module';
 import { TierService } from './tier.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
@@ -23,7 +21,6 @@ export const gql = String.raw;
 
 describe('TierResolver', () => {
     let app: INestApplication;
-    let repository: Repository<Tier>;
     let service: TierService;
     let collection: Collection;
     let collectionService: CollectionService;
@@ -60,7 +57,6 @@ describe('TierResolver', () => {
             ],
         }).compile();
 
-        repository = module.get('TierRepository');
         service = module.get<TierService>(TierService);
         collectionService = module.get<CollectionService>(CollectionService);
         coinService = module.get<CoinService>(CoinService);
@@ -390,7 +386,7 @@ describe('TierResolver', () => {
                 input: {
                     id: tier.id,
                     name: faker.company.name(),
-                    price: "1024"
+                    price: '1024',
                 },
             };
 

@@ -1,9 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { CollectionKind } from '../collection/collection.entity';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { PollerService } from './poller.service';
 import { CollectionService } from '../collection/collection.service';
 import { TierService } from '../tier/tier.service';
@@ -95,7 +92,7 @@ describe('PollerService', () => {
                 tierId: 0,
             });
 
-            const txn = await mintSaleTransactionService.createMintSaleTransaction({
+            await mintSaleTransactionService.createMintSaleTransaction({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
@@ -141,7 +138,7 @@ describe('PollerService', () => {
                 ],
             });
 
-            const txn = await mintSaleTransactionService.createMintSaleTransaction({
+            await mintSaleTransactionService.createMintSaleTransaction({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
@@ -197,7 +194,7 @@ describe('PollerService', () => {
                 ],
             });
 
-            const txn = await mintSaleTransactionService.createMintSaleTransaction({
+            await mintSaleTransactionService.createMintSaleTransaction({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),

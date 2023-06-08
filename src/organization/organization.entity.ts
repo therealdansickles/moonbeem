@@ -6,9 +6,7 @@ import {
     UpdateDateColumn,
     BaseEntity,
     OneToMany,
-    ManyToMany,
     ManyToOne,
-    RelationId,
     JoinColumn,
 } from 'typeorm';
 import { Collaboration } from '../collaboration/collaboration.entity';
@@ -25,58 +23,58 @@ export enum OrganizationKind {
 @Entity({ name: 'Organization' })
 export class Organization extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    readonly id: string;
 
     @ManyToOne(() => User, (user) => user.ownedOrganizations, { eager: true })
     @JoinColumn()
-    owner: User;
+    public owner: User;
 
     @Column({ unique: true, comment: 'The unique URL-friendly name of the organization.' })
-    name: string;
+    readonly name: string;
 
     @Column({ comment: 'The displayed name for the organization.' })
-    displayName: string;
+    readonly displayName: string;
 
     @Column({
         default: OrganizationKind.general,
         comment:
             'The type of organization that this is. * `personal` - default organization with your account. * `general` - Bulk generation of NFTs.',
     })
-    kind?: string;
+    readonly kind?: string;
 
     @Column({ nullable: true, comment: 'The description for the organization.' })
-    about?: string;
+    readonly about?: string;
 
     @Column({ nullable: true, comment: "The URL pointing to the organization's avatar." })
-    avatarUrl?: string;
+    readonly avatarUrl?: string;
 
     @Column({ nullable: true, comment: "The URL pointing to the organization's background." })
-    backgroundUrl?: string;
+    readonly backgroundUrl?: string;
 
     @Column({ nullable: true, comment: "The url of the organization's website." })
-    websiteUrl?: string;
+    readonly websiteUrl?: string;
 
     @Column({ nullable: true, comment: 'The twitter handle for the organization.' })
-    twitter?: string;
+    readonly twitter?: string;
 
     @Column({ nullable: true, comment: 'The instagram handle for the organization.' })
-    instagram?: string;
+    readonly instagram?: string;
 
     @Column({ nullable: true, comment: 'The discord handle for the organization.' })
-    discord?: string;
+    readonly discord?: string;
 
     @OneToMany(() => Membership, (membership) => membership.organization)
-    membership: Membership[];
+    readonly membership: Membership[];
 
     @OneToMany(() => Collection, (collection) => collection.organization)
-    collections: Collection[];
+    readonly collections: Collection[];
 
     @OneToMany(() => Collaboration, (collaboration) => collaboration.organization)
-    collaborations: Collaboration[];
+    readonly collaborations: Collaboration[];
 
     @CreateDateColumn()
-    createdAt: Date;
+    readonly createdAt: Date;
 
     @UpdateDateColumn()
-    updatedAt: Date;
+    readonly updatedAt: Date;
 }

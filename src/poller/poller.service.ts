@@ -1,16 +1,12 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, MoreThan, Repository } from 'typeorm';
-import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
+import { In, Repository } from 'typeorm';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Tier } from '../tier/tier.entity';
-import { RedisAdapter } from '../lib/adapters/redis.adapter';
-import { MetadataPollerItem } from 'src/lib/modules/db.record.module';
 import { AWSAdapter, ResourceType } from '../lib/adapters/aws.adapter';
 import { Collection } from '../collection/collection.entity';
 import { omit } from 'lodash';
-import * as Sentry from '@sentry/node';
 
 export interface IMetadataForOpensea {
     id: string;
@@ -53,8 +49,10 @@ export class PollerService {
                     tierId: record.tierId,
                     collection: { id: collection.id },
                 });
-                let attributes: IAttributeForOpensea[] = tier?.attributes ? tier.attributes as IAttributeForOpensea[]:[];
-                
+                const attributes: IAttributeForOpensea[] = tier?.attributes
+                    ? (tier.attributes as IAttributeForOpensea[])
+                    : [];
+
                 result.push({
                     id: record.id,
                     token: record.address,
@@ -85,7 +83,7 @@ export class PollerService {
     async handle() {
         const records = await this.getSaleRecord();
         const ids = [];
-        for (let record of records) {
+        for (const record of records) {
             const baseUrlId = `${record.collection_id}/${record.token_id}`;
             await this.upload(baseUrlId, omit(record, ['id', 'collection_id']));
             ids.push(record.id);

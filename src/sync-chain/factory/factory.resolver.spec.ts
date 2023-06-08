@@ -5,7 +5,6 @@ import { INestApplication } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TestingModule, Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { postgresConfig } from '../../lib/configs/db.config';
 import { ContractType, Factory } from './factory.entity';
 import { FactoryService } from './factory.service';
@@ -14,7 +13,6 @@ import { FactoryModule } from './factory.module';
 export const gql = String.raw;
 
 describe('FactoryResolver', () => {
-    let repository: Repository<Factory>;
     let service: FactoryService;
     let app: INestApplication;
     let factory: Factory;
@@ -40,7 +38,6 @@ describe('FactoryResolver', () => {
             ],
         }).compile();
 
-        repository = module.get('sync_chain_FactoryRepository');
         service = module.get<FactoryService>(FactoryService);
         app = module.createNestApplication();
 
@@ -90,7 +87,7 @@ describe('FactoryResolver', () => {
 
     describe('factories', () => {
         it('should get factory list', async () => {
-            const factory2 = await service.createFactory({
+            await service.createFactory({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),

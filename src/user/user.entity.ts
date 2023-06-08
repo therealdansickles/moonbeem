@@ -1,12 +1,9 @@
 import {
     BaseEntity,
     BeforeInsert,
-    BeforeUpdate,
     Column,
     CreateDateColumn,
     Entity,
-    JoinColumn,
-    ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
@@ -22,58 +19,58 @@ import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
 @Entity({ name: 'User' })
 export class User extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    readonly id: string;
 
     @Column({ nullable: true, comment: 'The username of the user.' })
-    username?: string;
+    readonly username?: string;
 
     @Column({ unique: true, comment: 'The email of the user.', transformer: lowercaseTransformer })
-    email: string;
+    public email: string;
 
     @Column({ nullable: true, comment: 'The hashed password of the user.' })
-    password?: string;
+    public password?: string;
 
     @Column({ nullable: true, comment: 'The name for the user.' })
-    name?: string;
+    readonly name?: string;
 
     @Column({ nullable: true, comment: "The URL pointing to the user's avatar." })
-    avatarUrl?: string;
+    readonly avatarUrl?: string;
 
     @Column({ nullable: true, comment: 'The description for the user.' })
-    about?: string;
+    readonly about?: string;
 
     @Column({ nullable: true, comment: "The URL pointing to the user's background." })
-    backgroundUrl?: string;
+    readonly backgroundUrl?: string;
 
     @Column({ nullable: true, comment: "The url of the user's website." })
-    websiteUrl?: string;
+    readonly websiteUrl?: string;
 
     @Column({ nullable: true, comment: 'The twitter handle for the user.' })
-    twitter?: string;
+    readonly twitter?: string;
 
     @Column({ nullable: true, comment: 'The instagram handle for the user.' })
-    instagram?: string;
+    readonly instagram?: string;
 
     @Column({ nullable: true, comment: 'The discord handle for the user.' })
-    discord?: string;
+    readonly discord?: string;
 
     @OneToMany(() => Wallet, (wallet) => wallet.owner, { eager: true })
-    wallets: Wallet[];
+    readonly wallets: Wallet[];
 
     @OneToMany(() => Membership, (membership) => membership.user, { lazy: true })
-    memberships: Membership[];
+    readonly memberships: Membership[];
 
     @OneToMany(() => Organization, (organization) => organization.owner)
-    ownedOrganizations: Organization[];
+    readonly ownedOrganizations: Organization[];
 
     @OneToMany(() => Collaboration, (collaboration) => collaboration.user)
-    collaborations: Collaboration[];
+    readonly collaborations: Collaboration[];
 
     @CreateDateColumn()
-    createdAt: Date;
+    readonly createdAt: Date;
 
     @UpdateDateColumn()
-    updatedAt: Date;
+    readonly updatedAt: Date;
 
     /**
      * Hashes the password before inserting it into the database.

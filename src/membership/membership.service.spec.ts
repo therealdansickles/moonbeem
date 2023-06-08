@@ -1,4 +1,3 @@
-import { INestApplication } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -18,10 +17,8 @@ describe('MembershipService', () => {
     let service: MembershipService;
     let organization: Organization;
     let organizationService: OrganizationService;
-    let organizationRepository: Repository<Organization>;
     let user: User;
     let userService: UserService;
-    let userRepository: Repository<User>;
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -50,9 +47,7 @@ describe('MembershipService', () => {
         repository = module.get('MembershipRepository');
         service = module.get<MembershipService>(MembershipService);
         userService = module.get<UserService>(UserService);
-        userRepository = module.get('UserRepository');
         organizationService = module.get<OrganizationService>(OrganizationService);
-        organizationRepository = module.get('OrganizationRepository');
 
         user = await userService.createUser({
             email: faker.internet.email(),

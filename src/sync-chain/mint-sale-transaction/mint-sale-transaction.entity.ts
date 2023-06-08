@@ -4,52 +4,52 @@ import { Exclude } from 'class-transformer';
 @Entity({ name: 'MintSaleTransaction' })
 export class MintSaleTransaction extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    readonly id: string;
 
     @Column({ default: 0, comment: 'Block height of transaction.' })
-    height: number;
+    readonly height: number;
 
     @Column({ comment: 'Transaction hash of transaction.' })
-    txHash: string;
+    readonly txHash: string;
 
     @Column({ comment: 'Transaction time of transaction.' })
-    txTime: number;
+    readonly txTime: number;
 
     @Column({ comment: 'Transaction sender of transaction.' })
-    sender: string;
+    readonly sender: string;
 
     @Column({ comment: 'NFT Recipient of current transaction.' })
-    recipient: string;
+    readonly recipient: string;
 
     @Column({ comment: 'The contract address' })
-    address: string;
+    readonly address: string;
 
     @Column({ default: 0, comment: 'The tier id for the collection.' })
-    tierId: number;
+    readonly tierId: number;
 
     @Column({ comment: 'Collection associated token contract address, Erc721 contract' })
-    tokenAddress: string;
+    readonly tokenAddress: string;
 
     @Column({ comment: 'The token id received by the user' })
-    tokenId: string;
+    readonly tokenId: string;
 
     @Column({ comment: 'The tier price' })
-    price: string;
+    readonly price: string;
 
     @Column({ comment: 'The payment token address' })
-    paymentToken: string;
+    readonly paymentToken: string;
 
     @Column({ default: 1, comment: 'The chain id for the MintSale record.' })
-    chainId?: number;
+    readonly chainId?: number;
 
     @Column({ default: false, comment: 'Whether the metadata had beed uploaded.' })
-    isUploaded: boolean;
+    readonly isUploaded: boolean;
 
     @CreateDateColumn()
     @Exclude()
-    createdAt: Date;
+    readonly createdAt: Date;
 
     @UpdateDateColumn()
     @Exclude()
-    updatedAt: Date;
+    readonly updatedAt: Date;
 }

@@ -1,11 +1,8 @@
-import { INestApplication } from '@nestjs/common';
-import { Repository } from 'typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../lib/configs/db.config';
 
-import { Tier } from './tier.entity';
 import { TierModule } from './tier.module';
 import { TierService } from './tier.service';
 import { CollectionKind } from '../collection/collection.entity';
@@ -17,7 +14,6 @@ import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/
 import BigNumber from 'bignumber.js';
 
 describe('TierService', () => {
-    let repository: Repository<Tier>;
     let service: TierService;
     let collection: Collection;
     let collectionService: CollectionService;
@@ -49,7 +45,6 @@ describe('TierService', () => {
             ],
         }).compile();
 
-        repository = module.get('TierRepository');
         service = module.get<TierService>(TierService);
         collectionService = module.get<CollectionService>(CollectionService);
         coinService = module.get<CoinService>(CoinService);
@@ -107,7 +102,7 @@ describe('TierService', () => {
                 address: faker.finance.ethereumAddress(),
             });
 
-            const tier = await service.createTier({
+            await service.createTier({
                 name: faker.company.name(),
                 totalMints: 100,
                 collection: { id: collection.id },
@@ -238,7 +233,7 @@ describe('TierService', () => {
                 tierId: 0,
             });
 
-            let result = await service.updateTier(tier.id, {
+            const result = await service.updateTier(tier.id, {
                 name: 'New name',
             });
 
@@ -266,7 +261,7 @@ describe('TierService', () => {
                 tierId: 0,
             });
 
-            let result = await service.deleteTier(tier.id);
+            const result = await service.deleteTier(tier.id);
 
             expect(result).toBeTruthy();
         });
@@ -322,7 +317,7 @@ describe('TierService', () => {
                 paymentToken: coin.address,
             });
 
-            let result = await service.getTierProfit(tier.id);
+            const result = await service.getTierProfit(tier.id);
 
             const totalProfitInToken = new BigNumber(transaction.price)
                 .plus(new BigNumber(transaction2.price))

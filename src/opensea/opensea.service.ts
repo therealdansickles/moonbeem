@@ -4,20 +4,20 @@ import { join } from 'path';
 import { URL } from 'url';
 import * as Sentry from '@sentry/node';
 import { firstValueFrom, catchError } from 'rxjs';
-import { openseaConfig } from '../lib/configs/opensea.config'
+import { openseaConfig } from '../lib/configs/opensea.config';
 import { CollectionStatData } from '../collection/collection.dto';
 
 @Injectable()
 export class OpenseaService {
-    constructor(private readonly httpRequest: HttpService) { }
+    constructor(private readonly httpRequest: HttpService) {}
 
     async getCollectionStat(slug: string): Promise<CollectionStatData> {
-        const endpoint = join('/api/v1/collection', slug, '/stats')
-        const url = new URL(endpoint, openseaConfig.url).toString()
+        const endpoint = join('/api/v1/collection', slug, '/stats');
+        const url = new URL(endpoint, openseaConfig.url).toString();
         const headers = {
             'X-API-KEY': openseaConfig.apiKey,
-            'User-Agent': 'Vibe platform'
-        }
+            'User-Agent': 'Vibe platform',
+        };
         const { data } = await firstValueFrom(
             this.httpRequest.get(url, { headers }).pipe(
                 catchError((error) => {
@@ -25,7 +25,7 @@ export class OpenseaService {
                     throw 'Bad response from opensea';
                 })
             )
-        )
+        );
         return {
             volume: {
                 total: data.stats?.total_volume,
@@ -40,7 +40,7 @@ export class OpenseaService {
                 weekly: data.stats?.seven_day_sales,
             },
             supply: data.stats?.total_supply,
-            floorPrice: data.stats?.floor_price
-        }
+            floorPrice: data.stats?.floor_price,
+        };
     }
 }

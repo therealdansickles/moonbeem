@@ -8,15 +8,15 @@ export class Search {}
 export class SearchInput {
     @Field()
     @IsString()
-    keyword: string;
+    readonly keyword: string;
 
-    @Field((type) => Int, { nullable: true, defaultValue: 0 })
+    @Field(() => Int, { nullable: true, defaultValue: 0 })
     @IsNumber()
     @IsOptional()
-    offset?: number;
+    readonly offset?: number;
 
     @Field(() => Int, { nullable: true, defaultValue: 10 })
     @IsNumber()
     @IsOptional()
-    limit?: number;
+    readonly limit?: number;
 }

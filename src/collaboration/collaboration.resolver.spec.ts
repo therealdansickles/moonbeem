@@ -5,20 +5,16 @@ import { INestApplication } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ApolloDriver } from '@nestjs/apollo';
 import { faker } from '@faker-js/faker';
-import { Repository } from 'typeorm';
 import { postgresConfig } from '../lib/configs/db.config';
 
 import { Collaboration } from './collaboration.entity';
 import { CollaborationModule } from './collaboration.module';
 import { CollaborationService } from './collaboration.service';
-import { Collection } from '../collection/collection.dto';
 import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
 import { Organization } from '../organization/organization.entity';
-import { OrganizationModule } from '../organization/organization.module';
 import { OrganizationService } from '../organization/organization.service';
 import { User } from '../user/user.entity';
-import { UserModule } from '../user/user.module';
 import { UserService } from '../user/user.service';
 import { Wallet } from '../wallet/wallet.entity';
 import { WalletModule } from '../wallet/wallet.module';
@@ -28,14 +24,10 @@ export const gql = String.raw;
 
 describe('CollaborationResolver', () => {
     let app: INestApplication;
-    let repository: Repository<Collaboration>;
     let service: CollaborationService;
     let collaboration: Collaboration;
-    let collection: Collection;
     let collectionService: CollectionService;
-    let organization: Organization;
     let organizationService: OrganizationService;
-    let user: User;
     let userService: UserService;
     let wallet: Wallet;
     let walletService: WalletService;
@@ -69,7 +61,6 @@ describe('CollaborationResolver', () => {
             ],
         }).compile();
 
-        repository = module.get('CollaborationRepository');
         service = module.get<CollaborationService>(CollaborationService);
         walletService = module.get<WalletService>(WalletService);
         collectionService = module.get<CollectionService>(CollectionService);
@@ -77,16 +68,6 @@ describe('CollaborationResolver', () => {
         userService = module.get<UserService>(UserService);
 
         wallet = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
-
-        collection = await collectionService.createCollection({
-            name: faker.company.name(),
-            displayName: 'The best collection',
-            about: 'The best collection ever',
-            address: faker.finance.ethereumAddress(),
-            artists: [],
-            tags: [],
-        });
-
         app = module.createNestApplication();
         await app.init();
     });
@@ -246,7 +227,7 @@ describe('CollaborationResolver', () => {
                 owner: user,
             });
 
-            const collection = await collectionService.createCollection({
+            await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -262,7 +243,7 @@ describe('CollaborationResolver', () => {
                 ownerId: user.id,
             });
 
-            const collab = await service.createCollaboration({
+            await service.createCollaboration({
                 walletId: wallet.id,
                 royaltyRate: 12,
                 userId: user.id,
@@ -305,7 +286,7 @@ describe('CollaborationResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    const [collab, ...rest] = body.data.collaborations;
+                    const [collab] = body.data.collaborations;
                     expect(collab.user.id).toEqual(variables.userId);
                     expect(collab.organization.id).toEqual(variables.organizationId);
                 });

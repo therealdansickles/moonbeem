@@ -7,7 +7,6 @@ import { AppModule } from '../app.module';
 import { UploadController } from './upload.controller';
 import { UploadService } from '../services/upload.service';
 import { AWSAdapter } from '../lib/adapters/aws.adapter';
-import { RedisAdapter } from '../lib/adapters/redis.adapter';
 
 describe('UploadController', () => {
     let app: INestApplication;
@@ -16,11 +15,8 @@ describe('UploadController', () => {
 
     let awsAdapter: AWSAdapter;
     let requestService: HttpService;
-    let redisClient: RedisAdapter;
 
     beforeAll(async () => {
-        redisClient = new RedisAdapter();
-
         awsAdapter = new AWSAdapter();
         uploadService = new UploadService(awsAdapter);
         uploadController = new UploadController(uploadService);

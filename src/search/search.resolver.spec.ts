@@ -97,7 +97,7 @@ describe('SearchResolver', () => {
             });
 
             const collectionAddress = faker.finance.ethereumAddress();
-            const collection = await collectionService.createCollectionWithTiers({
+            await collectionService.createCollectionWithTiers({
                 name: `${name}'s collection`,
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -116,17 +116,17 @@ describe('SearchResolver', () => {
             });
 
             // create wallet
-            const wallet = await walletService.createWallet({
+            await walletService.createWallet({
                 address: faker.finance.ethereumAddress(),
                 name: `first wallet of ${name}`,
                 ownerId: user.id,
             });
-            const wallet2 = await walletService.createWallet({
+            await walletService.createWallet({
                 address: faker.finance.ethereumAddress(),
                 name: `second wallet of ${name}`,
                 ownerId: user.id,
             });
-            const wallet3 = await walletService.createWallet({
+            await walletService.createWallet({
                 address: faker.finance.ethereumAddress(),
                 name: `third wallet of ${name}`,
                 ownerId: user.id,

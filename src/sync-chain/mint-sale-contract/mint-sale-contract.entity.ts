@@ -4,78 +4,78 @@ import { Exclude } from 'class-transformer';
 @Entity({ name: 'MintSaleContract' })
 export class MintSaleContract extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    readonly id: string;
 
     @Column({ default: 0, comment: 'Block height of transaction.' })
-    height: number;
+    readonly height: number;
 
     @Column({ comment: 'Transaction hash of transaction.' })
-    txHash: string;
+    readonly txHash: string;
 
     @Column({ comment: 'Transaction time of transaction.' })
-    txTime: number;
+    readonly txTime: number;
 
     @Column({ comment: 'Transaction sender of transaction.' })
-    sender: string;
+    readonly sender: string;
 
     @Column({ length: 64, comment: 'The contract address' })
-    address: string;
+    readonly address: string;
 
     @Column({ comment: 'The royalty contract of MintSale' })
-    royaltyReceiver: string;
+    readonly royaltyReceiver: string;
 
     @Column({ comment: 'The royalty rate of MintSale' })
-    royaltyRate: number;
+    readonly royaltyRate: number;
 
     @Column({ comment: 'The derivative royalty rate of MintSale' })
-    derivativeRoyaltyRate: number;
+    readonly derivativeRoyaltyRate: number;
 
     @Column({ comment: 'Means whether this nft supports derivative royalty' })
-    isDerivativeAllowed: boolean;
+    readonly isDerivativeAllowed: boolean;
 
     @Column({ comment: 'The begin time of the MintSale' })
-    beginTime: number;
+    readonly beginTime: number;
 
     @Column({ comment: 'The end time of the MintSale' })
-    endTime: number;
+    readonly endTime: number;
 
     @Column({ comment: 'The tier id of the MintSale' })
-    tierId: number;
+    readonly tierId: number;
 
     @Column({ comment: 'The price of the tier' })
-    price: string;
+    readonly price: string;
 
     @Column({ comment: 'The payment token of the collection' })
-    paymentToken: string;
+    readonly paymentToken: string;
 
     @Column({ comment: 'The start id of the tier' })
-    startId: number;
+    readonly startId: number;
 
     @Column({ comment: 'The end id of the tier' })
-    endId: number;
+    readonly endId: number;
 
     @Column({ comment: 'The current id of the tier' })
-    currentId: number;
+    readonly currentId: number;
 
     @Column({ comment: 'The token address(erc721 address) of the collection' })
-    tokenAddress: string;
+    readonly tokenAddress: string;
 
     @Column({ default: '', comment: 'The id of the collection in the core database' })
-    collectionId?: string;
+    readonly collectionId?: string;
 
     @Column({ default: '', comment: 'The merkleRoot for each tier, if whitelisting' })
-    merkleRoot?: string;
+    readonly merkleRoot?: string;
 
     @Column({ default: 1, comment: 'The chain id for the MintSale.' })
-    chainId?: number;
+    readonly chainId?: number;
 
     @CreateDateColumn()
     @Exclude()
-    createdAt: Date;
+    readonly createdAt: Date;
 
     @UpdateDateColumn()
     @Exclude()
-    updatedAt: Date;
+    readonly updatedAt: Date;
 }
 
 export class IMerkleTree {

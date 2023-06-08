@@ -55,12 +55,12 @@ export class SearchService {
             .getManyAndCount();
 
         const collections: CollectionOutput[] = [];
-        for (let collection of results) {
+        for (const collection of results) {
             const totalSupply = await this.tierRepository
                 .createQueryBuilder('tier')
-                .select(`SUM(tier.totalMints)`, 'totalSupply')
+                .select('SUM(tier.totalMints)', 'totalSupply')
                 .where('tier.collectionId = :id', { id: collection.id })
-                .addGroupBy(`tier.collectionId`)
+                .addGroupBy('tier.collectionId')
                 .getRawOne();
 
             collections.push({

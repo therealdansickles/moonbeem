@@ -1,14 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../../lib/configs/db.config';
 import { CoinModule } from './coin.module';
-import { Coin } from './coin.entity';
 import { CoinService } from './coin.service';
 
 describe('CoinService', () => {
-    let repository: Repository<Coin>;
     let service: CoinService;
 
     beforeAll(async () => {
@@ -27,7 +24,6 @@ describe('CoinService', () => {
             ],
         }).compile();
 
-        repository = module.get('sync_chain_CoinRepository');
         service = module.get<CoinService>(CoinService);
     });
 
@@ -67,7 +63,7 @@ describe('CoinService', () => {
         });
 
         it('should get coin list for chainId', async () => {
-            const coin = await service.createCoin({
+            await service.createCoin({
                 address: faker.finance.ethereumAddress(),
                 name: 'Tether USD',
                 symbol: 'USDT',
@@ -83,7 +79,7 @@ describe('CoinService', () => {
         });
 
         it('should get the entire coin list', async () => {
-            const coin = await service.createCoin({
+            await service.createCoin({
                 address: faker.finance.ethereumAddress(),
                 name: 'Tether USD',
                 symbol: 'USDT',

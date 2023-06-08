@@ -1,7 +1,6 @@
 import * as request from 'supertest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../../lib/configs/db.config';
 import { INestApplication } from '@nestjs/common';
@@ -14,7 +13,6 @@ import { SystemConfigService } from './system-config.service';
 export const gql = String.raw;
 
 describe('SystemConfigResolver', () => {
-    let repository: Repository<SystemConfig>;
     let service: SystemConfigService;
     let app: INestApplication;
     let cfg: SystemConfig;
@@ -40,7 +38,6 @@ describe('SystemConfigResolver', () => {
             ],
         }).compile();
 
-        repository = module.get('sync_chain_SystemConfigRepository');
         service = module.get<SystemConfigService>(SystemConfigService);
         app = module.createNestApplication();
 

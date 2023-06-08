@@ -5,17 +5,13 @@ import { INestApplication } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ApolloDriver } from '@nestjs/apollo';
 import { faker } from '@faker-js/faker';
-import { Repository } from 'typeorm';
 import { postgresConfig } from '../lib/configs/db.config';
-
-import { User } from './user.entity';
 import { UserModule } from './user.module';
 import { UserService } from '../user/user.service';
 
 export const gql = String.raw;
 
 describe('UserResolver', () => {
-    let repository: Repository<User>;
     let service: UserService;
     let app: INestApplication;
 
@@ -49,7 +45,6 @@ describe('UserResolver', () => {
         }).compile();
 
         service = module.get<UserService>(UserService);
-        repository = module.get('UserRepository');
         app = module.createNestApplication();
 
         await app.init();

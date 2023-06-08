@@ -6,7 +6,7 @@ import { TierService } from './tier.service';
 
 @Resolver(() => Tier)
 export class TierResolver {
-    constructor(private readonly tierService: TierService) { }
+    constructor(private readonly tierService: TierService) {}
 
     @Public()
     @Query(() => Tier, { description: 'Get a specific tier by id.', nullable: true })

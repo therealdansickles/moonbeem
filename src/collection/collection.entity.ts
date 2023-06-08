@@ -6,7 +6,6 @@ import {
     UpdateDateColumn,
     BaseEntity,
     ManyToOne,
-    OneToOne,
     OneToMany,
     JoinColumn,
 } from 'typeorm';
@@ -32,10 +31,10 @@ export enum CollectionKind {
 @Entity({ name: 'Collection' })
 export class Collection extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    readonly id: string;
 
     @Column({ length: 64, unique: true, comment: 'The unique URL-friendly name of the collection.' })
-    name: string;
+    readonly name: string;
 
     @Column({
         type: 'enum',
@@ -43,29 +42,29 @@ export class Collection extends BaseEntity {
         default: CollectionKind.other,
         comment: 'The type of collection that this is.',
     })
-    kind: CollectionKind;
+    readonly kind: CollectionKind;
 
     @ManyToOne(() => Organization, (organization) => organization.collections, {
         eager: true,
         createForeignKeyConstraints: false,
     })
     @JoinColumn()
-    organization: Organization;
+    readonly organization: Organization;
 
     @Column({ length: 64, comment: 'The displayed name for the collection.', nullable: true })
-    displayName?: string;
+    readonly displayName?: string;
 
     @Column({ nullable: true, comment: 'The collection address', transformer: lowercaseTransformer })
-    address?: string;
+    readonly address?: string;
 
     @Column({ nullable: true, comment: 'The description for the collection.' })
-    about?: string;
+    readonly about?: string;
 
     @Column({ nullable: true, comment: "The URL pointing to the collection's avatar." })
-    avatarUrl?: string;
+    readonly avatarUrl?: string;
 
     @Column({ nullable: true, comment: "The URL pointing to the collection's background." })
-    backgroundUrl?: string;
+    readonly backgroundUrl?: string;
 
     @Column('text', {
         default: [],
@@ -73,47 +72,51 @@ export class Collection extends BaseEntity {
         comment:
             'This is going to change later as a stronger, association betwen our `User`. The list of artists attached to the collection.',
     })
-    artists?: string[];
+    readonly artists?: string[];
 
     @Column('text', { default: [], array: true, comment: 'The list of associated tags for the collection.' })
-    tags?: string[];
+    readonly tags?: string[];
 
     @Column({ nullable: true, comment: "The url of the collection's website." })
-    websiteUrl?: string;
+    readonly websiteUrl?: string;
 
     @Column({ nullable: true, comment: 'The twitter handle for the collection.' })
-    twitter?: string;
+    readonly twitter?: string;
 
     @Column({ nullable: true, comment: 'The instagram handle for the collection' })
-    instagram?: string;
+    readonly instagram?: string;
 
     @Column({ nullable: true, comment: 'The discord handle for the collection.' })
-    discord?: string;
+    readonly discord?: string;
 
     @ManyToOne(() => Wallet, (wallet) => wallet.createdCollections)
     @JoinColumn()
-    creator: Wallet;
+    readonly creator: Wallet;
 
     @OneToMany(() => Tier, (tier) => tier.collection, { nullable: true })
-    tiers?: Tier[];
+    public tiers?: Tier[];
 
     @ManyToOne(() => Collaboration, (collaboration) => collaboration.collections, { eager: true, nullable: true })
-    collaboration?: Collaboration;
+    readonly collaboration?: Collaboration;
 
     @Column({ nullable: true, default: 1, comment: 'The chain id for the collection.' })
-    chainId?: number;
+    readonly chainId?: number;
 
-    @Column({ nullable: true, comment: 'Temporary field for store collection name in Opensea, while we can\'t retrieve collection stat by address' })
-    nameOnOpensea?: string;
+    @Column({
+        nullable: true,
+        comment:
+            "Temporary field for store collection name in Opensea, while we can't retrieve collection stat by address",
+    })
+    readonly nameOnOpensea?: string;
 
     @Column({ nullable: true, comment: 'The DateTime when the collection was launched.' })
-    publishedAt?: Date;
+    readonly publishedAt?: Date;
 
     @CreateDateColumn()
     @Exclude()
-    createdAt: Date;
+    readonly createdAt: Date;
 
     @UpdateDateColumn()
     @Exclude()
-    updatedAt: Date;
+    readonly updatedAt: Date;
 }

@@ -1,7 +1,6 @@
 import * as request from 'supertest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../../lib/configs/db.config';
 import { INestApplication } from '@nestjs/common';
@@ -14,7 +13,6 @@ import { Record721Module } from './record721.module';
 export const gql = String.raw;
 
 describe('Record721Resolver', () => {
-    let repository: Repository<Record721>;
     let service: Record721Service;
     let app: INestApplication;
     let record: Record721;
@@ -40,7 +38,6 @@ describe('Record721Resolver', () => {
             ],
         }).compile();
 
-        repository = module.get('sync_chain_Record721Repository');
         service = module.get<Record721Service>(Record721Service);
         app = module.createNestApplication();
 

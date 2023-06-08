@@ -1,34 +1,11 @@
-import {
-    ArgsType,
-    Field,
-    ID,
-    InputType,
-    Int,
-    ObjectType,
-    OmitType,
-    PartialType,
-    PickType,
-    registerEnumType,
-} from '@nestjs/graphql';
-import { ApiProperty } from '@nestjs/swagger';
-import {
-    IsArray,
-    IsBoolean,
-    IsDateString,
-    IsEnum,
-    IsNumber,
-    IsObject,
-    IsOptional,
-    IsString,
-    IsUrl,
-    ValidateIf,
-} from 'class-validator';
+import { Field, ID, InputType, ObjectType, OmitType, PartialType, PickType } from '@nestjs/graphql';
+import { IsBoolean, IsDateString, IsObject, IsOptional, IsString, IsUrl, ValidateIf } from 'class-validator';
 import { User, UserInput } from '../user/user.dto';
 
 @ObjectType('Organization')
 export class Organization {
     @IsString()
-    @Field((returns) => ID!)
+    @Field(() => ID)
     readonly id: string;
 
     @Field(() => User, { description: 'The owner of the organization.' })
@@ -43,7 +20,7 @@ export class Organization {
     readonly displayName: string;
 
     @IsOptional()
-    @Field((type) => String, {
+    @Field(() => String, {
         description: "The type of organization this is. e.g 'personal', 'general'.",
         nullable: true,
     })
@@ -156,7 +133,7 @@ export class CreateOrganizationInput {
 }
 
 @InputType('OrganizationInviteItemInput')
-class OrganizationInviteItemInput {
+export class OrganizationInviteItemInput {
     @IsString()
     @Field({ description: 'emails to invite to the org.' })
     readonly email: string;

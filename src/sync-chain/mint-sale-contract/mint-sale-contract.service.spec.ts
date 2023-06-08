@@ -1,9 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../../lib/configs/db.config';
-import { MintSaleContract } from './mint-sale-contract.entity';
 import { MintSaleContractModule } from './mint-sale-contract.module';
 import { MintSaleContractService } from './mint-sale-contract.service';
 import { CollectionService } from '../../collection/collection.service';
@@ -14,7 +12,6 @@ import { UserModule } from '../../user/user.module';
 import { OrganizationModule } from '../../organization/organization.module';
 
 describe('MintSaleContractService', () => {
-    let repository: Repository<MintSaleContract>;
     let service: MintSaleContractService;
     let collectionService: CollectionService;
     let userService: UserService;
@@ -47,7 +44,6 @@ describe('MintSaleContractService', () => {
             ],
         }).compile();
 
-        repository = module.get('sync_chain_MintSaleContractRepository');
         service = module.get<MintSaleContractService>(MintSaleContractService);
         collectionService = module.get<CollectionService>(CollectionService);
         userService = module.get<UserService>(UserService);

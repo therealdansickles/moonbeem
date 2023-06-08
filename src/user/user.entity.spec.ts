@@ -1,7 +1,6 @@
 import { Repository } from 'typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../lib/configs/db.config';
 
 import { UserModule } from './user.module';

@@ -14,7 +14,7 @@ import { Collaboration } from '../collaboration/collaboration.entity';
 import * as Sentry from '@sentry/node';
 import { TierService } from '../tier/tier.service';
 import { OpenseaService } from '../opensea/opensea.service';
-import { CollectionHolder, CollectionHolderData } from '../wallet/wallet.dto';
+import { CollectionHolder } from '../wallet/wallet.dto';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name'>>;

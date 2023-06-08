@@ -13,7 +13,7 @@ export class UserResolver {
         private readonly userService: UserService,
         private readonly membershipService: MembershipService,
         private readonly organizationService: OrganizationService
-    ) { }
+    ) {}
 
     @Public()
     @Query(() => User, { description: 'Returns an user for the given id or username', nullable: true })

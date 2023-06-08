@@ -69,7 +69,7 @@ describe('SessionService', () => {
         it('should return a session', async () => {
             const email = 'engineering+sessionfromemail@vibe.xyz';
             const password = 'password';
-            const user = await userService.createUser({ email, password });
+            await userService.createUser({ email, password });
             const hashed = await hashPassword(password, 10);
             const result = await service.createSessionFromEmail(email, hashed);
 
@@ -79,7 +79,7 @@ describe('SessionService', () => {
         it('should return null if invalid', async () => {
             const email = 'engineering+sessionfromemail+2@vibe.xyz';
             const password = 'password';
-            const user = await userService.createUser({ email, password });
+            await userService.createUser({ email, password });
             const hashed = await hashPassword('wrong password');
             const result = await service.createSessionFromEmail(email, hashed);
 

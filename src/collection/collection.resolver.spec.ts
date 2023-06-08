@@ -181,7 +181,7 @@ describe('CollectionResolver', () => {
             const beginTime = Math.floor(faker.date.recent().getTime() / 1000);
             const endTime = Math.floor(faker.date.recent().getTime() / 1000);
 
-            const contract = await mintSaleContractService.createMintSaleContract({
+            await mintSaleContractService.createMintSaleContract({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
@@ -266,9 +266,6 @@ describe('CollectionResolver', () => {
                 tags: [],
                 organization: organization,
             });
-
-            const beginTime = Math.floor(faker.date.recent().getTime() / 1000);
-            const endTime = Math.floor(faker.date.recent().getTime() / 1000);
 
             const query = gql`
                 query GetCollection($id: String!) {
@@ -899,7 +896,7 @@ describe('CollectionResolver', () => {
                 },
             ];
             jest.spyOn(service, 'getSecondartMarketStat').mockImplementation(async () => mockResponse);
-            const result = await service.getSecondartMarketStat({ address: collection.address });
+            await service.getSecondartMarketStat({ address: collection.address });
 
             return await request(app.getHttpServer())
                 .post('/graphql')
@@ -966,7 +963,7 @@ describe('CollectionResolver', () => {
                 ],
             });
 
-            const contract = await mintSaleContractService.createMintSaleContract({
+            await mintSaleContractService.createMintSaleContract({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
@@ -994,7 +991,7 @@ describe('CollectionResolver', () => {
             const owner2 = faker.finance.ethereumAddress().toLowerCase();
             const tokenId2 = faker.random.numeric(5);
 
-            const asset1 = await asset721Service.createAsset721({
+            await asset721Service.createAsset721({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
@@ -1002,7 +999,7 @@ describe('CollectionResolver', () => {
                 tokenId: tokenId1,
                 owner: owner1,
             });
-            const asset2 = await asset721Service.createAsset721({
+            await asset721Service.createAsset721({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),

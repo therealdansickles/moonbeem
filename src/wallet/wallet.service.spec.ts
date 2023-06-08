@@ -5,20 +5,12 @@ import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../lib/configs/db.config';
 import { ethers } from 'ethers';
 
-import { CollaborationModule } from '../collaboration/collaboration.module';
 import { CollectionKind } from '../collection/collection.entity';
-import { CollectionInput } from '../collection/collection.dto';
-import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
-import { MintSaleContractModule } from '../sync-chain/mint-sale-contract/mint-sale-contract.module';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { Tier } from '../tier/tier.entity';
 import { TierService } from '../tier/tier.service';
-import { TierModule } from '../tier/tier.module';
-import { UserModule } from '../user/user.module';
 import { UserService } from '../user/user.service';
 import { Wallet } from './wallet.entity';
 import { WalletModule } from './wallet.module';
@@ -87,7 +79,7 @@ describe('WalletService', () => {
 
     describe('getWalletByQuery', () => {
         it('should return null if no parameter provided', async () => {
-            const wallet = await service.createWallet({
+            await service.createWallet({
                 address: faker.finance.ethereumAddress(),
                 name: faker.internet.userName(),
             });
@@ -125,7 +117,7 @@ describe('WalletService', () => {
         });
 
         it('should error if the wallet already exists', async () => {
-            const wallet = await service.createWallet({ address });
+            await service.createWallet({ address });
             expect(async () => {
                 await service.createWallet({ address });
             });
@@ -204,7 +196,6 @@ describe('WalletService', () => {
         let address: string;
         let wallet: ethers.HDNodeWallet;
         let message: string;
-        let signature: string;
         let owner: any;
 
         beforeAll(async () => {
@@ -215,7 +206,6 @@ describe('WalletService', () => {
 
             wallet = ethers.Wallet.createRandom();
             message = 'Hi from tests!';
-            signature = await wallet.signMessage(message);
             address = wallet.address.toLowerCase();
 
             boundWallet = await service.createWallet({ address, ownerId: owner.id });
@@ -349,7 +339,7 @@ describe('WalletService', () => {
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
-            const [result, ...rest] = await service.getMintedByAddress(wallet.address);
+            const [result] = await service.getMintedByAddress(wallet.address);
             expect(result.address).toEqual(transaction.address);
             expect(result.tokenAddress).toEqual(transaction.tokenAddress);
             expect(result.paymentToken).toEqual(transaction.paymentToken);
@@ -391,7 +381,7 @@ describe('WalletService', () => {
 
             const txTime = Math.floor(faker.date.recent().getTime() / 1000);
 
-            const mintedTransactions = await mintSaleTransactionService.createMintSaleTransaction({
+            await mintSaleTransactionService.createMintSaleTransaction({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime,
@@ -405,7 +395,7 @@ describe('WalletService', () => {
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
-            const deployedTransactions = await await mintSaleContractService.createMintSaleContract({
+            await await mintSaleContractService.createMintSaleContract({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: txTime + 1,
@@ -451,7 +441,6 @@ describe('WalletService', () => {
     describe('getValueGroupByToken', () => {
         it('should return correct value', async () => {
             const sender1 = faker.finance.ethereumAddress();
-            const sender2 = faker.finance.ethereumAddress();
 
             const wallet = await service.createWallet({ address: sender1 });
 
@@ -533,7 +522,6 @@ describe('WalletService', () => {
     describe('getEstimatesByAddress', () => {
         it('should return correct value', async () => {
             const sender1 = faker.finance.ethereumAddress();
-            const sender2 = faker.finance.ethereumAddress();
 
             const wallet = await service.createWallet({ address: sender1 });
 

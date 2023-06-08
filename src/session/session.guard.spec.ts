@@ -3,11 +3,9 @@ import { APP_GUARD } from '@nestjs/core';
 import { ApolloDriver } from '@nestjs/apollo';
 import { GraphQLModule } from '@nestjs/graphql';
 import { INestApplication } from '@nestjs/common';
-import { Repository } from 'typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ethers } from 'ethers';
-import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../lib/configs/db.config';
 
 import { JwtService } from '@nestjs/jwt';
@@ -15,7 +13,7 @@ import { Resolver, Query } from '@nestjs/graphql';
 import { SessionGuard } from './session.guard';
 import { SessionModule } from './session.module';
 import { WalletModule } from '../wallet/wallet.module';
-import { CurrentWallet, Public } from './session.decorator';
+import { CurrentWallet } from './session.decorator';
 import { Wallet } from '../wallet/wallet.dto';
 
 const gql = String.raw;
@@ -88,7 +86,7 @@ describe('SessionGuard', () => {
             .send({ query })
             .expect(200)
             .expect(({ body }) => {
-                const [err, ..._rest] = body.errors;
+                const [err] = body.errors;
                 expect(err.message).toEqual('Forbidden resource');
             });
     });
@@ -97,7 +95,6 @@ describe('SessionGuard', () => {
         const wallet = ethers.Wallet.createRandom();
         const message = 'welcome to vibe';
         const signature = await wallet.signMessage(message);
-        var createSession = {};
 
         const query = gql`
             mutation CreateSession($input: CreateSessionInput!) {
@@ -113,7 +110,7 @@ describe('SessionGuard', () => {
             signature,
         };
 
-        let result = await request(app.getHttpServer())
+        const result = await request(app.getHttpServer())
             .post('/graphql')
             .send({ query, variables: { input } })
             .then((resp) => {

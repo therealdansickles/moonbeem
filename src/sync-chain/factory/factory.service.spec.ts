@@ -1,14 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../../lib/configs/db.config';
-import { ContractType, Factory } from './factory.entity';
+import { ContractType } from './factory.entity';
 import { FactoryService } from './factory.service';
 import { FactoryModule } from './factory.module';
 
 describe('FactoryService', () => {
-    let repository: Repository<Factory>;
     let service: FactoryService;
 
     beforeAll(async () => {
@@ -26,7 +24,6 @@ describe('FactoryService', () => {
             ],
         }).compile();
 
-        repository = module.get('sync_chain_FactoryRepository');
         service = module.get<FactoryService>(FactoryService);
     });
 
@@ -53,7 +50,7 @@ describe('FactoryService', () => {
 
     describe('getFactories', () => {
         it('should get factory list', async () => {
-            const factory = await service.createFactory({
+            await service.createFactory({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
@@ -64,7 +61,7 @@ describe('FactoryService', () => {
                 chainId: 42161,
             });
 
-            const factory2 = await service.createFactory({
+            await service.createFactory({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),

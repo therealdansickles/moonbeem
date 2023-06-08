@@ -1,47 +1,38 @@
-import { ArgsType, Field, Int, ObjectType, InputType, ID, PickType, PartialType } from '@nestjs/graphql';
-import {
-    IsNumber,
-    IsString,
-    IsDateString,
-    IsUrl,
-    ValidateIf,
-    IsOptional,
-    IsEthereumAddress,
-    IsBoolean,
-} from 'class-validator';
+import { Field, ObjectType, InputType, ID, PickType, PartialType } from '@nestjs/graphql';
+import { IsNumber, IsString, IsOptional, IsEthereumAddress, IsBoolean } from 'class-validator';
 
 @ObjectType('Waitlist')
 export class Waitlist {
     @IsString()
-    @Field((returns) => ID!)
-    id: string;
+    @Field(() => ID)
+    readonly id: string;
 
     @Field()
     @IsString()
-    email: string;
+    readonly email: string;
 
     @IsEthereumAddress()
     @Field({ description: 'The address for a wallet.' })
-    address: string;
+    readonly address: string;
 
     @Field()
     @IsNumber()
-    seatNumber: number;
+    readonly seatNumber: number;
 
     @Field({ nullable: true, description: 'The twitter username' })
     @IsString()
     @IsOptional()
-    twitter?: string;
+    readonly twitter?: string;
 
     @Field({ nullable: true, description: 'Whether they have claimed the NFT' })
     @IsBoolean()
     @IsOptional()
-    isClaimed?: boolean;
+    readonly isClaimed?: boolean;
 
     @Field({ nullable: true, description: 'The kind of the waitlist.' })
     @IsString()
     @IsOptional()
-    kind?: string;
+    readonly kind?: string;
 }
 
 @InputType()
@@ -76,9 +67,9 @@ export class ClaimProfileInput extends PickType(
 @ObjectType()
 export class ClaimProfileResult {
     @Field(() => Boolean, { description: 'Whether the success claim' })
-    success: boolean;
+    readonly success: boolean;
 
     @Field({ description: 'Returned tokenId' })
     @IsNumber()
-    tokenId: string;
+    readonly tokenId: string;
 }

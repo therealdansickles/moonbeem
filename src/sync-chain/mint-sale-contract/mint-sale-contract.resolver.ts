@@ -1,4 +1,4 @@
-import { Args, Resolver, Query, Mutation, Int } from '@nestjs/graphql';
+import { Args, Resolver, Query, Mutation } from '@nestjs/graphql';
 import { Public } from '../../session/session.decorator';
 import { MintSaleContractService } from './mint-sale-contract.service';
 import {

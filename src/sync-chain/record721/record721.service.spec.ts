@@ -1,14 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../../lib/configs/db.config';
-import { Record721 } from './record721.entity';
 import { Record721Module } from './record721.module';
 import { Record721Service } from './record721.service';
 
 describe('Record721Service', () => {
-    let repository: Repository<Record721>;
     let service: Record721Service;
 
     beforeAll(async () => {
@@ -27,7 +24,6 @@ describe('Record721Service', () => {
             ],
         }).compile();
 
-        repository = module.get('sync_chain_Record721Repository');
         service = module.get<Record721Service>(Record721Service);
     });
 

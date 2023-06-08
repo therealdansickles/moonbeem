@@ -1,14 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../../lib/configs/db.config';
 import { SystemConfigModule } from './system-config.module';
 import { SystemConfigService } from './system-config.service';
-import { SystemConfig } from './system-config.entity';
 
 describe('SystemConfigService', () => {
-    let repository: Repository<SystemConfig>;
     let service: SystemConfigService;
 
     beforeAll(async () => {
@@ -27,7 +24,6 @@ describe('SystemConfigService', () => {
             ],
         }).compile();
 
-        repository = module.get('sync_chain_SystemConfigRepository');
         service = module.get<SystemConfigService>(SystemConfigService);
     });
 

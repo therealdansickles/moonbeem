@@ -30,7 +30,7 @@ export class Collection {
     @Field({ description: 'The unique URL-friendly identifier for a collection.' })
     readonly name: string;
 
-    @Field((type) => CollectionKind, { description: 'The type of collection this is.' })
+    @Field(() => CollectionKind, { description: 'The type of collection this is.' })
     readonly kind: CollectionKind;
 
     @Field(() => Organization, { description: 'The organization that owns the collection.' })
@@ -80,10 +80,10 @@ export class Collection {
     readonly discord?: string;
 
     @IsArray()
-    @Field((type) => [String], { description: 'The tags associated with this organization.', nullable: true })
+    @Field(() => [String], { description: 'The tags associated with this organization.', nullable: true })
     readonly tags?: string[];
 
-    @Field((type) => [Tier], { description: 'The collection tiers', nullable: true })
+    @Field(() => [Tier], { description: 'The collection tiers', nullable: true })
     @IsArray()
     readonly tiers?: Tier[];
 
@@ -112,11 +112,11 @@ export class Collection {
     readonly creator?: Wallet;
 
     @IsObject()
-    @Field((type) => MintSaleContract, { description: 'The collection contract', nullable: true })
+    @Field(() => MintSaleContract, { description: 'The collection contract', nullable: true })
     readonly contract?: MintSaleContract;
 
     @IsObject()
-    @Field((type) => Collaboration, { description: 'The collaboration of the collection.', nullable: true })
+    @Field(() => Collaboration, { description: 'The collaboration of the collection.', nullable: true })
     readonly collaboration?: Collaboration;
 }
 
@@ -135,16 +135,16 @@ export class CreateCollectionInput extends OmitType(PartialType(Collection, Inpu
     readonly creator?: WalletInput;
 
     @IsObject()
-    @Field((type) => OrganizationInput, { description: 'The organization that owns the collection.' })
+    @Field(() => OrganizationInput, { description: 'The organization that owns the collection.' })
     readonly organization: OrganizationInput;
 
     @IsObject()
-    @Field((type) => CollaborationInput, { description: 'The collaboration of the collection.', nullable: true })
+    @Field(() => CollaborationInput, { description: 'The collaboration of the collection.', nullable: true })
     @IsOptional()
     readonly collaboration?: CollaborationInput;
 
     @IsArray()
-    @Field((type) => [CreateTierInCollectionInput], { description: 'This tiers for collection', nullable: true })
+    @Field(() => [CreateTierInCollectionInput], { description: 'This tiers for collection', nullable: true })
     @IsOptional()
     readonly tiers?: CreateTierInCollectionInput[];
 }
@@ -162,7 +162,7 @@ export class CollectionInput extends PickType(Collection, ['id'], InputType) {}
 @InputType('CreateTierInCollectionInput')
 export class CreateTierInCollectionInput {
     @IsNumber()
-    @Field((type) => Int, { description: 'The total number of mints for this tier.' })
+    @Field(() => Int, { description: 'The total number of mints for this tier.' })
     readonly totalMints: number;
 
     @IsString()
@@ -201,17 +201,17 @@ export class CreateTierInCollectionInput {
     @IsOptional()
     readonly animationUrl?: string;
 
-    @Field((type) => [AttributeInput], { description: 'The tier attributes', nullable: true })
+    @Field(() => [AttributeInput], { description: 'The tier attributes', nullable: true })
     @IsArray()
     @IsOptional()
     readonly attributes?: AttributeInput[];
 
-    @Field((type) => [ConditionInput], { description: 'The tier attributes', nullable: true })
+    @Field(() => [ConditionInput], { description: 'The tier attributes', nullable: true })
     @IsArray()
     @IsOptional()
     readonly conditions?: ConditionInput[];
 
-    @Field((type) => [PluginInput], { description: 'The tier attributes', nullable: true })
+    @Field(() => [PluginInput], { description: 'The tier attributes', nullable: true })
     @IsArray()
     @IsOptional()
     readonly plugins?: PluginInput[];
@@ -249,65 +249,65 @@ export class CollectionOutput extends OmitType(
 ) {
     @Field(() => Int)
     @IsNumber()
-    totalSupply: number;
+    readonly totalSupply: number;
 }
 
 @ObjectType('SearchCollection')
 export class SearchCollection {
     @Field(() => Int)
     @IsNumber()
-    total: number;
+    readonly total: number;
 
     @Field(() => [CollectionOutput])
     @IsArray()
-    collections: CollectionOutput[];
+    readonly collections: CollectionOutput[];
 }
 
 @ObjectType('CollectionStatDataPeriodItem')
 export class CollectionStatDataPeriodItem {
     @Field(() => Float, { nullable: true })
     @IsNumber()
-    hourly?: number;
+    readonly hourly?: number;
 
     @Field(() => Float, { nullable: true })
     @IsNumber()
-    daily?: number;
+    readonly daily?: number;
 
     @Field(() => Float, { nullable: true })
     @IsNumber()
-    weekly?: number;
+    readonly weekly?: number;
 
     @Field(() => Float, { nullable: true })
     @IsNumber()
-    total?: number;
+    readonly total?: number;
 }
 
 @ObjectType('CollectionStatData')
 export class CollectionStatData {
     @Field(() => CollectionStatDataPeriodItem, { nullable: true })
     @IsObject()
-    volume?: CollectionStatDataPeriodItem;
+    readonly volume?: CollectionStatDataPeriodItem;
 
     @Field(() => CollectionStatDataPeriodItem, { nullable: true })
     @IsObject()
-    sales?: CollectionStatDataPeriodItem;
+    readonly sales?: CollectionStatDataPeriodItem;
 
     @Field(() => Float)
     @IsNumber()
-    supply: number;
+    readonly supply: number;
 
     @Field(() => Float)
     @IsNumber()
-    floorPrice: number;
+    readonly floorPrice: number;
 }
 
 @ObjectType('CollectionStat')
 export class CollectionStat {
     @Field(() => String)
     @IsString()
-    source: string;
+    readonly source: string;
 
     @Field(() => CollectionStatData)
     @IsObject()
-    data: CollectionStatData;
+    readonly data: CollectionStatData;
 }

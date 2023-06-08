@@ -4,6 +4,6 @@ import { OpenseaService } from './opensea.service';
 
 @Module({
     imports: [HttpModule],
-    providers: [OpenseaService]
+    providers: [OpenseaService],
 })
 export class OpenseaModule {}

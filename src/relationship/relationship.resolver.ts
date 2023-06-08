@@ -2,15 +2,11 @@ import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
 import { Public } from '../session/session.decorator';
 
 import { RelationshipService } from './relationship.service';
-import {
-    Relationship,
-    CreateRelationshipByAddressInput,
-    DeleteRelationshipByAddressInput,
-} from './relationship.dto';
+import { Relationship, CreateRelationshipByAddressInput, DeleteRelationshipByAddressInput } from './relationship.dto';
 
 @Resolver('Relationship')
 export class RelationshipResolver {
-    constructor(private readonly relationshipService: RelationshipService) { }
+    constructor(private readonly relationshipService: RelationshipService) {}
 
     @Public()
     @Query(() => [Relationship], { description: 'returns followers list for given data.', nullable: true })
@@ -32,7 +28,7 @@ export class RelationshipResolver {
     }
 
     @Mutation(() => Boolean, { description: 'create relationship.' })
-    async unfollowByAddress(@Args('input') input: DeleteRelationshipByAddressInput): Promise<Boolean> {
+    async unfollowByAddress(@Args('input') input: DeleteRelationshipByAddressInput): Promise<boolean> {
         return this.relationshipService.deleteRelationshipByAddress(input);
     }
 }

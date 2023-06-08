@@ -1,5 +1,5 @@
 import { Args, Resolver, Query, Int } from '@nestjs/graphql';
-import { Factory, GetFactoriesInput } from './factory.dto';
+import { Factory } from './factory.dto';
 import { Public } from '../../session/session.decorator';
 import { FactoryService } from './factory.service';
 
@@ -15,7 +15,7 @@ export class FactoryResolver {
 
     @Public()
     @Query(() => [Factory], { description: 'returns a factory list for a given chain id' })
-    async factories(@Args('chainId', { type: () => Int! }) chainId: number): Promise<Factory[]> {
+    async factories(@Args('chainId', { type: () => Int }) chainId: number): Promise<Factory[]> {
         return await this.factoryService.getFactories(chainId);
     }
 }

@@ -1,7 +1,6 @@
 import * as request from 'supertest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../../lib/configs/db.config';
 import { INestApplication } from '@nestjs/common';
@@ -14,7 +13,6 @@ import { MintSaleTransactionService } from './mint-sale-transaction.service';
 export const gql = String.raw;
 
 describe('MintSaleTransactionResolver', () => {
-    let repository: Repository<MintSaleTransaction>;
     let service: MintSaleTransactionService;
     let app: INestApplication;
     let transaction: MintSaleTransaction;
@@ -40,7 +38,6 @@ describe('MintSaleTransactionResolver', () => {
             ],
         }).compile();
 
-        repository = module.get('sync_chain_MintSaleTransactionRepository');
         service = module.get<MintSaleTransactionService>(MintSaleTransactionService);
         app = module.createNestApplication();
 
@@ -97,7 +94,7 @@ describe('MintSaleTransactionResolver', () => {
             const recipient2 = faker.finance.ethereumAddress();
             const paymentToken = faker.finance.ethereumAddress();
 
-            const transaction1 = await service.createMintSaleTransaction({
+            await service.createMintSaleTransaction({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
@@ -110,7 +107,7 @@ describe('MintSaleTransactionResolver', () => {
                 price: faker.random.numeric(19),
                 paymentToken: paymentToken,
             });
-            const transaction2 = await service.createMintSaleTransaction({
+            await service.createMintSaleTransaction({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
@@ -123,7 +120,7 @@ describe('MintSaleTransactionResolver', () => {
                 price: faker.random.numeric(19),
                 paymentToken: paymentToken,
             });
-            const transaction3 = await service.createMintSaleTransaction({
+            await service.createMintSaleTransaction({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),

@@ -1,4 +1,4 @@
 export const openseaConfig = {
     url: 'https://api.opensea.io',
-    apiKey: process.env.OPENSEA_APIKEY
-}
+    apiKey: process.env.OPENSEA_APIKEY,
+};
