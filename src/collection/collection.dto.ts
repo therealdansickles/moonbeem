@@ -9,7 +9,7 @@ import {
     PickType,
     Float,
 } from '@nestjs/graphql';
-import { IsNumber, IsString, IsDateString, IsUrl, IsOptional, IsArray, IsObject } from 'class-validator';
+import { IsNumber, IsString, IsDateString, IsUrl, IsOptional, IsArray, IsObject, IsEnum } from 'class-validator';
 import { CollectionKind } from './collection.entity';
 import { AttributeInput, Tier, PluginInput, ConditionInput } from '../tier/tier.dto';
 import { Organization, OrganizationInput } from '../organization/organization.dto';
@@ -17,6 +17,10 @@ import { CollaborationInput } from '../collaboration/collaboration.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 import { Wallet, WalletInput } from '../wallet/wallet.dto';
 import { Collaboration } from '../collaboration/collaboration.dto';
+import { Asset721 } from '../sync-chain/asset721/asset721.dto';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
+
+export const ZeroAccount = '0x0000000000000000000000000000000000000000';
 
 registerEnumType(CollectionKind, { name: 'CollectionKind' });
 
@@ -310,4 +314,38 @@ export class CollectionStat {
     @Field(() => CollectionStatData)
     @IsObject()
     readonly data: CollectionStatData;
+}
+
+export enum CollectionActivityType {
+    Mint = 'Mint',
+    Transfer = 'Transfer',
+    Burn = 'Burn',
+}
+
+registerEnumType(CollectionActivityType, { name: 'CollectionActivityType' });
+
+@ObjectType('CollectionActivities')
+export class CollectionActivities {
+    @Field(() => Int)
+    @IsNumber()
+    readonly total: number;
+
+    @Field(() => [CollectionActivityData])
+    @IsArray()
+    readonly data: CollectionActivityData[];
+}
+
+@ObjectType('CollectionActivityData')
+export class CollectionActivityData extends OmitType(Asset721, [], ObjectType) {
+    @IsObject()
+    @Field(() => Tier, { description: 'The tier of the activity data.', nullable: true })
+    readonly tier: Tier;
+
+    @IsEnum(CollectionActivityType)
+    @Field(() => CollectionActivityType, { description: 'The activity type for collection.' })
+    readonly type: CollectionActivityType;
+
+    @IsObject()
+    @Field(() => MintSaleTransaction, { description: 'The transaction of the activity data.' })
+    readonly transaction: MintSaleTransaction;
 }

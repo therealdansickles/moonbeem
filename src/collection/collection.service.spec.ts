@@ -1022,5 +1022,15 @@ describe('CollectionService', () => {
             const result = await service.getUniqueHolderCount(collectionAddress);
             expect(result).toEqual(2);
         });
+
+        it('should get activities', async () => {
+            const result = await service.getCollectionActivities(collectionAddress, 0, 10);
+            expect(result).toBeDefined();
+            expect(result.total).toEqual(2);
+            expect(result.data.length).toEqual(2);
+            expect(result.data[0].tier).toBeDefined();
+            expect(result.data[0].tier.price).toEqual('200');
+            expect(result.data[0].transaction).toBeDefined();
+        });
     });
 });

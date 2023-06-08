@@ -7,6 +7,7 @@ import {
     CreateCollectionInput,
     UpdateCollectionInput,
     CollectionStat,
+    CollectionActivities,
 } from './collection.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
@@ -87,5 +88,15 @@ export class CollectionResolver {
         @Args({ name: 'address', nullable: true }) address: string
     ): Promise<CollectionStat[]> {
         return this.collectionService.getSecondartMarketStat({ id, address });
+    }
+
+    @Public()
+    @ResolveField(() => CollectionActivities, { description: 'Returns the activity for collection' })
+    async activities(
+        @Parent() collection: Collection,
+        @Args('offset', { nullable: true, defaultValue: 0 }) offset?: number,
+        @Args('limit', { nullable: true, defaultValue: 10 }) limit?: number
+    ): Promise<CollectionActivities> {
+        return this.collectionService.getCollectionActivities(collection.address, offset, limit);
     }
 }

@@ -1,12 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, UpdateResult, IsNull } from 'typeorm';
+import { Repository, UpdateResult, IsNull, In } from 'typeorm';
 import { isEmpty, isNil, omitBy } from 'lodash';
 
 import * as collectionEntity from './collection.entity';
 import { GraphQLError } from 'graphql';
 import { Tier } from '../tier/tier.entity';
-import { Collection, CollectionStat, CreateCollectionInput } from './collection.dto';
+import {
+    Collection,
+    CollectionActivities,
+    CollectionActivityType,
+    CollectionStat,
+    CreateCollectionInput,
+    ZeroAccount,
+} from './collection.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Wallet } from '../wallet/wallet.entity';
@@ -335,5 +342,52 @@ export class CollectionService {
             .getRawOne();
 
         return total ? parseInt(total.count) : 0;
+    }
+
+    async getCollectionActivities(address: string, offset: number, limit: number): Promise<CollectionActivities> {
+        const contract = await this.mintSaleContractRepository.findOneBy({ address });
+
+        const [assets, total] = await this.asset721Repository
+            .createQueryBuilder('asset')
+            .where('asset.address = :address', { address: contract.tokenAddress })
+            .offset(offset)
+            .limit(limit)
+            .getManyAndCount();
+
+        const txns = await this.mintSaleTransactionRepository.findBy({
+            tokenAddress: contract.tokenAddress,
+            tokenId: In(
+                assets.map((asset) => {
+                    return asset.tokenId;
+                })
+            ),
+        });
+
+        const data = await Promise.all(
+            assets.map(async (asset) => {
+                const txn = txns.find((t) => {
+                    return t.tokenAddress == asset.address && t.tokenId == asset.tokenId;
+                });
+
+                let type: CollectionActivityType = CollectionActivityType.Transfer;
+                if (asset.owner == ZeroAccount) type = CollectionActivityType.Burn;
+                if (asset.owner == txn.recipient) type = CollectionActivityType.Mint;
+
+                const tier = await this.tierRepository
+                    .createQueryBuilder('tier')
+                    .leftJoinAndSelect(collectionEntity.Collection, 'collection', 'tier.collectionId = collection.id')
+                    .where('tier.tierId = :tierId', { tierId: txn.tierId })
+                    .andWhere('collection.address = :address', { address })
+                    .getOne();
+                return {
+                    ...asset,
+                    tier: tier,
+                    type: type,
+                    transaction: txn,
+                };
+            })
+        );
+
+        return { data, total };
     }
 }

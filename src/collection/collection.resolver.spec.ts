@@ -1088,5 +1088,46 @@ describe('CollectionResolver', () => {
                     expect(body.data.collection.uniqueHolderCount).toEqual(2);
                 });
         });
+
+        it('should get activities', async () => {
+            const query = gql`
+                query GetCollection($id: String) {
+                    collection(id: $id) {
+                        activities {
+                            total
+                            data {
+                                address
+                                tokenId
+                                owner
+                                type
+                                tier {
+                                    tierId
+                                }
+                                transaction {
+                                    address
+                                    tokenId
+                                    price
+                                    recipient
+                                }
+                            }
+                        }
+                    }
+                }
+            `;
+            const variables = { id: collection.id };
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.collection.activities).toBeDefined();
+                    expect(body.data.collection.activities.total).toEqual(2);
+                    expect(body.data.collection.activities.data).toBeDefined();
+                    expect(body.data.collection.activities.data.length).toEqual(2);
+                    expect(body.data.collection.activities.data.length).toEqual(2);
+                    expect(body.data.collection.activities.data[0].tier).toBeDefined();
+                    expect(body.data.collection.activities.data[0].transaction).toBeDefined();
+                });
+        });
     });
 });
