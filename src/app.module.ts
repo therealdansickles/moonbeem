@@ -1,7 +1,6 @@
-import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
-
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RavenInterceptor, RavenModule } from 'nest-raven';
 
 import { CollaborationModule } from './collaboration/collaboration.module';
@@ -30,10 +29,7 @@ import { UserModule } from './user/user.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { WalletModule } from './wallet/wallet.module';
 import { appConfig } from './lib/configs/app.config';
-import { postgresConfig } from './lib/configs/db.config';
-import { SaleHistoryModule } from './saleHistory/saleHistory.module';
-
-dotenv.config();
+import configuration from '../config';
 
 @Module({
     imports: [
@@ -55,6 +51,11 @@ dotenv.config();
         MoonpayModule,
         RedeemModule,
         NftModule,
+        ConfigModule.forRoot({
+            isGlobal: true,
+            cache: true,
+            load: [configuration]
+        }),
         // integration graphql
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver, // GraphQL server adapter
@@ -63,13 +64,17 @@ dotenv.config();
             autoSchemaFile: true,
         }),
         ScheduleModule.forRoot(),
-        TypeOrmModule.forRoot({
-            name: 'default',
-            type: 'postgres',
-            url: postgresConfig.url,
-            autoLoadEntities: true,
-            synchronize: true,
-            logging: true,
+        TypeOrmModule.forRootAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (configService: ConfigService) => ({
+                name: configService.get('platformPostgresConfig.name'),
+                type: configService.get('platformPostgresConfig.type'),
+                url: configService.get('platformPostgresConfig.url'),
+                autoLoadEntities: configService.get('platformPostgresConfig.autoLoadEntities'),
+                synchronize: configService.get('platformPostgresConfig.synchronize'),
+                logging: configService.get('platformPostgresConfig.logging'),
+            })
         }),
         JwtModule.register({
             secret: process.env.SESSION_SECRET,

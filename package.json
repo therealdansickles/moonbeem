@@ -20,12 +20,12 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register $(yarn bin jest) --runInBand --logHeapUsage",
     "test:e2e": "jest --config ./test/jest-e2e.json --forceExit",
     "test:ci": "jest --ci --forceExit --runInBand --logHeapUsage",
-    "typeorm:schema:log": "yarn exec typeorm-ts-node-commonjs schema:log -d src/lib/configs/postgres.config.ts",
-    "typeorm:schema:sync": "yarn exec typeorm-ts-node-commonjs schema:sync -d src/lib/configs/postgres.config.ts",
-    "typeorm:schema:sync-chain:log": "yarn exec typeorm-ts-node-commonjs schema:log -d src/sync-chain/data-source.config.ts",
-    "typeorm:schema:sync-chain:sync": "yarn exec typeorm-ts-node-commonjs schema:sync -d src/sync-chain/data-source.config.ts",
-    "typeorm:generate": "yarn exec typeorm-ts-node-commonjs migration:generate -d src/lib/configs/postgres.config.ts migrations/migration",
-    "typeorm:migrate": "yarn exec typeorm-ts-node-commonjs migration:run -d src/lib/configs/postgres.config.ts"
+    "typeorm:schema:log": "yarn exec typeorm-ts-node-commonjs schema:log -d config/platform.postgres.config.ts",
+    "typeorm:schema:sync": "yarn exec typeorm-ts-node-commonjs schema:sync -d config/platform.postgres.config.ts",
+    "typeorm:schema:sync-chain:log": "yarn exec typeorm-ts-node-commonjs schema:log -d config/sync-chain.postgres.config.ts",
+    "typeorm:schema:sync-chain:sync": "yarn exec typeorm-ts-node-commonjs schema:sync -d config/sync-chain.postgres.config.ts",
+    "typeorm:generate": "yarn exec typeorm-ts-node-commonjs migration:generate -d config/platform.postgres.config.ts migrations/migration",
+    "typeorm:migrate": "yarn exec typeorm-ts-node-commonjs migration:run -d config/platform.postgres.config.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.319.0",
@@ -35,6 +35,7 @@
     "@nestjs/apollo": "^10.1.7",
     "@nestjs/axios": "^2.0.0",
     "@nestjs/common": "^9.0.0",
+    "@nestjs/config": "^3.0.0",
     "@nestjs/core": "^9.0.0",
     "@nestjs/graphql": "^10.1.7",
     "@nestjs/jwt": "^10.0.1",
