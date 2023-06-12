@@ -1,9 +1,7 @@
 import { DataSource } from 'typeorm';
+import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 
-// we can use this one to replace `lib/configs/db.config.ts`
-// but for now, let's split the config into two files
-// if migrate works, i can do the refactor it soon
-export default new DataSource({
+export const platformPostgresConfig = {
     type: 'postgres',
     migrationsTableName: 'migrations',
     logging: true,
@@ -12,4 +10,6 @@ export default new DataSource({
     entities: ['src/*/*.entity{.ts,.js}'],
     migrations: ['./migrations/*{.ts,.js}'],
     url: process.env.V1_DATABASE_URL,
-});
+};
+
+export default new DataSource(platformPostgresConfig as PostgresConnectionOptions);
