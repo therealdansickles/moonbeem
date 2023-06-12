@@ -7,6 +7,7 @@ import { Tier } from '../tier/tier.entity';
 import { AWSAdapter, ResourceType } from '../lib/adapters/aws.adapter';
 import { Collection } from '../collection/collection.entity';
 import { omit } from 'lodash';
+import { appConfig } from '../lib/configs/app.config';
 
 export interface IMetadataForOpensea {
     id: string;
@@ -79,7 +80,7 @@ export class PollerService {
         return url;
     }
 
-    @Cron(CronExpression.EVERY_30_SECONDS)
+    @Cron(CronExpression.EVERY_30_SECONDS, { disabled: appConfig.cron.disabled })
     async handle() {
         const records = await this.getSaleRecord();
         const ids = [];
