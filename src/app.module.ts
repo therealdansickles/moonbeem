@@ -7,7 +7,6 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { CollaborationModule } from './collaboration/collaboration.module';
 import { CollectionModule } from './collection/collection.module';
@@ -27,9 +26,9 @@ import { UserModule } from './user/user.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { WalletModule } from './wallet/wallet.module';
 import { appConfig } from './lib/configs/app.config';
+import { postgresConfig } from './lib/configs/db.config';
 import { SessionGuard } from './session/session.guard';
 import { OpenseaModule } from './opensea/opensea.module';
-import configuration from '../config';
 
 @Module({
     imports: [
@@ -47,12 +46,6 @@ import configuration from '../config';
         WaitlistModule,
         WalletModule,
         RelationshipModule,
-        OpenseaModule,
-        ConfigModule.forRoot({
-            isGlobal: true,
-            cache: true,
-            load: [configuration]
-        }),
         // integration graphql
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver, // GraphQL server adapter
@@ -61,22 +54,19 @@ import configuration from '../config';
             autoSchemaFile: true,
         }),
         ScheduleModule.forRoot(),
-        TypeOrmModule.forRootAsync({
-            imports: [ConfigModule],
-            inject: [ConfigService],
-            useFactory: (configService: ConfigService) => ({
-                name: configService.get('platformPostgresConfig.name'),
-                type: configService.get('platformPostgresConfig.type'),
-                url: configService.get('platformPostgresConfig.url'),
-                autoLoadEntities: configService.get('platformPostgresConfig.autoLoadEntities'),
-                synchronize: configService.get('platformPostgresConfig.synchronize'),
-                logging: configService.get('platformPostgresConfig.logging'),
-            })
+        TypeOrmModule.forRoot({
+            name: 'default',
+            type: 'postgres',
+            url: postgresConfig.url,
+            autoLoadEntities: true,
+            synchronize: true,
+            logging: true,
         }),
         JwtModule.register({
             secret: process.env.SESSION_SECRET,
             signOptions: { expiresIn: '1d' },
         }),
+        OpenseaModule,
     ],
     providers: [
         {
