@@ -11,15 +11,20 @@ import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-con
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { MintSaleContractModule } from '../sync-chain/mint-sale-contract/mint-sale-contract.module';
 import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
+import { Wallet } from '../wallet/wallet.entity';
+import { WalletModule } from '../wallet/wallet.module';
+import { Asset721 } from '../sync-chain/asset721/asset721.entity';
+import { Asset721Module } from '../sync-chain/asset721/asset721.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Collection, Tier]),
-        TypeOrmModule.forFeature([Coin], 'sync_chain'),
-        TypeOrmModule.forFeature([MintSaleContract], 'sync_chain'),
-        TypeOrmModule.forFeature([MintSaleTransaction], 'sync_chain'),
+        TypeOrmModule.forFeature([Collection, Tier, Wallet]),
+        TypeOrmModule.forFeature([Coin, MintSaleContract, MintSaleTransaction, Asset721], 'sync_chain'),
         forwardRef(() => CollectionModule),
+        forwardRef(() => WalletModule),
+        // sync_chain modules
         forwardRef(() => CoinModule),
+        forwardRef(() => Asset721Module),
         forwardRef(() => MintSaleContractModule),
         forwardRef(() => MintSaleTransactionModule),
     ],

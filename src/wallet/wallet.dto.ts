@@ -228,3 +228,21 @@ export class CollectionHolder {
     @IsArray()
     readonly data: CollectionHolderData[];
 }
+
+@ObjectType('TierHolderData')
+export class TierHolderData extends OmitType(Wallet, ['owner'], ObjectType) {
+    @Field(() => MintSaleTransaction, { description: 'The Tier Transaction', nullable: true })
+    @IsObject()
+    readonly transaction?: MintSaleTransaction;
+}
+
+@ObjectType('TierHolders')
+export class TierHolders {
+    @Field(() => Int)
+    @IsNumber()
+    readonly total: number;
+
+    @Field(() => [TierHolderData])
+    @IsArray()
+    readonly data: TierHolderData[];
+}

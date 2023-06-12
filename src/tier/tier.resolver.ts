@@ -3,6 +3,7 @@ import { Resolver, Query, Args, Mutation, ResolveField, Parent, Int } from '@nes
 
 import { Tier, CreateTierInput, UpdateTierInput, DeleteTierInput, Profit } from './tier.dto';
 import { TierService } from './tier.service';
+import { TierHolders } from '../wallet/wallet.dto';
 
 @Resolver(() => Tier)
 export class TierResolver {
@@ -47,5 +48,15 @@ export class TierResolver {
     @ResolveField(() => Profit, { description: 'Returns the total raised for the given tier' })
     async profit(@Parent() tier: Tier): Promise<Profit> {
         return await this.tierService.getTierProfit(tier.id);
+    }
+
+    @Public()
+    @ResolveField(() => TierHolders, { description: 'Returns the holder for a tier.' })
+    async holders(
+        @Parent() tier: Tier,
+        @Args('offset', { type: () => Int, nullable: true, defaultValue: 0 }) offset?: number,
+        @Args('limit', { type: () => Int, nullable: true, defaultValue: 10 }) limit?: number
+    ): Promise<TierHolders> {
+        return await this.tierService.getHolders(tier.id, offset, limit);
     }
 }

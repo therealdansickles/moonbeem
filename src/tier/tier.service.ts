@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DeleteResult, UpdateResult } from 'typeorm';
+import { Repository, DeleteResult, UpdateResult, In } from 'typeorm';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { Collection, CollectionKind } from '../collection/collection.entity';
 import * as tierEntity from './tier.entity';
@@ -10,6 +10,9 @@ import { captureException } from '@sentry/node';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import BigNumber from 'bignumber.js';
+import { TierHolderData, TierHolders } from '../wallet/wallet.dto';
+import { Asset721 } from '../sync-chain/asset721/asset721.entity';
+import { Wallet } from '../wallet/wallet.entity';
 
 @Injectable()
 export class TierService {
@@ -18,13 +21,17 @@ export class TierService {
         private readonly tierRepository: Repository<tierEntity.Tier>,
         @InjectRepository(Collection)
         private readonly collectionRepository: Repository<Collection>,
+        @InjectRepository(Wallet)
+        private readonly walletRepository: Repository<Wallet>,
 
         @InjectRepository(Coin, 'sync_chain')
         private readonly coinRepository: Repository<Coin>,
         @InjectRepository(MintSaleContract, 'sync_chain')
         private readonly contractRepository: Repository<MintSaleContract>,
         @InjectRepository(MintSaleTransaction, 'sync_chain')
-        private readonly transactionRepository: Repository<MintSaleTransaction>
+        private readonly transactionRepository: Repository<MintSaleTransaction>,
+        @InjectRepository(Asset721, 'sync_chain')
+        private readonly asset721Repository: Repository<Asset721>
     ) {}
 
     /**
@@ -211,5 +218,58 @@ export class TierService {
             captureException(error);
             return { inPaymentToken: '0', inUSDC: '0' };
         }
+    }
+
+    async getHolders(id: string, offset: number, limit: number): Promise<TierHolders> {
+        // get tier by tier's id, relate to collection
+        const tier = await this.tierRepository.findOne({ where: { id: id }, relations: ['collection'] });
+
+        // get contract info from sync_chain
+        const contract = await this.contractRepository.findOneBy({
+            address: tier.collection.address,
+            tierId: tier.tierId,
+        });
+
+        const [txns, total] = await this.transactionRepository
+            .createQueryBuilder('txn')
+            .where('txn.address = :address AND txn.tierId = :tierId', {
+                address: tier.collection.address,
+                tierId: tier.tierId,
+            })
+            .offset(offset)
+            .limit(limit)
+            .getManyAndCount();
+
+        const assets = await this.asset721Repository.findBy({
+            address: contract.tokenAddress,
+            tokenId: In(
+                txns.map((txn) => {
+                    return txn.tokenId;
+                })
+            ),
+        });
+
+        const wallets = await this.walletRepository.findBy({
+            address: In(
+                assets.map((asset) => {
+                    return asset.owner;
+                })
+            ),
+        });
+
+        const data: TierHolderData[] = txns.map((txn) => {
+            const asset = assets.find((a) => {
+                return a.tokenId == txn.tokenId && a.address == txn.tokenAddress;
+            });
+            const wallet = wallets.find((w) => {
+                return w.address == asset.owner;
+            });
+            return {
+                ...wallet,
+                transaction: txn,
+            };
+        });
+
+        return { total: total, data: data };
     }
 }
