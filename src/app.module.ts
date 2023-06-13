@@ -29,6 +29,7 @@ import { appConfig } from './lib/configs/app.config';
 import { postgresConfig } from './lib/configs/db.config';
 import { SessionGuard } from './session/session.guard';
 import { OpenseaModule } from './opensea/opensea.module';
+import { MoonpayModule } from './moonpay/moonpay.module';
 
 @Module({
     imports: [
@@ -67,6 +68,7 @@ import { OpenseaModule } from './opensea/opensea.module';
             signOptions: { expiresIn: '1d' },
         }),
         OpenseaModule,
+        MoonpayModule,
     ],
     providers: [
         {
