@@ -177,7 +177,7 @@ export class Tier extends BaseEntity {
     readonly animationUrl?: string;
 
     @Column({
-        default: [],
+        default: {},
         type: 'jsonb',
         nullable: true,
         comment: 'Full metadata info for the tier.',
