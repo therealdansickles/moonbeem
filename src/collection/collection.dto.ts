@@ -11,7 +11,7 @@ import {
 } from '@nestjs/graphql';
 import { IsNumber, IsString, IsDateString, IsUrl, IsOptional, IsArray, IsObject, IsEnum } from 'class-validator';
 import { CollectionKind } from './collection.entity';
-import { AttributeInput, Tier, PluginInput, ConditionInput } from '../tier/tier.dto';
+import { AttributeInput, Tier, PluginInput, ConditionInput, MetadataOutput } from '../tier/tier.dto';
 import { Organization, OrganizationInput } from '../organization/organization.dto';
 import { CollaborationInput } from '../collaboration/collaboration.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
@@ -19,6 +19,7 @@ import { Wallet, WalletInput } from '../wallet/wallet.dto';
 import { Collaboration } from '../collaboration/collaboration.dto';
 import { Asset721 } from '../sync-chain/asset721/asset721.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
+import { GraphQLJSONObject } from 'graphql-type-json';
 
 export const ZeroAccount = '0x0000000000000000000000000000000000000000';
 
@@ -219,6 +220,10 @@ export class CreateTierInCollectionInput {
     @IsArray()
     @IsOptional()
     readonly plugins?: PluginInput[];
+
+    @Field(() => GraphQLJSONObject, { nullable: true, description: 'The full metadata of the tier.' })
+    @IsObject()
+    readonly metadata?: MetadataOutput;
 
     @IsString()
     @Field({ nullable: true, description: 'This merekleRoot of tier.' })

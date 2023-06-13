@@ -1,5 +1,6 @@
-import { Field, Int, ObjectType, InputType, OmitType } from '@nestjs/graphql';
+import { Field, Int, ObjectType, InputType, OmitType, Float } from '@nestjs/graphql';
 import { IsNumber, IsString, IsNumberString, IsObject, IsOptional, IsArray } from 'class-validator';
+import { GraphQLJSONObject } from 'graphql-type-json';
 import { Collection, CollectionInput } from '../collection/collection.dto';
 import { Coin } from '../sync-chain/coin/coin.dto';
 
@@ -14,7 +15,7 @@ export class AttributeOutput {
     readonly value: string;
 }
 @InputType('AttributeInput')
-export class AttributeInput extends OmitType(AttributeOutput, [], InputType) {}
+export class AttributeInput extends OmitType(AttributeOutput, [], InputType) { }
 
 @ObjectType('ConditionOutput')
 export class ConditionOutput {
@@ -52,7 +53,119 @@ export class PluginOutput {
     readonly path: string;
 }
 @InputType()
-export class PluginInput extends OmitType(PluginOutput, [], InputType) {}
+export class PluginInput extends OmitType(PluginOutput, [], InputType) { }
+
+@ObjectType()
+export class MetadataTrigger {
+    @IsString()
+    @Field({ description: 'Trigger type.' })
+    readonly type: string;
+
+    @IsString()
+    @Field({ description: 'Trigger value.' })
+    readonly value: string;
+}
+
+@ObjectType()
+export class MetadataRuleUpdate {
+    @IsString()
+    @Field({ description: 'The check property of the rule.' })
+    readonly property: string;
+
+    @Field(() => String, { description: 'How to deal with the property.' })
+    readonly value: string | number;
+}
+
+@ObjectType()
+export class MetadataRule {
+    @IsString()
+    @Field({ description: 'The property of the rule.' })
+    readonly property: string;
+
+    @IsString()
+    @Field({ description: 'The rule detail of the rule.' })
+    readonly rule: string;
+
+    @Field(() => String, { description: 'The real value of the rule.' })
+    readonly value: string | number;
+
+    @IsObject()
+    @Field(() => MetadataRuleUpdate, { description: 'The update detail of the rule.' })
+    readonly update: MetadataRuleUpdate;
+}
+
+@ObjectType()
+export class MetadataCondition {
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'The condition operator.' })
+    readonly operator?: string;
+
+    @IsArray()
+    @Field(() => [MetadataRule], { description: 'The condition rules.' })
+    readonly rules: MetadataRule[];
+
+    @IsObject()
+    @Field(() => MetadataTrigger, { description: 'The condition trigger.' })
+    readonly trigger: MetadataTrigger;
+}
+
+@ObjectType()
+export class MetadataProperty {
+    @IsString()
+    @Field({ description: 'The name of the property.' })
+    readonly name: string;
+
+    @IsString()
+    @Field({ description: 'The type of the property.' })
+    readonly type: string;
+
+    @IsString()
+    @IsOptional()
+    @Field({ nullable: true, description: 'The display value of the property.' })
+    readonly display_type?: string;
+
+    @Field(() => String, { description: 'The value of the property.' })
+    readonly value: string | number;
+}
+
+@ObjectType()
+export class MetadataOutput {
+    @IsString()
+    @Field({ description: 'The name of the metadata.' })
+    readonly name: string;
+
+    @IsString()
+    @Field({ description: 'The type of the metadata.' })
+    readonly type: string;
+
+    @IsString()
+    @IsOptional()
+    @Field({ nullable: true, description: 'The external_url of the metadata.' })
+    readonly external_url?: string;
+
+    @IsString()
+    @IsOptional()
+    @Field({ nullable: true, description: 'The image of the metadata.' })
+    readonly image?: string;
+
+    @IsString()
+    @IsOptional()
+    @Field({ nullable: true, description: 'The image_url of the metadata.' })
+    readonly image_url?: string;
+
+    @IsArray()
+    @IsOptional()
+    @Field(() => [MetadataCondition], { nullable: true, description: 'The conditions of the metadata.' })
+    readonly conditions: MetadataCondition[];
+
+    @IsObject()
+    @Field(() => GraphQLJSONObject, { description: 'The properties of the metadata.' })
+    readonly properties: { [key: string]: MetadataProperty };
+}
+
+@ObjectType()
+export class MetadataIuput extends OmitType(MetadataOutput, [], InputType) { }
 
 @ObjectType()
 export class Profit {
@@ -143,6 +256,10 @@ export class Tier {
     @IsOptional()
     readonly plugins?: PluginOutput[];
 
+    @Field(() => GraphQLJSONObject, { nullable: true, description: 'The full metadata of the tier.' })
+    @IsObject()
+    readonly metadata?: MetadataOutput;
+
     @Field(() => Coin, { description: 'The tier coin', nullable: true })
     @IsOptional()
     readonly coin?: Coin;
@@ -215,6 +332,10 @@ export class CreateTierInput {
     @IsOptional()
     readonly plugins?: PluginInput[];
 
+    @Field(() => GraphQLJSONObject, { nullable: true, description: 'The full metadata of the tier.' })
+    @IsObject()
+    readonly metadata?: MetadataIuput;
+
     @IsString()
     @Field({ nullable: true, description: 'This merekleRoot of tier.' })
     @IsOptional()
@@ -284,6 +405,10 @@ export class UpdateTierInput {
     })
     @IsOptional()
     readonly plugins?: PluginInput[];
+
+    @Field(() => GraphQLJSONObject, { nullable: true, description: 'The full metadata of the tier.' })
+    @IsObject()
+    readonly metadata?: MetadataIuput;
 
     @IsString()
     @Field({ nullable: true, description: 'This merekleRoot of tier.' })

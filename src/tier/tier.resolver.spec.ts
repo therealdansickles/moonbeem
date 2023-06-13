@@ -318,6 +318,107 @@ describe('TierResolver', () => {
                     expect(body.data.tier.conditions).toStrictEqual(tier.conditions);
                 });
         });
+
+        it('should works with metadata field', async () => {
+            collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const tier = await service.createTier({
+                name: faker.company.name(),
+                collection: { id: collection.id },
+                totalMints: 10,
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+                metadata: {
+                    name: 'Token metadata',
+                    type: 'object',
+                    image: 'https://media.vibe.xyz/f2f407a2-011b-4aa9-b59d-5dc35fd00375',
+                    image_url: 'https://media.vibe.xyz/f2f407a2-011b-4aa9-b59d-5dc35fd00375',
+                    conditions: [{
+                        uses: 'vibexyz/creator_scoring',
+                        rules: [{
+                            rule: 'greater_than',
+                            value: -1,
+                            property: 'holding_days'
+                        }, {
+                            rule: 'less_than',
+                            value: 999,
+                            property: 'holding_days'
+                        }],
+                        update: {
+                            value: '1',
+                            property: 'holding_days'
+                        },
+                        trigger: [{
+                            type: 'schedule',
+                            value: '0 0 * * *'
+                        }],
+                        operator: 'and'
+                    }, {
+                        uses: 'vibexyz/royalty_level',
+                        rules: [{
+                            rule: 'greater_than',
+                            value: 10,
+                            property: 'holding_days'
+                        }],
+                        update: {
+                            value: 'Bronze',
+                            property: 'level'
+                        },
+                        trigger: [{
+                            type: 'schedule',
+                            value: '0 */1 * * *'
+                        }]
+                    }],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic'
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding'
+                        }
+                    },
+                    external_url: 'https://vibe.xyz'
+                }
+            });
+
+            const query = gql`
+                query GetTier($id: String!) {
+                    tier(id: $id) {
+                        id
+                        name
+                        metadata
+                    }
+                }
+            `;
+
+            const variables = {
+                id: tier.id,
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.tier.id).toBe(tier.id);
+                    expect(body.data.tier.name).toBe(tier.name);
+                    expect(body.data.tier.metadata.name).toStrictEqual(tier.metadata.name);
+                });
+        });
     });
 
     describe('tiers', () => {
