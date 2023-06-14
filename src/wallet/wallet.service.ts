@@ -39,7 +39,7 @@ export class WalletService {
         private mintSaleTransactionRepository: Repository<MintSaleTransaction>,
         @InjectRepository(MintSaleContract, 'sync_chain')
         private mintSaleContractRepository: Repository<MintSaleContract>,
-        private coinService: CoinService
+        private coinService: CoinService,
     ) {}
 
     /**

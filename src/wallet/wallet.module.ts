@@ -19,11 +19,15 @@ import { CoinModule } from '../sync-chain/coin/coin.module';
 import { Relationship } from '../relationship/relationship.entity';
 import { RelationshipModule } from '../relationship/relationship.module';
 import { RelationshipService } from '../relationship/relationship.service';
+import { AuthorizationModule } from '../authorization/authorization.module';
+import { JwtModule } from '@nestjs/jwt/dist/jwt.module';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Wallet, Relationship, User, Collaboration, Collection, Tier]),
         TypeOrmModule.forFeature([MintSaleTransaction, MintSaleContract, Coin], 'sync_chain'),
+        forwardRef(() => AuthorizationModule),
         forwardRef(() => CollaborationModule),
         forwardRef(() => CollectionModule),
         forwardRef(() => MintSaleTransactionModule),
@@ -31,9 +35,10 @@ import { RelationshipService } from '../relationship/relationship.service';
         forwardRef(() => TierModule),
         forwardRef(() => UserModule),
         forwardRef(() => CoinModule),
+        JwtModule
     ],
     exports: [WalletModule, WalletService],
-    providers: [RelationshipService, WalletService, WalletResolver],
+    providers: [JwtService, RelationshipService, WalletService, WalletResolver],
     controllers: [],
 })
-export class WalletModule {}
+export class WalletModule { }

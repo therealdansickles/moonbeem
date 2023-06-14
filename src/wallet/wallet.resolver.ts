@@ -15,14 +15,16 @@ import { WalletService } from './wallet.service';
 import { Collection } from '../collection/collection.dto';
 import { CollectionService } from '../collection/collection.service';
 import { RelationshipService } from '../relationship/relationship.service';
+import { AuthorizedWalletGuard, AuthorizedWallet } from '../authorization/authorization.decorator';
+import { UseGuards } from '@nestjs/common';
 
 @Resolver(() => Wallet)
 export class WalletResolver {
     constructor(
         private readonly walletService: WalletService,
         private readonly collectionService: CollectionService,
-        private readonly relationshipService: RelationshipService
-    ) {}
+        private readonly relationshipService: RelationshipService,
+    ) { }
 
     @Public()
     @Query(() => Wallet, {
@@ -48,7 +50,8 @@ export class WalletResolver {
     }
 
     @Mutation(() => Wallet, { description: 'Unbinds a wallet from the current user.' })
-    async unbindWallet(@Args('input') input: UnbindWalletInput): Promise<Wallet> {
+    async unbindWallet(@CurrentWallet() wallet, @Args('input') input: UnbindWalletInput): Promise<Wallet> {
+        const walletInfo = await this.walletService.getWalletByQuery({ address: input.address });
         return await this.walletService.unbindWallet(input);
     }
 
@@ -80,15 +83,11 @@ export class WalletResolver {
         return activities;
     }
 
+    @AuthorizedWallet('id')
     @Mutation(() => Wallet, { description: 'update the given wallet' })
-    async updateWallet(@CurrentWallet() wallet, @Args('input') input: UpdateWalletInput): Promise<Wallet> {
+    async updateWallet(@Args('input') input: UpdateWalletInput): Promise<Wallet> {
         const { id, ...payload } = input;
         if (!id) throw new GraphQLError('The wallet id should be provided!');
-        if (wallet && wallet.id !== id) {
-            throw new GraphQLError("The wallet address doesn't belong to you.", {
-                extensions: { code: 'INTERNAL_SERVER_ERROR' },
-            });
-        }
         return await this.walletService.updateWallet(id, payload);
     }
 

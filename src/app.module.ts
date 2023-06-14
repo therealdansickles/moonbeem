@@ -30,6 +30,7 @@ import { postgresConfig } from './lib/configs/db.config';
 import { SessionGuard } from './session/session.guard';
 import { OpenseaModule } from './opensea/opensea.module';
 import { MoonpayModule } from './moonpay/moonpay.module';
+import { AuthorizationModule } from './authorization/authorization.module';
 
 @Module({
     imports: [
@@ -47,6 +48,9 @@ import { MoonpayModule } from './moonpay/moonpay.module';
         WaitlistModule,
         WalletModule,
         RelationshipModule,
+        OpenseaModule,
+        MoonpayModule,
+        AuthorizationModule,
         // integration graphql
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver, // GraphQL server adapter
@@ -67,8 +71,6 @@ import { MoonpayModule } from './moonpay/moonpay.module';
             secret: process.env.SESSION_SECRET,
             signOptions: { expiresIn: '1d' },
         }),
-        OpenseaModule,
-        MoonpayModule,
     ],
     providers: [
         {
@@ -84,4 +86,4 @@ import { MoonpayModule } from './moonpay/moonpay.module';
     ],
     exports: [],
 })
-export class AppModule {}
+export class AppModule { }
