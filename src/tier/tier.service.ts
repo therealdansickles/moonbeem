@@ -261,12 +261,15 @@ export class TierService {
             const asset = assets.find((a) => {
                 return a.tokenId == txn.tokenId && a.address == txn.tokenAddress;
             });
+
             const wallet = wallets.find((w) => {
                 return w.address == asset.owner;
             });
+
             return {
                 ...wallet,
                 transaction: txn,
+                asset: asset,
             };
         });
 

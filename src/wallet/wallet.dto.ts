@@ -13,6 +13,7 @@ import { IsString, IsEthereumAddress, IsObject, IsOptional, IsEnum, IsNumber, Is
 import { User, UserInput } from '../user/user.dto';
 import { Tier } from '../tier/tier.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
+import { Asset721 } from '../sync-chain/asset721/asset721.dto';
 
 @ObjectType('Wallet')
 export class Wallet {
@@ -230,10 +231,14 @@ export class CollectionHolder {
 }
 
 @ObjectType('TierHolderData')
-export class TierHolderData extends OmitType(Wallet, ['owner'], ObjectType) {
+export class TierHolderData extends PartialType(OmitType(Wallet, ['owner'], ObjectType)) {
     @Field(() => MintSaleTransaction, { description: 'The Tier Transaction', nullable: true })
     @IsObject()
     readonly transaction?: MintSaleTransaction;
+
+    @Field(() => Asset721, { description: 'The NFT Asset Owner', nullable: true })
+    @IsObject()
+    readonly asset?: Asset721;
 }
 
 @ObjectType('TierHolders')
