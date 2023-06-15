@@ -1,4 +1,4 @@
-import { Field, Int, ObjectType, InputType, OmitType, Float } from '@nestjs/graphql';
+import { Field, Int, ObjectType, InputType, OmitType } from '@nestjs/graphql';
 import { IsNumber, IsString, IsNumberString, IsObject, IsOptional, IsArray } from 'class-validator';
 import { GraphQLJSONObject } from 'graphql-type-json';
 import { Collection, CollectionInput } from '../collection/collection.dto';
@@ -15,7 +15,7 @@ export class AttributeOutput {
     readonly value: string;
 }
 @InputType('AttributeInput')
-export class AttributeInput extends OmitType(AttributeOutput, [], InputType) { }
+export class AttributeInput extends OmitType(AttributeOutput, [], InputType) {}
 
 @ObjectType('ConditionOutput')
 export class ConditionOutput {
@@ -53,7 +53,7 @@ export class PluginOutput {
     readonly path: string;
 }
 @InputType()
-export class PluginInput extends OmitType(PluginOutput, [], InputType) { }
+export class PluginInput extends OmitType(PluginOutput, [], InputType) {}
 
 @ObjectType()
 export class MetadataTrigger {
@@ -165,7 +165,7 @@ export class MetadataOutput {
 }
 
 @ObjectType()
-export class MetadataIuput extends OmitType(MetadataOutput, [], InputType) { }
+export class MetadataIuput extends OmitType(MetadataOutput, [], InputType) {}
 
 @ObjectType()
 export class Profit {
