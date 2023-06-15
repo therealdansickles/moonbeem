@@ -5,9 +5,11 @@ import { INestApplication } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ApolloDriver } from '@nestjs/apollo';
 import { faker } from '@faker-js/faker';
+import { hashSync as hashPassword } from 'bcryptjs';
 import { postgresConfig } from '../lib/configs/db.config';
 import { UserModule } from './user.module';
 import { UserService } from '../user/user.service';
+import { SessionModule } from '../session/session.module';
 
 export const gql = String.raw;
 
@@ -36,10 +38,11 @@ describe('UserResolver', () => {
                     dropSchema: true,
                 }),
                 UserModule,
+                SessionModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
-                    include: [UserModule],
+                    include: [UserModule, SessionModule],
                 }),
             ],
         }).compile();
@@ -153,6 +156,31 @@ describe('UserResolver', () => {
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
+    
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: user.email,
+                    password: await hashPassword(user.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
             const query = gql`
                 mutation updateUser($input: UpdateUserInput!) {
                     updateUser(input: $input) {
@@ -175,6 +203,7 @@ describe('UserResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .set('authorization', `Bearer ${token}`)
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {

@@ -1,5 +1,5 @@
 import { applyDecorators, Injectable } from '@nestjs/common';
-import { CanActivate, createParamDecorator, ExecutionContext, mixin, SetMetadata, UseGuards } from '@nestjs/common';
+import { CanActivate, ExecutionContext, SetMetadata, UseGuards } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { JwtService } from '@nestjs/jwt';
@@ -78,5 +78,5 @@ export function AuthorizedUser(key: string) {
     return applyDecorators(
         SetMetadata(USER_PARAMETER, key),
         UseGuards(AuthorizedUserGuard)
-    )
+    );
 }
