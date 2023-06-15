@@ -7,7 +7,7 @@ import { postgresConfig } from '../lib/configs/db.config';
 import { Relationship } from './relationship.entity';
 import { RelationshipModule } from './relationship.module';
 import { RelationshipService } from './relationship.service';
-import { WalletModule } from "../wallet/wallet.module";
+import { WalletModule } from '../wallet/wallet.module';
 
 describe('RelationshipService', () => {
     let repository: Repository<Relationship>;
@@ -36,7 +36,7 @@ describe('RelationshipService', () => {
                 }),
                 RelationshipModule,
                 WalletModule,
-            ]
+            ],
         }).compile();
 
         service = module.get<RelationshipService>(RelationshipService);
@@ -196,35 +196,56 @@ describe('RelationshipService', () => {
             const wallet2 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
             const wallet3 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
 
-            await service.createRelationshipByAddress({ followingAddress: wallet1.address, followerAddress: wallet2.address });
-            await service.createRelationshipByAddress({ followingAddress: wallet1.address, followerAddress: wallet3.address });
+            await service.createRelationshipByAddress({
+                followingAddress: wallet1.address,
+                followerAddress: wallet2.address,
+            });
+            await service.createRelationshipByAddress({
+                followingAddress: wallet1.address,
+                followerAddress: wallet3.address,
+            });
 
             const relationships = await repository.find({
                 where: { following: { id: wallet1.id } },
-                relations: ['following', 'follower']
-            })
-            expect(relationships.length).toEqual(2)
-        })
+                relations: ['following', 'follower'],
+            });
+            expect(relationships.length).toEqual(2);
+        });
 
         it('duplicated data wont create', async () => {
             const wallet1 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
             const wallet2 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
-            await service.createRelationshipByAddress({ followingAddress: wallet1.address, followerAddress: wallet2.address });
-            await service.createRelationshipByAddress({ followingAddress: wallet1.address, followerAddress: wallet2.address });
+            await service.createRelationshipByAddress({
+                followingAddress: wallet1.address,
+                followerAddress: wallet2.address,
+            });
+            await service.createRelationshipByAddress({
+                followingAddress: wallet1.address,
+                followerAddress: wallet2.address,
+            });
 
-            const relationships = await repository.findBy({ following: { id: wallet1.id }, follower: { id: wallet2.id } })
-            expect(relationships.length).toEqual(1)
-        })
-    })
+            const relationships = await repository.findBy({
+                following: { id: wallet1.id },
+                follower: { id: wallet2.id },
+            });
+            expect(relationships.length).toEqual(1);
+        });
+    });
 
     describe('deleteRelationshipByAddress', () => {
         it('should work', async () => {
             const wallet1 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
             const wallet2 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
-            await service.createRelationshipByAddress({ followingAddress: wallet1.address, followerAddress: wallet2.address });
+            await service.createRelationshipByAddress({
+                followingAddress: wallet1.address,
+                followerAddress: wallet2.address,
+            });
 
-            const rs1 = await service.deleteRelationshipByAddress({ followingAddress: wallet1.address, followerAddress: wallet2.address })
-            expect(rs1).toEqual(true)
-        })
-    })
+            const rs1 = await service.deleteRelationshipByAddress({
+                followingAddress: wallet1.address,
+                followerAddress: wallet2.address,
+            });
+            expect(rs1).toEqual(true);
+        });
+    });
 });

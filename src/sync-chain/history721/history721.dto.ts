@@ -9,7 +9,7 @@ registerEnumType(History721Type, { name: 'History721Type' });
 export class History721 {
     @ApiProperty()
     @IsString()
-    @Field((returns) => ID!)
+    @Field(() => ID)
     readonly id: string;
 
     @ApiProperty()
@@ -43,7 +43,7 @@ export class History721 {
     readonly receiver: string;
 
     @ApiProperty()
-    @Field((type) => History721Type, { description: 'Transaction type.' })
+    @Field(() => History721Type, { description: 'Transaction type.' })
     readonly kind: History721Type;
 
     @ApiProperty()

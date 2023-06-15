@@ -6,6 +6,7 @@ import { Membership } from '../membership/membership.dto';
 import { MembershipService } from '../membership/membership.service';
 import { Organization } from '../organization/organization.dto';
 import { OrganizationService } from '../organization/organization.service';
+import { AuthorizedUser } from '../authorization/authorization.decorator';
 
 @Resolver(() => User)
 export class UserResolver {
@@ -13,7 +14,7 @@ export class UserResolver {
         private readonly userService: UserService,
         private readonly membershipService: MembershipService,
         private readonly organizationService: OrganizationService
-    ) { }
+    ) {}
 
     @Public()
     @Query(() => User, { description: 'Returns an user for the given id or username', nullable: true })
@@ -30,6 +31,7 @@ export class UserResolver {
         return await this.userService.createUserWithOrganization(input);
     }
 
+    @AuthorizedUser('id')
     @Mutation(() => User, { description: 'update the given user.' })
     async updateUser(@Args('input') input: UpdateUserInput): Promise<User> {
         const { id } = input;

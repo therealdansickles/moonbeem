@@ -22,7 +22,7 @@ export class OrganizationResolver {
         private readonly collaborationService: CollaborationService,
         private readonly membershipService: MembershipService,
         private readonly organizationService: OrganizationService
-    ) { }
+    ) {}
 
     @Public()
     @Query(() => Organization, { description: 'Returns an organization for the given uuid', nullable: true })

@@ -16,3 +16,7 @@ export const appConfig = {
         disabled: Boolean(process.env.DISABLE_CRON),
     },
 };
+
+export const googleConfig = {
+    clientId: process.env.GOOGLE_MAIL_CLIENT_ID,
+};

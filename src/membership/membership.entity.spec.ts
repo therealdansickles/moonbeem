@@ -6,11 +6,7 @@ import { postgresConfig } from '../lib/configs/db.config';
 
 import { Membership } from './membership.entity';
 import { MembershipModule } from './membership.module';
-import { Organization } from '../organization/organization.entity';
-import { OrganizationService } from '../organization/organization.service';
 import { OrganizationModule } from '../organization/organization.module';
-import { User } from '../user/user.entity';
-import { UserService } from '../user/user.service';
 import { UserModule } from '../user/user.module';
 
 describe('MembershipService', () => {

@@ -223,7 +223,7 @@ describe('WaitlistResolver', () => {
             const message = 'Hi from tests!';
             const signature = await randomWallet.signMessage(message);
 
-            const waitlist = await service.createWaitlist({
+            await service.createWaitlist({
                 email,
                 address: randomWallet.address,
                 signature,

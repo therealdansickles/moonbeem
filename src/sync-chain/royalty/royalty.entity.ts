@@ -4,37 +4,37 @@ import { Exclude } from 'class-transformer';
 @Entity({ name: 'Royalty' })
 export class Royalty extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    readonly id: string;
 
     @Column({ default: 0, comment: 'Block height of transaction.' })
-    height: number;
+    readonly height: number;
 
     @Column({ comment: 'Transaction hash of transaction.' })
-    txHash: string;
+    readonly txHash: string;
 
     @Column({ comment: 'Transaction time of transaction.' })
-    txTime: string;
+    readonly txTime: string;
 
     @Column({ comment: 'Transaction sender of transaction.' })
-    sender: string;
+    readonly sender: string;
 
     @Column({ length: 64, comment: 'The contract address' })
-    address: string;
+    readonly address: string;
 
     @Column({ comment: 'The address of user' })
-    userAddress: string;
+    readonly userAddress: string;
 
     @Column({ comment: 'The royalty rate in percentage of user.' })
-    userRate: number;
+    readonly userRate: number;
 
     @Column({ default: 1, comment: 'The chain id for the royalty contract.' })
-    chainId?: number;
+    readonly chainId?: number;
 
     @CreateDateColumn()
     @Exclude()
-    createdAt: Date;
+    readonly createdAt: Date;
 
     @UpdateDateColumn()
     @Exclude()
-    updatedAt: Date;
+    readonly updatedAt: Date;
 }

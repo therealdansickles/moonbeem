@@ -1,14 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Not, Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { GraphQLError } from 'graphql';
 import { CreateMembershipInput, MembershipRequestInput, UpdateMembershipInput } from './membership.dto';
 import { Membership } from './membership.entity';
 import { Organization } from '../organization/organization.entity';
 import { User } from '../user/user.entity';
-import * as randomString from 'randomstring';
 import { MailService } from '../mail/mail.service';
-import { captureException } from '@sentry/node';
 
 @Injectable()
 export class MembershipService {

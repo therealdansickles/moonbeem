@@ -1,5 +1,15 @@
-import { Field, ObjectType, InputType, ID, OmitType, PartialType, PickType, registerEnumType } from '@nestjs/graphql';
-import { IsString, IsEthereumAddress, IsObject, IsOptional, IsEnum } from 'class-validator';
+import {
+    Field,
+    ObjectType,
+    InputType,
+    ID,
+    OmitType,
+    PartialType,
+    PickType,
+    registerEnumType,
+    Int,
+} from '@nestjs/graphql';
+import { IsString, IsEthereumAddress, IsObject, IsOptional, IsEnum, IsNumber, IsArray } from 'class-validator';
 import { User, UserInput } from '../user/user.dto';
 import { Tier } from '../tier/tier.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
@@ -7,7 +17,7 @@ import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sa
 @ObjectType('Wallet')
 export class Wallet {
     @IsString()
-    @Field(() => ID!, { description: 'The id for a wallet.' })
+    @Field(() => ID, { description: 'The id for a wallet.' })
     readonly id: string;
 
     @Field({ description: 'The address for a wallet.' })
@@ -22,7 +32,7 @@ export class Wallet {
     @Field({ nullable: true, description: 'The name for the wallet.' })
     @IsString()
     @IsOptional()
-    name?: string;
+    readonly name?: string;
 
     @Field({ nullable: true, description: "The URL pointing to the wallet's avatar." })
     @IsString()
@@ -175,6 +185,64 @@ export class UnbindWalletInput {
 @InputType('WalletInput')
 export class WalletInput {
     @IsString()
-    @Field(() => ID!)
+    @Field(() => ID)
     readonly id: string;
+}
+
+@ObjectType('WalletOutput')
+export class WalletOutput extends OmitType(
+    Wallet,
+    ['websiteUrl', 'twitter', 'instagram', 'discord', 'spotify', 'owner'],
+    ObjectType
+) {}
+
+@ObjectType('SearchWallet')
+export class SearchWallet {
+    @Field(() => Int)
+    @IsNumber()
+    readonly total: number;
+
+    @Field(() => [WalletOutput])
+    @IsArray()
+    readonly wallets: WalletOutput[];
+}
+
+@ObjectType('CollectionHolderData')
+export class CollectionHolderData extends OmitType(Wallet, ['owner'], ObjectType) {
+    @Field(() => Int)
+    @IsNumber()
+    readonly quantity: number;
+
+    @Field(() => Tier, { description: 'The collection tiers', nullable: true })
+    @IsObject()
+    readonly tier?: Tier;
+}
+
+@ObjectType('CollectionHolder')
+export class CollectionHolder {
+    @Field(() => Int)
+    @IsNumber()
+    readonly total: number;
+
+    @Field(() => [CollectionHolderData])
+    @IsArray()
+    readonly data: CollectionHolderData[];
+}
+
+@ObjectType('TierHolderData')
+export class TierHolderData extends OmitType(Wallet, ['owner'], ObjectType) {
+    @Field(() => MintSaleTransaction, { description: 'The Tier Transaction', nullable: true })
+    @IsObject()
+    readonly transaction?: MintSaleTransaction;
+}
+
+@ObjectType('TierHolders')
+export class TierHolders {
+    @Field(() => Int)
+    @IsNumber()
+    readonly total: number;
+
+    @Field(() => [TierHolderData])
+    @IsArray()
+    readonly data: TierHolderData[];
 }

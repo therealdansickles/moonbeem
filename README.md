@@ -81,3 +81,15 @@ For specific test examples, try `yarn test src/membership` or the path you want 
 ### CI
 
 CI executes the following command to run the suite: `yarn test:ci`.
+
+## Using yarn3 in vscode 🤯
+
+-   ### Install zipfs plugin: [zipfs](https://marketplace.visualstudio.com/items?itemName=arcanis.vscode-zipfs)
+-   ### Make sure you are using `yarn3` in the current directory: `yarn --version`
+-   ### Generate the sdk directory for the prettier plugin: `yarn dlx @yarnpkg/sdks vscode`
+-   ### Using yarn3
+    -   #### Open vscode command: `command + shift + p`
+    -   #### Enter select typescript version: `Select TypeScript Version`
+    -   #### Select Use Workspace Version: `Use Workspace Version`
+-   ### Installing dependencies: `yarn install`
+-   ### Launch: `yarn dev` or `yarn start`

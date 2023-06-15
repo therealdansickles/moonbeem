@@ -5,11 +5,9 @@ import { WalletService } from './wallet.service';
 import { WalletResolver } from './wallet.resolver';
 import { User } from '../user/user.entity';
 import { UserModule } from '../user/user.module';
-import { JwtModule } from '@nestjs/jwt';
 import { Collaboration } from '../collaboration/collaboration.entity';
 import { CollaborationModule } from '../collaboration/collaboration.module';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
 import { Tier } from '../tier/tier.entity';
 import { TierModule } from '../tier/tier.module';
@@ -21,11 +19,15 @@ import { CoinModule } from '../sync-chain/coin/coin.module';
 import { Relationship } from '../relationship/relationship.entity';
 import { RelationshipModule } from '../relationship/relationship.module';
 import { RelationshipService } from '../relationship/relationship.service';
+import { AuthorizationModule } from '../authorization/authorization.module';
+import { JwtModule } from '@nestjs/jwt/dist/jwt.module';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Wallet, Relationship, User, Collaboration, Collection, Tier]),
         TypeOrmModule.forFeature([MintSaleTransaction, MintSaleContract, Coin], 'sync_chain'),
+        forwardRef(() => AuthorizationModule),
         forwardRef(() => CollaborationModule),
         forwardRef(() => CollectionModule),
         forwardRef(() => MintSaleTransactionModule),
@@ -33,9 +35,10 @@ import { RelationshipService } from '../relationship/relationship.service';
         forwardRef(() => TierModule),
         forwardRef(() => UserModule),
         forwardRef(() => CoinModule),
+        JwtModule
     ],
     exports: [WalletModule, WalletService],
-    providers: [RelationshipService, WalletService, WalletResolver],
+    providers: [JwtService, RelationshipService, WalletService, WalletResolver],
     controllers: [],
 })
 export class WalletModule { }

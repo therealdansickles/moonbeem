@@ -1,5 +1,6 @@
-import { Field, Int, ObjectType, InputType, OmitType } from '@nestjs/graphql';
+import { Field, Int, ObjectType, InputType, OmitType, Float } from '@nestjs/graphql';
 import { IsNumber, IsString, IsNumberString, IsObject, IsOptional, IsArray } from 'class-validator';
+import { GraphQLJSONObject } from 'graphql-type-json';
 import { Collection, CollectionInput } from '../collection/collection.dto';
 import { Coin } from '../sync-chain/coin/coin.dto';
 
@@ -7,52 +8,164 @@ import { Coin } from '../sync-chain/coin/coin.dto';
 export class AttributeOutput {
     @IsString()
     @Field({ description: 'The trait type of the attribute' })
-    trait_type: string;
+    readonly trait_type: string;
 
     @IsString()
     @Field({ description: 'The value of the attribute' })
-    value: string;
+    readonly value: string;
 }
 @InputType('AttributeInput')
-export class AttributeInput extends OmitType(AttributeOutput, [], InputType) {}
+export class AttributeInput extends OmitType(AttributeOutput, [], InputType) { }
 
 @ObjectType('ConditionOutput')
 export class ConditionOutput {
     @IsString()
     @Field({ description: 'The trait type of the condition' })
-    trait_type: string;
+    readonly trait_type: string;
 
     @IsObject()
     @Field(() => AttributeOutput, { description: 'The rule of the condition' })
-    rules: AttributeOutput;
+    readonly rules: AttributeOutput;
 
     @IsObject()
     @Field({ description: 'The update of the condition' })
-    update: AttributeOutput;
+    readonly update: AttributeOutput;
 }
 @InputType('ConditionInput')
 export class ConditionInput extends OmitType(ConditionOutput, ['rules', 'update'], InputType) {
     @IsObject()
     @Field(() => AttributeInput, { description: 'The rule of the condition' })
-    rules: AttributeInput;
+    readonly rules: AttributeInput;
 
     @IsObject()
     @Field(() => AttributeInput, { description: 'The update of the condition' })
-    update: AttributeInput;
+    readonly update: AttributeInput;
 }
 
 @ObjectType()
 export class PluginOutput {
     @IsString()
     @Field({ description: 'The type for the plugin. can be `github`, `vibe` etc.' })
-    type: string;
+    readonly type: string;
 
     @IsString()
     @Field({ description: 'The path for the plugin.' })
-    path: string;
+    readonly path: string;
 }
 @InputType()
-export class PluginInput extends OmitType(PluginOutput, [], InputType) {}
+export class PluginInput extends OmitType(PluginOutput, [], InputType) { }
+
+@ObjectType()
+export class MetadataTrigger {
+    @IsString()
+    @Field({ description: 'Trigger type.' })
+    readonly type: string;
+
+    @IsString()
+    @Field({ description: 'Trigger value.' })
+    readonly value: string;
+}
+
+@ObjectType()
+export class MetadataRuleUpdate {
+    @IsString()
+    @Field({ description: 'The check property of the rule.' })
+    readonly property: string;
+
+    @Field(() => String, { description: 'How to deal with the property.' })
+    readonly value: string | number;
+}
+
+@ObjectType()
+export class MetadataRule {
+    @IsString()
+    @Field({ description: 'The property of the rule.' })
+    readonly property: string;
+
+    @IsString()
+    @Field({ description: 'The rule detail of the rule.' })
+    readonly rule: string;
+
+    @Field(() => String, { description: 'The real value of the rule.' })
+    readonly value: string | number;
+
+    @IsObject()
+    @Field(() => MetadataRuleUpdate, { description: 'The update detail of the rule.' })
+    readonly update: MetadataRuleUpdate;
+}
+
+@ObjectType()
+export class MetadataCondition {
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'The condition operator.' })
+    readonly operator?: string;
+
+    @IsArray()
+    @Field(() => [MetadataRule], { description: 'The condition rules.' })
+    readonly rules: MetadataRule[];
+
+    @IsObject()
+    @Field(() => MetadataTrigger, { description: 'The condition trigger.' })
+    readonly trigger: MetadataTrigger;
+}
+
+@ObjectType()
+export class MetadataProperty {
+    @IsString()
+    @Field({ description: 'The name of the property.' })
+    readonly name: string;
+
+    @IsString()
+    @Field({ description: 'The type of the property.' })
+    readonly type: string;
+
+    @IsString()
+    @IsOptional()
+    @Field({ nullable: true, description: 'The display value of the property.' })
+    readonly display_type?: string;
+
+    @Field(() => String, { description: 'The value of the property.' })
+    readonly value: string | number;
+}
+
+@ObjectType()
+export class MetadataOutput {
+    @IsString()
+    @Field({ description: 'The name of the metadata.' })
+    readonly name: string;
+
+    @IsString()
+    @Field({ description: 'The type of the metadata.' })
+    readonly type: string;
+
+    @IsString()
+    @IsOptional()
+    @Field({ nullable: true, description: 'The external_url of the metadata.' })
+    readonly external_url?: string;
+
+    @IsString()
+    @IsOptional()
+    @Field({ nullable: true, description: 'The image of the metadata.' })
+    readonly image?: string;
+
+    @IsString()
+    @IsOptional()
+    @Field({ nullable: true, description: 'The image_url of the metadata.' })
+    readonly image_url?: string;
+
+    @IsArray()
+    @IsOptional()
+    @Field(() => [MetadataCondition], { nullable: true, description: 'The conditions of the metadata.' })
+    readonly conditions: MetadataCondition[];
+
+    @IsObject()
+    @Field(() => GraphQLJSONObject, { description: 'The properties of the metadata.' })
+    readonly properties: { [key: string]: MetadataProperty };
+}
+
+@ObjectType()
+export class MetadataIuput extends OmitType(MetadataOutput, [], InputType) { }
 
 @ObjectType()
 export class Profit {
@@ -74,7 +187,7 @@ export class Tier {
     readonly id: string;
 
     @IsNumber()
-    @Field((type) => Int, { description: 'The total number of mints for this tier.' })
+    @Field(() => Int, { description: 'The total number of mints for this tier.' })
     readonly totalMints: number;
 
     @IsNumberString()
@@ -82,7 +195,7 @@ export class Tier {
     readonly price?: string;
 
     @IsNumber()
-    @Field((type) => Int, { description: 'The tier id/index of the NFTs in this tier.' })
+    @Field(() => Int, { description: 'The tier id/index of the NFTs in this tier.' })
     readonly tierId: number;
 
     @IsString()
@@ -120,14 +233,14 @@ export class Tier {
     @IsOptional()
     readonly merkleRoot?: string;
 
-    @Field((type) => [AttributeOutput], {
+    @Field(() => [AttributeOutput], {
         description: 'A JSON object containing the attributes of the tier.',
         nullable: true,
     })
     @IsArray()
     readonly attributes?: AttributeOutput[];
 
-    @Field((type) => [ConditionOutput], {
+    @Field(() => [ConditionOutput], {
         description: 'A JSON object containing the conditions of the tier.',
         nullable: true,
     })
@@ -135,13 +248,17 @@ export class Tier {
     @IsOptional()
     readonly conditions?: ConditionOutput[];
 
-    @Field((type) => [PluginOutput], {
+    @Field(() => [PluginOutput], {
         description: 'A JSON object containing the plugins of the tier.',
         nullable: true,
     })
     @IsArray()
     @IsOptional()
     readonly plugins?: PluginOutput[];
+
+    @Field(() => GraphQLJSONObject, { nullable: true, description: 'The full metadata of the tier.' })
+    @IsObject()
+    readonly metadata?: MetadataOutput;
 
     @Field(() => Coin, { description: 'The tier coin', nullable: true })
     @IsOptional()
@@ -155,14 +272,15 @@ export class CreateTierInput {
     readonly collection: CollectionInput;
 
     @IsNumber()
-    @Field((type) => Int, { description: 'The total number of mints for this tier.' })
+    @Field(() => Int, { description: 'The total number of mints for this tier.' })
     readonly totalMints: number;
 
+    @IsNumberString()
     @Field({ description: 'The price of the NFTs in this tier.', nullable: true })
     readonly price?: string;
 
     @IsNumber()
-    @Field((type) => Int, { description: 'The tier id/index of the NFTs in this tier.' })
+    @Field(() => Int, { description: 'The tier id/index of the NFTs in this tier.' })
     readonly tierId: number;
 
     @IsString()
@@ -201,18 +319,22 @@ export class CreateTierInput {
     @IsArray()
     readonly attributes?: AttributeInput[];
 
-    @Field((type) => [ConditionInput], { description: 'The tier conditions', nullable: true })
+    @Field(() => [ConditionInput], { description: 'The tier conditions', nullable: true })
     @IsOptional()
     @IsArray()
     readonly conditions?: ConditionInput[];
 
     @IsArray()
-    @Field((type) => [PluginInput], {
+    @Field(() => [PluginInput], {
         description: 'A JSON object containing the plugins of the tier.',
         nullable: true,
     })
     @IsOptional()
     readonly plugins?: PluginInput[];
+
+    @Field(() => GraphQLJSONObject, { nullable: true, description: 'The full metadata of the tier.' })
+    @IsObject()
+    readonly metadata?: MetadataIuput;
 
     @IsString()
     @Field({ nullable: true, description: 'This merekleRoot of tier.' })
@@ -227,15 +349,15 @@ export class UpdateTierInput {
     readonly id: string;
 
     @IsNumber()
-    @Field((type) => Int, { nullable: true, description: 'The total number of mints for this tier.' })
+    @Field(() => Int, { nullable: true, description: 'The total number of mints for this tier.' })
     readonly totalMints?: number;
 
-    @IsNumber()
+    @IsNumberString()
     @Field({ description: 'The price of the NFTs in this tier.', nullable: true })
     readonly price?: string;
 
     @IsNumber()
-    @Field((type) => Int, { nullable: true, description: 'The tier id/index of the NFTs in this tier.' })
+    @Field(() => Int, { nullable: true, description: 'The tier id/index of the NFTs in this tier.' })
     readonly tierId?: number;
 
     @IsString()
@@ -271,18 +393,22 @@ export class UpdateTierInput {
     @IsOptional()
     readonly attributes?: AttributeInput[];
 
-    @Field((type) => [ConditionInput], { description: 'The tier conditions', nullable: true })
+    @Field(() => [ConditionInput], { description: 'The tier conditions', nullable: true })
     @IsOptional()
     @IsArray()
     readonly conditions?: ConditionInput[];
 
     @IsArray()
-    @Field((type) => [PluginInput], {
+    @Field(() => [PluginInput], {
         description: 'A JSON object containing the plugins of the tier.',
         nullable: true,
     })
     @IsOptional()
     readonly plugins?: PluginInput[];
+
+    @Field(() => GraphQLJSONObject, { nullable: true, description: 'The full metadata of the tier.' })
+    @IsObject()
+    readonly metadata?: MetadataIuput;
 
     @IsString()
     @Field({ nullable: true, description: 'This merekleRoot of tier.' })
@@ -300,7 +426,7 @@ export class DeleteTierInput {
 @ObjectType()
 export class BasicPriceInfo {
     @Field()
-    @IsString()
+    @IsNumberString()
     readonly price: string;
 
     @Field(() => String)

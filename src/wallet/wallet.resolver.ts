@@ -1,4 +1,3 @@
-import { UseGuards } from '@nestjs/common';
 import { Resolver, Query, Args, Mutation, ResolveField, Parent } from '@nestjs/graphql';
 import { GraphQLError } from 'graphql';
 import {
@@ -12,22 +11,23 @@ import {
     EstimatedValue,
 } from './wallet.dto';
 import { CurrentWallet, Public } from '../session/session.decorator';
-import { SessionGuard } from '../session/session.guard';
 import { WalletService } from './wallet.service';
 import { Collection } from '../collection/collection.dto';
 import { CollectionService } from '../collection/collection.service';
 import { RelationshipService } from '../relationship/relationship.service';
+import { AuthorizedWalletGuard, AuthorizedWallet } from '../authorization/authorization.decorator';
+import { UseGuards } from '@nestjs/common';
 
 @Resolver(() => Wallet)
 export class WalletResolver {
     constructor(
         private readonly walletService: WalletService,
         private readonly collectionService: CollectionService,
-        private readonly relationshipService: RelationshipService
+        private readonly relationshipService: RelationshipService,
     ) { }
 
     @Public()
-    @Query((returns) => Wallet, {
+    @Query(() => Wallet, {
         description: 'Retrieves a wallet by its ethereum or EIP-3770 address.',
         nullable: true,
     })
@@ -35,7 +35,7 @@ export class WalletResolver {
         @Args('address', { description: 'an ethereum or EIP-3770 address.', nullable: true }) address: string,
         @Args('name', { description: 'a name of the wallet.', nullable: true }) name: string
     ): Promise<Wallet> {
-        return this.walletService.getWalletByQuery({ name, address })
+        return this.walletService.getWalletByQuery({ name, address });
     }
 
     @Public()
@@ -44,13 +44,14 @@ export class WalletResolver {
         return this.walletService.createWallet(input);
     }
 
-    @Mutation((returns) => Wallet, { description: 'Binds a wallet to the current user.' })
+    @Mutation(() => Wallet, { description: 'Binds a wallet to the current user.' })
     async bindWallet(@Args('input') input: BindWalletInput): Promise<Wallet> {
         return await this.walletService.bindWallet(input);
     }
 
-    @Mutation((returns) => Wallet, { description: 'Unbinds a wallet from the current user.' })
-    async unbindWallet(@Args('input') input: UnbindWalletInput): Promise<Wallet> {
+    @Mutation(() => Wallet, { description: 'Unbinds a wallet from the current user.' })
+    async unbindWallet(@CurrentWallet() wallet, @Args('input') input: UnbindWalletInput): Promise<Wallet> {
+        const walletInfo = await this.walletService.getWalletByQuery({ address: input.address });
         return await this.walletService.unbindWallet(input);
     }
 
@@ -82,15 +83,11 @@ export class WalletResolver {
         return activities;
     }
 
+    @AuthorizedWallet('id')
     @Mutation(() => Wallet, { description: 'update the given wallet' })
-    async updateWallet(@CurrentWallet() wallet, @Args('input') input: UpdateWalletInput): Promise<Wallet> {
+    async updateWallet(@Args('input') input: UpdateWalletInput): Promise<Wallet> {
         const { id, ...payload } = input;
-        if (!id) throw new GraphQLError('The wallet id should be provided!')
-        if (wallet && wallet.id !== id) {
-            throw new GraphQLError('The wallet address doesn\'t belong to you.', {
-                extensions: { code: 'INTERNAL_SERVER_ERROR' },
-            });
-        }
+        if (!id) throw new GraphQLError('The wallet id should be provided!');
         return await this.walletService.updateWallet(id, payload);
     }
 

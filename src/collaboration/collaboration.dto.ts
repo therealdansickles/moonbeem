@@ -1,4 +1,4 @@
-import { Field, ObjectType, InputType, Int, ID, PickType, OmitType, PartialType } from '@nestjs/graphql';
+import { Field, ObjectType, InputType, Int, PickType, OmitType, PartialType } from '@nestjs/graphql';
 import { IsObject, IsNumber, IsString, IsDateString, IsArray, IsOptional } from 'class-validator';
 import { Wallet } from '../wallet/wallet.dto';
 import { Collection } from '../collection/collection.dto';
@@ -9,19 +9,19 @@ import { Organization } from '../organization/organization.dto';
 export class CollaboratorOutput {
     @IsString()
     @Field({ description: 'The collaborator role of the collaboration.' })
-    role: string;
+    readonly role: string;
 
     @IsString()
     @Field({ description: 'The collaborator name of the collaboration.' })
-    name: string;
+    readonly name: string;
 
     @IsString()
     @Field({ description: 'The user address of the collaboration.' })
-    address: string;
+    readonly address: string;
 
     @IsNumber()
-    @Field((type) => Int, { description: 'The royalty rate of the collaboration.' })
-    rate: number;
+    @Field(() => Int, { description: 'The royalty rate of the collaboration.' })
+    readonly rate: number;
 }
 
 @InputType()
@@ -58,7 +58,7 @@ export class Collaboration {
     readonly organization?: Partial<Organization>;
 
     @IsArray()
-    @Field((type) => [CollaboratorOutput], { description: 'All collaborators of this collaboration.', nullable: true })
+    @Field(() => [CollaboratorOutput], { description: 'All collaborators of this collaboration.', nullable: true })
     readonly collaborators?: CollaboratorOutput[];
 
     @IsNumber()
@@ -106,7 +106,7 @@ export class CreateCollaborationInput extends OmitType(PartialType(Collaboration
     readonly organizationId?: string;
 
     @IsArray()
-    @Field((type) => [CollaboratorInput], { description: 'All collaborators of this collaboration', nullable: true })
+    @Field(() => [CollaboratorInput], { description: 'All collaborators of this collaboration', nullable: true })
     readonly collaborators?: CollaboratorInput[];
 }
 

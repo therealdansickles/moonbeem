@@ -1,4 +1,3 @@
-import { INestApplication } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -14,9 +13,10 @@ import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/
 import { OrganizationService } from '../organization/organization.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
-import { Wallet } from '../wallet/wallet.entity';
 import { WalletService } from '../wallet/wallet.service';
 import { CollaborationService } from '../collaboration/collaboration.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
@@ -24,6 +24,8 @@ describe('CollectionService', () => {
     let coin: Coin;
     let coinService: CoinService;
     let mintSaleTransactionService: MintSaleTransactionService;
+    let mintSaleContractService: MintSaleContractService;
+    let asset721Service: Asset721Service;
     let organizationService: OrganizationService;
     let tierService: TierService;
     let userService: UserService;
@@ -58,11 +60,13 @@ describe('CollectionService', () => {
         service = module.get<CollectionService>(CollectionService);
         organizationService = module.get<OrganizationService>(OrganizationService);
         mintSaleTransactionService = module.get<MintSaleTransactionService>(MintSaleTransactionService);
+        mintSaleContractService = module.get<MintSaleContractService>(MintSaleContractService);
         userService = module.get<UserService>(UserService);
         tierService = module.get<TierService>(TierService);
         coinService = module.get<CoinService>(CoinService);
         walletService = module.get<WalletService>(WalletService);
         collaborationService = module.get<CollaborationService>(CollaborationService);
+        asset721Service = module.get<Asset721Service>(Asset721Service);
 
         coin = await coinService.createCoin({
             address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
@@ -210,7 +214,7 @@ describe('CollectionService', () => {
                 owner: owner,
             });
 
-            const collection = await repository.save({
+            await repository.save({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -219,7 +223,7 @@ describe('CollectionService', () => {
                 tags: [],
                 organization: organization,
             });
-            const result = await service.getCollectionByQuery({ });
+            const result = await service.getCollectionByQuery({});
             expect(result).toBeNull();
         });
 
@@ -253,7 +257,7 @@ describe('CollectionService', () => {
             });
             const result = await service.getCollectionByQuery({ id: collection.id });
             expect(result.id).toEqual(collection.id);
-            expect(result.address).toEqual(collection.address)
+            expect(result.address).toEqual(collection.address);
             expect(result.organization.name).not.toBeNull();
         });
 
@@ -287,8 +291,74 @@ describe('CollectionService', () => {
             });
             const result = await service.getCollectionByQuery({ address: collection.address });
             expect(result.id).toEqual(collection.id);
-            expect(result.address).toEqual(collection.address)
+            expect(result.address).toEqual(collection.address);
             expect(result.organization.name).not.toBeNull();
+        });
+
+        it('should get collections by name', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const collection = await repository.save({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+            });
+            const result = await service.getCollectionByQuery({ name: collection.name });
+            expect(result.id).toEqual(collection.id);
+            expect(result.name).toEqual(collection.name);
+            expect(result.organization.name).not.toBeNull();
+        });
+
+        it('should get nothing by an invalid name', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const collection = await repository.save({
+                name: `${faker.company.name()}${faker.random.numeric(5)}`,
+                displayName: faker.company.name(),
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+            });
+            const result = await service.getCollectionByQuery({ name: `${collection.name}+1` });
+            expect(result).toBeNull();
         });
     });
 
@@ -347,7 +417,7 @@ describe('CollectionService', () => {
                 owner: owner,
             });
 
-            const collection = await repository.save({
+            await repository.save({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -438,7 +508,7 @@ describe('CollectionService', () => {
                 address: faker.finance.ethereumAddress(),
             });
 
-            const collection = await service.createCollection({
+            await service.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -451,7 +521,7 @@ describe('CollectionService', () => {
                 creator: { id: wallet.id },
             });
 
-            const [result, ..._rest] = await service.getCreatedCollectionsByWalletId(wallet.id);
+            const [result] = await service.getCreatedCollectionsByWalletId(wallet.id);
 
             expect(result).toBeDefined();
             expect(result.creator.id).toEqual(wallet.id);
@@ -524,6 +594,65 @@ describe('CollectionService', () => {
             });
 
             expect(result).toBeTruthy();
+        });
+
+        it('should update a collaboration in a collection', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await repository.save({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+            });
+
+            const newCollab = await collaborationService.createCollaboration({
+                walletId: wallet.id,
+                royaltyRate: 12,
+                userId: owner.id,
+                organizationId: organization.id,
+                collaborators: [
+                    {
+                        address: faker.finance.ethereumAddress(),
+                        role: faker.finance.accountName(),
+                        name: faker.finance.accountName(),
+                        rate: parseInt(faker.random.numeric(2)),
+                    },
+                ],
+            });
+
+            const result = await service.updateCollection(collection.id, {
+                displayName: 'The best collection ever',
+                collaboration: { id: newCollab.id },
+            });
+
+            expect(result).toBeTruthy();
+
+            const updatedCollection = await service.getCollection(collection.id);
+
+            expect(updatedCollection.collaboration.id).toEqual(newCollab.id);
         });
     });
 
@@ -634,8 +763,274 @@ describe('CollectionService', () => {
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
-            const [result, ...rest] = await service.getBuyers(collection.address);
+            const [result] = await service.getBuyers(collection.address);
             expect(result).toEqual(txn.recipient);
+        });
+    });
+
+    describe('getCollectionByQuery', () => {
+        it('should return tier info and the coin info contained in the tier', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const collection = await service.createCollectionWithTiers({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                organization: { id: organization.id },
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: 200,
+                        paymentTokenAddress: coin.address,
+                        tierId: 0,
+                        price: '200',
+                    },
+                ],
+            });
+
+            const result = await service.getCollectionByQuery({ id: collection.id });
+            expect(result.id).toEqual(collection.id);
+            expect(result.address).toEqual(collection.address);
+            expect(result.organization.name).not.toBeNull();
+            expect(result.tiers).not.toBeNull();
+            expect(result.tiers[0].coin).not.toBeNull();
+            expect(result.tiers[0].coin.address).toEqual(coin.address);
+        });
+    });
+
+    describe('getCollectionStat', () => {
+        let collection: Collection;
+
+        beforeEach(async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            collection = await service.createCollectionWithTiers({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                organization: { id: organization.id },
+                nameOnOpensea: faker.finance.accountName(),
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: 200,
+                        paymentTokenAddress: coin.address,
+                        tierId: 0,
+                        price: '200',
+                    },
+                ],
+            });
+        });
+
+        afterEach(async () => {
+            await repository.query('TRUNCATE TABLE "User" CASCADE;');
+            await repository.query('TRUNCATE TABLE "Organization" CASCADE;');
+            await repository.query('TRUNCATE TABLE "Collection" CASCADE;');
+        });
+
+        it('should return the right response from opensea', async () => {
+            const mockResponse = [
+                {
+                    source: 'opensea',
+                    data: {
+                        supply: faker.datatype.float(),
+                        floorPrice: faker.datatype.float(),
+                        volume: {
+                            hourly: faker.datatype.float(),
+                            daily: faker.datatype.float(),
+                            weekly: faker.datatype.float(),
+                            total: faker.datatype.float(),
+                        },
+                        sales: {
+                            hourly: faker.datatype.float(),
+                            daily: faker.datatype.float(),
+                            weekly: faker.datatype.float(),
+                            total: faker.datatype.float(),
+                        },
+                    },
+                },
+            ];
+            jest.spyOn(service, 'getSecondartMarketStat').mockImplementation(async () => mockResponse);
+            const result = await service.getSecondartMarketStat({ address: collection.address });
+            expect(result.length).toEqual(1);
+            expect(result[0].source).toEqual('opensea');
+        });
+    });
+
+    describe('getHolders', () => {
+        const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
+
+        beforeEach(async () => {
+            const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
+
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: user,
+            });
+
+            const collection = await service.createCollectionWithTiers({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: collectionAddress,
+                tags: [],
+                organization: { id: organization.id },
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: 200,
+                        paymentTokenAddress: coin.address,
+                        tierId: 0,
+                        price: '200',
+                    },
+                ],
+            });
+
+            await mintSaleContractService.createMintSaleContract({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                address: collectionAddress,
+                royaltyReceiver: faker.finance.ethereumAddress(),
+                royaltyRate: 10000,
+                derivativeRoyaltyRate: 1000,
+                isDerivativeAllowed: true,
+                beginTime: Math.floor(faker.date.recent().getTime() / 1000),
+                endTime: Math.floor(faker.date.recent().getTime() / 1000),
+                tierId: 0,
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+                startId: 1,
+                endId: 100,
+                currentId: 1,
+                tokenAddress: tokenAddress,
+                collectionId: collection.id,
+            });
+
+            const owner1 = faker.finance.ethereumAddress().toLowerCase();
+            const tokenId1 = faker.random.numeric(5);
+
+            const owner2 = faker.finance.ethereumAddress().toLowerCase();
+            const tokenId2 = faker.random.numeric(5);
+
+            await asset721Service.createAsset721({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address: tokenAddress,
+                tokenId: tokenId1,
+                owner: owner1,
+            });
+            await asset721Service.createAsset721({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address: tokenAddress,
+                tokenId: tokenId2,
+                owner: owner2,
+            });
+
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: faker.finance.ethereumAddress(),
+                tierId: 0,
+                tokenAddress: tokenAddress,
+                tokenId: tokenId1,
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: faker.finance.ethereumAddress(),
+                tierId: 0,
+                tokenAddress: tokenAddress,
+                tokenId: tokenId2,
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+        });
+
+        it('should get holders', async () => {
+            const result = await service.getHolders(collectionAddress, 0, 10);
+            expect(result).toBeDefined();
+            expect(result.total).toEqual(2);
+            expect(result.data.length).toEqual(2);
+            expect(result.data[0].tier).toBeDefined();
+            expect(result.data[0].tier.price).toEqual('200');
+        });
+
+        it('should get unique holders', async () => {
+            const result = await service.getUniqueHolderCount(collectionAddress);
+            expect(result).toEqual(2);
+        });
+
+        it('should get activities', async () => {
+            const result = await service.getCollectionActivities(collectionAddress, 0, 10);
+            expect(result).toBeDefined();
+            expect(result.total).toEqual(2);
+            expect(result.data.length).toEqual(2);
+            expect(result.data[0].tier).toBeDefined();
+            expect(result.data[0].tier.price).toEqual('200');
+            expect(result.data[0].transaction).toBeDefined();
         });
     });
 });

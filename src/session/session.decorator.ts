@@ -1,4 +1,4 @@
-import { Inject, SetMetadata, createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { SetMetadata, createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 
 export const IS_PUBLIC_KEY = 'isPublic';

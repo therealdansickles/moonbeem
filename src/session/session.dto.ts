@@ -1,15 +1,5 @@
-import { ArgsType, Field, Int, ObjectType, InputType, ID, PickType } from '@nestjs/graphql';
-import {
-    IsNumber,
-    IsString,
-    IsDateString,
-    IsEthereumAddress,
-    IsUrl,
-    ValidateIf,
-    IsObject,
-    IsOptional,
-} from 'class-validator';
-
+import { Field, ObjectType, InputType } from '@nestjs/graphql';
+import { IsString } from 'class-validator';
 import { Wallet } from '../wallet/wallet.dto';
 import { User } from '../user/user.dto';
 
@@ -34,24 +24,31 @@ export class Session {
 export class CreateSessionInput {
     @IsString()
     @Field({ description: 'The wallet address.' })
-    address: string;
+    readonly address: string;
 
     @IsString()
     @Field({ description: 'The message to sign.' })
-    message: string;
+    readonly message: string;
 
     @IsString()
     @Field({ description: 'The signature of the message.' })
-    signature: string;
+    readonly signature: string;
 }
 
 @InputType()
 export class CreateSessionFromEmailInput {
     @IsString()
     @Field({ description: 'The user email.' })
-    email: string;
+    readonly email: string;
 
     @IsString()
     @Field({ description: 'The hashed password for the user.' })
-    password: string;
+    readonly password: string;
+}
+
+@InputType()
+export class CreateSessionFromGoogleInput {
+    @IsString()
+    @Field({ description: 'The user email.' })
+    readonly accessToken: string;
 }

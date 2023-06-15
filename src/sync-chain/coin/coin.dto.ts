@@ -6,7 +6,7 @@ import { IsString, IsDateString, IsNumber, IsBoolean } from 'class-validator';
 export class Coin {
     @ApiProperty()
     @IsString()
-    @Field((returns) => ID!)
+    @Field(() => ID)
     readonly id: string;
 
     @ApiProperty()

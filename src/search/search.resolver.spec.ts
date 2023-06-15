@@ -5,7 +5,6 @@ import { INestApplication } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ApolloDriver } from '@nestjs/apollo';
 import { faker } from '@faker-js/faker';
-import { Repository } from 'typeorm';
 import { postgresConfig } from '../lib/configs/db.config';
 import { CollectionService } from '../collection/collection.service';
 import { SearchModule } from './search.module';
@@ -14,6 +13,7 @@ import { WalletService } from '../wallet/wallet.service';
 import { WalletModule } from '../wallet/wallet.module';
 import { UserService } from '../user/user.service';
 import { UserModule } from '../user/user.module';
+import { OrganizationService } from '../organization/organization.service';
 
 export const gql = String.raw;
 
@@ -22,6 +22,7 @@ describe('SearchResolver', () => {
     let collectionService: CollectionService;
     let app: INestApplication;
     let userService: UserService;
+    let organizationService: OrganizationService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -36,11 +37,7 @@ describe('SearchResolver', () => {
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
                     type: 'postgres',
-                    host: postgresConfig.syncChain.host,
-                    port: postgresConfig.syncChain.port,
-                    username: postgresConfig.syncChain.username,
-                    password: postgresConfig.syncChain.password,
-                    database: postgresConfig.syncChain.database,
+                    url: postgresConfig.syncChain.url,
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
@@ -60,6 +57,7 @@ describe('SearchResolver', () => {
         userService = module.get<UserService>(UserService);
         walletService = module.get<WalletService>(WalletService);
         collectionService = module.get<CollectionService>(CollectionService);
+        organizationService = module.get<OrganizationService>(OrganizationService);
         app = module.createNestApplication();
         await app.init();
     });
@@ -69,89 +67,117 @@ describe('SearchResolver', () => {
         await app.close();
     });
 
-    describe('globalSearchV1', () => {
-        it('should perform search for collection', async () => {
+    describe('search bar', () => {
+        it('should search all', async () => {
             const name = faker.company.name();
-            await collectionService.createCollection({
-                name,
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                address: faker.finance.ethereumAddress(),
-                artists: [],
-                tags: [],
-            });
-
-            const query = gql`
-                query search($input: GloablSearchInput!) {
-                    globalSearchV1(input: $input) {
-                        users {
-                            data {
-                                name
-                                avatar
-                            }
-                        }
-                        collections {
-                            data {
-                                name
-                                image
-                            }
-                            total
-                            isLastPage
-                        }
-                    }
-                }
-            `;
-
-            const variables = {
-                input: {
-                    searchTerm: name.toUpperCase(),
-                    page: 0,
-                    pageSize: 3,
-                },
-            };
-
-            return await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query, variables })
-                .expect(200)
-                .expect(({ body }) => {
-                    expect(body.data.globalSearchV1.collections.data.length).toEqual(1);
-                    expect(body.data.globalSearchV1.collections.data[0].name).toEqual(name);
-                    expect(body.data.globalSearchV1.collections.isLastPage).toBeTruthy();
-                });
-        });
-
-        it('should perform search for user', async () => {
-            const name = faker.company.name();
+            // create user
             const user = await userService.createUser({
                 name,
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
-            const wallet = await walletService.createWallet({
+            await userService.createUser({
+                name: faker.company.name(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            // create collection
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: user,
+            });
+
+            const collectionAddress = faker.finance.ethereumAddress();
+            await collectionService.createCollectionWithTiers({
+                name: `${name}'s collection`,
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: collectionAddress,
+                tags: [],
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: 200,
+                        paymentTokenAddress: faker.finance.ethereumAddress(),
+                        tierId: 0,
+                        price: '200',
+                    },
+                ],
+                organization: organization,
+            });
+
+            // create wallet
+            await walletService.createWallet({
                 address: faker.finance.ethereumAddress(),
+                name: `first wallet of ${name}`,
+                ownerId: user.id,
+            });
+            await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+                name: `second wallet of ${name}`,
+                ownerId: user.id,
+            });
+            await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+                name: `third wallet of ${name}`,
                 ownerId: user.id,
             });
 
-            const query = gql`
-                query search($input: GloablSearchInput!) {
-                    globalSearchV1(input: $input) {
-                        users {
-                            data {
-                                name
-                                avatar
+            const queryCollection = gql`
+                query search($input: SearchInput!) {
+                    search {
+                        collection(input: $input) {
+                            collections {
                                 address
+                                totalSupply
                             }
                             total
-                            isLastPage
                         }
-                        collections {
-                            data {
+                    }
+                }
+            `;
+            const variablesForQueryCollection = { input: { keyword: collectionAddress } };
+            await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: queryCollection, variables: variablesForQueryCollection })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.search.collection.total).toEqual(1);
+                    expect(body.data.search.collection.collections).toBeDefined();
+                    expect(body.data.search.collection.collections[0].address).toEqual(collectionAddress.toLowerCase());
+                    expect(body.data.search.collection.collections[0].totalSupply).toEqual(200);
+                });
+
+            const query = gql`
+                query search($input: SearchInput!) {
+                    search {
+                        user(input: $input) {
+                            users {
                                 name
-                                image
                             }
                             total
-                            isLastPage
+                        }
+                        collection(input: $input) {
+                            collections {
+                                name
+                                totalSupply
+                            }
+                            total
+                        }
+                        wallet(input: $input) {
+                            wallets {
+                                name
+                            }
+                            total
                         }
                     }
                 }
@@ -159,9 +185,9 @@ describe('SearchResolver', () => {
 
             const variables = {
                 input: {
-                    searchTerm: wallet.address,
-                    page: 0,
-                    pageSize: 3,
+                    keyword: name,
+                    offset: 0,
+                    limit: 2,
                 },
             };
 
@@ -170,10 +196,18 @@ describe('SearchResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.data.globalSearchV1.users.data.length).toEqual(1);
-                    expect(body.data.globalSearchV1.users.data[0].name).toEqual(name);
-                    expect(body.data.globalSearchV1.users.data[0].address).toEqual(wallet.address);
-                    expect(body.data.globalSearchV1.users.isLastPage).toBeTruthy();
+                    expect(body.data.search.user.total).toEqual(1);
+                    expect(body.data.search.user.users).toBeDefined();
+                    expect(body.data.search.user.users[0].name).toEqual(name);
+
+                    expect(body.data.search.collection.total).toEqual(1);
+                    expect(body.data.search.collection.collections).toBeDefined();
+                    expect(body.data.search.collection.collections[0].name).toEqual(`${name}'s collection`);
+                    expect(body.data.search.collection.collections[0].totalSupply).toEqual(200);
+
+                    expect(body.data.search.wallet.total).toEqual(3);
+                    expect(body.data.search.wallet.wallets).toBeDefined();
+                    expect(body.data.search.wallet.wallets.length).toEqual(2);
                 });
         });
     });

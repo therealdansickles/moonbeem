@@ -1,7 +1,6 @@
 import {
     BaseEntity,
     BeforeInsert,
-    BeforeUpdate,
     Column,
     CreateDateColumn,
     Entity,
@@ -20,7 +19,7 @@ import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
 @Index(['email', 'organization.id'], { unique: true })
 export class Membership extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    readonly id: string;
 
     @ManyToOne(() => User, (user) => user.memberships, {
         eager: true,
@@ -28,41 +27,41 @@ export class Membership extends BaseEntity {
         nullable: true,
     })
     @JoinColumn()
-    user?: User;
+    public user?: User;
 
     @Column({ nullable: true, comment: 'The email of the invited user', transformer: lowercaseTransformer })
-    email?: string;
+    public email?: string;
 
     @ManyToOne(() => Organization, (organization) => organization.membership, {
         eager: true,
         createForeignKeyConstraints: false,
     })
     @JoinColumn()
-    organization: Organization;
+    public organization: Organization;
 
     @Column({ nullable: true, comment: 'The invite code for the membership invite' })
-    inviteCode?: string;
+    public inviteCode?: string;
 
     @Column({ default: false, comment: 'Can edit draft collections.' })
-    canEdit: boolean;
+    readonly canEdit: boolean;
 
     @Column({ default: false, comment: 'Can manage the organization members.' })
-    canManage: boolean;
+    readonly canManage: boolean;
 
     @Column({ default: false, comment: 'Can deploy collections to the platform.' })
-    canDeploy: boolean;
+    readonly canDeploy: boolean;
 
     @Column({ nullable: true, comment: 'Date the user accepted the invite' })
-    acceptedAt: Date;
+    public acceptedAt: Date;
 
     @Column({ nullable: true, comment: 'Date the user declined the invite' })
-    declinedAt: Date;
+    public declinedAt: Date;
 
     @CreateDateColumn()
-    createdAt: Date;
+    readonly createdAt: Date;
 
     @UpdateDateColumn()
-    updatedAt: Date;
+    readonly updatedAt: Date;
 
     @BeforeInsert()
     async setInviteCode(): Promise<void> {

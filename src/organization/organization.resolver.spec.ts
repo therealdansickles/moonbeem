@@ -5,10 +5,8 @@ import { INestApplication } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ApolloDriver } from '@nestjs/apollo';
 import { faker } from '@faker-js/faker';
-import { Repository } from 'typeorm';
 import { postgresConfig } from '../lib/configs/db.config';
 
-import { Organization } from './organization.entity';
 import { OrganizationModule } from './organization.module';
 import { OrganizationService } from './organization.service';
 
@@ -17,11 +15,9 @@ import { UserService } from '../user/user.service';
 export const gql = String.raw;
 
 describe('OrganizationResolver', () => {
-    let repository: Repository<Organization>;
     let service: OrganizationService;
     let userService: UserService;
     let app: INestApplication;
-    let organization: Organization;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -52,28 +48,9 @@ describe('OrganizationResolver', () => {
             ],
         }).compile();
 
-        repository = module.get('OrganizationRepository');
         service = module.get<OrganizationService>(OrganizationService);
         userService = module.get<UserService>(UserService);
         app = module.createNestApplication();
-
-        const owner = await userService.createUser({
-            email: faker.internet.email(),
-            password: faker.internet.password(),
-        });
-
-        organization = await service.createOrganization({
-            name: faker.company.name(),
-            displayName: faker.company.name(),
-            about: faker.company.catchPhrase(),
-            avatarUrl: faker.image.imageUrl(),
-            backgroundUrl: faker.image.imageUrl(),
-            websiteUrl: faker.internet.url(),
-            twitter: faker.internet.userName(),
-            instagram: faker.internet.userName(),
-            discord: faker.internet.userName(),
-            owner: owner,
-        });
 
         await app.init();
     });
@@ -85,12 +62,12 @@ describe('OrganizationResolver', () => {
 
     describe('organization', () => {
         it('should return an organization', async () => {
-            let newOwner = await userService.createUser({
+            const newOwner = await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
 
-            let newOrganization = await service.createOrganization({
+            const newOrganization = await service.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
@@ -185,12 +162,12 @@ describe('OrganizationResolver', () => {
 
     describe('updateOrganization', () => {
         it('should update an organization', async () => {
-            let newOwner = await userService.createUser({
+            const newOwner = await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
 
-            let newOrganization = await service.createOrganization({
+            const newOrganization = await service.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
@@ -230,12 +207,12 @@ describe('OrganizationResolver', () => {
 
     describe('deleteOrganization', () => {
         it('should delete an organization', async () => {
-            let newOwner = await userService.createUser({
+            const newOwner = await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
 
-            let newOrganization = await service.createOrganization({
+            const newOrganization = await service.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),

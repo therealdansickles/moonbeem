@@ -6,7 +6,7 @@ import { IsString, IsDateString, IsNumber } from 'class-validator';
 export class Royalty {
     @ApiProperty()
     @IsString()
-    @Field((returns) => ID!)
+    @Field(() => ID)
     readonly id: string;
 
     @ApiProperty()

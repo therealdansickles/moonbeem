@@ -5,27 +5,18 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { INestApplication } from '@nestjs/common';
 import { ApolloDriver } from '@nestjs/apollo';
 import { faker } from '@faker-js/faker';
-import { Repository } from 'typeorm';
 import { postgresConfig } from '../lib/configs/db.config';
 import { ethers } from 'ethers';
 
-import { Wallet } from './wallet.entity';
 import { WalletModule } from './wallet.module';
 import { WalletService } from './wallet.service';
-import { CollaborationModule } from '../collaboration/collaboration.module';
-import { UserModule } from '../user/user.module';
 import { UserService } from '../user/user.service';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { MintSaleContractModule } from '../sync-chain/mint-sale-contract/mint-sale-contract.module';
 
 import { TierService } from '../tier/tier.service';
-import { TierModule } from '../tier/tier.module';
-import { Collection, CollectionKind } from '../collection/collection.entity';
+import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
-import { CollectionModule } from '../collection/collection.module';
 import { RelationshipService } from '../relationship/relationship.service';
 import { SessionModule } from '../session/session.module';
 import { SessionService } from '../session/session.service';
@@ -33,7 +24,6 @@ import { SessionService } from '../session/session.service';
 export const gql = String.raw;
 
 describe('WalletResolver', () => {
-    let repository: Repository<Wallet>;
     let service: WalletService;
     let collectionService: CollectionService;
     let mintSaleTransactionService: MintSaleTransactionService;
@@ -41,7 +31,7 @@ describe('WalletResolver', () => {
     let tierService: TierService;
     let userService: UserService;
     let relationshipService: RelationshipService;
-    let sessionService: SessionService
+    let sessionService: SessionService;
     let app: INestApplication;
     let address: string;
 
@@ -75,7 +65,6 @@ describe('WalletResolver', () => {
             ],
         }).compile();
 
-        repository = module.get('WalletRepository');
         service = module.get<WalletService>(WalletService);
         collectionService = module.get<CollectionService>(CollectionService);
         mintSaleTransactionService = module.get<MintSaleTransactionService>(MintSaleTransactionService);
@@ -117,7 +106,7 @@ describe('WalletResolver', () => {
         it('should get a wallet by name', async () => {
             const address = faker.finance.ethereumAddress();
             const name = 'dogvibe';
-            const wallet = await service.createWallet({ address, name });
+            await service.createWallet({ address, name });
             const query = gql`
                 query GetWallet($name: String!) {
                     wallet(name: $name) {
@@ -185,7 +174,7 @@ describe('WalletResolver', () => {
             const email = faker.internet.email();
             const password = faker.internet.password();
 
-            const owner = await userService.createUser({
+            await userService.createUser({
                 name,
                 email,
                 password,
@@ -206,7 +195,7 @@ describe('WalletResolver', () => {
                 input: {
                     id: wallet.id,
                     address: wallet.address,
-                    name: faker.internet.userName()
+                    name: faker.internet.userName(),
                 },
             };
 
@@ -222,14 +211,12 @@ describe('WalletResolver', () => {
 
         it('should forbid if no session provided', async () => {
             const randomWallet = ethers.Wallet.createRandom();
-            const message = 'Hi from tests!';
-            const signature = await randomWallet.signMessage(message);
 
             const name = faker.internet.userName();
             const email = faker.internet.email();
             const password = faker.internet.password();
 
-            const owner = await userService.createUser({
+            await userService.createUser({
                 name,
                 email,
                 password,
@@ -248,7 +235,7 @@ describe('WalletResolver', () => {
             const variables = {
                 input: {
                     address: wallet.address,
-                    name: faker.internet.userName()
+                    name: faker.internet.userName(),
                 },
             };
 
@@ -257,12 +244,12 @@ describe('WalletResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.errors).toBeTruthy()
-                    expect(body.data).toBeFalsy()
+                    expect(body.errors).toBeTruthy();
+                    expect(body.data).toBeFalsy();
                 });
         });
 
-        it('should forbid if candidate wallet id isn\'t equal the one extract from token', async () => {
+        it("should forbid if candidate wallet id isn't equal the one extract from token", async () => {
             const randomWallet = ethers.Wallet.createRandom();
             const message = 'Hi from tests!';
             const signature = await randomWallet.signMessage(message);
@@ -271,7 +258,7 @@ describe('WalletResolver', () => {
             const email = faker.internet.email();
             const password = faker.internet.password();
 
-            const owner = await userService.createUser({
+            await userService.createUser({
                 name,
                 email,
                 password,
@@ -294,7 +281,7 @@ describe('WalletResolver', () => {
                 input: {
                     id: anotherWallet.id,
                     address: wallet.address,
-                    name: faker.internet.userName()
+                    name: faker.internet.userName(),
                 },
             };
 
@@ -304,8 +291,8 @@ describe('WalletResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.errors).toBeTruthy()
-                    expect(body.data).toBeFalsy()
+                    expect(body.errors).toBeTruthy();
+                    expect(body.data).toBeFalsy();
                 });
         });
     });
@@ -359,9 +346,6 @@ describe('WalletResolver', () => {
 
     describe('unbindWallet', () => {
         it('should unbind a wallet', async () => {
-            const email = faker.internet.email();
-            const password = faker.internet.password();
-
             const randomWallet = ethers.Wallet.createRandom();
             const message = 'Hi from tests!';
             const signature = await randomWallet.signMessage(message);
@@ -418,12 +402,26 @@ describe('WalletResolver', () => {
             const followerWallet2 = await service.createWallet({ address: faker.finance.ethereumAddress() });
             const followerWallet3 = await service.createWallet({ address: faker.finance.ethereumAddress() });
 
-            await relationshipService.createRelationshipByAddress({ followingAddress: wallet.address, followerAddress: followerWallet1.address })
-            await relationshipService.createRelationshipByAddress({ followingAddress: wallet.address, followerAddress: followerWallet2.address })
-            await relationshipService.createRelationshipByAddress({ followingAddress: wallet.address, followerAddress: followerWallet3.address })
-            await relationshipService.createRelationshipByAddress({ followingAddress: followingWallet1.address, followerAddress: wallet.address })
-            await relationshipService.createRelationshipByAddress({ followingAddress: followingWallet2.address, followerAddress: wallet.address })
-
+            await relationshipService.createRelationshipByAddress({
+                followingAddress: wallet.address,
+                followerAddress: followerWallet1.address,
+            });
+            await relationshipService.createRelationshipByAddress({
+                followingAddress: wallet.address,
+                followerAddress: followerWallet2.address,
+            });
+            await relationshipService.createRelationshipByAddress({
+                followingAddress: wallet.address,
+                followerAddress: followerWallet3.address,
+            });
+            await relationshipService.createRelationshipByAddress({
+                followingAddress: followingWallet1.address,
+                followerAddress: wallet.address,
+            });
+            await relationshipService.createRelationshipByAddress({
+                followingAddress: followingWallet2.address,
+                followerAddress: wallet.address,
+            });
 
             const query = gql`
                 query Wallet($address: String!) {
@@ -518,7 +516,7 @@ describe('WalletResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    const [firstMint, ..._rest] = body.data.wallet.minted;
+                    const [firstMint] = body.data.wallet.minted;
                     expect(firstMint.address).toEqual(collection.address); // NOTE: These horrible `address` namings, which one is it???
                     expect(firstMint.txTime).toEqual(transaction.txTime);
                     expect(firstMint.txHash).toEqual(transaction.txHash);
@@ -599,7 +597,7 @@ describe('WalletResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    const [firstMint, ..._rest] = body.data.wallet.activities;
+                    const [firstMint] = body.data.wallet.activities;
                     expect(firstMint.address).toEqual(collection.address); // NOTE: These horrible `address` namings, which one is it???
                     expect(firstMint.txTime).toEqual(transaction.txTime);
                     expect(firstMint.txHash).toEqual(transaction.txHash);
@@ -749,7 +747,7 @@ describe('WalletResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    const [firstCollection, ..._rest] = body.data.wallet.createdCollections;
+                    const [firstCollection] = body.data.wallet.createdCollections;
                     expect(firstCollection.name).toEqual(collection.name);
                 });
         });

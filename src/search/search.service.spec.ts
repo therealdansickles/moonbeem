@@ -1,4 +1,3 @@
-import { Repository } from 'typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { postgresConfig } from '../lib/configs/db.config';
@@ -11,12 +10,14 @@ import { WalletService } from '../wallet/wallet.service';
 import { WalletModule } from '../wallet/wallet.module';
 import { UserService } from '../user/user.service';
 import { UserModule } from '../user/user.module';
+import { OrganizationService } from '../organization/organization.service';
 
 describe('SearchService', () => {
     let service: SearchService;
     let collectionService: CollectionService;
     let walletService: WalletService;
     let userService: UserService;
+    let organizationService: OrganizationService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -31,11 +32,7 @@ describe('SearchService', () => {
                 TypeOrmModule.forRoot({
                     name: 'sync_chain',
                     type: 'postgres',
-                    host: postgresConfig.syncChain.host,
-                    port: postgresConfig.syncChain.port,
-                    username: postgresConfig.syncChain.username,
-                    password: postgresConfig.syncChain.password,
-                    database: postgresConfig.syncChain.database,
+                    url: postgresConfig.syncChain.url,
                     autoLoadEntities: true,
                     synchronize: true,
                     logging: false,
@@ -51,53 +48,82 @@ describe('SearchService', () => {
         collectionService = module.get<CollectionService>(CollectionService);
         walletService = module.get<WalletService>(WalletService);
         userService = module.get<UserService>(UserService);
+        organizationService = module.get<OrganizationService>(OrganizationService);
     });
 
     afterAll(async () => {
         global.gc && global.gc();
     });
 
-    describe('executeGlobalSearchV1', () => {
-        it('should perform search for collection', async () => {
-            const name = faker.company.name();
-            await collectionService.createCollection({
-                name,
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                address: faker.finance.ethereumAddress(),
-                artists: [],
-                tags: [],
-            });
-
-            const result = await service.executeGlobalSearchV1({ searchTerm: name });
-
-            expect(result.collections.data).toBeDefined();
-            expect(result.users.data).toBeDefined();
-            expect(result.collections.total).toEqual(1);
-            expect(result.collections.isLastPage).toBeTruthy();
-            expect(result.collections.data[0].name).toEqual(name);
-        });
-
-        it('should perform search for user', async () => {
+    describe('search bar', () => {
+        it('should perform search for all', async () => {
             const name = faker.name.fullName();
             const user = await userService.createUser({
                 name,
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
+
             const wallet = await walletService.createWallet({
                 address: faker.finance.ethereumAddress(),
+                name: name,
                 ownerId: user.id,
             });
 
-            const result = await service.executeGlobalSearchV1({ searchTerm: wallet.address });
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: user,
+            });
 
-            expect(result.collections.data).toBeDefined();
-            expect(result.users.data).toBeDefined();
-            expect(result.users.total).toEqual(1);
-            expect(result.users.isLastPage).toBeTruthy();
-            expect(result.users.data[0].address).toEqual(wallet.address);
-            expect(result.users.data[0].name).toEqual(name);
+            const collectionAddress = faker.finance.ethereumAddress();
+            const collection = await collectionService.createCollectionWithTiers({
+                name: `${name}'s collection`,
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: collectionAddress,
+                tags: [],
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: 200,
+                        paymentTokenAddress: faker.finance.ethereumAddress(),
+                        tierId: 0,
+                        price: '200',
+                    },
+                ],
+                organization: organization,
+            });
+
+            const userResult = await service.searchFromUser({ keyword: user.name });
+
+            expect(userResult.users).toBeDefined();
+            expect(userResult.total).toEqual(1);
+            expect(userResult.users[0].name).toEqual(name);
+
+            const walletResult = await service.searchFromWallet({ keyword: wallet.name });
+            expect(walletResult.wallets).toBeDefined();
+            expect(walletResult.total).toEqual(1);
+            expect(walletResult.wallets[0].name).toEqual(name);
+
+            const collectionResult = await service.searchFromCollection({ keyword: collection.name });
+            expect(collectionResult.collections).toBeDefined();
+            expect(collectionResult.total).toEqual(1);
+            expect(collectionResult.collections[0].name).toEqual(`${name}'s collection`);
+            expect(collectionResult.collections[0].totalSupply).toEqual(200);
+
+            const searchCollectionByAddress = await service.searchFromCollection({ keyword: collectionAddress });
+            expect(searchCollectionByAddress.collections).toBeDefined();
+            expect(searchCollectionByAddress.total).toEqual(1);
+            expect(searchCollectionByAddress.collections[0].address).toEqual(collectionAddress.toLowerCase());
+            expect(searchCollectionByAddress.collections[0].totalSupply).toEqual(200);
         });
     });
 });

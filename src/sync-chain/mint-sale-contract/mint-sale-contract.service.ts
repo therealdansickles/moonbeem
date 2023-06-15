@@ -9,16 +9,13 @@ import {
     GetMerkleProofOutput,
     MintSaleContract,
 } from './mint-sale-contract.dto';
-import { StandardMerkleTree } from '@openzeppelin/merkle-tree';
 import { MongoAdapter } from '../../lib/adapters/mongo.adapter';
 import { encodeAddressAndAmount } from '../../lib/utilities/merkle';
 import { keccak256 } from 'ethers';
-import { Factory } from '../factory/factory.entity';
 import { FactoryService } from '../factory/factory.service';
 import { MintSaleTransaction } from '../mint-sale-transaction/mint-sale-transaction.entity';
 import { GraphQLError } from 'graphql';
-// import { MerkleTree } from 'merkletreejs';
-const { MerkleTree } = require('merkletreejs');
+import { MerkleTree } from 'merkletreejs';
 
 @Injectable()
 export class MintSaleContractService {
@@ -57,7 +54,7 @@ export class MintSaleContractService {
         const tree = this.createMerkleTree(input.data);
 
         // save on mongodb
-        let mongoData: any = { root: tree.getHexRoot(), data: input.data };
+        const mongoData: any = { root: tree.getHexRoot(), data: input.data };
         if (input.organization) mongoData.organizationId = input.organization.id;
 
         const merkleRecord = await this.mongoRepository.db
@@ -78,7 +75,7 @@ export class MintSaleContractService {
         if (!merkleTreeData) throw new Error('Invalid Merkle Tree');
         const tree = this.createMerkleTree(merkleTreeData.data);
 
-        for (let data of merkleTreeData.data as CreateMerkleRootData[]) {
+        for (const data of merkleTreeData.data as CreateMerkleRootData[]) {
             if (data.address.toLocaleLowerCase() == address.toLocaleLowerCase()) {
                 const merkleProof = tree.getHexProof(encodeAddressAndAmount(data.address, parseInt(data.amount)));
 
@@ -117,7 +114,7 @@ export class MintSaleContractService {
 
     private createMerkleTree(data: CreateMerkleRootData[]) {
         const leaves = [];
-        for (let d of data) {
+        for (const d of data) {
             leaves.push(encodeAddressAndAmount(d.address, parseInt(d.amount)));
         }
         const tree = new MerkleTree(leaves, keccak256, { sort: true });

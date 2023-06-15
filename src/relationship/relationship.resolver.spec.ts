@@ -4,14 +4,12 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ethers } from 'ethers';
 import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../lib/configs/db.config';
-import { RelationshipService } from "./relationship.service";
-import { RelationshipModule } from "./relationship.module";
-import { WalletService } from "../wallet/wallet.service";
-import { Relationship } from './relationship.dto';
-import { WalletModule } from "../wallet/wallet.module";
+import { RelationshipService } from './relationship.service';
+import { RelationshipModule } from './relationship.module';
+import { WalletService } from '../wallet/wallet.service';
+import { WalletModule } from '../wallet/wallet.module';
 
 export const gql = String.raw;
 
@@ -82,7 +80,7 @@ describe('RelationshipResolver', () => {
             const variables = {
                 input: {
                     followerAddress: wallet2.address,
-                    followingAddress: wallet1.address
+                    followingAddress: wallet1.address,
                 },
             };
 
@@ -91,7 +89,7 @@ describe('RelationshipResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.data.followByAddress.id).toBeTruthy()
+                    expect(body.data.followByAddress.id).toBeTruthy();
                     expect(body.data.followByAddress.follower.address).toEqual(wallet2.address.toLowerCase());
                     expect(body.data.followByAddress.following.address).toEqual(wallet1.address.toLowerCase());
                 });
@@ -103,7 +101,10 @@ describe('RelationshipResolver', () => {
             const wallet1 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
             const wallet2 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
 
-            await service.createRelationshipByAddress({ followerAddress: wallet1.address, followingAddress: wallet2.address })
+            await service.createRelationshipByAddress({
+                followerAddress: wallet1.address,
+                followingAddress: wallet2.address,
+            });
             const query = gql`
                 mutation UnfollowByAddress($input: DeleteRelationshipByAddressInput!) {
                     unfollowByAddress(input: $input)
@@ -113,7 +114,7 @@ describe('RelationshipResolver', () => {
             const variables = {
                 input: {
                     followerAddress: wallet1.address,
-                    followingAddress: wallet2.address
+                    followingAddress: wallet2.address,
                 },
             };
 
@@ -122,7 +123,7 @@ describe('RelationshipResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.data.unfollowByAddress).toBeTruthy()
+                    expect(body.data.unfollowByAddress).toBeTruthy();
                 });
         });
     });
@@ -133,8 +134,14 @@ describe('RelationshipResolver', () => {
             const wallet2 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
             const wallet3 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
 
-            await service.createRelationshipByAddress({ followingAddress: wallet1.address, followerAddress: wallet2.address });
-            await service.createRelationshipByAddress({ followingAddress: wallet1.address, followerAddress: wallet3.address });
+            await service.createRelationshipByAddress({
+                followingAddress: wallet1.address,
+                followerAddress: wallet2.address,
+            });
+            await service.createRelationshipByAddress({
+                followingAddress: wallet1.address,
+                followerAddress: wallet3.address,
+            });
 
             const query = gql`
                 query followers($address: String!) {
@@ -161,8 +168,8 @@ describe('RelationshipResolver', () => {
                     expect(body.data.followers[0].follower.address).toEqual(wallet2.address);
                     expect(body.data.followers[1].follower.address).toEqual(wallet3.address);
                 });
-        })
-    })
+        });
+    });
 
     describe('getFollowings', () => {
         it('should work', async () => {
@@ -170,8 +177,14 @@ describe('RelationshipResolver', () => {
             const wallet2 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
             const wallet3 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
 
-            await service.createRelationshipByAddress({ followingAddress: wallet1.address, followerAddress: wallet2.address });
-            await service.createRelationshipByAddress({ followingAddress: wallet1.address, followerAddress: wallet3.address });
+            await service.createRelationshipByAddress({
+                followingAddress: wallet1.address,
+                followerAddress: wallet2.address,
+            });
+            await service.createRelationshipByAddress({
+                followingAddress: wallet1.address,
+                followerAddress: wallet3.address,
+            });
 
             const query = gql`
                 query followings($address: String!) {
@@ -197,6 +210,6 @@ describe('RelationshipResolver', () => {
                     expect(body.data.followings.length).toEqual(1);
                     expect(body.data.followings[0].following.address).toEqual(wallet1.address);
                 });
-        })
-    })
+        });
+    });
 });

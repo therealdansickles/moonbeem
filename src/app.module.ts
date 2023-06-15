@@ -28,6 +28,9 @@ import { WalletModule } from './wallet/wallet.module';
 import { appConfig } from './lib/configs/app.config';
 import { postgresConfig } from './lib/configs/db.config';
 import { SessionGuard } from './session/session.guard';
+import { OpenseaModule } from './opensea/opensea.module';
+import { MoonpayModule } from './moonpay/moonpay.module';
+import { AuthorizationModule } from './authorization/authorization.module';
 
 @Module({
     imports: [
@@ -45,6 +48,9 @@ import { SessionGuard } from './session/session.guard';
         WaitlistModule,
         WalletModule,
         RelationshipModule,
+        OpenseaModule,
+        MoonpayModule,
+        AuthorizationModule,
         // integration graphql
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver, // GraphQL server adapter
@@ -73,7 +79,7 @@ import { SessionGuard } from './session/session.guard';
         },
         {
             provide: APP_GUARD,
-            useClass: SessionGuard
+            useClass: SessionGuard,
         },
         MongoAdapter,
         RedisAdapter,

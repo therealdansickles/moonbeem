@@ -1,14 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RoyaltyService } from './royalty.service';
-import { Repository } from 'typeorm';
-import { Royalty } from './royalty.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { postgresConfig } from '../../lib/configs/db.config';
 import { RoyaltyModule } from './royalty.module';
 import { faker } from '@faker-js/faker';
 
 describe('RoyaltyService', () => {
-    let repository: Repository<Royalty>;
     let service: RoyaltyService;
 
     beforeEach(async () => {
@@ -27,7 +24,6 @@ describe('RoyaltyService', () => {
             ],
         }).compile();
 
-        repository = module.get('sync_chain_RoyaltyRepository');
         service = module.get<RoyaltyService>(RoyaltyService);
     });
 

@@ -19,6 +19,7 @@ import { OrganizationService } from '../organization/organization.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 
 export const gql = String.raw;
 
@@ -34,6 +35,7 @@ describe('CollectionResolver', () => {
     let mintSaleContractService: MintSaleContractService;
     let collaborationService: CollaborationService;
     let walletService: WalletService;
+    let asset721Service: Asset721Service;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -73,6 +75,7 @@ describe('CollectionResolver', () => {
         coinService = module.get<CoinService>(CoinService);
         mintSaleTransactionService = module.get<MintSaleTransactionService>(MintSaleTransactionService);
         mintSaleContractService = module.get<MintSaleContractService>(MintSaleContractService);
+        asset721Service = module.get<Asset721Service>(Asset721Service);
         walletService = module.get<WalletService>(WalletService);
 
         app = module.createNestApplication();
@@ -137,7 +140,7 @@ describe('CollectionResolver', () => {
             return await request(app.getHttpServer())
                 .post('/graphql')
                 .send({ query, variables })
-                // .expect(200)
+                .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.collection.name).toEqual(collection.name);
                     expect(body.data.collection.displayName).toEqual(collection.displayName);
@@ -178,7 +181,7 @@ describe('CollectionResolver', () => {
             const beginTime = Math.floor(faker.date.recent().getTime() / 1000);
             const endTime = Math.floor(faker.date.recent().getTime() / 1000);
 
-            const contract = await mintSaleContractService.createMintSaleContract({
+            await mintSaleContractService.createMintSaleContract({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
@@ -263,9 +266,6 @@ describe('CollectionResolver', () => {
                 tags: [],
                 organization: organization,
             });
-
-            const beginTime = Math.floor(faker.date.recent().getTime() / 1000);
-            const endTime = Math.floor(faker.date.recent().getTime() / 1000);
 
             const query = gql`
                 query GetCollection($id: String!) {
@@ -669,6 +669,464 @@ describe('CollectionResolver', () => {
                 .expect(200)
                 .expect(async ({ body }) => {
                     expect(body.data.collection.buyers).toEqual([transaction.recipient]);
+                });
+        });
+    });
+
+    describe('collection', () => {
+        it('should return tier info and the coin info contained in the tier', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const collection = await service.createCollectionWithTiers({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                organization: { id: organization.id },
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: 200,
+                        paymentTokenAddress: coin.address,
+                        tierId: 0,
+                        price: '200',
+                    },
+                ],
+            });
+
+            const query = gql`
+                query GetCollection($address: String) {
+                    collection(address: $address) {
+                        tiers {
+                            coin {
+                                address
+                            }
+                        }
+                    }
+                }
+            `;
+            const variables = { address: collection.address };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.collection.tiers).not.toBeNull();
+                    expect(body.data.collection.tiers).not.toBeNull();
+                    expect(body.data.collection.tiers[0].coin).not.toBeNull();
+                    expect(body.data.collection.tiers[0].coin.address).not.toBeNull();
+                });
+        });
+    });
+
+    describe('secondaryMarketStat', () => {
+        let collection: Collection;
+
+        beforeEach(async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            collection = await service.createCollectionWithTiers({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                organization: { id: organization.id },
+                nameOnOpensea: faker.finance.accountName(),
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: 200,
+                        paymentTokenAddress: coin.address,
+                        tierId: 0,
+                        price: '200',
+                    },
+                ],
+            });
+        });
+
+        afterEach(async () => {
+            await repository.query('TRUNCATE TABLE "User" CASCADE;');
+            await repository.query('TRUNCATE TABLE "Organization" CASCADE;');
+            await repository.query('TRUNCATE TABLE "Collection" CASCADE;');
+        });
+
+        it('should get stat data', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            collection = await service.createCollectionWithTiers({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                organization: { id: organization.id },
+                nameOnOpensea: faker.finance.accountName(),
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: 200,
+                        paymentTokenAddress: coin.address,
+                        tierId: 0,
+                        price: '200',
+                    },
+                ],
+            });
+
+            const query = gql`
+                query GetSecondaryMarketStat($address: String!) {
+                    secondaryMarketStat(address: $address) {
+                        source
+                        data {
+                            supply
+                            floorPrice
+
+                            volume {
+                                total
+                            }
+                        }
+                    }
+                }
+            `;
+
+            const variables = { address: collection.address };
+
+            const mockResponse = [
+                {
+                    source: 'opensea',
+                    data: {
+                        supply: faker.datatype.float(),
+                        floorPrice: faker.datatype.float(),
+                        volume: {
+                            hourly: faker.datatype.float(),
+                            daily: faker.datatype.float(),
+                            weekly: faker.datatype.float(),
+                            total: faker.datatype.float(),
+                        },
+                        sales: {
+                            hourly: faker.datatype.float(),
+                            daily: faker.datatype.float(),
+                            weekly: faker.datatype.float(),
+                            total: faker.datatype.float(),
+                        },
+                    },
+                },
+            ];
+            jest.spyOn(service, 'getSecondartMarketStat').mockImplementation(async () => mockResponse);
+            await service.getSecondartMarketStat({ address: collection.address });
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(({ body }) => {
+                    expect(body.data.secondaryMarketStat.length).toEqual(1);
+                    const openseaData = body.data.secondaryMarketStat.find((data) => data.source === 'opensea');
+                    expect(openseaData.data.supply).toEqual(mockResponse[0].data.supply);
+                    expect(openseaData.data.volume.total).toEqual(mockResponse[0].data.volume.total);
+                });
+        });
+    });
+
+    describe('getHolders', () => {
+        const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
+        let collection: Collection;
+        beforeEach(async () => {
+            const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
+
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: user,
+            });
+
+            collection = await service.createCollectionWithTiers({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: collectionAddress,
+                tags: [],
+                organization: { id: organization.id },
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: 200,
+                        paymentTokenAddress: coin.address,
+                        tierId: 0,
+                        price: '200',
+                    },
+                ],
+            });
+
+            await mintSaleContractService.createMintSaleContract({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                address: collectionAddress,
+                royaltyReceiver: faker.finance.ethereumAddress(),
+                royaltyRate: 10000,
+                derivativeRoyaltyRate: 1000,
+                isDerivativeAllowed: true,
+                beginTime: Math.floor(faker.date.recent().getTime() / 1000),
+                endTime: Math.floor(faker.date.recent().getTime() / 1000),
+                tierId: 0,
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+                startId: 1,
+                endId: 100,
+                currentId: 1,
+                tokenAddress: tokenAddress,
+                collectionId: collection.id,
+            });
+
+            const owner1 = faker.finance.ethereumAddress().toLowerCase();
+            const tokenId1 = faker.random.numeric(5);
+
+            const owner2 = faker.finance.ethereumAddress().toLowerCase();
+            const tokenId2 = faker.random.numeric(5);
+
+            await asset721Service.createAsset721({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address: tokenAddress,
+                tokenId: tokenId1,
+                owner: owner1,
+            });
+            await asset721Service.createAsset721({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address: tokenAddress,
+                tokenId: tokenId2,
+                owner: owner2,
+            });
+
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: faker.finance.ethereumAddress(),
+                tierId: 0,
+                tokenAddress: tokenAddress,
+                tokenId: tokenId1,
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: faker.finance.ethereumAddress(),
+                tierId: 0,
+                tokenAddress: tokenAddress,
+                tokenId: tokenId2,
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+        });
+
+        it('should get holders', async () => {
+            const query = gql`
+                query GetCollection($id: String) {
+                    collection(id: $id) {
+                        holder {
+                            total
+                            data {
+                                quantity
+                                tier {
+                                    id
+                                    price
+                                }
+                            }
+                        }
+                    }
+                }
+            `;
+            const variables = { id: collection.id };
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.collection.holder).toBeDefined();
+                    expect(body.data.collection.holder.total).toEqual(2);
+                    expect(body.data.collection.holder.data).toBeDefined();
+                    expect(body.data.collection.holder.data.length).toEqual(2);
+                    expect(body.data.collection.holder.data.length).toEqual(2);
+                    expect(body.data.collection.holder.data[0].tier).toBeDefined();
+                    expect(body.data.collection.holder.data[0].tier.price).toEqual('200');
+                });
+        });
+
+        it('should get unique holder', async () => {
+            const query = gql`
+                query GetCollection($id: String) {
+                    collection(id: $id) {
+                        uniqueHolderCount
+                    }
+                }
+            `;
+            const variables = { id: collection.id };
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.collection.uniqueHolderCount).toBeDefined();
+                    expect(body.data.collection.uniqueHolderCount).toEqual(2);
+                });
+        });
+
+        it('should get activities', async () => {
+            const query = gql`
+                query GetCollection($id: String) {
+                    collection(id: $id) {
+                        activities {
+                            total
+                            data {
+                                address
+                                tokenId
+                                owner
+                                type
+                                tier {
+                                    tierId
+                                }
+                                transaction {
+                                    address
+                                    tokenId
+                                    price
+                                    recipient
+                                }
+                            }
+                        }
+                    }
+                }
+            `;
+            const variables = { id: collection.id };
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.collection.activities).toBeDefined();
+                    expect(body.data.collection.activities.total).toEqual(2);
+                    expect(body.data.collection.activities.data).toBeDefined();
+                    expect(body.data.collection.activities.data.length).toEqual(2);
+                    expect(body.data.collection.activities.data.length).toEqual(2);
+                    expect(body.data.collection.activities.data[0].tier).toBeDefined();
+                    expect(body.data.collection.activities.data[0].transaction).toBeDefined();
                 });
         });
     });

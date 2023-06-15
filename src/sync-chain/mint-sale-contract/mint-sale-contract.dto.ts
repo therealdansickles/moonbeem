@@ -10,7 +10,7 @@ registerEnumType(ContractType, { name: 'ContractType' });
 export class MintSaleContract {
     @ApiProperty()
     @IsString()
-    @Field((returns) => ID!)
+    @Field(() => ID)
     readonly id: string;
 
     @ApiProperty()
@@ -104,13 +104,18 @@ export class MintSaleContract {
     readonly tokenAddress: string;
 
     @ApiProperty()
-    @Field((type) => ContractType, { description: 'The type of Contract.' })
+    @Field(() => ContractType, { description: 'The type of Contract.' })
     readonly kind?: ContractType;
 
     @ApiProperty()
     @IsNumber()
     @Field({ description: 'The chain id for the transaction' })
     readonly chainId?: number;
+
+    @ApiProperty()
+    @IsNumber()
+    @Field({ description: 'The collection address for the transaction' })
+    readonly collectionId?: string;
 
     @ApiProperty()
     @IsDateString()
@@ -127,12 +132,12 @@ export class MintSaleContract {
 export class CreateMerkleRootInput {
     @ApiProperty()
     @IsArray()
-    @Field((type) => [CreateMerkleRootData], { description: 'Create data for merkle.' })
+    @Field(() => [CreateMerkleRootData], { description: 'Create data for merkle.' })
     readonly data: CreateMerkleRootData[];
 
     @ApiProperty()
     @IsObject()
-    @Field((type) => OrganizationInput, {
+    @Field(() => OrganizationInput, {
         nullable: true,
         description: 'MerkleRoot association to collection.',
     })
@@ -157,37 +162,37 @@ export class CreateMerkleRootOutput {
     @ApiProperty()
     @IsBoolean()
     @Field({ description: 'Status' })
-    success: boolean;
+    readonly success: boolean;
 
     @ApiProperty()
     @IsString()
     @Field({ description: 'MerkleTree' })
-    merkleRoot: string;
+    readonly merkleRoot: string;
 }
 
 @ObjectType()
 export class GetMerkleProofOutput {
     @IsString()
     @Field({ description: 'User Address' })
-    address: string;
+    readonly address: string;
 
     @IsString()
     @Field({ description: 'Available Amount' })
-    amount: string;
+    readonly amount: string;
 
     @IsString()
-    @Field((type) => [String], { description: 'Merkle Proof' })
-    proof: string[];
+    @Field(() => [String], { description: 'Merkle Proof' })
+    readonly proof: string[];
 
     @IsBoolean()
     @Field({ description: 'Status' })
-    success: boolean;
+    readonly success: boolean;
 
-    @Field((type) => Int, {
+    @Field(() => Int, {
         nullable: true,
         defaultValue: 0,
         description: 'Given merekleRoot and collection, return the number of available',
     })
     @IsNumber()
-    usable?: number;
+    readonly usable?: number;
 }

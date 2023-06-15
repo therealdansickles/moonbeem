@@ -1,11 +1,11 @@
 import { ObjectType, Field, ID, Int } from '@nestjs/graphql';
-import { IsString, IsDateString, IsNumber, isNumberString, IsNumberString, IsEthereumAddress } from 'class-validator';
+import { IsString, IsDateString, IsNumber, IsNumberString, IsEthereumAddress } from 'class-validator';
 import { EthereumAddress } from '../../lib/scalars/eth.scalar';
 
 @ObjectType('MintSaleTransaction')
 export class MintSaleTransaction {
     @IsString()
-    @Field((returns) => ID!)
+    @Field(() => ID)
     readonly id: string;
 
     @IsNumber()
@@ -22,11 +22,11 @@ export class MintSaleTransaction {
 
     @IsString()
     @Field({ description: 'Transaction sender of transaction.' })
-    sender: string;
+    readonly sender: string;
 
     @IsString()
     @Field({ description: 'NFT Recipient of current transaction.' })
-    recipient: string;
+    readonly recipient: string;
 
     @IsString()
     @Field({ description: 'The contract address' })
@@ -38,19 +38,19 @@ export class MintSaleTransaction {
 
     @IsString()
     @Field({ description: 'Collection associated token contract address, Erc721 contract' })
-    tokenAddress: string;
+    readonly tokenAddress: string;
 
     @IsString()
     @Field({ description: 'The token id received by the user' })
-    tokenId: string;
+    readonly tokenId: string;
 
     @IsString()
     @Field({ description: 'The tier price' })
-    price: string;
+    readonly price: string;
 
     @IsString()
     @Field({ description: 'The payment token address' })
-    paymentToken: string;
+    readonly paymentToken: string;
 
     @IsNumber()
     @Field({ description: 'The chain id for the transaction' })
@@ -68,7 +68,7 @@ export class MintSaleTransaction {
 @ObjectType()
 export class LeaderboardRanking {
     @IsNumber()
-    @Field((type) => Int, { description: 'Ranking of this leaderboard' })
+    @Field(() => Int, { description: 'Ranking of this leaderboard' })
     readonly rank: number;
 
     @IsNumberString()
@@ -76,7 +76,7 @@ export class LeaderboardRanking {
     readonly amount: string;
 
     @IsNumber()
-    @Field((type) => Int, { description: 'Total number of buy' })
+    @Field(() => Int, { description: 'Total number of buy' })
     readonly item: number;
 
     @Field(() => EthereumAddress, { description: 'The user address' })

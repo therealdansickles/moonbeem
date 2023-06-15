@@ -3,7 +3,6 @@ import {
     Column,
     CreateDateColumn,
     Entity,
-    Index,
     JoinColumn,
     ManyToOne,
     OneToMany,
@@ -19,10 +18,10 @@ import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
 @Entity({ name: 'Collaboration' })
 export class Collaboration extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    readonly id: string;
 
     @Column({ nullable: true, comment: 'The template name of this collaboration.' })
-    name?: string;
+    readonly name?: string;
 
     @Column({
         nullable: true,
@@ -31,36 +30,36 @@ export class Collaboration extends BaseEntity {
         comment: 'The Ethereum address',
         transformer: lowercaseTransformer,
     })
-    address?: string;
+    readonly address?: string;
 
     @Column({ default: 100, comment: 'The royalty rate in percentage.' })
-    royaltyRate?: number;
+    readonly royaltyRate?: number;
 
     @OneToMany(() => Collection, (collection) => collection.collaboration, { createForeignKeyConstraints: false })
-    collections: Collection[];
+    readonly collections: Collection[];
 
     @ManyToOne(() => Organization, (organization) => organization.collaborations, {
         createForeignKeyConstraints: false,
     })
     @JoinColumn()
-    organization?: Organization;
+    public organization?: Organization;
 
     @ManyToOne(() => User, (user) => user.collaborations, { createForeignKeyConstraints: false })
     @JoinColumn()
-    user?: User;
+    public user?: User;
 
     @ManyToOne(() => Wallet, (wallet) => wallet.collaborations, { createForeignKeyConstraints: false })
     @JoinColumn()
-    wallet?: Wallet;
+    public wallet?: Wallet;
 
     @Column({ comment: 'All collaborators of this collaboration', type: 'jsonb', default: [] })
-    collaborators?: Collaborator[];
+    readonly collaborators?: Collaborator[];
 
     @CreateDateColumn()
-    createdAt: Date;
+    readonly createdAt: Date;
 
     @UpdateDateColumn()
-    updatedAt: Date;
+    readonly updatedAt: Date;
 }
 
 export class Collaborator {

@@ -6,19 +6,14 @@ import { postgresConfig } from '../lib/configs/db.config';
 import { Organization } from './organization.entity';
 import { OrganizationModule } from './organization.module';
 import { OrganizationService } from './organization.service';
-import { CreateOrganizationInput } from './organization.dto';
 import { User } from '../user/user.entity';
-import { UserModule } from '../user/user.module';
 import { UserService } from '../user/user.service';
-import { MembershipService } from '../membership/membership.service';
-import { MembershipModule } from '../membership/membership.module';
 import { Membership } from '../membership/membership.entity';
 
 describe('OrganizationService', () => {
     let repository: Repository<Organization>;
     let service: OrganizationService;
     let userService: UserService;
-    let membershipService: MembershipService;
     let membershipRepository: Repository<Membership>;
 
     beforeAll(async () => {
@@ -48,7 +43,6 @@ describe('OrganizationService', () => {
         repository = module.get('OrganizationRepository');
         service = module.get<OrganizationService>(OrganizationService);
         userService = module.get<UserService>(UserService);
-        membershipService = module.get<MembershipService>(MembershipService);
         membershipRepository = module.get('MembershipRepository');
     });
 
@@ -129,7 +123,7 @@ describe('OrganizationService', () => {
                 password: faker.internet.password(),
             });
 
-            const invitee = await userService.createUser({
+            await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });

@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql';
-import { HttpException, HttpStatus, Injectable, Inject } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { ethers } from 'ethers';
 import BigNumber from 'bignumber.js';
 import { captureException } from '@sentry/node';
@@ -27,7 +27,7 @@ interface ITokenPrice {
     price: string;
 }
 
-interface IWalletQuery extends Partial<Pick<Wallet, 'name' | 'address'>> { }
+type IWalletQuery = Partial<Pick<Wallet, 'name' | 'address'>>;
 
 @Injectable()
 export class WalletService {
@@ -39,8 +39,8 @@ export class WalletService {
         private mintSaleTransactionRepository: Repository<MintSaleTransaction>,
         @InjectRepository(MintSaleContract, 'sync_chain')
         private mintSaleContractRepository: Repository<MintSaleContract>,
-        private coinService: CoinService
-    ) { }
+        private coinService: CoinService,
+    ) {}
 
     /**
      * This is the uuid for the ownerId for all unbound wallets, e.g the blackhole.
@@ -89,7 +89,7 @@ export class WalletService {
      * check if the wallet is existed or not
      * if existed, return wallet info
      * else throw error
-     * 
+     *
      * @param address
      * @returns
      */
@@ -253,7 +253,7 @@ export class WalletService {
         if (ethers.verifyMessage(message, signature).toLowerCase() === address.toLowerCase()) {
             const wallet = this.walletRespository.create({ address, name: address.toLowerCase() });
             const existedWallet = await this.walletRespository.findOneBy({ address: wallet.address });
-            if (existedWallet) return existedWallet
+            if (existedWallet) return existedWallet;
             else {
                 await this.walletRespository.insert(wallet);
                 return this.walletRespository.findOne({

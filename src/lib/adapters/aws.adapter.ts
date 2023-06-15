@@ -152,7 +152,7 @@ export class AWSAdapter {
     // }
 }
 
-function getCallerReference(): string {
+export function getCallerReference(): string {
     const date_time = Math.floor(Date.now() / 1000);
     const _random = randomString(8);
     return `vibe-server-${date_time}-${_random.toLowerCase()}`;

@@ -1,5 +1,5 @@
 import { Public } from '../session/session.decorator';
-import { Resolver, Query, Args, Mutation, ResolveField, Parent } from '@nestjs/graphql';
+import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
 
 import {
     Membership,
@@ -9,7 +9,6 @@ import {
     MembershipRequestInput,
 } from './membership.dto';
 import { MembershipService } from './membership.service';
-import { Organization } from '../organization/organization.dto';
 import { OrganizationService } from '../organization/organization.service';
 import { MailService } from '../mail/mail.service';
 
@@ -19,7 +18,7 @@ export class MembershipResolver {
         private readonly membershipService: MembershipService,
         private readonly organizationService: OrganizationService,
         private mailService: MailService
-    ) { }
+    ) {}
 
     @Public()
     @Query(() => Membership, { description: 'Retrieve a membership by id.', nullable: true })

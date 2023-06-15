@@ -4,15 +4,15 @@ import { IsObject, IsString } from 'class-validator';
 export class VUploadImageRsp {
     @ApiProperty()
     @IsString()
-    url: string;
+    readonly url: string;
 }
 
 export class VUploadImageReqDto {
     @ApiProperty()
     @IsString()
-    contentType: string;
+    readonly contentType: string;
 
     @ApiProperty()
     @IsObject()
-    buffer: Buffer;
+    readonly buffer: Buffer;
 }

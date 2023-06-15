@@ -1,6 +1,5 @@
-import { ArgsType, Field, Int, ObjectType, InputType, ID } from '@nestjs/graphql';
-import { IsObject, IsNumber, IsString, IsBoolean, IsDateString, IsUrl, ValidateIf, IsOptional } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Field, ObjectType, InputType } from '@nestjs/graphql';
+import { IsObject, IsString, IsBoolean, IsOptional } from 'class-validator';
 import { Organization } from '../organization/organization.dto';
 import { User } from '../user/user.dto';
 
@@ -23,15 +22,15 @@ export class Membership {
     readonly organization: Organization;
 
     @IsBoolean()
-    @Field((returns) => Boolean, { description: 'Whether or not this user can edit.' })
+    @Field(() => Boolean, { description: 'Whether or not this user can edit.' })
     readonly canEdit: boolean;
 
     @IsBoolean()
-    @Field((returns) => Boolean, { description: 'Whether or not this user can manage.' })
+    @Field(() => Boolean, { description: 'Whether or not this user can manage.' })
     readonly canManage: boolean;
 
     @IsBoolean()
-    @Field((returns) => Boolean, { description: 'Whether or not this user can deploy a collection.' })
+    @Field(() => Boolean, { description: 'Whether or not this user can deploy a collection.' })
     readonly canDeploy: boolean;
 }
 
@@ -67,17 +66,17 @@ export class CreateMembershipInput {
     readonly organizationId: string;
 
     @IsBoolean()
-    @Field((returns) => Boolean, { description: 'Whether or not this user can edit.', nullable: true })
+    @Field(() => Boolean, { description: 'Whether or not this user can edit.', nullable: true })
     @IsOptional()
     readonly canEdit?: boolean;
 
     @IsBoolean()
-    @Field((returns) => Boolean, { description: 'Whether or not this user can manage.', nullable: true })
+    @Field(() => Boolean, { description: 'Whether or not this user can manage.', nullable: true })
     @IsOptional()
     readonly canManage?: boolean;
 
     @IsBoolean()
-    @Field((returns) => Boolean, { description: 'Whether or not this user can deploy a collection.', nullable: true })
+    @Field(() => Boolean, { description: 'Whether or not this user can deploy a collection.', nullable: true })
     @IsOptional()
     readonly canDeploy?: boolean;
 }
@@ -89,15 +88,15 @@ export class UpdateMembershipInput {
     readonly id: string;
 
     @IsBoolean()
-    @Field((returns) => Boolean, { description: 'Whether or not this user can edit.', nullable: true })
+    @Field(() => Boolean, { description: 'Whether or not this user can edit.', nullable: true })
     readonly canEdit?: boolean;
 
     @IsBoolean()
-    @Field((returns) => Boolean, { description: 'Whether or not this user can manage.', nullable: true })
+    @Field(() => Boolean, { description: 'Whether or not this user can manage.', nullable: true })
     readonly canManage?: boolean;
 
     @IsBoolean()
-    @Field((returns) => Boolean, { description: 'Whether or not this user can deploy a collection.', nullable: true })
+    @Field(() => Boolean, { description: 'Whether or not this user can deploy a collection.', nullable: true })
     readonly canDeploy?: boolean;
 }
 

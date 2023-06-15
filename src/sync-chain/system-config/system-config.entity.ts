@@ -4,28 +4,28 @@ import { Exclude } from 'class-transformer';
 @Entity({ name: 'SystemConfig' })
 export class SystemConfig extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    readonly id: string;
 
     @Column({ comment: 'Config name.' })
-    name: string;
+    readonly name: string;
 
     @Column({ comment: 'Config value.' })
-    value: string;
+    readonly value: string;
 
     @Column({ comment: 'Type of config value. int64/string/int128' })
-    kind: string;
+    readonly kind: string;
 
     @Column({ default: '', comment: 'Config comment.' })
-    comment?: string;
+    readonly comment?: string;
 
     @Column({ default: 1, comment: 'The chain id for the config.' })
-    chainId?: number;
+    readonly chainId?: number;
 
     @CreateDateColumn()
     @Exclude()
-    createdAt: Date;
+    readonly createdAt: Date;
 
     @UpdateDateColumn()
     @Exclude()
-    updatedAt: Date;
+    readonly updatedAt: Date;
 }

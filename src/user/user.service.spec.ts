@@ -6,7 +6,6 @@ import { postgresConfig } from '../lib/configs/db.config';
 import { UserModule } from './user.module';
 import { UserService } from './user.service';
 import { User } from './user.entity';
-import { OrganizationModule } from '../organization/organization.module';
 import { OrganizationService } from '../organization/organization.service';
 import { hashSync as hashPassword } from 'bcryptjs';
 
@@ -74,12 +73,12 @@ describe('UserService', () => {
 
     describe('getUserByQuery', () => {
         it('should return null if no parameter provided', async () => {
-            const user = await repository.save({
+            await repository.save({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
-            const result = await service.getUserByQuery({ });
+            const result = await service.getUserByQuery({});
             expect(result).toBeNull();
         });
 

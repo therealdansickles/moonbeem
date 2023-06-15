@@ -1,24 +1,27 @@
 import {
-    ArgsType,
     Field,
     Int,
     ObjectType,
     InputType,
     registerEnumType,
-    ID,
     PartialType,
     OmitType,
     PickType,
+    Float,
 } from '@nestjs/graphql';
-import { IsNumber, IsString, IsDateString, IsUrl, IsOptional, IsArray, IsObject } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsNumber, IsString, IsDateString, IsUrl, IsOptional, IsArray, IsObject, IsEnum } from 'class-validator';
 import { CollectionKind } from './collection.entity';
-import { AttributeInput, Tier, PluginInput, ConditionInput } from '../tier/tier.dto';
+import { AttributeInput, Tier, PluginInput, ConditionInput, MetadataOutput } from '../tier/tier.dto';
 import { Organization, OrganizationInput } from '../organization/organization.dto';
 import { CollaborationInput } from '../collaboration/collaboration.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 import { Wallet, WalletInput } from '../wallet/wallet.dto';
 import { Collaboration } from '../collaboration/collaboration.dto';
+import { Asset721 } from '../sync-chain/asset721/asset721.dto';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
+import { GraphQLJSONObject } from 'graphql-type-json';
+
+export const ZeroAccount = '0x0000000000000000000000000000000000000000';
 
 registerEnumType(CollectionKind, { name: 'CollectionKind' });
 
@@ -32,7 +35,7 @@ export class Collection {
     @Field({ description: 'The unique URL-friendly identifier for a collection.' })
     readonly name: string;
 
-    @Field((type) => CollectionKind, { description: 'The type of collection this is.' })
+    @Field(() => CollectionKind, { description: 'The type of collection this is.' })
     readonly kind: CollectionKind;
 
     @Field(() => Organization, { description: 'The organization that owns the collection.' })
@@ -82,12 +85,20 @@ export class Collection {
     readonly discord?: string;
 
     @IsArray()
-    @Field((type) => [String], { description: 'The tags associated with this organization.', nullable: true })
+    @Field(() => [String], { description: 'The tags associated with this organization.', nullable: true })
     readonly tags?: string[];
 
-    @Field((type) => [Tier], { description: 'The collection tiers', nullable: true })
+    @Field(() => [Tier], { description: 'The collection tiers', nullable: true })
     @IsArray()
     readonly tiers?: Tier[];
+
+    @Field(() => String, {
+        nullable: true,
+        description:
+            "Temporary field for store collection name in Opensea, while we can't retrieve collection stat by address",
+    })
+    @IsString()
+    readonly nameOnOpensea?: string;
 
     @IsDateString()
     @Field({ description: 'The DateTime that this collection was published.', nullable: true })
@@ -106,11 +117,11 @@ export class Collection {
     readonly creator?: Wallet;
 
     @IsObject()
-    @Field((type) => MintSaleContract, { description: 'The collection contract', nullable: true })
+    @Field(() => MintSaleContract, { description: 'The collection contract', nullable: true })
     readonly contract?: MintSaleContract;
 
     @IsObject()
-    @Field((type) => Collaboration, { description: 'The collaboration of the collection.', nullable: true })
+    @Field(() => Collaboration, { description: 'The collaboration of the collection.', nullable: true })
     readonly collaboration?: Collaboration;
 }
 
@@ -129,22 +140,22 @@ export class CreateCollectionInput extends OmitType(PartialType(Collection, Inpu
     readonly creator?: WalletInput;
 
     @IsObject()
-    @Field((type) => OrganizationInput, { description: 'The organization that owns the collection.' })
+    @Field(() => OrganizationInput, { description: 'The organization that owns the collection.' })
     readonly organization: OrganizationInput;
 
     @IsObject()
-    @Field((type) => CollaborationInput, { description: 'The collaboration of the collection.', nullable: true })
+    @Field(() => CollaborationInput, { description: 'The collaboration of the collection.', nullable: true })
     @IsOptional()
     readonly collaboration?: CollaborationInput;
 
     @IsArray()
-    @Field((type) => [CreateTierInCollectionInput], { description: 'This tiers for collection', nullable: true })
+    @Field(() => [CreateTierInCollectionInput], { description: 'This tiers for collection', nullable: true })
     @IsOptional()
     readonly tiers?: CreateTierInCollectionInput[];
 }
 
 @InputType()
-export class UpdateCollectionInput extends OmitType(CreateCollectionInput, ['organization', 'collaboration', 'tiers']) {
+export class UpdateCollectionInput extends OmitType(CreateCollectionInput, ['organization', 'tiers']) {
     @IsString()
     @Field({ description: 'The id for a collection.' })
     readonly id: string;
@@ -156,7 +167,7 @@ export class CollectionInput extends PickType(Collection, ['id'], InputType) {}
 @InputType('CreateTierInCollectionInput')
 export class CreateTierInCollectionInput {
     @IsNumber()
-    @Field((type) => Int, { description: 'The total number of mints for this tier.' })
+    @Field(() => Int, { description: 'The total number of mints for this tier.' })
     readonly totalMints: number;
 
     @IsString()
@@ -195,20 +206,24 @@ export class CreateTierInCollectionInput {
     @IsOptional()
     readonly animationUrl?: string;
 
-    @Field((type) => [AttributeInput], { description: 'The tier attributes', nullable: true })
+    @Field(() => [AttributeInput], { description: 'The tier attributes', nullable: true })
     @IsArray()
     @IsOptional()
     readonly attributes?: AttributeInput[];
 
-    @Field((type) => [ConditionInput], { description: 'The tier attributes', nullable: true })
+    @Field(() => [ConditionInput], { description: 'The tier attributes', nullable: true })
     @IsArray()
     @IsOptional()
     readonly conditions?: ConditionInput[];
 
-    @Field((type) => [PluginInput], { description: 'The tier attributes', nullable: true })
+    @Field(() => [PluginInput], { description: 'The tier attributes', nullable: true })
     @IsArray()
     @IsOptional()
     readonly plugins?: PluginInput[];
+
+    @Field(() => GraphQLJSONObject, { nullable: true, description: 'The full metadata of the tier.' })
+    @IsObject()
+    readonly metadata?: MetadataOutput;
 
     @IsString()
     @Field({ nullable: true, description: 'This merekleRoot of tier.' })
@@ -219,4 +234,123 @@ export class CreateTierInCollectionInput {
     @Field({ nullable: true, description: 'The price of NFTs in this tier.' })
     @IsOptional()
     readonly price?: string;
+}
+
+@ObjectType('CollectionOutput')
+export class CollectionOutput extends OmitType(
+    Collection,
+    [
+        'organization',
+        'websiteUrl',
+        'twitter',
+        'instagram',
+        'tiers',
+        'discord',
+        'tags',
+        'publishedAt',
+        'createdAt',
+        'updatedAt',
+        'creator',
+        'contract',
+        'collaboration',
+    ],
+    ObjectType
+) {
+    @Field(() => Int)
+    @IsNumber()
+    readonly totalSupply: number;
+}
+
+@ObjectType('SearchCollection')
+export class SearchCollection {
+    @Field(() => Int)
+    @IsNumber()
+    readonly total: number;
+
+    @Field(() => [CollectionOutput])
+    @IsArray()
+    readonly collections: CollectionOutput[];
+}
+
+@ObjectType('CollectionStatDataPeriodItem')
+export class CollectionStatDataPeriodItem {
+    @Field(() => Float, { nullable: true })
+    @IsNumber()
+    readonly hourly?: number;
+
+    @Field(() => Float, { nullable: true })
+    @IsNumber()
+    readonly daily?: number;
+
+    @Field(() => Float, { nullable: true })
+    @IsNumber()
+    readonly weekly?: number;
+
+    @Field(() => Float, { nullable: true })
+    @IsNumber()
+    readonly total?: number;
+}
+
+@ObjectType('CollectionStatData')
+export class CollectionStatData {
+    @Field(() => CollectionStatDataPeriodItem, { nullable: true })
+    @IsObject()
+    readonly volume?: CollectionStatDataPeriodItem;
+
+    @Field(() => CollectionStatDataPeriodItem, { nullable: true })
+    @IsObject()
+    readonly sales?: CollectionStatDataPeriodItem;
+
+    @Field(() => Float)
+    @IsNumber()
+    readonly supply: number;
+
+    @Field(() => Float)
+    @IsNumber()
+    readonly floorPrice: number;
+}
+
+@ObjectType('CollectionStat')
+export class CollectionStat {
+    @Field(() => String)
+    @IsString()
+    readonly source: string;
+
+    @Field(() => CollectionStatData)
+    @IsObject()
+    readonly data: CollectionStatData;
+}
+
+export enum CollectionActivityType {
+    Mint = 'Mint',
+    Transfer = 'Transfer',
+    Burn = 'Burn',
+}
+
+registerEnumType(CollectionActivityType, { name: 'CollectionActivityType' });
+
+@ObjectType('CollectionActivities')
+export class CollectionActivities {
+    @Field(() => Int)
+    @IsNumber()
+    readonly total: number;
+
+    @Field(() => [CollectionActivityData])
+    @IsArray()
+    readonly data: CollectionActivityData[];
+}
+
+@ObjectType('CollectionActivityData')
+export class CollectionActivityData extends OmitType(Asset721, [], ObjectType) {
+    @IsObject()
+    @Field(() => Tier, { description: 'The tier of the activity data.', nullable: true })
+    readonly tier: Tier;
+
+    @IsEnum(CollectionActivityType)
+    @Field(() => CollectionActivityType, { description: 'The activity type for collection.' })
+    readonly type: CollectionActivityType;
+
+    @IsObject()
+    @Field(() => MintSaleTransaction, { description: 'The transaction of the activity data.' })
+    readonly transaction: MintSaleTransaction;
 }

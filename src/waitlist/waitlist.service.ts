@@ -1,14 +1,8 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Waitlist } from './waitlist.entity';
-import { ILike, Repository, UpdateResult } from 'typeorm';
-import {
-    CreateWaitlistInput,
-    GetWaitlistInput,
-    ClaimWaitlistInput,
-    ClaimProfileInput,
-    ClaimProfileResult,
-} from './waitlist.dto';
+import { Repository } from 'typeorm';
+import { CreateWaitlistInput, GetWaitlistInput, ClaimWaitlistInput } from './waitlist.dto';
 import { ethers } from 'ethers';
 import { GraphQLError } from 'graphql';
 import { captureException } from '@sentry/node';
@@ -43,7 +37,7 @@ export class WaitlistService {
     async createWaitlist(input: CreateWaitlistInput): Promise<Waitlist> {
         const verifiedAddress = ethers.verifyMessage(input.message, input.signature);
         if (input.address.toLowerCase() !== verifiedAddress.toLocaleLowerCase()) {
-            throw new GraphQLError(`signature verification failure`, {
+            throw new GraphQLError('signature verification failure', {
                 extensions: { code: 'BAD_REQUEST' },
             });
         }
@@ -52,12 +46,12 @@ export class WaitlistService {
             return await this.waitlistRepository.save(input);
         } catch (e) {
             if (e.routine === '_bt_check_unique') {
-                throw new GraphQLError(`Email or wallet address already exists`, {
+                throw new GraphQLError('Email or wallet address already exists', {
                     extensions: { code: 'BAD_REQUEST' },
                 });
             } else {
                 captureException(e);
-                throw new GraphQLError(`Failed to create waitlist item`, {
+                throw new GraphQLError('Failed to create waitlist item', {
                     extensions: { code: 'INTERNAL_SERVER_ERROR' },
                 });
             }
@@ -74,7 +68,7 @@ export class WaitlistService {
         const verifiedAddress = ethers.verifyMessage(input.message, input.signature);
 
         if (input.address.toLowerCase() !== verifiedAddress.toLocaleLowerCase()) {
-            throw new GraphQLError(`signature verification failure`, {
+            throw new GraphQLError('signature verification failure', {
                 extensions: { code: 'BAD_REQUEST' },
             });
         }

@@ -1,7 +1,6 @@
 import * as request from 'supertest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../../lib/configs/db.config';
 import { INestApplication } from '@nestjs/common';
@@ -14,7 +13,6 @@ import { MintSaleContractService } from './mint-sale-contract.service';
 export const gql = String.raw;
 
 describe('MintSaleContractResolver', () => {
-    let repository: Repository<MintSaleContract>;
     let service: MintSaleContractService;
     let app: INestApplication;
     let contract: MintSaleContract;
@@ -40,7 +38,6 @@ describe('MintSaleContractResolver', () => {
             ],
         }).compile();
 
-        repository = module.get('sync_chain_MintSaleContractRepository');
         service = module.get<MintSaleContractService>(MintSaleContractService);
         app = module.createNestApplication();
 

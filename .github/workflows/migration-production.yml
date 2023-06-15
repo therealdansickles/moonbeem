@@ -16,7 +16,20 @@ jobs:
         env:
           NODE_ENV: ${{ vars.NODE_ENV }}
           V1_DATABASE_URL: ${{ secrets.V1_DATABASE_URL }}
+
       - run: yarn typeorm:schema:sync
         env:
           NODE_ENV: ${{ vars.NODE_ENV }}
           V1_DATABASE_URL: ${{ secrets.V1_DATABASE_URL }}
+
+      - name: typeorm schema log for sync-chain
+        run: yarn typeorm:schema:sync-chain:log
+        env:
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          SYNC_CHAIN_DATABASE_URL: ${{ secrets.SYNC_CHAIN_DATABASE_URL }}
+
+      - name: typeorm schema sync for sync-chain
+        run: yarn typeorm:schema:sync-chain:sync
+        env:
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          SYNC_CHAIN_DATABASE_URL: ${{ secrets.SYNC_CHAIN_DATABASE_URL }}

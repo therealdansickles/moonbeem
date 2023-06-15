@@ -1,32 +1,22 @@
-import { INestApplication } from '@nestjs/common';
-import { Repository } from 'typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { faker } from '@faker-js/faker';
-import { GraphQLError } from 'graphql';
 import { postgresConfig } from '../lib/configs/db.config';
 
 import { Collaboration } from './collaboration.entity';
 import { CollaborationModule } from './collaboration.module';
 import { CollaborationService } from './collaboration.service';
-import { Collection } from '../collection/collection.dto';
-import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
 import { Wallet } from '../wallet/wallet.entity';
-import { WalletModule } from '../wallet/wallet.module';
 import { WalletService } from '../wallet/wallet.service';
 import { Organization } from '../organization/organization.entity';
 import { OrganizationService } from '../organization/organization.service';
-import { OrganizationModule } from '../organization/organization.module';
 import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
-import { UserModule } from '../user/user.module';
 
 describe('CollaborationService', () => {
-    let repository: Repository<Collaboration>;
     let service: CollaborationService;
     let collaboration: Collaboration;
-    let collection: Collection;
     let collectionService: CollectionService;
     let organization: Organization;
     let organizationService: OrganizationService;
@@ -59,7 +49,6 @@ describe('CollaborationService', () => {
             ],
         }).compile();
 
-        repository = module.get('CollaborationRepository');
         service = module.get<CollaborationService>(CollaborationService);
         collectionService = module.get<CollectionService>(CollectionService);
         organizationService = module.get<OrganizationService>(OrganizationService);
@@ -83,17 +72,6 @@ describe('CollaborationService', () => {
             instagram: faker.internet.userName(),
             discord: faker.internet.userName(),
             owner: user,
-        });
-
-        collection = await collectionService.createCollection({
-            name: faker.company.name(),
-            displayName: 'The best collection',
-            about: 'The best collection ever',
-            chainId: 1,
-            address: faker.finance.ethereumAddress(),
-            artists: [],
-            tags: [],
-            organization,
         });
 
         wallet = await walletService.createWallet({
@@ -136,7 +114,7 @@ describe('CollaborationService', () => {
         });
 
         it('should throw error if royalty out of bound', async () => {
-            const newCollection = await collectionService.createCollection({
+            await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: faker.finance.accountName(),
                 about: faker.finance.accountName(),
@@ -146,7 +124,7 @@ describe('CollaborationService', () => {
                 tags: [],
             });
             const wallet1 = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
-            const collaboration1 = await service.createCollaboration({
+            await service.createCollaboration({
                 walletId: wallet1.id,
                 royaltyRate: 98,
                 collaborators: [
@@ -159,7 +137,7 @@ describe('CollaborationService', () => {
                 ],
             });
             const wallet2 = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
-            const collaboration2 = await service.createCollaboration({
+            await service.createCollaboration({
                 walletId: wallet2.id,
                 royaltyRate: 2,
                 collaborators: [
@@ -171,7 +149,7 @@ describe('CollaborationService', () => {
                     },
                 ],
             });
-            const anotherCollection = await collectionService.createCollection({
+            await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: faker.finance.accountName(),
                 about: faker.finance.accountName(),
@@ -247,7 +225,7 @@ describe('CollaborationService', () => {
                 ownerId: newUser.id,
             });
 
-            const newCollab = await service.createCollaboration({
+            await service.createCollaboration({
                 walletId: newWallet.id,
                 royaltyRate: 12,
                 userId: newUser.id,
@@ -262,10 +240,7 @@ describe('CollaborationService', () => {
                 ],
             });
 
-            const [result, ..._rest] = await service.getCollaborationsByUserIdAndOrganizationId(
-                newUser.id,
-                organization.id
-            );
+            const [result] = await service.getCollaborationsByUserIdAndOrganizationId(newUser.id, organization.id);
             expect(result.user.id).toEqual(newUser.id);
             expect(result.organization.id).toEqual(organization.id);
         });
@@ -284,7 +259,7 @@ describe('CollaborationService', () => {
                 ownerId: newUser.id,
             });
 
-            const newCollab = await service.createCollaboration({
+            await service.createCollaboration({
                 walletId: newWallet.id,
                 royaltyRate: 12,
                 userId: newUser.id,

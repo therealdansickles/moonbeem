@@ -1,10 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ArrayContains, Repository } from 'typeorm';
-import { GraphQLError } from 'graphql';
+import { Repository } from 'typeorm';
 import { CreateCollaborationInput } from './collaboration.dto';
 import { Collaboration } from './collaboration.entity';
-import { Collection } from '../collection/collection.entity';
 import { Wallet } from '../wallet/wallet.entity';
 import { User } from '../user/user.entity';
 import { Organization } from '../organization/organization.entity';

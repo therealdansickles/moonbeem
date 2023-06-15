@@ -1,20 +1,31 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, UpdateResult, IsNull } from 'typeorm';
+import { Repository, UpdateResult, IsNull, In } from 'typeorm';
 import { isEmpty, isNil, omitBy } from 'lodash';
 
 import * as collectionEntity from './collection.entity';
 import { GraphQLError } from 'graphql';
 import { Tier } from '../tier/tier.entity';
-import { Collection, CreateCollectionInput } from './collection.dto';
+import {
+    Collection,
+    CollectionActivities,
+    CollectionActivityType,
+    CollectionStat,
+    CreateCollectionInput,
+    ZeroAccount,
+} from './collection.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Wallet } from '../wallet/wallet.entity';
 import { Collaboration } from '../collaboration/collaboration.entity';
 import * as Sentry from '@sentry/node';
 import { TierService } from '../tier/tier.service';
+import { OpenseaService } from '../opensea/opensea.service';
+import { CollectionHolder } from '../wallet/wallet.dto';
+import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 
-interface ICollectionQuery extends Partial<Pick<Collection, 'id' | 'address'>> {}
+type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name'>>;
+
 @Injectable()
 export class CollectionService {
     constructor(
@@ -30,7 +41,10 @@ export class CollectionService {
         private readonly mintSaleContractRepository: Repository<MintSaleContract>,
         @InjectRepository(MintSaleTransaction, 'sync_chain')
         private readonly mintSaleTransactionRepository: Repository<MintSaleTransaction>,
-        private tierService: TierService
+        @InjectRepository(Asset721, 'sync_chain')
+        private readonly asset721Repository: Repository<Asset721>,
+        private tierService: TierService,
+        private openseaService: OpenseaService
     ) {}
 
     /**
@@ -55,10 +69,13 @@ export class CollectionService {
     async getCollectionByQuery(query: ICollectionQuery): Promise<Collection | null> {
         query = omitBy(query, isNil);
         if (isEmpty(query)) return null;
-        return await this.collectionRepository.findOne({
+        const collection = await this.collectionRepository.findOne({
             where: query,
-            relations: ['organization', 'tiers', 'creator', 'collaboration'],
+            relations: ['organization', 'creator', 'collaboration'],
         });
+
+        if (collection) collection.tiers = (await this.tierService.getTiersByCollection(collection.id)) as Tier[];
+        return collection;
     }
 
     /**
@@ -115,6 +132,30 @@ export class CollectionService {
             where: { creator: { id: walletId } },
             relations: ['organization', 'tiers', 'creator', 'collaboration'],
         });
+    }
+
+    /**
+     * Retrieve the collection stat from secondary markets.
+     * @param query The condition of the collection to retrieve.
+     */
+    async getSecondartMarketStat(query: ICollectionQuery): Promise<CollectionStat[]> {
+        query = omitBy(query, isNil);
+        if (isEmpty(query)) return null;
+        const collection = await this.collectionRepository.findOne({ where: query });
+        if (!collection) return null;
+        if (!collection.nameOnOpensea || collection.nameOnOpensea == '') {
+            throw new GraphQLError('The nameOnOpensea must provide', {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
+        }
+        const statFromOpensea = await this.openseaService.getCollectionStat(collection.nameOnOpensea);
+        // may have multiple sources, so make it as array
+        return [
+            {
+                source: 'opensea',
+                data: statFromOpensea,
+            },
+        ];
     }
 
     /**
@@ -242,5 +283,111 @@ export class CollectionService {
         // NOTE: use this when we wanna attach wallet. CURENTLY, we will not have wallet's for every address
         // so this WILL BREAK.
         //return await this.walletRepository.find({ where: { address: In(result.map((r) => r.recipient)) } });
+    }
+
+    async getHolders(address: string, offset: number, limit: number): Promise<CollectionHolder> {
+        const contract = await this.mintSaleContractRepository.findOneBy({ address });
+
+        const [holderResults, totalResult] = await Promise.all([
+            this.asset721Repository
+                .createQueryBuilder('asset')
+                .leftJoinAndSelect(MintSaleTransaction, 'transaction', 'asset.tokenId = transaction.tokenId')
+                .select('asset.owner', 'owner')
+                .addSelect('asset.tokenId', 'tokenId')
+                .addSelect('COUNT(asset.tokenId)', 'quantity')
+                .addSelect('transaction.tierId', 'tierId')
+                .where('asset.address = :address AND transaction.tokenAddress = :address', {
+                    address: contract.tokenAddress,
+                })
+                .offset(offset)
+                .limit(limit)
+                .groupBy('asset.owner')
+                .addGroupBy('asset.tokenId')
+                .addGroupBy('transaction.tierId')
+                .getRawMany(),
+            this.asset721Repository
+                .createQueryBuilder('asset')
+                .select('COUNT(asset.owner) AS count')
+                .where('asset.address = :address', { address: contract.tokenAddress })
+                .getRawOne(),
+        ]);
+
+        const data = await Promise.all(
+            holderResults.map(async (holder) => {
+                const wallet = await this.walletRepository.findOneBy({ address: holder.owner });
+
+                const tier = await this.tierRepository
+                    .createQueryBuilder('tier')
+                    .leftJoinAndSelect(collectionEntity.Collection, 'collection', 'tier.collectionId = collection.id')
+                    .where('tier.tierId = :tierId', { tierId: holder.tierId })
+                    .andWhere('collection.address = :address', { address })
+                    .getOne();
+                return {
+                    ...wallet,
+                    quantity: holder.quantity ? parseInt(holder.quantity) : 0,
+                    tier,
+                };
+            })
+        );
+        return { total: totalResult ? parseInt(totalResult.count) : 0, data: data };
+    }
+
+    async getUniqueHolderCount(address: string): Promise<number> {
+        const contract = await this.mintSaleContractRepository.findOneBy({ address });
+
+        const total = await this.asset721Repository
+            .createQueryBuilder('asset')
+            .select('COUNT(DISTINCT(asset.owner)) AS count')
+            .where('asset.address = :address', { address: contract.tokenAddress })
+            .getRawOne();
+
+        return total ? parseInt(total.count) : 0;
+    }
+
+    async getCollectionActivities(address: string, offset: number, limit: number): Promise<CollectionActivities> {
+        const contract = await this.mintSaleContractRepository.findOneBy({ address });
+
+        const [assets, total] = await this.asset721Repository
+            .createQueryBuilder('asset')
+            .where('asset.address = :address', { address: contract.tokenAddress })
+            .offset(offset)
+            .limit(limit)
+            .getManyAndCount();
+
+        const txns = await this.mintSaleTransactionRepository.findBy({
+            tokenAddress: contract.tokenAddress,
+            tokenId: In(
+                assets.map((asset) => {
+                    return asset.tokenId;
+                })
+            ),
+        });
+
+        const data = await Promise.all(
+            assets.map(async (asset) => {
+                const txn = txns.find((t) => {
+                    return t.tokenAddress == asset.address && t.tokenId == asset.tokenId;
+                });
+
+                let type: CollectionActivityType = CollectionActivityType.Transfer;
+                if (asset.owner == ZeroAccount) type = CollectionActivityType.Burn;
+                if (asset.owner == txn.recipient) type = CollectionActivityType.Mint;
+
+                const tier = await this.tierRepository
+                    .createQueryBuilder('tier')
+                    .leftJoinAndSelect(collectionEntity.Collection, 'collection', 'tier.collectionId = collection.id')
+                    .where('tier.tierId = :tierId', { tierId: txn.tierId })
+                    .andWhere('collection.address = :address', { address })
+                    .getOne();
+                return {
+                    ...asset,
+                    tier: tier,
+                    type: type,
+                    transaction: txn,
+                };
+            })
+        );
+
+        return { data, total };
     }
 }

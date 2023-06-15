@@ -1,7 +1,6 @@
 import * as request from 'supertest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../../lib/configs/db.config';
 import { INestApplication } from '@nestjs/common';
@@ -14,7 +13,6 @@ import { CoinModule } from './coin.module';
 export const gql = String.raw;
 
 describe('CoinResolver', () => {
-    let repository: Repository<Coin>;
     let service: CoinService;
     let app: INestApplication;
     let coin: Coin;
@@ -40,7 +38,6 @@ describe('CoinResolver', () => {
             ],
         }).compile();
 
-        repository = module.get('sync_chain_CoinRepository');
         service = module.get<CoinService>(CoinService);
         app = module.createNestApplication();
 
@@ -87,7 +84,7 @@ describe('CoinResolver', () => {
         });
 
         it('should return coin list', async () => {
-            const coin2 = await service.createCoin({
+            await service.createCoin({
                 address: faker.finance.ethereumAddress(),
                 name: 'Tether USD',
                 symbol: 'USDT',

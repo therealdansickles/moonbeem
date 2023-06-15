@@ -9,7 +9,7 @@ registerEnumType(ContractType, { name: 'ContractType' });
 export class Factory {
     @ApiProperty()
     @IsString()
-    @Field((returns) => ID!)
+    @Field(() => ID)
     readonly id: string;
 
     @ApiProperty()
@@ -43,7 +43,7 @@ export class Factory {
     readonly masterAddress: string;
 
     @ApiProperty()
-    @Field((type) => ContractType, { description: 'The type of Contract.' })
+    @Field(() => ContractType, { description: 'The type of Contract.' })
     readonly kind?: ContractType;
 
     @ApiProperty()

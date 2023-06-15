@@ -5,7 +5,6 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { INestApplication } from '@nestjs/common';
 import { ApolloDriver } from '@nestjs/apollo';
 import { faker } from '@faker-js/faker';
-import { Repository } from 'typeorm';
 import { postgresConfig } from '../lib/configs/db.config';
 import { ethers } from 'ethers';
 import { hashSync as hashPassword } from 'bcryptjs';
@@ -138,7 +137,7 @@ describe('SessionResolver', () => {
 
     describe('createSessionFromEmail', () => {
         it('should create a session', async () => {
-            let user = await userService.createUser({
+            const user = await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',
             });
