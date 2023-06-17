@@ -181,7 +181,7 @@ export class WalletService {
 
         // if wallet doesn't existed yet, create a new one and bind the owner on it
         if (!wallet) {
-            wallet = { address, owner } as Wallet;
+            wallet = await this.walletRespository.create({ address, owner });
         } else {
             if (wallet.owner && wallet.owner.id) {
                 throw new GraphQLError(`Wallet ${address} is already bound.`, {

@@ -342,6 +342,51 @@ describe('WalletResolver', () => {
                     expect(body.data.bindWallet.owner.id).toEqual(variables.input.owner.id);
                 });
         });
+
+        it('should bind a wallet even if the wallet doesnt exist', async () => {
+            const randomWallet = ethers.Wallet.createRandom();
+            const message = 'Hi from tests!';
+            const signature = await randomWallet.signMessage(message);
+
+            const name = faker.internet.userName();
+            const email = faker.internet.email();
+            const password = faker.internet.password();
+
+            const owner = await userService.createUser({
+                name,
+                email,
+                password,
+            });
+
+            const query = gql`
+                mutation BindWallet($input: BindWalletInput!) {
+                    bindWallet(input: $input) {
+                        address
+                        owner {
+                            id
+                        }
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    address: randomWallet.address,
+                    owner: { id: owner.id },
+                    message,
+                    signature,
+                },
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.bindWallet.address).toEqual(randomWallet.address.toLowerCase());
+                    expect(body.data.bindWallet.owner.id).toEqual(variables.input.owner.id);
+                });
+        });
     });
 
     describe('unbindWallet', () => {
