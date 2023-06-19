@@ -15,6 +15,7 @@ import { Wallet } from '../wallet/wallet.entity';
 import { Organization } from '../organization/organization.entity';
 import { Collaboration } from '../collaboration/collaboration.entity';
 import { Tier } from '../tier/tier.entity';
+import { Redeem } from '../redeem/redeem.entity';
 import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
 
 // see https://stackoverflow.com/questions/55598213/enums-not-working-with-nestjs-and-graphql
@@ -101,6 +102,9 @@ export class Collection extends BaseEntity {
 
     @Column({ nullable: true, default: 1, comment: 'The chain id for the collection.' })
     readonly chainId?: number;
+
+    @OneToMany(() => Redeem, (redeem) => redeem.collection, { nullable: true })
+    readonly redeems?: Redeem[];
 
     @Column({
         nullable: true,

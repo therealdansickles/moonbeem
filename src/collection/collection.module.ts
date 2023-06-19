@@ -22,11 +22,12 @@ import { OpenseaModule } from '../opensea/opensea.module';
 import { OpenseaService } from '../opensea/opensea.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Asset721Module } from '../sync-chain/asset721/asset721.module';
+import { Redeem } from '../redeem/redeem.entity';
 
 @Module({
     imports: [
         HttpModule,
-        TypeOrmModule.forFeature([Collaboration, Collection, Organization, Tier, Wallet]),
+        TypeOrmModule.forFeature([Collaboration, Collection, Organization, Tier, Wallet, Redeem]),
         TypeOrmModule.forFeature([Coin, MintSaleContract, MintSaleTransaction, Asset721], 'sync_chain'),
         forwardRef(() => CollaborationModule),
         forwardRef(() => MintSaleContractModule),
