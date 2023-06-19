@@ -31,6 +31,7 @@ import { SessionGuard } from './session/session.guard';
 import { OpenseaModule } from './opensea/opensea.module';
 import { MoonpayModule } from './moonpay/moonpay.module';
 import { AuthorizationModule } from './authorization/authorization.module';
+import { RedeemModule } from './redeem/redeem.module';
 
 @Module({
     imports: [
@@ -51,6 +52,7 @@ import { AuthorizationModule } from './authorization/authorization.module';
         OpenseaModule,
         MoonpayModule,
         AuthorizationModule,
+        RedeemModule,
         // integration graphql
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver, // GraphQL server adapter
