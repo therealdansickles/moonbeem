@@ -7,6 +7,7 @@ import { ApolloDriver } from '@nestjs/apollo';
 import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../lib/configs/db.config';
 import { ethers } from 'ethers';
+import { hashSync as hashPassword } from 'bcryptjs';
 
 import { WalletModule } from './wallet.module';
 import { WalletService } from './wallet.service';
@@ -56,12 +57,12 @@ describe('WalletResolver', () => {
                     dropSchema: true,
                 }),
                 WalletModule,
+                SessionModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
-                    include: [WalletModule],
+                    include: [WalletModule, SessionModule],
                 }),
-                SessionModule,
             ],
         }).compile();
 
@@ -298,7 +299,7 @@ describe('WalletResolver', () => {
     });
 
     describe('bindWallet', () => {
-        it('should bind a wallet', async () => {
+        it('should forbid if not signed in', async () => {
             const randomWallet = ethers.Wallet.createRandom();
             const message = 'Hi from tests!';
             const signature = await randomWallet.signMessage(message);
@@ -339,6 +340,77 @@ describe('WalletResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
+                    expect(body.errors[0].extensions.code).toEqual('FORBIDDEN');
+                    expect(body.data).toBeNull();
+                });
+        });
+
+        it('should bind a wallet', async () => {
+            const randomWallet = ethers.Wallet.createRandom();
+            const message = 'Hi from tests!';
+            const signature = await randomWallet.signMessage(message);
+
+            const name = faker.internet.userName();
+            const email = faker.internet.email();
+            const password = faker.internet.password();
+
+            const owner = await userService.createUser({
+                name,
+                email,
+                password,
+            });
+            const wallet = await service.createWallet({ address: randomWallet.address });
+
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: owner.email,
+                    password: await hashPassword(owner.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
+            const query = gql`
+                mutation BindWallet($input: BindWalletInput!) {
+                    bindWallet(input: $input) {
+                        address
+                        owner {
+                            id
+                        }
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    address: wallet.address,
+                    owner: { id: owner.id },
+                    message,
+                    signature,
+                },
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
                     expect(body.data.bindWallet.owner.id).toEqual(variables.input.owner.id);
                 });
         });
@@ -357,6 +429,31 @@ describe('WalletResolver', () => {
                 email,
                 password,
             });
+
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: owner.email,
+                    password: await hashPassword(owner.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
 
             const query = gql`
                 mutation BindWallet($input: BindWalletInput!) {
@@ -380,6 +477,7 @@ describe('WalletResolver', () => {
 
             return request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {

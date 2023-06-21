@@ -1,16 +1,20 @@
+import { ethers } from 'ethers';
 import * as request from 'supertest';
+
+import { faker } from '@faker-js/faker';
 import { ApolloDriver } from '@nestjs/apollo';
-import { GraphQLModule } from '@nestjs/graphql';
 import { INestApplication } from '@nestjs/common';
+import { GraphQLModule } from '@nestjs/graphql';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ethers } from 'ethers';
-import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
 
+import { postgresConfig } from '../lib/configs/db.config';
+import { SessionModule } from '../session/session.module';
+import {
+    MintSaleTransactionModule
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
 import { WaitlistModule } from './waitlist.module';
 import { WaitlistService } from './waitlist.service';
-import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
 
 export const gql = String.raw;
 
@@ -39,10 +43,11 @@ describe('WaitlistResolver', () => {
                 }),
                 WaitlistModule,
                 MintSaleTransactionModule,
+                SessionModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
-                    include: [WaitlistModule],
+                    include: [SessionModule, WaitlistModule],
                 }),
             ],
         }).compile();
@@ -217,18 +222,10 @@ describe('WaitlistResolver', () => {
     });
 
     describe('claimWaitlist', () => {
-        it('should successfully claim a waitlist item by address', async () => {
-            const email = faker.internet.email();
+        it('should forbid if not signed in', async () => {
             const randomWallet = ethers.Wallet.createRandom();
             const message = 'Hi from tests!';
             const signature = await randomWallet.signMessage(message);
-
-            await service.createWaitlist({
-                email,
-                address: randomWallet.address,
-                signature,
-                message,
-            });
 
             const query = gql`
                 mutation ClaimWaitlist($input: ClaimWaitlistInput!) {
@@ -246,6 +243,70 @@ describe('WaitlistResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.errors[0].extensions.code).toEqual('FORBIDDEN');
+                    expect(body.data).toBeNull();
+                });
+        });
+
+        it('should successfully claim a waitlist item by address', async () => {
+            const email = faker.internet.email();
+            const randomWallet = ethers.Wallet.createRandom();
+            const message = 'Hi from tests!';
+            const signature = await randomWallet.signMessage(message);
+
+            await service.createWaitlist({
+                email,
+                address: randomWallet.address,
+                signature,
+                message,
+            });
+
+            const tokenQuery = gql`
+                mutation CreateSession($input: CreateSessionInput!) {
+                    createSession(input: $input) {
+                        token
+                        wallet {
+                            id
+                            address
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    address: randomWallet.address,
+                    message,
+                    signature
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSession;
+
+            const query = gql`
+                mutation ClaimWaitlist($input: ClaimWaitlistInput!) {
+                    claimWaitlist(input: $input)
+                }
+            `;
+
+            const variables = {
+                input: {
+                    address: randomWallet.address,
+                    message,
+                    signature,
+                },
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {

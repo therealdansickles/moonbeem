@@ -1,9 +1,11 @@
-import { Public } from '../session/session.decorator';
-import { Resolver, Query, Args, Mutation, ResolveField, Parent, Int } from '@nestjs/graphql';
+import { UseGuards } from '@nestjs/common';
+import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { Tier, CreateTierInput, UpdateTierInput, DeleteTierInput, Profit } from './tier.dto';
-import { TierService } from './tier.service';
+import { Public } from '../session/session.decorator';
+import { SigninByEmailGuard } from '../session/session.guard';
 import { TierHolders } from '../wallet/wallet.dto';
+import { CreateTierInput, DeleteTierInput, Profit, Tier, UpdateTierInput } from './tier.dto';
+import { TierService } from './tier.service';
 
 @Resolver(() => Tier)
 export class TierResolver {
@@ -21,6 +23,7 @@ export class TierResolver {
         return await this.tierService.getTiersByCollection(collectionId);
     }
 
+    @UseGuards(SigninByEmailGuard)
     @Mutation(() => Tier, { description: 'Create a new tier.' })
     async createTier(@Args('input') input: CreateTierInput): Promise<Tier> {
         return await this.tierService.createTier(input);

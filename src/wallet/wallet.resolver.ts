@@ -15,8 +15,9 @@ import { WalletService } from './wallet.service';
 import { Collection } from '../collection/collection.dto';
 import { CollectionService } from '../collection/collection.service';
 import { RelationshipService } from '../relationship/relationship.service';
-import { AuthorizedWalletGuard, AuthorizedWallet } from '../authorization/authorization.decorator';
 import { UseGuards } from '@nestjs/common';
+import { SigninByEmailGuard } from '../session/session.guard';
+import { AuthorizedWallet } from '../authorization/authorization.decorator';
 
 @Resolver(() => Wallet)
 export class WalletResolver {
@@ -44,6 +45,7 @@ export class WalletResolver {
         return this.walletService.createWallet(input);
     }
 
+    @UseGuards(SigninByEmailGuard)
     @Mutation(() => Wallet, { description: 'Binds a wallet to the current user.' })
     async bindWallet(@Args('input') input: BindWalletInput): Promise<Wallet> {
         return await this.walletService.bindWallet(input);

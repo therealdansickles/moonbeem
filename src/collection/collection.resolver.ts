@@ -14,6 +14,8 @@ import {
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { CollectionHolder } from '../wallet/wallet.dto';
+import { UseGuards } from '@nestjs/common';
+import { SigninByEmailGuard } from '../session/session.guard';
 
 @Resolver(() => Collection)
 export class CollectionResolver {
@@ -32,6 +34,7 @@ export class CollectionResolver {
         return this.collectionService.getCollectionByQuery({ id, address, name });
     }
 
+    @UseGuards(SigninByEmailGuard)
     @Mutation(() => Collection, { description: 'creates a collection' })
     async createCollection(@Args('input') input: CreateCollectionInput): Promise<Collection> {
         return this.collectionService.createCollectionWithTiers(input);

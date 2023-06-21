@@ -1,24 +1,27 @@
+import { hashSync as hashPassword } from 'bcryptjs';
 import * as request from 'supertest';
-import { Test, TestingModule } from '@nestjs/testing';
-import { GraphQLModule } from '@nestjs/graphql';
-import { INestApplication } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ApolloDriver } from '@nestjs/apollo';
-import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
 
-import { Collaboration } from './collaboration.entity';
-import { CollaborationModule } from './collaboration.module';
-import { CollaborationService } from './collaboration.service';
+import { faker } from '@faker-js/faker';
+import { ApolloDriver } from '@nestjs/apollo';
+import { INestApplication } from '@nestjs/common';
+import { GraphQLModule } from '@nestjs/graphql';
+import { Test, TestingModule } from '@nestjs/testing';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
+import { postgresConfig } from '../lib/configs/db.config';
 import { Organization } from '../organization/organization.entity';
 import { OrganizationService } from '../organization/organization.service';
+import { SessionModule } from '../session/session.module';
 import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
 import { Wallet } from '../wallet/wallet.entity';
 import { WalletModule } from '../wallet/wallet.module';
 import { WalletService } from '../wallet/wallet.service';
+import { Collaboration } from './collaboration.entity';
+import { CollaborationModule } from './collaboration.module';
+import { CollaborationService } from './collaboration.service';
 
 export const gql = String.raw;
 
@@ -53,10 +56,11 @@ describe('CollaborationResolver', () => {
                     dropSchema: true,
                 }),
                 CollaborationModule,
+                SessionModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
-                    include: [CollaborationModule, CollectionModule, WalletModule],
+                    include: [SessionModule, CollaborationModule, CollectionModule, WalletModule],
                 }),
             ],
         }).compile();
@@ -101,7 +105,7 @@ describe('CollaborationResolver', () => {
             });
         });
 
-        it('should create a collaboration', async () => {
+        it('should forbid is not signed in', async () => {
             const query = gql`
                 mutation CreateCollaboration($input: CreateCollaborationInput!) {
                     createCollaboration(input: $input) {
@@ -146,6 +150,85 @@ describe('CollaborationResolver', () => {
 
             return request(app.getHttpServer())
                 .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.errors[0].extensions.code).toEqual('FORBIDDEN');
+                    expect(body.data).toBeNull();
+                });
+        });
+
+        it('should create a collaboration', async () => {
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: user.email,
+                    password: await hashPassword(user.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
+
+            const query = gql`
+                mutation CreateCollaboration($input: CreateCollaborationInput!) {
+                    createCollaboration(input: $input) {
+                        id
+                        name
+                        royaltyRate
+                        collaborators {
+                            name
+                            role
+                        }
+
+                        organization {
+                            id
+                            name
+                        }
+
+                        user {
+                            id
+                            username
+                        }
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    name: faker.hacker.noun(),
+                    walletId: wallet.id,
+                    organizationId: organization.id,
+                    userId: user.id,
+                    royaltyRate: 9,
+                    collaborators: [
+                        {
+                            address: faker.finance.ethereumAddress(),
+                            role: faker.finance.accountName(),
+                            name: faker.finance.accountName(),
+                            rate: parseInt(faker.random.numeric(2)),
+                        },
+                    ],
+                },
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {

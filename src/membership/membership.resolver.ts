@@ -11,6 +11,8 @@ import {
 import { MembershipService } from './membership.service';
 import { OrganizationService } from '../organization/organization.service';
 import { MailService } from '../mail/mail.service';
+import { SigninByEmailGuard } from '../session/session.guard';
+import { UseGuards } from '@nestjs/common';
 
 @Resolver(() => Membership)
 export class MembershipResolver {
@@ -31,6 +33,7 @@ export class MembershipResolver {
         return await this.membershipService.createMembership(input);
     }
 
+    @UseGuards(SigninByEmailGuard)
     @Mutation(() => Boolean, { description: 'Accept a membership request.' })
     async acceptMembership(@Args('input') input: MembershipRequestInput): Promise<boolean> {
         return await this.membershipService.acceptMembership(input);

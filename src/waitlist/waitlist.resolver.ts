@@ -1,8 +1,12 @@
-import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
-import { Public } from '../session/session.decorator';
+import { UseGuards } from '@nestjs/common';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
+import { Public } from '../session/session.decorator';
+import { SigninByWalletGuard } from '../session/session.guard';
+import {
+    ClaimWaitlistInput, CreateWaitlistInput, GetWaitlistInput, Waitlist
+} from './waitlist.dto';
 import { WaitlistService } from './waitlist.service';
-import { CreateWaitlistInput, GetWaitlistInput, Waitlist, ClaimWaitlistInput } from './waitlist.dto';
 
 @Resolver('Waitlist')
 export class WaitlistResolver {
@@ -19,6 +23,7 @@ export class WaitlistResolver {
         return this.waitlistService.createWaitlist(input);
     }
 
+    @UseGuards(SigninByWalletGuard)
     @Mutation(() => Boolean, { description: 'claim a waitlist item' })
     async claimWaitlist(@Args('input') input: ClaimWaitlistInput): Promise<boolean> {
         return this.waitlistService.claimWaitlist(input);

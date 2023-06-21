@@ -17,6 +17,7 @@ interface IGraphQLRequest {
         variables?: any
     }
 }
+
 @Injectable()
 export class AuthorizedWalletGuard implements CanActivate {
     constructor(private readonly reflector: Reflector, private readonly jwtService: JwtService) { }

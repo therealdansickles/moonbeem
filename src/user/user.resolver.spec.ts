@@ -203,7 +203,7 @@ describe('UserResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
-                .set('authorization', `Bearer ${token}`)
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {

@@ -1,16 +1,18 @@
+import { hashSync as hashPassword } from 'bcryptjs';
 import * as request from 'supertest';
-import { Test, TestingModule } from '@nestjs/testing';
-import { GraphQLModule } from '@nestjs/graphql';
-import { INestApplication } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ApolloDriver } from '@nestjs/apollo';
-import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
 
+import { faker } from '@faker-js/faker';
+import { ApolloDriver } from '@nestjs/apollo';
+import { INestApplication } from '@nestjs/common';
+import { GraphQLModule } from '@nestjs/graphql';
+import { Test, TestingModule } from '@nestjs/testing';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { postgresConfig } from '../lib/configs/db.config';
+import { SessionModule } from '../session/session.module';
+import { UserService } from '../user/user.service';
 import { OrganizationModule } from './organization.module';
 import { OrganizationService } from './organization.service';
-
-import { UserService } from '../user/user.service';
 
 export const gql = String.raw;
 
@@ -40,10 +42,11 @@ describe('OrganizationResolver', () => {
                     dropSchema: true,
                 }),
                 OrganizationModule,
+                SessionModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
-                    include: [OrganizationModule],
+                    include: [SessionModule, OrganizationModule],
                 }),
             ],
         }).compile();
@@ -118,7 +121,7 @@ describe('OrganizationResolver', () => {
     });
 
     describe('createOrganization', () => {
-        it('should allow authenticated users to create an organization', async () => {
+        it('should forbid if not signed in', async () => {
             const query = gql`
                 mutation CreateOrganization($input: CreateOrganizationInput!) {
                     createOrganization(input: $input) {
@@ -152,6 +155,75 @@ describe('OrganizationResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.errors[0].extensions.code).toEqual('FORBIDDEN');
+                    expect(body.data).toBeNull();
+                });
+        });
+
+        it('should allow authenticated users to create an organization', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: owner.email,
+                    password: await hashPassword(owner.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
+
+            const query = gql`
+                mutation CreateOrganization($input: CreateOrganizationInput!) {
+                    createOrganization(input: $input) {
+                        id
+                        name
+                    }
+                }
+            `;
+
+
+            const variables = {
+                input: {
+                    name: faker.company.name(),
+                    displayName: faker.company.name(),
+                    about: faker.company.catchPhrase(),
+                    avatarUrl: faker.image.imageUrl(),
+                    backgroundUrl: faker.image.imageUrl(),
+                    websiteUrl: faker.internet.url(),
+                    twitter: faker.internet.userName(),
+                    instagram: faker.internet.userName(),
+                    discord: faker.internet.userName(),
+                    owner: {
+                        id: owner.id,
+                    },
+                },
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {

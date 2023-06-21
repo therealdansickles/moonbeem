@@ -1,9 +1,7 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { Collaboration } from './collaboration.entity';
-import { CollaborationResolver } from './collaboration.resolver';
-import { CollaborationService } from './collaboration.service';
 import { Collection } from '../collection/collection.entity';
 import { CollectionModule } from '../collection/collection.module';
 import { Organization } from '../organization/organization.entity';
@@ -12,6 +10,9 @@ import { User } from '../user/user.entity';
 import { UserModule } from '../user/user.module';
 import { Wallet } from '../wallet/wallet.entity';
 import { WalletModule } from '../wallet/wallet.module';
+import { Collaboration } from './collaboration.entity';
+import { CollaborationResolver } from './collaboration.resolver';
+import { CollaborationService } from './collaboration.service';
 
 @Module({
     imports: [
@@ -20,8 +21,9 @@ import { WalletModule } from '../wallet/wallet.module';
         forwardRef(() => OrganizationModule),
         forwardRef(() => UserModule),
         forwardRef(() => WalletModule),
+        JwtModule
     ],
-    providers: [CollaborationService, CollaborationResolver],
+    providers: [JwtService, CollaborationService, CollaborationResolver],
     controllers: [],
     exports: [CollaborationModule, CollaborationService],
 })

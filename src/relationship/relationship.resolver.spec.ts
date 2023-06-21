@@ -1,21 +1,29 @@
+import { hashSync as hashPassword } from 'bcryptjs';
+import { ethers } from 'ethers';
 import * as request from 'supertest';
+
+import { faker } from '@faker-js/faker';
 import { ApolloDriver } from '@nestjs/apollo';
-import { GraphQLModule } from '@nestjs/graphql';
 import { INestApplication } from '@nestjs/common';
+import { GraphQLModule } from '@nestjs/graphql';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { faker } from '@faker-js/faker';
+
 import { postgresConfig } from '../lib/configs/db.config';
-import { RelationshipService } from './relationship.service';
-import { RelationshipModule } from './relationship.module';
-import { WalletService } from '../wallet/wallet.service';
+import { SessionModule } from '../session/session.module';
+import { UserModule } from '../user/user.module';
+import { UserService } from '../user/user.service';
 import { WalletModule } from '../wallet/wallet.module';
+import { WalletService } from '../wallet/wallet.service';
+import { RelationshipModule } from './relationship.module';
+import { RelationshipService } from './relationship.service';
 
 export const gql = String.raw;
 
 describe('RelationshipResolver', () => {
     let service: RelationshipService;
     let walletService: WalletService;
+    let userService: UserService;
     let app: INestApplication;
 
     beforeAll(async () => {
@@ -39,16 +47,19 @@ describe('RelationshipResolver', () => {
                 }),
                 RelationshipModule,
                 WalletModule,
+                UserModule,
+                SessionModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
-                    include: [RelationshipModule],
+                    include: [SessionModule, RelationshipModule],
                 }),
             ],
         }).compile();
 
         service = module.get<RelationshipService>(RelationshipService);
         walletService = module.get<WalletService>(WalletService);
+        userService = module.get<UserService>(UserService);
         app = module.createNestApplication();
         await app.init();
     });
@@ -59,7 +70,7 @@ describe('RelationshipResolver', () => {
     });
 
     describe('followByAddress', () => {
-        it('should work', async () => {
+        it('should forbid if not signed in', async () => {
             const wallet1 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
             const wallet2 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
 
@@ -86,6 +97,71 @@ describe('RelationshipResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.errors[0].extensions.code).toEqual('FORBIDDEN');
+                    expect(body.data).toBeNull();
+                });
+        });
+
+        it('should work', async () => {
+            const walletEntity = await ethers.Wallet.createRandom();
+            const wallet1 = await walletService.createWallet({ address: walletEntity.address });
+            const wallet2 = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
+            const message = 'follow';
+            const signature = await walletEntity.signMessage(message);
+
+            const tokenQuery = gql`
+                mutation CreateSession($input: CreateSessionInput!) {
+                    createSession(input: $input) {
+                        token
+                        wallet {
+                            id
+                            address
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    address: wallet1.address,
+                    message,
+                    signature
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSession;
+
+            const query = gql`
+                mutation FollowByAddress($input: CreateRelationshipByAddressInput!) {
+                    followByAddress(input: $input) {
+                        id
+                        follower {
+                            address
+                        }
+                        following {
+                            address
+                        }
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    followerAddress: wallet2.address,
+                    followingAddress: wallet1.address,
+                },
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {

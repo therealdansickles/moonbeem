@@ -1,24 +1,32 @@
+import { hashSync as hashPassword } from 'bcryptjs';
+import BigNumber from 'bignumber.js';
 import * as request from 'supertest';
-import { Test, TestingModule } from '@nestjs/testing';
-import { GraphQLModule } from '@nestjs/graphql';
-import { INestApplication } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ApolloDriver } from '@nestjs/apollo';
-import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
 
+import { faker } from '@faker-js/faker';
+import { ApolloDriver } from '@nestjs/apollo';
+import { INestApplication } from '@nestjs/common';
+import { GraphQLModule } from '@nestjs/graphql';
+import { Test, TestingModule } from '@nestjs/testing';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { Collection } from '../collection/collection.dto';
 import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
+import { postgresConfig } from '../lib/configs/db.config';
+import { SessionModule } from '../session/session.module';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
+import { Coin } from '../sync-chain/coin/coin.entity';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { UserService } from '../user/user.service';
+import { WalletService } from '../wallet/wallet.service';
 import { TierModule } from './tier.module';
 import { TierService } from './tier.service';
-import { CoinService } from '../sync-chain/coin/coin.service';
-import { Coin } from '../sync-chain/coin/coin.entity';
-import { Collection } from '../collection/collection.dto';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import BigNumber from 'bignumber.js';
-import { Asset721Service } from '../sync-chain/asset721/asset721.service';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { WalletService } from '../wallet/wallet.service';
 
 export const gql = String.raw;
 
@@ -28,6 +36,7 @@ describe('TierResolver', () => {
     let collection: Collection;
     let walletService: WalletService;
     let collectionService: CollectionService;
+    let userService: UserService;
 
     // sync_chain services
     let coin: Coin;
@@ -57,10 +66,11 @@ describe('TierResolver', () => {
                     dropSchema: true,
                 }),
                 TierModule,
+                SessionModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
-                    include: [TierModule],
+                    include: [SessionModule, TierModule],
                 }),
             ],
         }).compile();
@@ -68,6 +78,7 @@ describe('TierResolver', () => {
         service = module.get<TierService>(TierService);
         walletService = module.get<WalletService>(WalletService);
         collectionService = module.get<CollectionService>(CollectionService);
+        userService = module.get<UserService>(UserService);
         // sync_chain services
         coinService = module.get<CoinService>(CoinService);
         asset721Service = module.get<Asset721Service>(Asset721Service);
@@ -421,8 +432,8 @@ describe('TierResolver', () => {
         });
     });
 
-    describe('tiers', () => {
-        it('should return tiers by collection id', async () => {
+    describe('createTier', () => {
+        it('should forbid if not signed in', async () => {
             collection = await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
@@ -433,25 +444,9 @@ describe('TierResolver', () => {
                 address: faker.finance.ethereumAddress(),
             });
 
-            await service.createTier({
-                name: faker.company.name(),
-                collection: { id: collection.id },
-                totalMints: 10,
-                paymentTokenAddress: coin.address,
-                tierId: 0,
-            });
-
-            await service.createTier({
-                name: faker.company.name(),
-                collection: { id: collection.id },
-                totalMints: 10,
-                paymentTokenAddress: coin.address,
-                tierId: 0,
-            });
-
             const query = gql`
-                query getTiersByCollection($collectionId: String!) {
-                    tiers(collectionId: $collectionId) {
+                mutation CreateTier($input: CreateTierInput!) {
+                    createTier(input: $input) {
                         id
                         name
                         collection {
@@ -466,7 +461,13 @@ describe('TierResolver', () => {
             `;
 
             const variables = {
-                collectionId: collection.id,
+                input: {
+                    name: faker.company.name(),
+                    collection: { id: collection.id },
+                    totalMints: 10,
+                    paymentTokenAddress: coin.address,
+                    tierId: 0,
+                }
             };
 
             return await request(app.getHttpServer())
@@ -474,7 +475,85 @@ describe('TierResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.data.tiers.length).toBe(2);
+                    expect(body.errors[0].extensions.code).toEqual('FORBIDDEN');
+                    expect(body.data).toBeNull();
+                });
+        });
+
+        it('should work', async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: user.email,
+                    password: await hashPassword(user.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
+
+            collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const query = gql`
+                mutation CreateTier($input: CreateTierInput!) {
+                    createTier(input: $input) {
+                        id
+                        name
+                        collection {
+                            id
+                        }
+                        coin {
+                            id
+                        }
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    name: faker.company.name(),
+                    collection: { id: collection.id },
+                    totalMints: 10,
+                    paymentTokenAddress: coin.address,
+                    tierId: 0,
+                }
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.createTier.name).toEqual(variables.input.name);
                 });
         });
     });

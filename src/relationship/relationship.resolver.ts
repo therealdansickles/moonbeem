@@ -1,8 +1,12 @@
-import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
-import { Public } from '../session/session.decorator';
+import { UseGuards } from '@nestjs/common';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
+import { Public } from '../session/session.decorator';
+import { SigninByWalletGuard } from '../session/session.guard';
+import {
+    CreateRelationshipByAddressInput, DeleteRelationshipByAddressInput, Relationship
+} from './relationship.dto';
 import { RelationshipService } from './relationship.service';
-import { Relationship, CreateRelationshipByAddressInput, DeleteRelationshipByAddressInput } from './relationship.dto';
 
 @Resolver('Relationship')
 export class RelationshipResolver {
@@ -22,6 +26,7 @@ export class RelationshipResolver {
         return relationships;
     }
 
+    @UseGuards(SigninByWalletGuard)
     @Mutation(() => Relationship, { description: 'create relationship.' })
     async followByAddress(@Args('input') input: CreateRelationshipByAddressInput): Promise<Relationship> {
         return this.relationshipService.createRelationshipByAddress(input);

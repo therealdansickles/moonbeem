@@ -1,6 +1,8 @@
-import { Public } from '../session/session.decorator';
-import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
+import { UseGuards } from '@nestjs/common';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
+import { Public } from '../session/session.decorator';
+import { SigninByEmailGuard } from '../session/session.guard';
 import { Collaboration, CreateCollaborationInput } from './collaboration.dto';
 import { CollaborationService } from './collaboration.service';
 
@@ -23,6 +25,7 @@ export class CollaborationResolver {
         return await this.collaborationService.getCollaborationsByUserIdAndOrganizationId(userId, organizationId);
     }
 
+    @UseGuards(SigninByEmailGuard)
     @Mutation(() => Collaboration, { description: 'create a collaboration' })
     async createCollaboration(@Args('input') input: CreateCollaborationInput): Promise<Collaboration> {
         return await this.collaborationService.createCollaboration(input);
