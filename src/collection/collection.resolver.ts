@@ -32,7 +32,6 @@ export class CollectionResolver {
         return this.collectionService.getCollectionByQuery({ id, address, name });
     }
 
-    @Public()
     @Mutation(() => Collection, { description: 'creates a collection' })
     async createCollection(@Args('input') input: CreateCollectionInput): Promise<Collection> {
         return this.collectionService.createCollectionWithTiers(input);
@@ -44,7 +43,6 @@ export class CollectionResolver {
         return this.collectionService.updateCollection(id, input);
     }
 
-    @Public()
     @Mutation(() => Boolean, { description: 'publishes a collection' })
     async publishCollection(@Args('input') input: CollectionInput): Promise<boolean> {
         return this.collectionService.publishCollection(input.id);
