@@ -437,3 +437,39 @@ export class BasicPriceInfo {
     @IsNumber()
     readonly chainId: number;
 }
+
+@ObjectType('TierSearchBar')
+export class TierSearchBar {
+    @Field(() => Int)
+    @IsNumber()
+    readonly total: number;
+
+    @Field(() => [Tier])
+    @IsArray()
+    readonly data: Tier[];
+}
+
+@InputType('TierSearchBarInput')
+export class TierSearchBarInput {
+    @IsString()
+    @Field({ description: 'The id of the tier.' })
+    readonly collectionId: string;
+
+    @IsString()
+    @Field({ nullable: true, description: 'The id of the tier.' })
+    @IsOptional()
+    readonly keyword?: string;
+
+    @IsArray()
+    @Field(() => [AttributeInput], { nullable: true, description: 'The id of the tier.' })
+    @IsOptional()
+    readonly attributes?: AttributeInput[];
+}
+
+export class IAttributeOverview {
+    [key: string]: IAttributeValueCount;
+}
+
+export class IAttributeValueCount {
+    [key: string]: number;
+}

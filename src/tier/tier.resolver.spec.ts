@@ -352,58 +352,70 @@ describe('TierResolver', () => {
                     type: 'object',
                     image: 'https://media.vibe.xyz/f2f407a2-011b-4aa9-b59d-5dc35fd00375',
                     image_url: 'https://media.vibe.xyz/f2f407a2-011b-4aa9-b59d-5dc35fd00375',
-                    conditions: [{
-                        uses: 'vibexyz/creator_scoring',
-                        rules: [{
-                            rule: 'greater_than',
-                            value: -1,
-                            property: 'holding_days'
-                        }, {
-                            rule: 'less_than',
-                            value: 999,
-                            property: 'holding_days'
-                        }],
-                        update: {
-                            value: '1',
-                            property: 'holding_days'
+                    conditions: [
+                        {
+                            uses: 'vibexyz/creator_scoring',
+                            rules: [
+                                {
+                                    rule: 'greater_than',
+                                    value: -1,
+                                    property: 'holding_days',
+                                },
+                                {
+                                    rule: 'less_than',
+                                    value: 999,
+                                    property: 'holding_days',
+                                },
+                            ],
+                            update: {
+                                value: '1',
+                                property: 'holding_days',
+                            },
+                            trigger: [
+                                {
+                                    type: 'schedule',
+                                    value: '0 0 * * *',
+                                },
+                            ],
+                            operator: 'and',
                         },
-                        trigger: [{
-                            type: 'schedule',
-                            value: '0 0 * * *'
-                        }],
-                        operator: 'and'
-                    }, {
-                        uses: 'vibexyz/royalty_level',
-                        rules: [{
-                            rule: 'greater_than',
-                            value: 10,
-                            property: 'holding_days'
-                        }],
-                        update: {
-                            value: 'Bronze',
-                            property: 'level'
+                        {
+                            uses: 'vibexyz/royalty_level',
+                            rules: [
+                                {
+                                    rule: 'greater_than',
+                                    value: 10,
+                                    property: 'holding_days',
+                                },
+                            ],
+                            update: {
+                                value: 'Bronze',
+                                property: 'level',
+                            },
+                            trigger: [
+                                {
+                                    type: 'schedule',
+                                    value: '0 */1 * * *',
+                                },
+                            ],
                         },
-                        trigger: [{
-                            type: 'schedule',
-                            value: '0 */1 * * *'
-                        }]
-                    }],
+                    ],
                     properties: {
                         level: {
                             name: 'level',
                             type: 'string',
                             value: 'basic',
-                            display_value: 'Basic'
+                            display_value: 'Basic',
                         },
                         holding_days: {
                             name: 'holding_days',
                             type: 'integer',
                             value: 125,
-                            display_value: 'Days of holding'
-                        }
+                            display_value: 'Days of holding',
+                        },
                     },
-                    external_url: 'https://vibe.xyz'
-                }
+                    external_url: 'https://vibe.xyz',
+                },
             });
 
             const query = gql`
@@ -626,10 +638,12 @@ describe('TierResolver', () => {
 
     describe('getHoldersOfTier', () => {
         const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
+        const tierName = 'Test Tier';
+        let innerCollection: Collection;
 
         beforeEach(async () => {
             const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
-            const collection = await collectionService.createCollection({
+            innerCollection = await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -640,11 +654,17 @@ describe('TierResolver', () => {
             });
 
             await service.createTier({
-                name: faker.company.name(),
+                name: tierName,
                 totalMints: 100,
-                collection: { id: collection.id },
+                collection: { id: innerCollection.id },
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                attributes: [
+                    {
+                        trait_type: 'Color',
+                        value: 'Blue',
+                    },
+                ],
             });
 
             await mintSaleContractService.createMintSaleContract({
@@ -666,7 +686,7 @@ describe('TierResolver', () => {
                 endId: 100,
                 currentId: 1,
                 tokenAddress: tokenAddress,
-                collectionId: collection.id,
+                collectionId: innerCollection.id,
             });
             const owner1 = faker.finance.ethereumAddress().toLowerCase();
             await walletService.createWallet({ address: owner1 });
@@ -753,6 +773,51 @@ describe('TierResolver', () => {
                     expect(body.data.collection.tiers.length).toEqual(1);
                     expect(body.data.collection.tiers[0].holders.total).toEqual(2);
                     expect(body.data.collection.tiers[0].holders.data.length).toEqual(2);
+                });
+        });
+
+        it('should get attribute overview', async () => {
+            const query = gql`
+                query overview($collectionId: String!) {
+                    attributeOverview(collectionId: $collectionId)
+                }
+            `;
+
+            const variables = { collectionId: innerCollection.id };
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.attributeOverview).toBeDefined();
+                    expect(body.data.attributeOverview.Color).toBeDefined();
+                    expect(body.data.attributeOverview.Color.Blue).toEqual(1);
+                });
+        });
+        it('should search by keyword', async () => {
+            const query = gql`
+                query SearchTier($input: TierSearchBarInput!) {
+                    searchTierFromCollection(input: $input) {
+                        total
+                        data {
+                            id
+                            name
+                        }
+                    }
+                }
+            `;
+
+            const variables = { input: { collectionId: innerCollection.id, keyword: 'test' } };
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.searchTierFromCollection).toBeDefined();
+                    expect(body.data.searchTierFromCollection.total).toEqual(1);
+                    expect(body.data.searchTierFromCollection.data).toBeDefined();
+                    expect(body.data.searchTierFromCollection.data[0]).toBeDefined();
+                    expect(body.data.searchTierFromCollection.data[0].name).toBe(tierName);
                 });
         });
     });

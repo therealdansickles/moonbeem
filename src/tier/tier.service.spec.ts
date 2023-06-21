@@ -343,11 +343,13 @@ describe('TierService', () => {
 
     describe('getHoldersOfTier', () => {
         const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
+        const tierName = 'Test Tier';
         let tier: Tier;
+        let innerCollection: Collection;
 
         beforeEach(async () => {
             const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
-            const collection = await collectionService.createCollection({
+            innerCollection = await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -358,11 +360,17 @@ describe('TierService', () => {
             });
 
             tier = await service.createTier({
-                name: faker.company.name(),
+                name: tierName,
                 totalMints: 100,
-                collection: { id: collection.id },
+                collection: { id: innerCollection.id },
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                attributes: [
+                    {
+                        trait_type: 'Color',
+                        value: 'Blue',
+                    },
+                ],
             });
 
             await mintSaleContractService.createMintSaleContract({
@@ -384,7 +392,7 @@ describe('TierService', () => {
                 endId: 100,
                 currentId: 1,
                 tokenAddress: tokenAddress,
-                collectionId: collection.id,
+                collectionId: innerCollection.id,
             });
             const owner1 = faker.finance.ethereumAddress().toLowerCase();
             await walletService.createWallet({ address: owner1 });
@@ -445,6 +453,22 @@ describe('TierService', () => {
             expect(result).toBeDefined();
             expect(result.total).toEqual(2);
             expect(result.data.length).toEqual(2);
+        });
+
+        it('should get attribute overview', async () => {
+            const result = await service.getArrtibutesOverview(innerCollection.id);
+            expect(result).toBeDefined();
+            expect(result['Color']).toBeDefined();
+            expect(result['Color']['Blue']).toEqual(1);
+        });
+
+        it('should search by keyword', async () => {
+            const result = await service.searchTier(innerCollection.id, 'test');
+            expect(result).toBeDefined();
+            expect(result.total).toEqual(1);
+            expect(result.data).toBeDefined();
+            expect(result.data[0]).toBeDefined();
+            expect(result.data[0].name).toBe(tierName);
         });
     });
 });

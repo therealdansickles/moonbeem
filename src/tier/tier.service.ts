@@ -4,7 +4,16 @@ import { Repository, DeleteResult, UpdateResult, In } from 'typeorm';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { Collection, CollectionKind } from '../collection/collection.entity';
 import * as tierEntity from './tier.entity';
-import { BasicPriceInfo, CreateTierInput, UpdateTierInput, Tier, Profit } from './tier.dto';
+import {
+    BasicPriceInfo,
+    CreateTierInput,
+    UpdateTierInput,
+    Tier,
+    Profit,
+    TierSearchBar,
+    AttributeInput,
+    IAttributeOverview,
+} from './tier.dto';
 import { GraphQLError } from 'graphql';
 import { captureException } from '@sentry/node';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
@@ -102,6 +111,7 @@ export class TierService {
 
         const dd = data as unknown as tierEntity.Tier;
         dd.collection = data.collection as unknown as Collection;
+        dd.attributes = data.attributes as tierEntity.Attribute[];
 
         try {
             return await this.tierRepository.save(dd);
@@ -274,5 +284,52 @@ export class TierService {
         });
 
         return { total: total, data: data };
+    }
+
+    async searchTier(collectionId: string, keyword?: string, attributes?: AttributeInput[]): Promise<TierSearchBar> {
+        let builder = this.tierRepository
+            .createQueryBuilder('tier')
+            .leftJoinAndSelect('tier.collection', 'collection')
+            .where('collection.id = :collectionId', { collectionId });
+
+        if (keyword) {
+            builder = builder.andWhere('LOWER(tier.name) LIKE :keyword', { keyword: `%${keyword}%` });
+        }
+
+        if (attributes && attributes.length > 0) {
+            attributes.forEach((attribute) => {
+                builder = builder.andWhere(`tier.attributes @> :condition`, {
+                    condition: JSON.stringify([attribute]),
+                });
+            });
+        }
+
+        const [tiers, total] = await builder.getManyAndCount();
+        return { total: total, data: tiers };
+    }
+
+    async getArrtibutesOverview(collectionId: string): Promise<IAttributeOverview> {
+        const tiers = await this.tierRepository
+            .createQueryBuilder('tier')
+            .leftJoinAndSelect('tier.collection', 'collection')
+            .where('collection.id = :collectionId', { collectionId })
+            .getMany();
+
+        const overview: IAttributeOverview = {};
+        tiers.forEach((tier) => {
+            tier.attributes.forEach((attribute) => {
+                if (!overview[attribute.trait_type]) {
+                    overview[attribute.trait_type] = {};
+                }
+
+                if (!overview[attribute.trait_type][attribute.value]) {
+                    overview[attribute.trait_type][attribute.value] = 0;
+                }
+
+                overview[attribute.trait_type][attribute.value]++;
+            });
+        });
+
+        return overview;
     }
 }

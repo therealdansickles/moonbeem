@@ -147,7 +147,7 @@ export class Tier extends BaseEntity {
         comment:
             'A JSON object with arbitrary data. This can be used to store any additional information about the item.',
     })
-    readonly attributes?: Attribute[];
+    public attributes?: Attribute[];
 
     @Column({
         default: [],

@@ -1,10 +1,20 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { GraphQLJSONObject } from 'graphql-type-json';
 
 import { Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
 import { TierHolders } from '../wallet/wallet.dto';
-import { CreateTierInput, DeleteTierInput, Profit, Tier, UpdateTierInput } from './tier.dto';
+import {
+    CreateTierInput,
+    DeleteTierInput,
+    IAttributeOverview,
+    Profit,
+    Tier,
+    TierSearchBar,
+    TierSearchBarInput,
+    UpdateTierInput,
+} from './tier.dto';
 import { TierService } from './tier.service';
 
 @Resolver(() => Tier)
@@ -61,5 +71,17 @@ export class TierResolver {
         @Args('limit', { type: () => Int, nullable: true, defaultValue: 10 }) limit?: number
     ): Promise<TierHolders> {
         return await this.tierService.getHolders(tier.id, offset, limit);
+    }
+
+    @Public()
+    @Query(() => TierSearchBar, { description: 'Returns the search result for tier' })
+    async searchTierFromCollection(@Args('input') input: TierSearchBarInput): Promise<TierSearchBar> {
+        return this.tierService.searchTier(input.collectionId, input.keyword, input.attributes);
+    }
+
+    @Public()
+    @Query(() => GraphQLJSONObject, { description: 'Returns attributes overview for collection/tier' })
+    async attributeOverview(@Args('collectionId') collectionId: string): Promise<IAttributeOverview> {
+        return this.tierService.getArrtibutesOverview(collectionId);
     }
 }
