@@ -20,6 +20,7 @@ import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
+import { CollectionStatus } from './collection.dto';
 
 export const gql = String.raw;
 
@@ -913,8 +914,9 @@ describe('CollectionResolver', () => {
     describe('getHolders', () => {
         const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
         let collection: Collection;
-        beforeEach(async () => {
+        beforeAll(async () => {
             const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
+            const beginTime = Math.floor(faker.date.recent().getTime() / 1000);
 
             const coin = await coinService.createCoin({
                 address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
@@ -973,8 +975,8 @@ describe('CollectionResolver', () => {
                 royaltyRate: 10000,
                 derivativeRoyaltyRate: 1000,
                 isDerivativeAllowed: true,
-                beginTime: Math.floor(faker.date.recent().getTime() / 1000),
-                endTime: Math.floor(faker.date.recent().getTime() / 1000),
+                beginTime: beginTime,
+                endTime: beginTime + 86400,
                 tierId: 0,
                 price: faker.random.numeric(19),
                 paymentToken: faker.finance.ethereumAddress(),
@@ -1127,6 +1129,33 @@ describe('CollectionResolver', () => {
                     expect(body.data.collection.activities.data.length).toEqual(2);
                     expect(body.data.collection.activities.data[0].tier).toBeDefined();
                     expect(body.data.collection.activities.data[0].transaction).toBeDefined();
+                });
+        });
+        it('should get lending page collections', async () => {
+            const query = gql`
+                query GetLandingPageCollections($status: String) {
+                    landingPage(status: $status) {
+                        total
+                        data {
+                            id
+                            address
+                        }
+                    }
+                }
+            `;
+
+            const variables = { status: CollectionStatus.active };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.landingPage).toBeDefined();
+                    expect(body.data.landingPage.total).toEqual(1);
+                    expect(body.data.landingPage.data).toBeDefined();
+                    expect(body.data.landingPage.data.length).toEqual(1);
+                    expect(body.data.landingPage.data[0].address).toEqual(collectionAddress);
                 });
         });
     });

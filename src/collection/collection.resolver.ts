@@ -8,6 +8,8 @@ import {
     UpdateCollectionInput,
     CollectionStat,
     CollectionActivities,
+    LandingPageCollection,
+    CollectionStatus,
 } from './collection.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
@@ -98,5 +100,21 @@ export class CollectionResolver {
         @Args('limit', { nullable: true, defaultValue: 10 }) limit?: number
     ): Promise<CollectionActivities> {
         return this.collectionService.getCollectionActivities(collection.address, offset, limit);
+    }
+
+    @Public()
+    @Query(() => LandingPageCollection, { description: 'Returns the upcoming collections.' })
+    async landingPage(
+        @Args('status', { nullable: true, defaultValue: CollectionStatus.active }) status: CollectionStatus,
+        @Args('offset', { nullable: true, defaultValue: 0 }) offset?: number,
+        @Args('limit', { nullable: true, defaultValue: 10 }) limit?: number
+    ): Promise<LandingPageCollection> {
+        return this.collectionService.getLandingPageCollections(status, offset, limit);
+    }
+
+    @Public()
+    @ResolveField(() => String, { description: 'Returns the floor price from tier' })
+    async floorPrice(@Parent() collection: Collection): Promise<string> {
+        return this.collectionService.getFloorPrice(collection.address);
     }
 }

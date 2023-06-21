@@ -17,6 +17,7 @@ import { WalletService } from '../wallet/wallet.service';
 import { CollaborationService } from '../collaboration/collaboration.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
+import { CollectionStatus } from './collection.dto';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
@@ -896,8 +897,9 @@ describe('CollectionService', () => {
     describe('getHolders', () => {
         const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
 
-        beforeEach(async () => {
+        beforeAll(async () => {
             const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
+            const beginTime = Math.floor(faker.date.recent().getTime() / 1000);
 
             const user = await userService.createUser({
                 email: faker.internet.email(),
@@ -945,8 +947,8 @@ describe('CollectionService', () => {
                 royaltyRate: 10000,
                 derivativeRoyaltyRate: 1000,
                 isDerivativeAllowed: true,
-                beginTime: Math.floor(faker.date.recent().getTime() / 1000),
-                endTime: Math.floor(faker.date.recent().getTime() / 1000),
+                beginTime: beginTime,
+                endTime: beginTime + 86400,
                 tierId: 0,
                 price: faker.random.numeric(19),
                 paymentToken: faker.finance.ethereumAddress(),
@@ -1031,6 +1033,15 @@ describe('CollectionService', () => {
             expect(result.data[0].tier).toBeDefined();
             expect(result.data[0].tier.price).toEqual('200');
             expect(result.data[0].transaction).toBeDefined();
+        });
+
+        it('should get lending page collections', async () => {
+            const result = await service.getLandingPageCollections(CollectionStatus.active, 0, 10);
+            expect(result).toBeDefined();
+            expect(result.total).toEqual(1);
+            expect(result.data).toBeDefined();
+            expect(result.data.length).toEqual(1);
+            expect(result.data[0].address).toEqual(collectionAddress);
         });
     });
 });

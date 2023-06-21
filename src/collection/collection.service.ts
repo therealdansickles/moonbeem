@@ -11,7 +11,9 @@ import {
     CollectionActivities,
     CollectionActivityType,
     CollectionStat,
+    CollectionStatus,
     CreateCollectionInput,
+    LandingPageCollection,
     ZeroAccount,
 } from './collection.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
@@ -389,5 +391,76 @@ export class CollectionService {
         );
 
         return { data, total };
+    }
+
+    async getLandingPageCollections(
+        status: CollectionStatus,
+        offset: number,
+        limit: number
+    ): Promise<LandingPageCollection> {
+        const currentTimestamp = Math.round(new Date().valueOf() / 1000);
+
+        let inWhere = '';
+        switch (status) {
+            case CollectionStatus.active:
+                inWhere = `"beginTime" <= ${currentTimestamp} AND "endTime" >= ${currentTimestamp}`;
+                break;
+            case CollectionStatus.closed:
+                inWhere = `"endTime" <= ${currentTimestamp}`;
+                break;
+            case CollectionStatus.upcoming:
+                inWhere = `"beginTime" >= ${currentTimestamp}`;
+                break;
+            default:
+                inWhere = `"beginTime" >= ${currentTimestamp} OR "beginTime" <= ${currentTimestamp} AND "endTime" >= ${currentTimestamp}`;
+                break;
+        }
+
+        const [contracts, totalResult] = await Promise.all([
+            this.mintSaleContractRepository
+                .createQueryBuilder('contract')
+                .distinctOn(['contract.address'])
+                .where(inWhere)
+                .offset(offset)
+                .limit(limit)
+                .getMany(),
+            this.mintSaleContractRepository
+                .createQueryBuilder('contract')
+                .select('COUNT(DISTINCT("contract".address)) AS count')
+                .where(inWhere)
+                .getRawOne(),
+        ]);
+
+        const collections = await this.collectionRepository.find({
+            where: {
+                address: In(
+                    contracts.map((contract) => {
+                        return contract.address;
+                    })
+                ),
+            },
+            relations: ['organization', 'tiers', 'creator', 'collaboration'],
+        });
+
+        const data = await Promise.all(
+            collections.map(async (collection) => {
+                collection.tiers = (await this.tierService.getTiersByCollection(collection.id)) as Tier[];
+                return { ...collection };
+            })
+        );
+
+        return {
+            total: totalResult ? parseInt(totalResult.count) : 0,
+            data: data,
+        };
+    }
+
+    async getFloorPrice(address: string): Promise<string> {
+        const result = await this.mintSaleContractRepository
+            .createQueryBuilder('contract')
+            .select('MIN(price)')
+            .where('address = :address', { address })
+            .getRawOne();
+        return result.min;
     }
 }

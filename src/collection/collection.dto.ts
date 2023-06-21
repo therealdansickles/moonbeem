@@ -23,7 +23,14 @@ import { GraphQLJSONObject } from 'graphql-type-json';
 
 export const ZeroAccount = '0x0000000000000000000000000000000000000000';
 
+export enum CollectionStatus {
+    closed = 'closed',
+    upcoming = 'upcoming',
+    active = 'active',
+}
+
 registerEnumType(CollectionKind, { name: 'CollectionKind' });
+registerEnumType(CollectionStatus, { name: 'CollectionStatus' });
 
 @ObjectType('Collection')
 export class Collection {
@@ -353,4 +360,15 @@ export class CollectionActivityData extends OmitType(Asset721, [], ObjectType) {
     @IsObject()
     @Field(() => MintSaleTransaction, { description: 'The transaction of the activity data.' })
     readonly transaction: MintSaleTransaction;
+}
+
+@ObjectType('LandingPageCollection')
+export class LandingPageCollection {
+    @Field(() => Int)
+    @IsNumber()
+    readonly total: number;
+
+    @Field(() => [Collection])
+    @IsArray()
+    readonly data: Collection[];
 }
