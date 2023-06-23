@@ -65,7 +65,7 @@ export class Metadata {
     properties: {
         [key: string]: MetadataProperty;
     };
-    conditions: Array<MetadataCondition>;
+    conditions: MetadataCondition;
 }
 
 @Entity({ name: 'Tier' })

@@ -156,8 +156,8 @@ export class MetadataOutput {
 
     @IsArray()
     @IsOptional()
-    @Field(() => [MetadataCondition], { nullable: true, description: 'The conditions of the metadata.' })
-    readonly conditions: MetadataCondition[];
+    @Field(() => MetadataCondition, { nullable: true, description: 'The conditions of the metadata.' })
+    readonly conditions?: MetadataCondition;
 
     @IsObject()
     @Field(() => GraphQLJSONObject, { description: 'The properties of the metadata.' })
