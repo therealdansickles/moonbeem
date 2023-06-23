@@ -1,33 +1,38 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { JwtModule } from '@nestjs/jwt/dist/jwt.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Wallet } from './wallet.entity';
-import { WalletService } from './wallet.service';
-import { WalletResolver } from './wallet.resolver';
-import { User } from '../user/user.entity';
-import { UserModule } from '../user/user.module';
+
 import { Collaboration } from '../collaboration/collaboration.entity';
 import { CollaborationModule } from '../collaboration/collaboration.module';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
-import { Tier } from '../tier/tier.entity';
-import { TierModule } from '../tier/tier.module';
-import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import { Collection } from '../collection/collection.entity';
 import { CollectionModule } from '../collection/collection.module';
-import { Coin } from '../sync-chain/coin/coin.entity';
-import { CoinModule } from '../sync-chain/coin/coin.module';
 import { Relationship } from '../relationship/relationship.entity';
 import { RelationshipModule } from '../relationship/relationship.module';
 import { RelationshipService } from '../relationship/relationship.service';
-import { AuthorizationModule } from '../authorization/authorization.module';
-import { JwtModule } from '@nestjs/jwt/dist/jwt.module';
-import { JwtService } from '@nestjs/jwt';
+import { SessionModule } from '../session/session.module';
+import { Coin } from '../sync-chain/coin/coin.entity';
+import { CoinModule } from '../sync-chain/coin/coin.module';
+import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import {
+    MintSaleTransactionModule
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
+import { Tier } from '../tier/tier.entity';
+import { TierModule } from '../tier/tier.module';
+import { User } from '../user/user.entity';
+import { UserModule } from '../user/user.module';
+import { Wallet } from './wallet.entity';
+import { WalletResolver } from './wallet.resolver';
+import { WalletService } from './wallet.service';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Wallet, Relationship, User, Collaboration, Collection, Tier]),
         TypeOrmModule.forFeature([MintSaleTransaction, MintSaleContract, Coin], 'sync_chain'),
-        forwardRef(() => AuthorizationModule),
+        forwardRef(() => SessionModule),
         forwardRef(() => CollaborationModule),
         forwardRef(() => CollectionModule),
         forwardRef(() => MintSaleTransactionModule),
@@ -41,4 +46,4 @@ import { JwtService } from '@nestjs/jwt';
     providers: [JwtService, RelationshipService, WalletService, WalletResolver],
     controllers: [],
 })
-export class WalletModule { }
+export class WalletModule {}

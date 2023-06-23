@@ -1,23 +1,18 @@
-import { Resolver, Query, Args, Mutation, ResolveField, Parent } from '@nestjs/graphql';
 import { GraphQLError } from 'graphql';
-import {
-    Wallet,
-    BindWalletInput,
-    UnbindWalletInput,
-    CreateWalletInput,
-    Minted,
-    UpdateWalletInput,
-    Activity,
-    EstimatedValue,
-} from './wallet.dto';
-import { CurrentWallet, Public } from '../session/session.decorator';
-import { WalletService } from './wallet.service';
+
+import { UseGuards } from '@nestjs/common';
+import { Args, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+
 import { Collection } from '../collection/collection.dto';
 import { CollectionService } from '../collection/collection.service';
 import { RelationshipService } from '../relationship/relationship.service';
-import { UseGuards } from '@nestjs/common';
+import { AuthorizedWallet, CurrentWallet, Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
-import { AuthorizedWallet } from '../authorization/authorization.decorator';
+import {
+    Activity, BindWalletInput, CreateWalletInput, EstimatedValue, Minted, UnbindWalletInput,
+    UpdateWalletInput, Wallet
+} from './wallet.dto';
+import { WalletService } from './wallet.service';
 
 @Resolver(() => Wallet)
 export class WalletResolver {
@@ -25,7 +20,7 @@ export class WalletResolver {
         private readonly walletService: WalletService,
         private readonly collectionService: CollectionService,
         private readonly relationshipService: RelationshipService,
-    ) { }
+    ) {}
 
     @Public()
     @Query(() => Wallet, {

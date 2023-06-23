@@ -25,7 +25,7 @@ export class SessionService {
         const wallet = await this.walletService.verifyWallet(address, message, signature);
 
         if (wallet) {
-            const token = await this.jwtService.signAsync({ walletId: wallet.id });
+            const token = await this.jwtService.signAsync({ walletId: wallet.id, walletAddress: wallet.address });
             return { token, wallet };
         }
         return null;

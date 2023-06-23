@@ -1,7 +1,16 @@
-import { SetMetadata, createParamDecorator, ExecutionContext } from '@nestjs/common';
+import {
+    applyDecorators, createParamDecorator, ExecutionContext, SetMetadata, UseGuards
+} from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
+import { AuthorizedWalletGuard, AuthorizedWalletAddressGuard, AuthorizedUserGuard } from './session.guard';
 
 export const IS_PUBLIC_KEY = 'isPublic';
+
+export const WALLET_PARAMETER = Symbol('WALLET_PARAMETER');
+
+export const WALLET_ADDRESS_PARAMETER = Symbol('WALLET_ADDRESS_PARAMETER');
+
+export const USER_PARAMETER = Symbol('USER_PARAMETER');
 
 /**
  * Set the metadata for a public endpoint.
@@ -28,3 +37,24 @@ export const CurrentUser = createParamDecorator((data: unknown, context: Executi
     const request = ctx.getContext().req;
     return request.user;
 });
+
+export function AuthorizedWallet(key: string) {
+    return applyDecorators(
+        SetMetadata(WALLET_PARAMETER, key),
+        UseGuards(AuthorizedWalletGuard)
+    );
+}
+
+export function AuthorizedWalletAddress(key: string) {
+    return applyDecorators(
+        SetMetadata(WALLET_ADDRESS_PARAMETER, key),
+        UseGuards(AuthorizedWalletAddressGuard)
+    );
+}
+
+export function AuthorizedUser(key: string) {
+    return applyDecorators(
+        SetMetadata(USER_PARAMETER, key),
+        UseGuards(AuthorizedUserGuard)
+    );
+}

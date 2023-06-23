@@ -30,7 +30,6 @@ import { postgresConfig } from './lib/configs/db.config';
 import { SessionGuard } from './session/session.guard';
 import { OpenseaModule } from './opensea/opensea.module';
 import { MoonpayModule } from './moonpay/moonpay.module';
-import { AuthorizationModule } from './authorization/authorization.module';
 import { RedeemModule } from './redeem/redeem.module';
 
 @Module({
@@ -51,7 +50,6 @@ import { RedeemModule } from './redeem/redeem.module';
         RelationshipModule,
         OpenseaModule,
         MoonpayModule,
-        AuthorizationModule,
         RedeemModule,
         // integration graphql
         GraphQLModule.forRoot<ApolloDriverConfig>({
@@ -88,4 +86,4 @@ import { RedeemModule } from './redeem/redeem.module';
     ],
     exports: [],
 })
-export class AppModule { }
+export class AppModule {}

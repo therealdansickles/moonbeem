@@ -1,10 +1,15 @@
+import { get } from 'lodash';
+import { Observable } from 'rxjs';
+
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { JwtService } from '@nestjs/jwt';
-import { WalletService } from '../wallet/wallet.service';
-import { UserService } from '../user/user.service';
-import { Reflector } from '@nestjs/core';
 import { captureException } from '@sentry/node';
+
+import { UserService } from '../user/user.service';
+import { WalletService } from '../wallet/wallet.service';
+import { WALLET_PARAMETER, WALLET_ADDRESS_PARAMETER, USER_PARAMETER } from './session.decorator';
 
 const extractToken = (request) => {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
@@ -68,7 +73,7 @@ export class SigninByWalletGuard implements CanActivate {
 }
 
 @Injectable()
-export class SessionGuard extends SigninByWalletGuard { }
+export class SessionGuard extends SigninByWalletGuard {}
 
 @Injectable()
 export class SigninByEmailGuard implements CanActivate {
@@ -123,5 +128,88 @@ export class SigninByEmailGuard implements CanActivate {
         const payload = this.jwtService.verify(token, { secret: process.env.SESSION_SECRET });
         const user = await this.userService.getUser({ id: payload.userId });
         return [payload['userId'], user];
+    }
+}
+
+interface IGraphQLRequest {
+    headers: any;
+    body: {
+        query: string,
+        variables?: any
+    }
+}
+
+@Injectable()
+export class AuthorizedWalletGuard implements CanActivate {
+    constructor(private readonly reflector: Reflector, private readonly jwtService: JwtService) {}
+
+    canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+        const walletParameter = this.reflector.get<string>(WALLET_PARAMETER, context.getHandler());
+        if (!walletParameter) return false;
+
+        const ctx = GqlExecutionContext.create(context);
+        const request: IGraphQLRequest = ctx.getContext().req;
+        const walletIdFromParameter = get(request.body.variables?.input, walletParameter);
+        const walletIdFromToken = this.getWalletIdFromToken(request);
+
+        if (!walletIdFromParameter || !walletIdFromToken) return false;
+        return walletIdFromParameter === walletIdFromToken;
+    }
+
+    getWalletIdFromToken(request): string | undefined {
+        const [type, token] = request.headers.authorization?.split(' ') ?? [];
+        if (type !== 'Bearer') return;
+        const payload = this.jwtService.verify(token, { secret: process.env.SESSION_SECRET });
+        return payload.walletId;
+    }
+}
+
+@Injectable()
+export class AuthorizedWalletAddressGuard implements CanActivate {
+    constructor(private readonly reflector: Reflector, private readonly jwtService: JwtService) {}
+
+    canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+        const walletParameter = this.reflector.get<string>(WALLET_ADDRESS_PARAMETER, context.getHandler());
+        if (!walletParameter) return false;
+
+        const ctx = GqlExecutionContext.create(context);
+        const request: IGraphQLRequest = ctx.getContext().req;
+        const walletAddressFromParameter = get(request.body.variables?.input, walletParameter);
+        const walletAddressFromToken = this.getWalletAddressFromToken(request);
+
+        if (!walletAddressFromParameter || !walletAddressFromToken) return false;
+        return walletAddressFromParameter === walletAddressFromToken;
+    }
+
+    getWalletAddressFromToken(request): string | undefined {
+        const [type, token] = request.headers.authorization?.split(' ') ?? [];
+        if (type !== 'Bearer') return;
+        const payload = this.jwtService.verify(token, { secret: process.env.SESSION_SECRET });
+        return payload.walletAddress;
+    }
+}
+
+@Injectable()
+export class AuthorizedUserGuard implements CanActivate {
+    constructor(private readonly reflector: Reflector, private readonly jwtService: JwtService) {}
+
+    canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+        const userParameter = this.reflector.get<string>(USER_PARAMETER, context.getHandler());
+        if (!userParameter) return false;
+
+        const ctx = GqlExecutionContext.create(context);
+        const request: IGraphQLRequest = ctx.getContext().req;
+        const userIdFromParameter = get(request.body.variables?.input, userParameter);
+        const userIdFromToken = this.getUserIdFromToken(request);
+
+        if (!userIdFromParameter || !userIdFromToken) return false;
+        return userIdFromParameter === userIdFromToken;
+    }
+
+    getUserIdFromToken(request): string | undefined {
+        const [type, token] = request.headers.authorization?.split(' ') ?? [];
+        if (type !== 'Bearer') return;
+        const payload = this.jwtService.verify(token, { secret: process.env.SESSION_SECRET });
+        return payload.userId;
     }
 }

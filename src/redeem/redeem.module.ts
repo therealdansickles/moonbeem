@@ -25,4 +25,4 @@ import { RedeemResolver } from './redeem.resolver';
     ],
     providers: [JwtService, RedeemResolver, RedeemService],
 })
-export class RedeemModule { }
+export class RedeemModule {}

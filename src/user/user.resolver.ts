@@ -6,7 +6,7 @@ import { Membership } from '../membership/membership.dto';
 import { MembershipService } from '../membership/membership.service';
 import { Organization } from '../organization/organization.dto';
 import { OrganizationService } from '../organization/organization.service';
-import { AuthorizedUser } from '../authorization/authorization.decorator';
+import { AuthorizedUser } from '../session/session.decorator';
 
 @Resolver(() => User)
 export class UserResolver {
