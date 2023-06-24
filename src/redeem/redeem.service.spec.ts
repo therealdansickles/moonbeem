@@ -1,9 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../lib/configs/db.config';
-import { Redeem } from './redeem.entity';
 import { RedeemModule } from './redeem.module';
 import { RedeemService } from './redeem.service';
 import { UserModule } from '../user/user.module';
@@ -12,9 +10,9 @@ import { OrganizationModule } from '../organization/organization.module';
 import { OrganizationService } from '../organization/organization.service';
 import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
+import { ethers } from 'ethers';
 
 describe('RedeemService', () => {
-    let repository: Repository<Redeem>;
     let service: RedeemService;
     let userService: UserService;
     let organizationService: OrganizationService;
@@ -47,7 +45,6 @@ describe('RedeemService', () => {
             ],
         }).compile();
 
-        repository = module.get('RedeemRepository');
         service = module.get<RedeemService>(RedeemService);
         userService = module.get<UserService>(UserService);
         organizationService = module.get<OrganizationService>(OrganizationService);
@@ -88,11 +85,22 @@ describe('RedeemService', () => {
                 organization: organization,
             });
 
+            const randomWallet = ethers.Wallet.createRandom();
+            const message = 'claim a redeem font';
+            const signature = await randomWallet.signMessage(message);
+
             const result = await service.createRedeem({
                 collection: { id: collection.id },
                 tokenId: parseInt(faker.random.numeric(1)),
                 deliveryAddress: faker.address.streetAddress(),
-                email: faker.internet.email()
+                deliveryCity: faker.address.city(),
+                deliveryZipcode: faker.address.zipCode(),
+                deliveryState: faker.address.state(),
+                deliveryCountry: faker.address.country(),
+                email: faker.internet.email(),
+                address: randomWallet.address,
+                message,
+                signature,
             });
             expect(result.collection).toEqual(collection.id);
         });

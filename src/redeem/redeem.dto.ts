@@ -13,6 +13,22 @@ export class Redeem {
     readonly deliveryAddress: string;
 
     @IsString()
+    @Field(() => String)
+    readonly deliveryCity: string;
+
+    @IsString()
+    @Field(() => String)
+    readonly deliveryZipcode: string;
+
+    @IsString()
+    @Field(() => String)
+    readonly deliveryState: string;
+
+    @IsString()
+    @Field(() => String)
+    readonly deliveryCountry: string;
+
+    @IsString()
     @Field(() => Int)
     readonly tokenId: number;
 
@@ -30,4 +46,16 @@ export class CreateRedeemInput extends OmitType(Redeem, ['id', 'collection'], In
     @IsObject()
     @Field(() => CollectionInput, { description: 'The collection associated with this redeem.' })
     readonly collection: CollectionInput;
+
+    @IsString()
+    @Field(() => String)
+    readonly address: string;
+
+    @IsString()
+    @Field(() => String)
+    readonly message: string;
+
+    @IsString()
+    @Field(() => String)
+    readonly signature: string;
 }

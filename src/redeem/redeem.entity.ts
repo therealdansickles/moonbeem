@@ -28,6 +28,18 @@ export class Redeem extends BaseEntity {
 
     @Column({ nullable: true, comment: 'The delivery address for redeeming.' })
     readonly deliveryAddress: string;
+    
+    @Column({ nullable: true, comment: 'The delivery city for redeeming.' })
+    readonly deliveryCity: string;
+
+    @Column({ nullable: true, comment: 'The delivery zipcode for redeeming.' })
+    readonly deliveryZipcode: string;
+
+    @Column({ nullable: true, comment: 'The delivery state for redeeming.' })
+    readonly deliveryState: string;
+
+    @Column({ nullable: true, comment: 'The delivery country for redeeming.' })
+    readonly deliveryCountry: string;
 
     @Column({ nullable: true, comment: 'The email address for redeeming.' })
     readonly email: string;

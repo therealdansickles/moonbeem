@@ -178,7 +178,7 @@ export class AuthorizedWalletAddressGuard implements CanActivate {
         const walletAddressFromToken = this.getWalletAddressFromToken(request);
 
         if (!walletAddressFromParameter || !walletAddressFromToken) return false;
-        return walletAddressFromParameter === walletAddressFromToken;
+        return walletAddressFromParameter.toLowerCase() === walletAddressFromToken;
     }
 
     getWalletAddressFromToken(request): string | undefined {

@@ -1,4 +1,3 @@
-import { hashSync as hashPassword } from 'bcryptjs';
 import { ethers } from 'ethers';
 import * as request from 'supertest';
 
@@ -12,7 +11,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { postgresConfig } from '../lib/configs/db.config';
 import { SessionModule } from '../session/session.module';
 import { UserModule } from '../user/user.module';
-import { UserService } from '../user/user.service';
 import { WalletModule } from '../wallet/wallet.module';
 import { WalletService } from '../wallet/wallet.service';
 import { RelationshipModule } from './relationship.module';
@@ -23,7 +21,6 @@ export const gql = String.raw;
 describe('RelationshipResolver', () => {
     let service: RelationshipService;
     let walletService: WalletService;
-    let userService: UserService;
     let app: INestApplication;
 
     beforeAll(async () => {
@@ -59,7 +56,6 @@ describe('RelationshipResolver', () => {
 
         service = module.get<RelationshipService>(RelationshipService);
         walletService = module.get<WalletService>(WalletService);
-        userService = module.get<UserService>(UserService);
         app = module.createNestApplication();
         await app.init();
     });
