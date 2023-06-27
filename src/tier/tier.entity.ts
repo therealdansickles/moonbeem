@@ -1,15 +1,18 @@
 import {
-    Entity,
-    Column,
-    JoinColumn,
-    PrimaryGeneratedColumn,
-    CreateDateColumn,
-    UpdateDateColumn,
     BaseEntity,
+    Column,
+    CreateDateColumn,
+    Entity,
+    JoinColumn,
     ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
-import { Exclude } from 'class-transformer';
+
 import { Collection } from '../collection/collection.entity';
+import { Exclude } from 'class-transformer';
+import { Nft } from '../nft/nft.entity';
 import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
 
 export class Attribute {
@@ -84,6 +87,9 @@ export class Tier extends BaseEntity {
     @ManyToOne(() => Collection, (collection) => collection.tiers)
     @JoinColumn()
     public collection: Collection;
+
+    @OneToMany(() => Nft, (nft) => nft.collection, { nullable: true })
+    readonly nfts?: Nft[];
 
     // This in part drives the following fields:
     // * `beginId`
