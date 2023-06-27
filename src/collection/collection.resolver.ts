@@ -1,4 +1,4 @@
-import { Resolver, Query, Args, Mutation, ResolveField, Parent } from '@nestjs/graphql';
+import { Resolver, Query, Args, Mutation, ResolveField, Parent, Int } from '@nestjs/graphql';
 import { Public } from '../session/session.decorator';
 import { CollectionService } from './collection.service';
 import {
@@ -10,6 +10,7 @@ import {
     CollectionActivities,
     LandingPageCollection,
     CollectionStatus,
+    CollectionPaginated,
 } from './collection.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
@@ -117,5 +118,16 @@ export class CollectionResolver {
     @ResolveField(() => String, { description: 'Returns the floor price from tier' })
     async floorPrice(@Parent() collection: Collection): Promise<string> {
         return this.collectionService.getFloorPrice(collection.address);
+    }
+
+    @Public()
+    @Query(() => CollectionPaginated, { description: 'Returns the collection list' })
+    async collections(
+        @Args('before', { nullable: true }) before?: string,
+        @Args('after', { nullable: true }) after?: string,
+        @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+        @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+    ): Promise<CollectionPaginated> {
+        return this.collectionService.getCollections(before, after, first, last);
     }
 }

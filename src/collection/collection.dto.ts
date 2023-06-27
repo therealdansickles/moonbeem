@@ -20,6 +20,7 @@ import { Collaboration } from '../collaboration/collaboration.dto';
 import { Asset721 } from '../sync-chain/asset721/asset721.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
 import { GraphQLJSONObject } from 'graphql-type-json';
+import Paginated from '../lib/pagination/pagination.model';
 
 export const ZeroAccount = '0x0000000000000000000000000000000000000000';
 
@@ -372,3 +373,6 @@ export class LandingPageCollection {
     @IsArray()
     readonly data: Collection[];
 }
+
+@ObjectType('CollectionPaginated')
+export class CollectionPaginated extends Paginated(Collection) {}

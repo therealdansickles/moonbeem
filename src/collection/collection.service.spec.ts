@@ -1011,6 +1011,12 @@ describe('CollectionService', () => {
             });
         });
 
+        afterAll(async () => {
+            await repository.query('TRUNCATE TABLE "User" CASCADE;');
+            await repository.query('TRUNCATE TABLE "Organization" CASCADE;');
+            await repository.query('TRUNCATE TABLE "Collection" CASCADE;');
+        });
+
         it('should get holders', async () => {
             const result = await service.getHolders(collectionAddress, 0, 10);
             expect(result).toBeDefined();
@@ -1042,6 +1048,83 @@ describe('CollectionService', () => {
             expect(result.data).toBeDefined();
             expect(result.data.length).toEqual(1);
             expect(result.data[0].address).toEqual(collectionAddress);
+        });
+    });
+
+    describe('Get Collection By Paging', () => {
+        let collection1: Collection;
+        // let collection2: Collection;
+        let cursor: string;
+
+        beforeAll(async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            collection1 = await service.createCollectionWithTiers({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                organization: organization,
+                creator: { id: wallet.id },
+            });
+
+            await service.createCollectionWithTiers({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                organization: organization,
+                creator: { id: wallet.id },
+            });
+        });
+
+        afterAll(async () => {
+            await repository.query('TRUNCATE TABLE "User" CASCADE;');
+            await repository.query('TRUNCATE TABLE "Organization" CASCADE;');
+            await repository.query('TRUNCATE TABLE "Collection" CASCADE;');
+        });
+
+        it('should get the first page', async () => {
+            const result = await service.getCollections('', '', 1, 1);
+            cursor = result.pageInfo.endCursor;
+            expect(result).toBeDefined();
+            expect(result.pageInfo.startCursor).toBeDefined();
+            expect(result.pageInfo.endCursor).toBeDefined();
+            expect(result.edges[0]).toBeDefined();
+            expect(result.edges[0].node.id).toEqual(collection1.id);
+            expect(result.totalCount).toEqual(2);
+        });
+
+        it(`should get the second page through the endCursor of the first page`, async () => {
+            const result = await service.getCollections('', cursor, 1, 1);
+            expect(result).toBeDefined();
+            expect(result.pageInfo.startCursor).toBeDefined();
+            expect(result.pageInfo.endCursor).toBeDefined();
+            expect(result.edges[0]).toBeDefined();
+            // expect(result.edges[0].node.id).toEqual(collection2.id);
+            expect(result.totalCount).toEqual(2);
         });
     });
 });

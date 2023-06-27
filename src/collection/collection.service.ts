@@ -14,6 +14,7 @@ import {
     CollectionStatus,
     CreateCollectionInput,
     LandingPageCollection,
+    CollectionPaginated,
     ZeroAccount,
 } from './collection.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
@@ -25,6 +26,7 @@ import { TierService } from '../tier/tier.service';
 import { OpenseaService } from '../opensea/opensea.service';
 import { CollectionHolder } from '../wallet/wallet.dto';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
+import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name'>>;
 
@@ -462,5 +464,27 @@ export class CollectionService {
             .where('address = :address', { address })
             .getRawOne();
         return result.min;
+    }
+
+    async getCollections(before: string, after: string, first: number, last: number): Promise<CollectionPaginated> {
+        const builder = this.collectionRepository.createQueryBuilder('collection');
+        const countBuilder = builder.clone();
+
+        // pagination
+        if (after) {
+            builder.where('collection.createdAt > :cursor', { cursor: fromCursor(after) });
+            builder.limit(first);
+        } else if (before) {
+            builder.where('collection.createdAt < :cursor', { cursor: fromCursor(before) });
+            builder.limit(last);
+        } else {
+            const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
+            builder.limit(limit);
+        }
+
+        builder.orderBy('collection.createdAt', 'ASC');
+
+        const [result, total] = await Promise.all([builder.getMany(), countBuilder.getCount()]);
+        return PaginatedImp(result, total);
     }
 }
