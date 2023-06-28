@@ -66,6 +66,12 @@ export class MintSaleContract extends BaseEntity {
     @Column({ default: '', comment: 'The merkleRoot for each tier, if whitelisting' })
     readonly merkleRoot?: string;
 
+    @Column({ default: '', comment: 'The externalURI for each tier, if whitelisting' })
+    readonly externalURI?: string;
+
+    @Column({ default: 0, comment: 'The maxNonWhitelistedPerUser for each tier, if whitelisting' })
+    readonly maxNonWhitelistedPerUser?: number;
+
     @Column({ default: 1, comment: 'The chain id for the MintSale.' })
     readonly chainId?: number;
 
