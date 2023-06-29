@@ -1,6 +1,6 @@
-import { Field, ID, InputType, ObjectType, OmitType, Int } from '@nestjs/graphql';
-import { IsObject, IsString } from 'class-validator';
 import { Collection, CollectionInput } from '../collection/collection.dto';
+import { Field, ID, InputType, Int, ObjectType, OmitType } from '@nestjs/graphql';
+import { IsInt, IsObject, IsString } from 'class-validator';
 
 @ObjectType()
 export class Redeem {
@@ -28,7 +28,7 @@ export class Redeem {
     @Field(() => String)
     readonly deliveryCountry: string;
 
-    @IsString()
+    @IsInt()
     @Field(() => Int)
     readonly tokenId: number;
 
