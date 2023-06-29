@@ -9,6 +9,7 @@ export const platformPostgresConfig = {
     name: 'default',
     entities: ['src/*/*.entity{.ts,.js}'],
     migrations: ['src/migrations/*{.ts,.js}'],
+    autoLoadEntities: true,
     url: process.env.V1_DATABASE_URL,
 };
 

@@ -1,27 +1,28 @@
-import { hashSync as hashPassword } from 'bcryptjs';
 import * as request from 'supertest';
 
-import { faker } from '@faker-js/faker';
-import { ApolloDriver } from '@nestjs/apollo';
-import { INestApplication } from '@nestjs/common';
-import { GraphQLModule } from '@nestjs/graphql';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { ApolloDriver } from '@nestjs/apollo';
+import { Collaboration } from './collaboration.entity';
+import { CollaborationModule } from './collaboration.module';
+import { CollaborationService } from './collaboration.service';
 import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
-import { postgresConfig } from '../lib/configs/db.config';
+import { GraphQLModule } from '@nestjs/graphql';
+import { INestApplication } from '@nestjs/common';
 import { Organization } from '../organization/organization.entity';
 import { OrganizationService } from '../organization/organization.service';
 import { SessionModule } from '../session/session.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
 import { Wallet } from '../wallet/wallet.entity';
 import { WalletModule } from '../wallet/wallet.module';
 import { WalletService } from '../wallet/wallet.service';
-import { Collaboration } from './collaboration.entity';
-import { CollaborationModule } from './collaboration.module';
-import { CollaborationService } from './collaboration.service';
+import configuration from '../../config';
+import { faker } from '@faker-js/faker';
+import { hashSync as hashPassword } from 'bcryptjs';
 
 export const gql = String.raw;
 
@@ -38,30 +39,44 @@ describe('CollaborationResolver', () => {
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
             imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
+                ConfigModule.forRoot({
+                    isGlobal: true,
+                    cache: true,
+                    load: [configuration]
                 }),
-                TypeOrmModule.forRoot({
+                TypeOrmModule.forRootAsync({
+                    name: 'default',
+                    imports: [ConfigModule],
+                    inject: [ConfigService],
+                    useFactory: (configService: ConfigService) => ({
+                        name: configService.get('platformPostgresConfig.name'),
+                        type: configService.get('platformPostgresConfig.type'),
+                        url: configService.get('platformPostgresConfig.url'),
+                        autoLoadEntities: configService.get('platformPostgresConfig.autoLoadEntities'),
+                        synchronize: configService.get('platformPostgresConfig.synchronize'),
+                        logging: false,
+                    })
+                }),
+                TypeOrmModule.forRootAsync({
                     name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
+                    imports: [ConfigModule],
+                    inject: [ConfigService],
+                    useFactory: (configService: ConfigService) => ({
+                        name: configService.get('syncChainPostgresConfig.name'),
+                        type: configService.get('syncChainPostgresConfig.type'),
+                        url: configService.get('syncChainPostgresConfig.url'),
+                        autoLoadEntities: configService.get('syncChainPostgresConfig.autoLoadEntities'),
+                        synchronize: configService.get('syncChainPostgresConfig.synchronize'),
+                        logging: false,
+                    })
                 }),
-                CollaborationModule,
-                SessionModule,
                 GraphQLModule.forRoot({
                     driver: ApolloDriver,
                     autoSchemaFile: true,
                     include: [SessionModule, CollaborationModule, CollectionModule, WalletModule],
                 }),
+                CollaborationModule,
+                SessionModule,
             ],
         }).compile();
 

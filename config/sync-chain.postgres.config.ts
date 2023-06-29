@@ -9,6 +9,7 @@ export const syncChainPostgresConfig = {
     name: 'sync_chain',
     entities: ['src/sync-chain/*/*.entity{.ts,.js}'],
     migrations: ['src/sync-chain/migrations/*{.ts,.js}'],
+    autoLoadEntities: true,
     url: process.env.SYNC_CHAIN_DATABASE_URL,
 };
 
