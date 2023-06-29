@@ -1,15 +1,18 @@
-import { get } from 'lodash';
-import { Observable } from 'rxjs';
-
+import { COLLECTION_ID_PARAMETER, TOKEN_ID_PARAMETER, USER_PARAMETER, WALLET_ADDRESS_PARAMETER, WALLET_PARAMETER } from './session.decorator';
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
+
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
+import { CollectionService } from '../collection/collection.service';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { JwtService } from '@nestjs/jwt';
-import { captureException } from '@sentry/node';
-
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { Observable } from 'rxjs';
+import { Reflector } from '@nestjs/core';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
-import { WALLET_PARAMETER, WALLET_ADDRESS_PARAMETER, USER_PARAMETER } from './session.decorator';
+import { captureException } from '@sentry/node';
+import { ethers } from 'ethers';
+import { get } from 'lodash';
 
 const extractToken = (request) => {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
@@ -211,5 +214,52 @@ export class AuthorizedUserGuard implements CanActivate {
         if (type !== 'Bearer') return;
         const payload = this.jwtService.verify(token, { secret: process.env.SESSION_SECRET });
         return payload.userId;
+    }
+}
+
+@Injectable()
+export class SignatureGuard implements CanActivate {
+    canActivate (context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+        const ctx = GqlExecutionContext.create(context);
+        const request: IGraphQLRequest = ctx.getContext().req;
+        // these 3 parameters could be fixed, don't need to inject extenally
+        const { address, message , signature } = request.body.variables?.input;
+        const addressFromSignature = ethers.verifyMessage(message, signature);
+        if (address.toLowerCase() === addressFromSignature.toLowerCase()) return true;
+        return false;
+    }
+}
+
+@Injectable()
+export class AuthorizedTokenGuard implements CanActivate {
+    constructor(
+        private readonly reflector: Reflector,
+        private readonly collectionService: CollectionService,
+        private readonly asset721Service: Asset721Service,
+        private readonly mintSaleContractService: MintSaleContractService,
+    ) {}
+
+    async canActivate (context: ExecutionContext): Promise<boolean> {
+        const tokenIdParameter = this.reflector.get<string>(TOKEN_ID_PARAMETER, context.getHandler());
+        const collectionIdParameter = this.reflector.get<string>(COLLECTION_ID_PARAMETER, context.getHandler());
+        const ownerAddressParameter = this.reflector.get<string>(WALLET_ADDRESS_PARAMETER, context.getHandler());
+        if (!tokenIdParameter || !collectionIdParameter || !ownerAddressParameter) return false;
+
+        const ctx = GqlExecutionContext.create(context);
+        const request: IGraphQLRequest = ctx.getContext().req;
+        const tokenIdFromParameter = get(request.body.variables?.input, tokenIdParameter);
+        const collectionIdFromParameter = get(request.body.variables?.input, collectionIdParameter);
+        const ownerAddress = get(request.body.variables?.input, ownerAddressParameter, '').toLowerCase();
+
+        const collection = await this.collectionService.getCollection(collectionIdFromParameter);
+        if (!collection) return false;
+
+        const mintSaleContract = await this.mintSaleContractService.getMintSaleContractByCollection(collection.id);
+        if (!mintSaleContract) return false;
+
+        const asset = await this.asset721Service.getAsset721ByQuery({ tokenId: tokenIdFromParameter.toString(), address: mintSaleContract.tokenAddress })
+        if (!asset) return false;
+        if (asset?.owner?.toLowerCase() === ownerAddress.toLowerCase()) return true;
+        return false;
     }
 }

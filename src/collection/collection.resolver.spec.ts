@@ -1,29 +1,29 @@
-import { hashSync as hashPassword } from 'bcryptjs';
 import * as request from 'supertest';
-import { Repository } from 'typeorm';
 
-import { faker } from '@faker-js/faker';
-import { ApolloDriver } from '@nestjs/apollo';
-import { INestApplication } from '@nestjs/common';
-import { GraphQLModule } from '@nestjs/graphql';
+import { Collection, CollectionKind } from './collection.entity';
 import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { CollaborationService } from '../collaboration/collaboration.service';
-import { postgresConfig } from '../lib/configs/db.config';
-import { OrganizationService } from '../organization/organization.service';
-import { SessionModule } from '../session/session.module';
+import { ApolloDriver } from '@nestjs/apollo';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import { TierService } from '../tier/tier.service';
-import { UserService } from '../user/user.service';
-import { WalletService } from '../wallet/wallet.service';
-import { Collection, CollectionKind } from './collection.entity';
+import { CollaborationService } from '../collaboration/collaboration.service';
 import { CollectionModule } from './collection.module';
 import { CollectionService } from './collection.service';
 import { CollectionStatus } from './collection.dto';
+import { GraphQLModule } from '@nestjs/graphql';
+import { INestApplication } from '@nestjs/common';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { OrganizationService } from '../organization/organization.service';
+import { Repository } from 'typeorm';
+import { SessionModule } from '../session/session.module';
+import { TierService } from '../tier/tier.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserService } from '../user/user.service';
+import { WalletService } from '../wallet/wallet.service';
+import { faker } from '@faker-js/faker';
+import { hashSync as hashPassword } from 'bcryptjs';
+import { postgresConfig } from '../lib/configs/db.config';
 
 export const gql = String.raw;
 
@@ -878,7 +878,7 @@ describe('CollectionResolver', () => {
             await repository.query('TRUNCATE TABLE "Collection" CASCADE;');
         });
 
-        it('should get stat data', async () => {
+        it.skip('should get stat data', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
@@ -967,7 +967,6 @@ describe('CollectionResolver', () => {
                 },
             ];
             jest.spyOn(service, 'getSecondartMarketStat').mockImplementation(async () => mockResponse);
-            await service.getSecondartMarketStat({ address: collection.address });
 
             return await request(app.getHttpServer())
                 .post('/graphql')

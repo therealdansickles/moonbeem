@@ -75,7 +75,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["eslint", "npm:8.42.0"],\
             ["eslint-config-prettier", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:8.8.0"],\
             ["eslint-plugin-prettier", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:4.2.1"],\
-            ["ethers", "npm:6.4.2"],\
+            ["ethers", "npm:6.6.2"],\
             ["express", "npm:4.18.2"],\
             ["googleapis", "npm:118.0.0"],\
             ["graphql", "npm:16.6.0"],\
@@ -8276,17 +8276,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["ethers", [\
-        ["npm:6.4.2", {\
-          "packageLocation": "./.yarn/cache/ethers-npm-6.4.2-cafa16c321-4bee21e91b.zip/node_modules/ethers/",\
+        ["npm:6.6.2", {\
+          "packageLocation": "./.yarn/cache/ethers-npm-6.6.2-d08134dee9-4d0a925a11.zip/node_modules/ethers/",\
           "packageDependencies": [\
-            ["ethers", "npm:6.4.2"],\
+            ["ethers", "npm:6.6.2"],\
             ["@adraffy/ens-normalize", "npm:1.9.2"],\
             ["@noble/hashes", "npm:1.1.2"],\
             ["@noble/secp256k1", "npm:1.7.1"],\
             ["@types/node", "npm:18.15.13"],\
             ["aes-js", "npm:4.0.0-beta.5"],\
             ["tslib", "npm:2.4.0"],\
-            ["ws", "virtual:cafa16c3212c1087d422970eb226fb5a303107c5097e27c027e0e005185cd35fb9592720d393b6c45d90898808b5cf6c0af1ee099a7f8378bf44ff7d64e74904#npm:8.5.0"]\
+            ["ws", "virtual:d08134dee91e037451af7e951305041191238a83d2c349fa1febcf4eacce799b30d0f6c1bcbbd1f71fcc386ca8bd7df8e8b61d10a34391537730d5107d6ecc15#npm:8.5.0"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -12206,7 +12206,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["eslint", "npm:8.42.0"],\
             ["eslint-config-prettier", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:8.8.0"],\
             ["eslint-plugin-prettier", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:4.2.1"],\
-            ["ethers", "npm:6.4.2"],\
+            ["ethers", "npm:6.6.2"],\
             ["express", "npm:4.18.2"],\
             ["googleapis", "npm:118.0.0"],\
             ["graphql", "npm:16.6.0"],\
@@ -14815,10 +14815,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],\
           "linkType": "HARD"\
         }],\
-        ["virtual:cafa16c3212c1087d422970eb226fb5a303107c5097e27c027e0e005185cd35fb9592720d393b6c45d90898808b5cf6c0af1ee099a7f8378bf44ff7d64e74904#npm:8.5.0", {\
-          "packageLocation": "./.yarn/__virtual__/ws-virtual-c5d1646cdc/0/cache/ws-npm-8.5.0-8e99728c84-76f2f90e40.zip/node_modules/ws/",\
+        ["virtual:d08134dee91e037451af7e951305041191238a83d2c349fa1febcf4eacce799b30d0f6c1bcbbd1f71fcc386ca8bd7df8e8b61d10a34391537730d5107d6ecc15#npm:8.5.0", {\
+          "packageLocation": "./.yarn/__virtual__/ws-virtual-dd35d9b977/0/cache/ws-npm-8.5.0-8e99728c84-76f2f90e40.zip/node_modules/ws/",\
           "packageDependencies": [\
-            ["ws", "virtual:cafa16c3212c1087d422970eb226fb5a303107c5097e27c027e0e005185cd35fb9592720d393b6c45d90898808b5cf6c0af1ee099a7f8378bf44ff7d64e74904#npm:8.5.0"],\
+            ["ws", "virtual:d08134dee91e037451af7e951305041191238a83d2c349fa1febcf4eacce799b30d0f6c1bcbbd1f71fcc386ca8bd7df8e8b61d10a34391537730d5107d6ecc15#npm:8.5.0"],\
             ["@types/bufferutil", null],\
             ["@types/utf-8-validate", null],\
             ["bufferutil", null],\

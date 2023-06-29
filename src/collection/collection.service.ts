@@ -20,7 +20,6 @@ import {
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Wallet } from '../wallet/wallet.entity';
-import { Collaboration } from '../collaboration/collaboration.entity';
 import * as Sentry from '@sentry/node';
 import { TierService } from '../tier/tier.service';
 import { OpenseaService } from '../opensea/opensea.service';
@@ -39,8 +38,6 @@ export class CollectionService {
         private readonly tierRepository: Repository<Tier>,
         @InjectRepository(Wallet)
         private readonly walletRepository: Repository<Wallet>,
-        @InjectRepository(Collaboration)
-        private readonly collaborationRepository: Repository<Collaboration>,
         @InjectRepository(MintSaleContract, 'sync_chain')
         private readonly mintSaleContractRepository: Repository<MintSaleContract>,
         @InjectRepository(MintSaleTransaction, 'sync_chain')
