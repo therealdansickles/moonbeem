@@ -65,6 +65,7 @@ import configuration from '../config';
         }),
         ScheduleModule.forRoot(),
         TypeOrmModule.forRootAsync({
+            name: 'default',
             imports: [ConfigModule],
             inject: [ConfigService],
             useFactory: (configService: ConfigService) => ({
@@ -74,6 +75,19 @@ import configuration from '../config';
                 autoLoadEntities: configService.get('platformPostgresConfig.autoLoadEntities'),
                 synchronize: configService.get('platformPostgresConfig.synchronize'),
                 logging: configService.get('platformPostgresConfig.logging'),
+            })
+        }),
+        TypeOrmModule.forRootAsync({
+            name: 'sync_chain',
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (configService: ConfigService) => ({
+                name: configService.get('syncChainPostgresConfig.name'),
+                type: configService.get('syncChainPostgresConfig.type'),
+                url: configService.get('syncChainPostgresConfig.url'),
+                autoLoadEntities: configService.get('syncChainPostgresConfig.autoLoadEntities'),
+                synchronize: configService.get('syncChainPostgresConfig.synchronize'),
+                logging: configService.get('syncChainPostgresConfig.logging'),
             })
         }),
         JwtModule.register({

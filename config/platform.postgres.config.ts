@@ -8,7 +8,7 @@ export const platformPostgresConfig = {
     synchronize: false,
     name: 'default',
     entities: ['src/*/*.entity{.ts,.js}'],
-    migrations: ['./migrations/*{.ts,.js}'],
+    migrations: ['src/migrations/*{.ts,.js}'],
     url: process.env.V1_DATABASE_URL,
 };
 
