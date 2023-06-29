@@ -6,7 +6,7 @@ export const syncChainPostgresConfig = {
     migrationsTableName: 'migrations',
     logging: true,
     synchronize: false,
-    name: 'default',
+    name: 'sync_chain',
     entities: ['src/sync-chain/*/*.entity{.ts,.js}'],
     migrations: ['src/sync-chain/migrations/*{.ts,.js}'],
     url: process.env.SYNC_CHAIN_DATABASE_URL,
