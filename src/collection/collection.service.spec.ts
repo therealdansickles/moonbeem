@@ -1018,12 +1018,12 @@ describe('CollectionService', () => {
         });
 
         it('should get holders', async () => {
-            const result = await service.getHolders(collectionAddress, 0, 10);
+            const result = await service.getHolders(collectionAddress, '', '', 10, 0);
             expect(result).toBeDefined();
-            expect(result.total).toEqual(2);
-            expect(result.data.length).toEqual(2);
-            expect(result.data[0].tier).toBeDefined();
-            expect(result.data[0].tier.price).toEqual('200');
+            expect(result.totalCount).toEqual(2);
+            expect(result.edges.length).toEqual(2);
+            expect(result.edges[0].node.tier).toBeDefined();
+            expect(result.edges[0].node.tier.price).toEqual('200');
         });
 
         it('should get unique holders', async () => {

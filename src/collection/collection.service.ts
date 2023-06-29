@@ -24,7 +24,7 @@ import { Collaboration } from '../collaboration/collaboration.entity';
 import * as Sentry from '@sentry/node';
 import { TierService } from '../tier/tier.service';
 import { OpenseaService } from '../opensea/opensea.service';
-import { CollectionHolder } from '../wallet/wallet.dto';
+import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
 
@@ -289,26 +289,44 @@ export class CollectionService {
         //return await this.walletRepository.find({ where: { address: In(result.map((r) => r.recipient)) } });
     }
 
-    async getHolders(address: string, offset: number, limit: number): Promise<CollectionHolder> {
+    async getHolders(
+        address: string,
+        before: string,
+        after: string,
+        first: number,
+        last: number
+    ): Promise<CollectionHoldersPaginated> {
         const contract = await this.mintSaleContractRepository.findOneBy({ address });
 
+        const builder = this.asset721Repository
+            .createQueryBuilder('asset')
+            .leftJoinAndSelect(MintSaleTransaction, 'transaction', 'asset.tokenId = transaction.tokenId')
+            .select('asset.owner', 'owner')
+            .addSelect('asset.tokenId', 'tokenId')
+            .addSelect('COUNT(asset.tokenId)', 'quantity')
+            .addSelect('transaction.tierId', 'tierId')
+            .addSelect('asset.txTime', 'txTime')
+            .where('asset.address = :address AND transaction.tokenAddress = :address', {
+                address: contract.tokenAddress,
+            })
+            .groupBy('asset.owner')
+            .addGroupBy('asset.tokenId')
+            .addGroupBy('transaction.tierId')
+            .addGroupBy('asset.txTime');
+
+        if (after) {
+            builder.andWhere('asset.txTime > :cursor', { cursor: new Date(fromCursor(after)).valueOf() / 1000 });
+            builder.limit(first);
+        } else if (before) {
+            builder.andWhere('asset.txTime < :cursor', { cursor: fromCursor(before) });
+            builder.limit(last);
+        } else {
+            const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
+            builder.limit(limit);
+        }
+
         const [holderResults, totalResult] = await Promise.all([
-            this.asset721Repository
-                .createQueryBuilder('asset')
-                .leftJoinAndSelect(MintSaleTransaction, 'transaction', 'asset.tokenId = transaction.tokenId')
-                .select('asset.owner', 'owner')
-                .addSelect('asset.tokenId', 'tokenId')
-                .addSelect('COUNT(asset.tokenId)', 'quantity')
-                .addSelect('transaction.tierId', 'tierId')
-                .where('asset.address = :address AND transaction.tokenAddress = :address', {
-                    address: contract.tokenAddress,
-                })
-                .offset(offset)
-                .limit(limit)
-                .groupBy('asset.owner')
-                .addGroupBy('asset.tokenId')
-                .addGroupBy('transaction.tierId')
-                .getRawMany(),
+            builder.getRawMany(),
             this.asset721Repository
                 .createQueryBuilder('asset')
                 .select('COUNT(asset.owner) AS count')
@@ -326,14 +344,16 @@ export class CollectionService {
                     .where('tier.tierId = :tierId', { tierId: holder.tierId })
                     .andWhere('collection.address = :address', { address })
                     .getOne();
+                const createdAt = new Date(holder.txTime * 1000);
                 return {
                     ...wallet,
                     quantity: holder.quantity ? parseInt(holder.quantity) : 0,
                     tier,
+                    createdAt: new Date(createdAt.getTime() + createdAt.getTimezoneOffset() * 60 * 1000), // timestamp to iso time
                 };
             })
         );
-        return { total: totalResult ? parseInt(totalResult.count) : 0, data: data };
+        return PaginatedImp(data, totalResult ? parseInt(totalResult.count) : 0);
     }
 
     async getUniqueHolderCount(address: string): Promise<number> {

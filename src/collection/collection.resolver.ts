@@ -14,7 +14,7 @@ import {
 } from './collection.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { CollectionHolder } from '../wallet/wallet.dto';
+import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { UseGuards } from '@nestjs/common';
 import { SigninByEmailGuard } from '../session/session.guard';
 
@@ -70,13 +70,15 @@ export class CollectionResolver {
     }
 
     @Public()
-    @ResolveField(() => CollectionHolder, { description: 'Returns the holder for a collection.' })
-    async holder(
+    @ResolveField(() => CollectionHoldersPaginated, { description: 'Returns the holder for a collection.' })
+    async holders(
         @Parent() collection: Collection,
-        @Args('offset', { nullable: true, defaultValue: 0 }) offset?: number,
-        @Args('limit', { nullable: true, defaultValue: 10 }) limit?: number
-    ): Promise<CollectionHolder> {
-        return this.collectionService.getHolders(collection.address, offset, limit);
+        @Args('before', { nullable: true }) before?: string,
+        @Args('after', { nullable: true }) after?: string,
+        @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+        @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+    ): Promise<CollectionHoldersPaginated> {
+        return this.collectionService.getHolders(collection.address, before, after, first, last);
     }
 
     @Public()

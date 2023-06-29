@@ -15,12 +15,8 @@ import { OrganizationService } from '../organization/organization.service';
 import { SessionModule } from '../session/session.module';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
@@ -1117,15 +1113,35 @@ describe('CollectionResolver', () => {
             const query = gql`
                 query GetCollection($id: String) {
                     collection(id: $id) {
-                        holder {
-                            total
-                            data {
-                                quantity
-                                tier {
+                        holders {
+                            edges {
+                                cursor
+                                node {
                                     id
-                                    price
+                                    address
+                                    name
+                                    avatarUrl
+                                    about
+                                    websiteUrl
+                                    twitter
+                                    instagram
+                                    discord
+                                    spotify
+                                    quantity
+                                    tier {
+                                        id
+                                        tierId
+                                        price
+                                    }
                                 }
                             }
+                            pageInfo {
+                                hasNextPage
+                                hasPreviousPage
+                                startCursor
+                                endCursor
+                            }
+                            totalCount
                         }
                     }
                 }
@@ -1136,13 +1152,13 @@ describe('CollectionResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.data.collection.holder).toBeDefined();
-                    expect(body.data.collection.holder.total).toEqual(2);
-                    expect(body.data.collection.holder.data).toBeDefined();
-                    expect(body.data.collection.holder.data.length).toEqual(2);
-                    expect(body.data.collection.holder.data.length).toEqual(2);
-                    expect(body.data.collection.holder.data[0].tier).toBeDefined();
-                    expect(body.data.collection.holder.data[0].tier.price).toEqual('200');
+                    expect(body.data.collection.holders).toBeDefined();
+                    expect(body.data.collection.holders.totalCount).toEqual(2);
+                    expect(body.data.collection.holders.pageInfo).toBeDefined();
+                    expect(body.data.collection.holders.edges).toBeDefined();
+                    expect(body.data.collection.holders.edges.length).toEqual(2);
+                    expect(body.data.collection.holders.edges[0].node.tier).toBeDefined();
+                    expect(body.data.collection.holders.edges[0].node.tier.price).toEqual('200');
                 });
         });
 

@@ -9,11 +9,21 @@ import {
     registerEnumType,
     Int,
 } from '@nestjs/graphql';
-import { IsString, IsEthereumAddress, IsObject, IsOptional, IsEnum, IsNumber, IsArray } from 'class-validator';
+import {
+    IsString,
+    IsEthereumAddress,
+    IsObject,
+    IsOptional,
+    IsEnum,
+    IsNumber,
+    IsArray,
+    IsDateString,
+} from 'class-validator';
 import { User, UserInput } from '../user/user.dto';
 import { Tier } from '../tier/tier.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
 import { Asset721 } from '../sync-chain/asset721/asset721.dto';
+import Paginated from '../lib/pagination/pagination.model';
 
 @ObjectType('Wallet')
 export class Wallet {
@@ -209,7 +219,7 @@ export class SearchWallet {
 }
 
 @ObjectType('CollectionHolderData')
-export class CollectionHolderData extends OmitType(Wallet, ['owner'], ObjectType) {
+export class CollectionHolderData extends PartialType(OmitType(Wallet, ['owner'], ObjectType)) {
     @Field(() => Int)
     @IsNumber()
     readonly quantity: number;
@@ -217,18 +227,14 @@ export class CollectionHolderData extends OmitType(Wallet, ['owner'], ObjectType
     @Field(() => Tier, { description: 'The collection tiers', nullable: true })
     @IsObject()
     readonly tier?: Tier;
+
+    @IsDateString()
+    @Field({ description: 'The DateTime that this collection was created(initially created as a draft).' })
+    readonly createdAt: Date;
 }
 
-@ObjectType('CollectionHolder')
-export class CollectionHolder {
-    @Field(() => Int)
-    @IsNumber()
-    readonly total: number;
-
-    @Field(() => [CollectionHolderData])
-    @IsArray()
-    readonly data: CollectionHolderData[];
-}
+@ObjectType('CollectionHoldersPaginated')
+export class CollectionHoldersPaginated extends Paginated(CollectionHolderData) {}
 
 @ObjectType('TierHolderData')
 export class TierHolderData extends PartialType(OmitType(Wallet, ['owner'], ObjectType)) {
