@@ -17,12 +17,8 @@ import { SessionModule } from '../session/session.module';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import { TierModule } from './tier.module';
@@ -479,7 +475,7 @@ describe('TierResolver', () => {
                     totalMints: 10,
                     paymentTokenAddress: coin.address,
                     tierId: 0,
-                }
+                },
             };
 
             return await request(app.getHttpServer())
@@ -556,7 +552,7 @@ describe('TierResolver', () => {
                     totalMints: 10,
                     paymentTokenAddress: coin.address,
                     tierId: 0,
-                }
+                },
             };
 
             return await request(app.getHttpServer())
@@ -641,7 +637,7 @@ describe('TierResolver', () => {
         const tierName = 'Test Tier';
         let innerCollection: Collection;
 
-        beforeEach(async () => {
+        beforeAll(async () => {
             const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
             innerCollection = await collectionService.createCollection({
                 name: faker.company.name(),
@@ -665,6 +661,42 @@ describe('TierResolver', () => {
                         value: 'Blue',
                     },
                 ],
+                metadata: {
+                    uses: ['vibexyz/creator_scoring', 'vibexyz/royalty_level'],
+                    title: 'Token metadata',
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                    conditions: {
+                        rules: [
+                            {
+                                rule: 'greater_than',
+                                value: -1,
+                                update: [{ value: '1', property: 'holding_days' }],
+                                property: 'holding_days',
+                            },
+                            {
+                                rule: 'greater_than',
+                                value: 10,
+                                update: [{ value: 'Bronze', property: 'level' }],
+                                property: 'holding_days',
+                            },
+                        ],
+                        trigger: [{ type: 'schedule', value: '0 */1 * * *' }],
+                        operator: 'and',
+                    },
+                },
             });
 
             await mintSaleContractService.createMintSaleContract({
@@ -778,20 +810,27 @@ describe('TierResolver', () => {
 
         it('should get attribute overview', async () => {
             const query = gql`
-                query overview($collectionId: String!) {
-                    attributeOverview(collectionId: $collectionId)
+                query overview($collectionAddress: String!) {
+                    attributeOverview(collectionAddress: $collectionAddress)
                 }
             `;
 
-            const variables = { collectionId: innerCollection.id };
+            const variables = { collectionAddress: collectionAddress.toLowerCase() };
             return await request(app.getHttpServer())
                 .post('/graphql')
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.attributeOverview).toBeDefined();
-                    expect(body.data.attributeOverview.Color).toBeDefined();
-                    expect(body.data.attributeOverview.Color.Blue).toEqual(1);
+                    expect(body.data.attributeOverview.attributes).toBeDefined();
+                    expect(body.data.attributeOverview.attributes.level).toBeDefined();
+                    expect(body.data.attributeOverview.attributes.level.basic).toEqual(1);
+
+                    expect(body.data.attributeOverview.upgrades).toBeDefined();
+                    expect(body.data.attributeOverview.upgrades.level).toEqual(1);
+
+                    expect(body.data.attributeOverview.plugins).toBeDefined();
+                    expect(body.data.attributeOverview.plugins['vibexyz/creator_scoring']).toEqual(1);
                 });
         });
         it('should search by keyword', async () => {

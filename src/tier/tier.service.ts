@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeleteResult, UpdateResult, In } from 'typeorm';
@@ -13,6 +14,9 @@ import {
     TierSearchBar,
     AttributeInput,
     IAttributeOverview,
+    IOverview,
+    IUpgradeOverview,
+    IPluginOverview,
 } from './tier.dto';
 import { GraphQLError } from 'graphql';
 import { captureException } from '@sentry/node';
@@ -308,28 +312,44 @@ export class TierService {
         return { total: total, data: tiers };
     }
 
-    async getArrtibutesOverview(collectionId: string): Promise<IAttributeOverview> {
+    async getArrtibutesOverview(collectionAddress: string): Promise<IOverview> {
         const tiers = await this.tierRepository
             .createQueryBuilder('tier')
             .leftJoinAndSelect('tier.collection', 'collection')
-            .where('collection.id = :collectionId', { collectionId })
+            .where('collection.address = :collectionAddress', { collectionAddress })
             .getMany();
 
-        const overview: IAttributeOverview = {};
+        const attributes: IAttributeOverview = {};
+        const upgrades: IUpgradeOverview = {};
+        const plugins: IPluginOverview = {};
+
         tiers.forEach((tier) => {
-            tier.attributes.forEach((attribute) => {
-                if (!overview[attribute.trait_type]) {
-                    overview[attribute.trait_type] = {};
+            if (tier.metadata) {
+                if (tier.metadata.properties) {
+                    Object.entries(tier.metadata.properties).forEach(([_, value]) => {
+                        if (!attributes[value.name]) attributes[value.name] = {};
+                        attributes[value.name][value.value]
+                            ? attributes[value.name][value.value]++
+                            : (attributes[value.name][value.value] = 1);
+                    });
                 }
 
-                if (!overview[attribute.trait_type][attribute.value]) {
-                    overview[attribute.trait_type][attribute.value] = 0;
+                if (tier.metadata.conditions) {
+                    tier.metadata.conditions.rules.forEach((rule) => {
+                        rule.update.forEach((u) => {
+                            upgrades[u.property] ? upgrades[u.property]++ : (upgrades[u.property] = 1);
+                        });
+                    });
                 }
 
-                overview[attribute.trait_type][attribute.value]++;
-            });
+                if (tier.metadata.uses) {
+                    tier.metadata.uses.forEach((e) => {
+                        plugins[e] ? plugins[e]++ : (plugins[e] = 1);
+                    });
+                }
+            }
         });
 
-        return overview;
+        return { attributes: attributes, upgrades: upgrades, plugins: plugins };
     }
 }

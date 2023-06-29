@@ -347,7 +347,7 @@ describe('TierService', () => {
         let tier: Tier;
         let innerCollection: Collection;
 
-        beforeEach(async () => {
+        beforeAll(async () => {
             const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
             innerCollection = await collectionService.createCollection({
                 name: faker.company.name(),
@@ -371,6 +371,42 @@ describe('TierService', () => {
                         value: 'Blue',
                     },
                 ],
+                metadata: {
+                    uses: ['vibexyz/creator_scoring', 'vibexyz/royalty_level'],
+                    title: 'Token metadata',
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                    conditions: {
+                        rules: [
+                            {
+                                rule: 'greater_than',
+                                value: -1,
+                                update: [{ value: '1', property: 'holding_days' }],
+                                property: 'holding_days',
+                            },
+                            {
+                                rule: 'greater_than',
+                                value: 10,
+                                update: [{ value: 'Bronze', property: 'level' }],
+                                property: 'holding_days',
+                            },
+                        ],
+                        trigger: [{ type: 'schedule', value: '0 */1 * * *' }],
+                        operator: 'and',
+                    },
+                },
             });
 
             await mintSaleContractService.createMintSaleContract({
@@ -456,10 +492,17 @@ describe('TierService', () => {
         });
 
         it('should get attribute overview', async () => {
-            const result = await service.getArrtibutesOverview(innerCollection.id);
+            const result = await service.getArrtibutesOverview(collectionAddress.toLowerCase());
             expect(result).toBeDefined();
-            expect(result['Color']).toBeDefined();
-            expect(result['Color']['Blue']).toEqual(1);
+            expect(result.attributes).toBeDefined();
+            expect(result.attributes['level']).toBeDefined();
+            expect(result.attributes['level']['basic']).toEqual(1);
+
+            expect(result.upgrades).toBeDefined();
+            expect(result.upgrades['level']).toEqual(1);
+
+            expect(result.plugins).toBeDefined();
+            expect(result.plugins['vibexyz/creator_scoring']).toEqual(1);
         });
 
         it('should search by keyword', async () => {

@@ -8,7 +8,7 @@ import { TierHolders } from '../wallet/wallet.dto';
 import {
     CreateTierInput,
     DeleteTierInput,
-    IAttributeOverview,
+    IOverview,
     Profit,
     Tier,
     TierSearchBar,
@@ -81,7 +81,7 @@ export class TierResolver {
 
     @Public()
     @Query(() => GraphQLJSONObject, { description: 'Returns attributes overview for collection/tier' })
-    async attributeOverview(@Args('collectionId') collectionId: string): Promise<IAttributeOverview> {
-        return this.tierService.getArrtibutesOverview(collectionId);
+    async attributeOverview(@Args('collectionAddress') collectionAddress: string): Promise<IOverview> {
+        return this.tierService.getArrtibutesOverview(collectionAddress);
     }
 }

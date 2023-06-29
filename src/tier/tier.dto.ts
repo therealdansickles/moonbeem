@@ -89,9 +89,9 @@ export class MetadataRule {
     @Field(() => String, { description: 'The real value of the rule.' })
     readonly value: string | number;
 
-    @IsObject()
-    @Field(() => MetadataRuleUpdate, { description: 'The update detail of the rule.' })
-    readonly update: MetadataRuleUpdate;
+    @IsArray()
+    @Field(() => [MetadataRuleUpdate], { description: 'The update detail of the rule.' })
+    readonly update: MetadataRuleUpdate[];
 }
 
 @ObjectType()
@@ -131,13 +131,19 @@ export class MetadataProperty {
 
 @ObjectType()
 export class MetadataOutput {
-    @IsString()
-    @Field({ description: 'The name of the metadata.' })
-    readonly name: string;
+    @IsArray()
+    @Field(() => [String], { description: 'The plugin of the metadata' })
+    readonly uses: string[];
 
     @IsString()
+    @IsOptional()
+    @Field({ description: 'The name of the metadata.' })
+    readonly name?: string;
+
+    @IsString()
+    @IsOptional()
     @Field({ description: 'The type of the metadata.' })
-    readonly type: string;
+    readonly type?: string;
 
     @IsString()
     @IsOptional()
@@ -154,7 +160,7 @@ export class MetadataOutput {
     @Field({ nullable: true, description: 'The image_url of the metadata.' })
     readonly image_url?: string;
 
-    @IsArray()
+    @IsObject()
     @IsOptional()
     @Field(() => MetadataCondition, { nullable: true, description: 'The conditions of the metadata.' })
     readonly conditions?: MetadataCondition;
@@ -466,10 +472,19 @@ export class TierSearchBarInput {
     readonly attributes?: AttributeInput[];
 }
 
-export class IAttributeOverview {
-    [key: string]: IAttributeValueCount;
+export class IOverview {
+    attributes: IAttributeOverview;
+    upgrades: IUpgradeOverview;
+    plugins: IPluginOverview;
 }
 
-export class IAttributeValueCount {
+export class IAttributeOverview {
+    [key: string]: IValueCount;
+}
+
+export class IValueCount {
     [key: string]: number;
 }
+
+export class IUpgradeOverview extends IValueCount {}
+export class IPluginOverview extends IValueCount {}

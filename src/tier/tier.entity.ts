@@ -45,7 +45,7 @@ export class MetadataRule {
     update: {
         property: string;
         value: any;
-    };
+    }[];
 }
 
 export class MetadataTrigger {
@@ -60,8 +60,10 @@ export class MetadataCondition {
 }
 
 export class Metadata {
-    name: string;
-    type: string;
+    uses: string[];
+    title: string[];
+    name?: string;
+    type?: string;
     external_url?: string;
     image?: string;
     image_url?: string;
