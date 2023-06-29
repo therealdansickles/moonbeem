@@ -78,7 +78,7 @@ describe('NftResolver', () => {
     });
 
     describe('getNft', () => {
-        it('should work', async () => {
+        it('query by id should work', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
@@ -103,7 +103,6 @@ describe('NftResolver', () => {
                 totalMints: 100,
                 collection: { id: collection.id },
                 price: '100',
-                // paymentTokenAddress: coin.address,
                 tierId: 0,
             });
 
@@ -140,6 +139,72 @@ describe('NftResolver', () => {
                     expect(body.data.nft.id).toBeTruthy();
                     expect(body.data.nft.collection.id).toEqual(collection.id);
                     expect(body.data.nft.properties.foo).toEqual('bar');
+                });
+        });
+
+        it('query by criteria should work', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                creator: { id: wallet.id },
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '100',
+                tierId: 0,
+            });
+
+            const nft = await service.createOrUpdateNftByTokenId({
+                collectionId: collection.id,
+                tierId: tier.id,
+                tokenId: +faker.random.numeric(1),
+                properties: {
+                    'foo': 'baraaa'
+                }
+            });
+
+            const query = gql`
+                query Nft($collectionId: String!, $tierId: String, $tokenId: Int) {
+                    nft(collectionId: $collectionId, tierId: $tierId, tokenId: $tokenId) {
+                        id
+                        collection {
+                            id
+                        }
+                        properties
+                    }
+                }
+            `;
+
+            const variables = {
+                collectionId: collection.id,
+                tierId: tier.id,
+                tokenId: nft.tokenId
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.nft.id).toBeTruthy();
+                    expect(body.data.nft.collection.id).toEqual(collection.id);
+                    expect(body.data.nft.properties.foo).toEqual('baraaa');
                 });
         });
     });

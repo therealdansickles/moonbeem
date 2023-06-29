@@ -159,4 +159,53 @@ describe('NftService', () => {
         });
     });
 
+    describe('getNftByQuery', () => {
+        it('should work', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                creator: { id: wallet.id },
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '100',
+                // paymentTokenAddress: coin.address,
+                tierId: 0,
+            });
+
+            const tokenId = +faker.random.numeric(1);
+
+            const nft = await service.createOrUpdateNftByTokenId({
+                collectionId: collection.id,
+                tierId: tier.id,
+                tokenId,
+                properties: {
+                    'foo': 'bar'
+                }
+            });
+
+            const result = await service.getNftByQuery({
+                collection: { id: collection.id },
+                tokenId
+            });
+            expect(result.id).toEqual(nft.id);
+        });
+    });
+
 });
