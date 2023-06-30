@@ -12,7 +12,7 @@ describe('MoonpayService', () => {
         const currencyCode = 'USD';
         const walletAddress = '0x123abc';
         const expectedUrlWithSignature = {
-            url: 'https://mocked-url.com?apiKey=mocked-public-key&currencyCode=USD&walletAddress=0x123abc&signature=base64-encoded-signature',
+            url: 'https://mocked-url.com?apiKey=mocked-public-key&currencyCode=USD&walletAddress=0x123abc&theme=light&signature=base64-encoded-signature',
         };
 
         process.env.MOONPAY_URL = 'https://mocked-url.com';
@@ -25,7 +25,11 @@ describe('MoonpayService', () => {
 
         jest.spyOn(crypto, 'createHmac').mockImplementation(createHmac as any);
 
-        const generatedUrlWithSignature = moonpayService.generateMoonpayUrlWithSignature(currencyCode, walletAddress);
+        const generatedUrlWithSignature = moonpayService.generateMoonpayUrlWithSignature(
+            currencyCode,
+            walletAddress,
+            'light'
+        );
 
         expect(createHmac).toHaveBeenCalledWith('sha256', process.env.MOONPAY_SK);
         expect(updatefn).toHaveBeenCalledWith(expect.any(String));

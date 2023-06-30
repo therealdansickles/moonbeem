@@ -10,7 +10,7 @@ export class MoonpayService {
      * @param walletAddress  a valid address for the currency, will be passed to moonpay as query param.
      * @returns the url with the signature created of the secret key.
      */
-    generateMoonpayUrlWithSignature(currencyCode: string, walletAddress: string): MoonpayUrl {
+    generateMoonpayUrlWithSignature(currencyCode: string, walletAddress: string, theme: string): MoonpayUrl {
         if (!process.env.MOONPAY_PK) {
             throw new Error('MOONPAY_PK is needed by wasnt provided');
         }
@@ -23,7 +23,7 @@ export class MoonpayService {
             throw new Error('MOONPAY_SK is needed by wasnt provided');
         }
 
-        const originalUrl = `${process.env.MOONPAY_URL}?apiKey=${process.env.MOONPAY_PK}&currencyCode=${currencyCode}&walletAddress=${walletAddress}`;
+        const originalUrl = `${process.env.MOONPAY_URL}?apiKey=${process.env.MOONPAY_PK}&currencyCode=${currencyCode}&walletAddress=${walletAddress}&theme=${theme}`;
         const signature = crypto
             .createHmac('sha256', process.env.MOONPAY_SK)
             .update(new URL(originalUrl).search)

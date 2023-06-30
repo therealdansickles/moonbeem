@@ -14,6 +14,7 @@ export class MoonpayResolver {
     public getMoonpaySignature(
         @Args('currency') currency: string,
         @Args('address') address: string,
+        @Args('theme') theme: string,
         @Args('signature') signature: string,
         @Args('message') message: string
     ): MoonpayUrl {
@@ -22,6 +23,6 @@ export class MoonpayResolver {
             throw new HttpException('signature verification failure', HttpStatus.BAD_REQUEST);
         }
 
-        return this.moonpay.generateMoonpayUrlWithSignature(currency, address);
+        return this.moonpay.generateMoonpayUrlWithSignature(currency, address, theme);
     }
 }

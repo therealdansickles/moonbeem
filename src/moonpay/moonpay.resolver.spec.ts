@@ -35,8 +35,8 @@ describe('MoonpayResolver', () => {
     describe('getMoonpaySignature', () => {
         it('should return a 400 because of bad signature sent', async () => {
             const query = `
-              query GetMoonpaySignature($currency: String!, $address: String!, $signature: String!, $message: String!) {
-                getMoonpaySignature(currency: $currency, address: $address, signature: $signature, message: $message) {
+              query GetMoonpaySignature($currency: String!, $address: String!, $signature: String!, $message: String!, $theme: String!) {
+                getMoonpaySignature(currency: $currency, address: $address, signature: $signature, message: $message, theme: $theme) {
                   url
                 }
               }
@@ -47,7 +47,8 @@ describe('MoonpayResolver', () => {
             const signature = await wallet.signMessage(message);
             const variables = {
                 currency: 'USD',
-                address: `0x123`,
+                address: `0x123asdasd`,
+                theme: 'light',
                 signature,
                 message,
             };
@@ -56,7 +57,7 @@ describe('MoonpayResolver', () => {
             process.env.MOONPAY_PK = 'mocked-public-key';
             process.env.MOONPAY_SK = 'mocked-secret-key';
 
-            await moonPayService.generateMoonpayUrlWithSignature(variables.currency, variables.address);
+            await moonPayService.generateMoonpayUrlWithSignature(variables.currency, variables.address, 'light');
 
             const response = await request(app.getHttpServer()).post('/graphql').send({ query, variables });
             expect(response.status).toBe(200);
@@ -64,8 +65,8 @@ describe('MoonpayResolver', () => {
         });
         it('should return a MoonpayUrl with a valid signature', async () => {
             const query = `
-              query GetMoonpaySignature($currency: String!, $address: String!, $signature: String!, $message: String!) {
-                getMoonpaySignature(currency: $currency, address: $address, signature: $signature, message: $message) {
+              query GetMoonpaySignature($currency: String!, $address: String!, $signature: String!, $message: String!, $theme: String!) {
+                getMoonpaySignature(currency: $currency, address: $address, signature: $signature, message: $message, theme: $theme) {
                   url
                 }
               }
@@ -78,6 +79,7 @@ describe('MoonpayResolver', () => {
                 currency: 'USD',
                 address: `${wallet.address}`,
                 signature: signature,
+                theme: 'light',
                 message,
             };
 
@@ -85,7 +87,7 @@ describe('MoonpayResolver', () => {
             process.env.MOONPAY_PK = 'mocked-public-key';
             process.env.MOONPAY_SK = 'mocked-secret-key';
 
-            await moonPayService.generateMoonpayUrlWithSignature(variables.currency, variables.address);
+            await moonPayService.generateMoonpayUrlWithSignature(variables.currency, variables.address, 'light');
 
             const response = await request(app.getHttpServer()).post('/graphql').send({ query, variables });
             expect(response.status).toBe(200);
