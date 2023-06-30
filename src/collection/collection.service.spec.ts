@@ -1,23 +1,30 @@
 import { Repository } from 'typeorm';
+
+import { faker } from '@faker-js/faker';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
 
+import configuration from '../../config';
+import { CollaborationService } from '../collaboration/collaboration.service';
+import { postgresConfig } from '../lib/configs/db.config';
+import { OrganizationService } from '../organization/organization.service';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { Collection } from './collection.entity';
-import { CollectionModule } from './collection.module';
-import { CollectionService } from './collection.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import { OrganizationService } from '../organization/organization.service';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
-import { CollaborationService } from '../collaboration/collaboration.service';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { Asset721Service } from '../sync-chain/asset721/asset721.service';
-import { CollectionStatus, CollectionStat } from './collection.dto';
+import { CollectionStat, CollectionStatus } from './collection.dto';
+import { Collection } from './collection.entity';
+import { CollectionModule } from './collection.module';
+import { CollectionService } from './collection.service';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
@@ -36,22 +43,36 @@ describe('CollectionService', () => {
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
             imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
+                ConfigModule.forRoot({
+                    isGlobal: true,
+                    cache: true,
+                    load: [configuration]
                 }),
-                TypeOrmModule.forRoot({
+                TypeOrmModule.forRootAsync({
+                    name: 'default',
+                    imports: [ConfigModule],
+                    inject: [ConfigService],
+                    useFactory: (configService: ConfigService) => ({
+                        name: configService.get('platformPostgresConfig.name'),
+                        type: configService.get('platformPostgresConfig.type'),
+                        url: configService.get('platformPostgresConfig.url'),
+                        autoLoadEntities: configService.get('platformPostgresConfig.autoLoadEntities'),
+                        synchronize: configService.get('platformPostgresConfig.synchronize'),
+                        logging: false,
+                    })
+                }),
+                TypeOrmModule.forRootAsync({
                     name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
+                    imports: [ConfigModule],
+                    inject: [ConfigService],
+                    useFactory: (configService: ConfigService) => ({
+                        name: configService.get('syncChainPostgresConfig.name'),
+                        type: configService.get('syncChainPostgresConfig.type'),
+                        url: configService.get('syncChainPostgresConfig.url'),
+                        autoLoadEntities: configService.get('syncChainPostgresConfig.autoLoadEntities'),
+                        synchronize: configService.get('syncChainPostgresConfig.synchronize'),
+                        logging: false,
+                    })
                 }),
                 CollectionModule,
             ],

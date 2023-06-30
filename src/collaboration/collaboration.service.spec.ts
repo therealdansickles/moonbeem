@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
+import { ConfigModule, ConfigService} from '@nestjs/config';
 
 import { Collaboration } from './collaboration.entity';
 import { CollaborationModule } from './collaboration.module';
@@ -13,6 +13,7 @@ import { Organization } from '../organization/organization.entity';
 import { OrganizationService } from '../organization/organization.service';
 import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
+import configuration from '../../config'
 
 describe('CollaborationService', () => {
     let service: CollaborationService;
@@ -28,22 +29,36 @@ describe('CollaborationService', () => {
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
             imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
+                ConfigModule.forRoot({
+                    isGlobal: true,
+                    cache: true,
+                    load: [configuration]
                 }),
-                TypeOrmModule.forRoot({
+                TypeOrmModule.forRootAsync({
+                    name: 'default',
+                    imports: [ConfigModule],
+                    inject: [ConfigService],
+                    useFactory: (configService: ConfigService) => ({
+                        name: configService.get('platformPostgresConfig.name'),
+                        type: configService.get('platformPostgresConfig.type'),
+                        url: configService.get('platformPostgresConfig.url'),
+                        autoLoadEntities: configService.get('platformPostgresConfig.autoLoadEntities'),
+                        synchronize: configService.get('platformPostgresConfig.synchronize'),
+                        logging: false,
+                    })
+                }),
+                TypeOrmModule.forRootAsync({
                     name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
+                    imports: [ConfigModule],
+                    inject: [ConfigService],
+                    useFactory: (configService: ConfigService) => ({
+                        name: configService.get('syncChainPostgresConfig.name'),
+                        type: configService.get('syncChainPostgresConfig.type'),
+                        url: configService.get('syncChainPostgresConfig.url'),
+                        autoLoadEntities: configService.get('syncChainPostgresConfig.autoLoadEntities'),
+                        synchronize: configService.get('syncChainPostgresConfig.synchronize'),
+                        logging: false,
+                    })
                 }),
                 CollaborationModule,
             ],

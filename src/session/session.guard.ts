@@ -1,18 +1,24 @@
-import { COLLECTION_ID_PARAMETER, TOKEN_ID_PARAMETER, USER_PARAMETER, WALLET_ADDRESS_PARAMETER, WALLET_PARAMETER } from './session.decorator';
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-
-import { Asset721Service } from '../sync-chain/asset721/asset721.service';
-import { CollectionService } from '../collection/collection.service';
-import { GqlExecutionContext } from '@nestjs/graphql';
-import { JwtService } from '@nestjs/jwt';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { Observable } from 'rxjs';
-import { Reflector } from '@nestjs/core';
-import { UserService } from '../user/user.service';
-import { WalletService } from '../wallet/wallet.service';
-import { captureException } from '@sentry/node';
 import { ethers } from 'ethers';
 import { get } from 'lodash';
+import { Observable } from 'rxjs';
+
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { GqlExecutionContext } from '@nestjs/graphql';
+import { JwtService } from '@nestjs/jwt';
+import { captureException } from '@sentry/node';
+
+import { CollectionService } from '../collection/collection.service';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { UserService } from '../user/user.service';
+import { WalletService } from '../wallet/wallet.service';
+import {
+    COLLECTION_ID_PARAMETER, TOKEN_ID_PARAMETER, USER_PARAMETER, WALLET_ADDRESS_PARAMETER,
+    WALLET_PARAMETER
+} from './session.decorator';
 
 const extractToken = (request) => {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];

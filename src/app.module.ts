@@ -1,35 +1,37 @@
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RavenInterceptor, RavenModule } from 'nest-raven';
 
-import { CollaborationModule } from './collaboration/collaboration.module';
-import { CollectionModule } from './collection/collection.module';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
 import { JwtModule } from '@nestjs/jwt';
-import { MembershipModule } from './membership/membership.module';
-import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+import configuration from '../config';
+import { CollaborationModule } from './collaboration/collaboration.module';
+import { CollectionModule } from './collection/collection.module';
 import { MongoAdapter } from './lib/adapters/mongo.adapter';
+import { RedisAdapter } from './lib/adapters/redis.adapter';
+import { appConfig } from './lib/configs/app.config';
+import { MembershipModule } from './membership/membership.module';
+import { UploadModule } from './modules/upload.module';
 import { MoonpayModule } from './moonpay/moonpay.module';
 import { NftModule } from './nft/nft.module';
 import { OpenseaModule } from './opensea/opensea.module';
 import { OrganizationModule } from './organization/organization.module';
 import { PollerModule } from './poller/poller.module';
 import { RedeemModule } from './redeem/redeem.module';
-import { RedisAdapter } from './lib/adapters/redis.adapter';
 import { RelationshipModule } from './relationship/relationship.module';
-import { ScheduleModule } from '@nestjs/schedule';
+import { SaleHistoryModule } from './saleHistory/saleHistory.module';
 import { SearchModule } from './search/search.module';
 import { SessionGuard } from './session/session.guard';
 import { SessionModule } from './session/session.module';
 import { SyncChainModule } from './sync-chain/sync-chain.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UploadModule } from './modules/upload.module';
 import { UserModule } from './user/user.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { WalletModule } from './wallet/wallet.module';
-import { appConfig } from './lib/configs/app.config';
-import configuration from '../config';
 
 @Module({
     imports: [
