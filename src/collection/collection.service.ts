@@ -15,6 +15,7 @@ import {
     CreateCollectionInput,
     LandingPageCollection,
     CollectionPaginated,
+    SecondarySale,
     ZeroAccount,
 } from './collection.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
@@ -26,6 +27,8 @@ import { OpenseaService } from '../opensea/opensea.service';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
+import { SaleHistory } from '../saleHistory/saleHistory.dto';
+import { getCurrentPrice } from '../saleHistory/saleHistory.service';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name'>>;
 
@@ -75,10 +78,12 @@ export class CollectionService {
             relations: ['organization', 'creator', 'collaboration'],
         });
 
-        if (collection) collection.tiers = (await this.tierService.getTiersByCollection(collection.id)) as Tier[];
+        if (collection) {
+            collection.tiers = (await this.tierService.getTiersByCollection(collection.id)) as Tier[];
+        }
+
         return collection;
     }
-
     /**
      * Retrieves the collection associated with the given address.
      *
@@ -503,5 +508,32 @@ export class CollectionService {
 
         const [result, total] = await Promise.all([builder.getMany(), countBuilder.getCount()]);
         return PaginatedImp(result, total);
+    }
+
+    async getSecondarySale(address: string): Promise<SecondarySale> {
+        const params = { asset_contract_address: address, cursor: null };
+        let sales: SaleHistory;
+        let total = 0;
+        const result: SecondarySale = { total: 0 };
+
+        do {
+            sales = await this.openseaService.getCollectionEvent(params);
+            params.cursor = sales.next;
+            // Process data from opensea
+            total += this.totalValue(sales);
+        } while (sales.next != null);
+
+        result.total = total;
+        return result;
+    }
+
+    private totalValue(sale: SaleHistory): number {
+        return sale.asset_events.reduce((acc, curr) => {
+            if (curr.asset.asset_contract.address != curr.transaction.from_account.address) {
+                return acc + getCurrentPrice(curr);
+            }
+
+            return acc;
+        }, 0);
     }
 }

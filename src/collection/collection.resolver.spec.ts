@@ -7,23 +7,24 @@ import { ApolloDriver } from '@nestjs/apollo';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { CollaborationService } from '../collaboration/collaboration.service';
-import { CollectionModule } from './collection.module';
-import { CollectionService } from './collection.service';
-import { CollectionStatus } from './collection.dto';
 import { GraphQLModule } from '@nestjs/graphql';
 import { INestApplication } from '@nestjs/common';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { OrganizationService } from '../organization/organization.service';
 import { Repository } from 'typeorm';
 import { SessionModule } from '../session/session.module';
-import { TierService } from '../tier/tier.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserService } from '../user/user.service';
-import { WalletService } from '../wallet/wallet.service';
 import { faker } from '@faker-js/faker';
 import { hashSync as hashPassword } from 'bcryptjs';
 import { postgresConfig } from '../lib/configs/db.config';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { TierService } from '../tier/tier.service';
+import { UserService } from '../user/user.service';
+import { WalletService } from '../wallet/wallet.service';
+import { CollectionModule } from './collection.module';
+import { CollectionService } from './collection.service';
+import { CollectionStatus } from './collection.dto';
+import { CollectionStat } from './collection.dto';
 
 export const gql = String.raw;
 
@@ -1046,10 +1047,13 @@ describe('CollectionResolver', () => {
                             daily: faker.datatype.float(),
                             weekly: faker.datatype.float(),
                             total: faker.datatype.float(),
+                            thirtyDayAvg: faker.datatype.float(),
                         },
+                        netGrossEarning: faker.datatype.float(),
                     },
                 },
-            ];
+            ] as CollectionStat[];
+
             jest.spyOn(service, 'getSecondartMarketStat').mockImplementation(async () => mockResponse);
 
             return await request(app.getHttpServer())

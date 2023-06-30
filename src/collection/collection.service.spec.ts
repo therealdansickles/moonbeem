@@ -17,7 +17,7 @@ import { WalletService } from '../wallet/wallet.service';
 import { CollaborationService } from '../collaboration/collaboration.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
-import { CollectionStatus } from './collection.dto';
+import { CollectionStatus, CollectionStat } from './collection.dto';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
@@ -1002,10 +1002,13 @@ describe('CollectionService', () => {
                             daily: faker.datatype.float(),
                             weekly: faker.datatype.float(),
                             total: faker.datatype.float(),
+                            thirtyDayAvg: faker.datatype.float(),
                         },
+                        netGrossEarning: faker.datatype.float(),
                     },
                 },
-            ];
+            ] as CollectionStat[];
+
             jest.spyOn(service, 'getSecondartMarketStat').mockImplementation(async () => mockResponse);
             const result = await service.getSecondartMarketStat({ address: collection.address });
             expect(result.length).toEqual(1);
@@ -1261,6 +1264,16 @@ describe('CollectionService', () => {
             expect(result.edges[0]).toBeDefined();
             // expect(result.edges[0].node.id).toEqual(collection2.id);
             expect(result.totalCount).toEqual(2);
+        });
+    });
+    describe('getSecondarySale', () => {
+        it('should return Secondary Sale', async () => {
+            const mockResponse = {
+                total: faker.datatype.float(),
+            };
+            jest.spyOn(service, 'getSecondarySale').mockImplementation(async () => mockResponse);
+            const result = await service.getSecondarySale(faker.finance.ethereumAddress());
+            expect(result.total).toBeDefined();
         });
     });
 });

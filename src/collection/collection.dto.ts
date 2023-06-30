@@ -282,6 +282,10 @@ export class CollectionStatDataPeriodItem {
     @Field(() => Float, { nullable: true })
     @IsNumber()
     readonly total?: number;
+
+    @Field(() => Float, { nullable: true })
+    @IsObject()
+    readonly thirtyDayAvg?: number;
 }
 
 @ObjectType('CollectionStatData')
@@ -301,6 +305,10 @@ export class CollectionStatData {
     @Field(() => Float)
     @IsNumber()
     readonly floorPrice: number;
+
+    @IsString()
+    @Field(() => Float, { description: 'The collection net Gross from open sea', nullable: true })
+    readonly netGrossEarning: number;
 }
 
 @ObjectType('CollectionStat')
@@ -331,6 +339,13 @@ export class CollectionActivities {
     @Field(() => [CollectionActivityData])
     @IsArray()
     readonly data: CollectionActivityData[];
+}
+
+@ObjectType('SecondarySale')
+export class SecondarySale {
+    @Field(() => Number)
+    @IsNumber()
+    total: number;
 }
 
 @ObjectType('CollectionActivityData')

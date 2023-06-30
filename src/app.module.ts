@@ -31,6 +31,7 @@ import { WaitlistModule } from './waitlist/waitlist.module';
 import { WalletModule } from './wallet/wallet.module';
 import { appConfig } from './lib/configs/app.config';
 import { postgresConfig } from './lib/configs/db.config';
+import { SaleHistoryModule } from './saleHistory/saleHistory.module';
 
 dotenv.config();
 
@@ -74,6 +75,9 @@ dotenv.config();
             secret: process.env.SESSION_SECRET,
             signOptions: { expiresIn: '1d' },
         }),
+        OpenseaModule,
+        MoonpayModule,
+        SaleHistoryModule,
     ],
     providers: [
         {

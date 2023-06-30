@@ -11,6 +11,7 @@ import {
     LandingPageCollection,
     CollectionStatus,
     CollectionPaginated,
+    SecondarySale,
 } from './collection.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
@@ -131,5 +132,11 @@ export class CollectionResolver {
         @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
     ): Promise<CollectionPaginated> {
         return this.collectionService.getCollections(before, after, first, last);
+    }
+
+    @Public()
+    @ResolveField(() => Number)
+    async secondaySale(@Parent() collection: Collection): Promise<SecondarySale> {
+        return await this.collectionService.getSecondarySale(collection.address);
     }
 }
