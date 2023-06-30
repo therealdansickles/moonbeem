@@ -1,8 +1,10 @@
-import { Args, Mutation, Query, Resolver, Int } from '@nestjs/graphql';
-
-import { Nft, CreateOrUpdateNftInput } from './nft.dto';
-import { INftQuery, NftService } from './nft.service';
 import { isNil, omitBy } from 'lodash';
+
+import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+
+import { Public } from '../session/session.decorator';
+import { CreateOrUpdateNftInput, Nft } from './nft.dto';
+import { INftQuery, NftService } from './nft.service';
 
 @Resolver(() => Nft)
 export class NftResolver {
@@ -10,6 +12,7 @@ export class NftResolver {
         private readonly nftService: NftService,
     ) {}
 
+    @Public()
     @Query(() => Nft, { description: 'Get a specific NFT by id.', nullable: true })
     async nft(
         @Args({ name: 'id', nullable: true }) id: string,
