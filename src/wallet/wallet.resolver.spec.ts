@@ -612,6 +612,23 @@ describe('WalletResolver', () => {
                 tierId: 1,
                 collection: { id: collection.id },
                 paymentTokenAddress: faker.finance.ethereumAddress(),
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const transaction = await mintSaleTransactionService.createMintSaleTransaction({
@@ -690,6 +707,23 @@ describe('WalletResolver', () => {
                 tierId: 1,
                 collection: { id: collection.id },
                 paymentTokenAddress: faker.finance.ethereumAddress(),
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const transaction = await mintSaleTransactionService.createMintSaleTransaction({
@@ -773,6 +807,23 @@ describe('WalletResolver', () => {
                 tierId: 1,
                 collection: { id: collection.id },
                 paymentTokenAddress: faker.finance.ethereumAddress(),
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const paymentToken = faker.finance.ethereumAddress();

@@ -119,6 +119,22 @@ describe('TierResolver', () => {
                 totalMints: 10,
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const query = gql`
@@ -172,6 +188,22 @@ describe('TierResolver', () => {
                 totalMints: 10,
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const transaction = await mintSaleTransactionService.createMintSaleTransaction({
@@ -230,7 +262,7 @@ describe('TierResolver', () => {
                 });
         });
 
-        it('should return a tier with plugins, attributes and conditions', async () => {
+        it('should return a tier with metadata', async () => {
             collection = await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
@@ -247,35 +279,7 @@ describe('TierResolver', () => {
                 totalMints: 10,
                 paymentTokenAddress: coin.address,
                 tierId: 0,
-                attributes: [
-                    {
-                        trait_type: 'Powerup',
-                        value: '1000',
-                    },
-                ],
-                conditions: [
-                    {
-                        trait_type: 'Ranking',
-                        rules: {
-                            trait_type: 'greater_than',
-                            value: '10',
-                        },
-                        update: {
-                            trait_type: 'Claimble',
-                            value: 'true',
-                        },
-                    },
-                ],
-                plugins: [
-                    {
-                        type: 'gitub',
-                        path: 'vibexyz/vibes',
-                    },
-                    {
-                        type: 'vibe',
-                        path: 'points',
-                    },
-                ],
+                metadata: {},
             });
 
             const query = gql`
@@ -286,25 +290,7 @@ describe('TierResolver', () => {
                         coin {
                             address
                         }
-                        attributes {
-                            trait_type
-                            value
-                        }
-                        conditions {
-                            trait_type
-                            rules {
-                                trait_type
-                                value
-                            }
-                            update {
-                                trait_type
-                                value
-                            }
-                        }
-                        plugins {
-                            type
-                            path
-                        }
+                        metadata
                     }
                 }
             `;
@@ -320,9 +306,7 @@ describe('TierResolver', () => {
                 .expect(({ body }) => {
                     expect(body.data.tier.id).toBe(tier.id);
                     expect(body.data.tier.name).toBe(tier.name);
-                    expect(body.data.tier.plugins).toStrictEqual(tier.plugins);
-                    expect(body.data.tier.attributes).toStrictEqual(tier.attributes);
-                    expect(body.data.tier.conditions).toStrictEqual(tier.conditions);
+                    expect(body.data.tier.metadata).toBeDefined();
                 });
         });
 
@@ -574,6 +558,22 @@ describe('TierResolver', () => {
                 totalMints: 10,
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const query = gql`
@@ -608,6 +608,22 @@ describe('TierResolver', () => {
                 totalMints: 10,
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const query = gql`
@@ -655,12 +671,6 @@ describe('TierResolver', () => {
                 collection: { id: innerCollection.id },
                 paymentTokenAddress: coin.address,
                 tierId: 0,
-                attributes: [
-                    {
-                        trait_type: 'Color',
-                        value: 'Blue',
-                    },
-                ],
                 metadata: {
                     uses: ['vibexyz/creator_scoring', 'vibexyz/royalty_level'],
                     title: 'Token metadata',

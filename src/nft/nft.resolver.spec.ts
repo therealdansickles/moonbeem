@@ -104,6 +104,23 @@ describe('NftResolver', () => {
                 collection: { id: collection.id },
                 price: '100',
                 tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const nft = await service.createOrUpdateNftByTokenId({
@@ -111,8 +128,8 @@ describe('NftResolver', () => {
                 tierId: tier.id,
                 tokenId: faker.random.numeric(1),
                 properties: {
-                    'foo': 'bar'
-                }
+                    foo: 'bar',
+                },
             });
 
             const query = gql`
@@ -128,7 +145,7 @@ describe('NftResolver', () => {
             `;
 
             const variables = {
-                id: nft.id
+                id: nft.id,
             };
 
             return await request(app.getHttpServer())
@@ -168,6 +185,23 @@ describe('NftResolver', () => {
                 collection: { id: collection.id },
                 price: '100',
                 tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const nft = await service.createOrUpdateNftByTokenId({
@@ -175,8 +209,8 @@ describe('NftResolver', () => {
                 tierId: tier.id,
                 tokenId: +faker.random.numeric(1),
                 properties: {
-                    'foo': 'baraaa'
-                }
+                    foo: 'baraaa',
+                },
             });
 
             const query = gql`
@@ -194,7 +228,7 @@ describe('NftResolver', () => {
             const variables = {
                 collectionId: collection.id,
                 tierId: tier.id,
-                tokenId: nft.tokenId
+                tokenId: nft.tokenId,
             };
 
             return await request(app.getHttpServer())
@@ -236,6 +270,23 @@ describe('NftResolver', () => {
                 collection: { id: collection.id },
                 price: '100',
                 tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const query = gql`
@@ -256,11 +307,10 @@ describe('NftResolver', () => {
                     tierId: tier.id,
                     tokenId: +faker.random.numeric(2),
                     properties: {
-                        'foo': 'bar'
-                    }
-                }
+                        foo: 'bar',
+                    },
+                },
             };
-
 
             return await request(app.getHttpServer())
                 .post('/graphql')

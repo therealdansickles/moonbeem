@@ -179,6 +179,23 @@ describe('CollectionService', () => {
                         paymentTokenAddress: coin.address,
                         tierId: 0,
                         price: '200',
+                        metadata: {
+                            uses: [],
+                            properties: {
+                                level: {
+                                    name: 'level',
+                                    type: 'string',
+                                    value: 'basic',
+                                    display_value: 'Basic',
+                                },
+                                holding_days: {
+                                    name: 'holding_days',
+                                    type: 'integer',
+                                    value: 125,
+                                    display_value: 'Days of holding',
+                                },
+                            },
+                        },
                     },
                 ],
             });
@@ -467,6 +484,23 @@ describe('CollectionService', () => {
                 collection: { id: collection.id },
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             await tierService.createTier({
@@ -475,6 +509,23 @@ describe('CollectionService', () => {
                 collection: { id: collection.id },
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const result = await service.getCollectionsByOrganizationId(organization.id);
@@ -707,6 +758,23 @@ describe('CollectionService', () => {
                 collection: { id: collection.id },
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             await tierService.createTier({
@@ -715,6 +783,23 @@ describe('CollectionService', () => {
                 collection: { id: collection.id },
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const result = await service.deleteCollection(collection.id);
@@ -803,6 +888,23 @@ describe('CollectionService', () => {
                         paymentTokenAddress: coin.address,
                         tierId: 0,
                         price: '200',
+                        metadata: {
+                            uses: [],
+                            properties: {
+                                level: {
+                                    name: 'level',
+                                    type: 'string',
+                                    value: 'basic',
+                                    display_value: 'Basic',
+                                },
+                                holding_days: {
+                                    name: 'holding_days',
+                                    type: 'integer',
+                                    value: 125,
+                                    display_value: 'Days of holding',
+                                },
+                            },
+                        },
                     },
                 ],
             });
@@ -854,6 +956,23 @@ describe('CollectionService', () => {
                         paymentTokenAddress: coin.address,
                         tierId: 0,
                         price: '200',
+                        metadata: {
+                            uses: [],
+                            properties: {
+                                level: {
+                                    name: 'level',
+                                    type: 'string',
+                                    value: 'basic',
+                                    display_value: 'Basic',
+                                },
+                                holding_days: {
+                                    name: 'holding_days',
+                                    type: 'integer',
+                                    value: 125,
+                                    display_value: 'Days of holding',
+                                },
+                            },
+                        },
                     },
                 ],
             });
@@ -933,6 +1052,23 @@ describe('CollectionService', () => {
                         paymentTokenAddress: coin.address,
                         tierId: 0,
                         price: '200',
+                        metadata: {
+                            uses: [],
+                            properties: {
+                                level: {
+                                    name: 'level',
+                                    type: 'string',
+                                    value: 'basic',
+                                    display_value: 'Basic',
+                                },
+                                holding_days: {
+                                    name: 'holding_days',
+                                    type: 'integer',
+                                    value: 125,
+                                    display_value: 'Days of holding',
+                                },
+                            },
+                        },
                     },
                 ],
             });

@@ -11,7 +11,7 @@ import {
 } from '@nestjs/graphql';
 import { IsNumber, IsString, IsDateString, IsUrl, IsOptional, IsArray, IsObject, IsEnum } from 'class-validator';
 import { CollectionKind } from './collection.entity';
-import { AttributeInput, Tier, PluginInput, ConditionInput, MetadataOutput } from '../tier/tier.dto';
+import { Tier, MetadataOutput } from '../tier/tier.dto';
 import { Organization, OrganizationInput } from '../organization/organization.dto';
 import { CollaborationInput } from '../collaboration/collaboration.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
@@ -214,24 +214,9 @@ export class CreateTierInCollectionInput {
     @IsOptional()
     readonly animationUrl?: string;
 
-    @Field(() => [AttributeInput], { description: 'The tier attributes', nullable: true })
-    @IsArray()
-    @IsOptional()
-    readonly attributes?: AttributeInput[];
-
-    @Field(() => [ConditionInput], { description: 'The tier attributes', nullable: true })
-    @IsArray()
-    @IsOptional()
-    readonly conditions?: ConditionInput[];
-
-    @Field(() => [PluginInput], { description: 'The tier attributes', nullable: true })
-    @IsArray()
-    @IsOptional()
-    readonly plugins?: PluginInput[];
-
     @Field(() => GraphQLJSONObject, { nullable: true, description: 'The full metadata of the tier.' })
     @IsObject()
-    readonly metadata?: MetadataOutput;
+    readonly metadata: MetadataOutput;
 
     @IsString()
     @Field({ nullable: true, description: 'This merekleRoot of tier.' })

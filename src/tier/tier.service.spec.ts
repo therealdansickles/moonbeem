@@ -97,6 +97,22 @@ describe('TierService', () => {
                 price: '100',
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             expect(tier).toBeDefined();
@@ -121,6 +137,22 @@ describe('TierService', () => {
                 merkleRoot: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
         });
 
@@ -135,41 +167,6 @@ describe('TierService', () => {
                 address: faker.finance.ethereumAddress(),
             });
 
-            const conditions = [
-                {
-                    trait_type: 'Ranking',
-                    rules: {
-                        trait_type: 'greater_than',
-                        value: '10',
-                    },
-                    update: {
-                        trait_type: 'Claimble',
-                        value: 'true',
-                    },
-                },
-            ];
-
-            const plugins = [
-                {
-                    type: 'gitub',
-                    path: 'vibexyz/vibes',
-                },
-                {
-                    type: 'vibe',
-                    path: 'points',
-                },
-            ];
-            const attributes = [
-                {
-                    trait_type: 'Base',
-                    value: 'Starfish',
-                },
-                {
-                    trait_type: 'Eyes',
-                    value: 'Big',
-                },
-            ];
-
             const tier = await service.createTier({
                 name: faker.company.name(),
                 totalMints: 100,
@@ -177,15 +174,25 @@ describe('TierService', () => {
                 merkleRoot: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 paymentTokenAddress: coin.address,
                 tierId: 0,
-                conditions,
-                plugins,
-                attributes: attributes,
+                metadata: {
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             expect(tier).toBeDefined();
-            expect(tier.conditions).toStrictEqual(conditions);
-            expect(tier.attributes).toStrictEqual(attributes);
-            expect(tier.plugins).toStrictEqual(plugins);
         });
     });
 
@@ -207,6 +214,22 @@ describe('TierService', () => {
                 collection: { id: collection.id },
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             await service.createTier({
@@ -215,6 +238,22 @@ describe('TierService', () => {
                 collection: { id: collection.id },
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const result = await service.getTiersByCollection(collection.id);
@@ -243,6 +282,22 @@ describe('TierService', () => {
                 totalMints: 10,
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const result = await service.updateTier(tier.id, {
@@ -271,6 +326,22 @@ describe('TierService', () => {
                 collection: { id: collection.id },
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const result = await service.deleteTier(tier.id);
@@ -297,6 +368,22 @@ describe('TierService', () => {
                 collection: { id: collection.id },
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const transaction = await mintSaleTransactionService.createMintSaleTransaction({
@@ -365,12 +452,6 @@ describe('TierService', () => {
                 collection: { id: innerCollection.id },
                 paymentTokenAddress: coin.address,
                 tierId: 0,
-                attributes: [
-                    {
-                        trait_type: 'Color',
-                        value: 'Blue',
-                    },
-                ],
                 metadata: {
                     uses: ['vibexyz/creator_scoring', 'vibexyz/royalty_level'],
                     title: 'Token metadata',

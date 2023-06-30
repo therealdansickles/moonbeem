@@ -150,28 +150,6 @@ export class Tier extends BaseEntity {
     readonly description?: string;
 
     @Column({
-        type: 'jsonb',
-        default: [],
-        comment:
-            'A JSON object with arbitrary data. This can be used to store any additional information about the item.',
-    })
-    public attributes?: Attribute[];
-
-    @Column({
-        default: [],
-        type: 'jsonb',
-        comment: 'A JSON object containing the data of the conditions of this item.',
-    })
-    readonly conditions?: Condition[];
-
-    @Column({
-        default: [],
-        type: 'jsonb',
-        comment: 'A JSON object containing the data of the tier plugins data.',
-    })
-    readonly plugins?: Plugin[];
-
-    @Column({
         nullable: true,
         length: 6,
         comment: 'Background color of the item. Must be a six-character hexadecimal without a pre-pended #.',
@@ -187,8 +165,7 @@ export class Tier extends BaseEntity {
     @Column({
         default: {},
         type: 'jsonb',
-        nullable: true,
         comment: 'Full metadata info for the tier.',
     })
-    readonly metadata?: Metadata;
+    readonly metadata: Metadata;
 }

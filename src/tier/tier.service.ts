@@ -115,7 +115,7 @@ export class TierService {
 
         const dd = data as unknown as tierEntity.Tier;
         dd.collection = data.collection as unknown as Collection;
-        dd.attributes = data.attributes as tierEntity.Attribute[];
+        // dd.attributes = data.attributes as tierEntity.Attribute[];
 
         try {
             return await this.tierRepository.save(dd);

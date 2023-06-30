@@ -90,6 +90,23 @@ describe('PollerService', () => {
                 price: '100',
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             await mintSaleTransactionService.createMintSaleTransaction({
@@ -130,12 +147,23 @@ describe('PollerService', () => {
                 price: '100',
                 paymentTokenAddress: coin.address,
                 tierId: 0,
-                attributes: [
-                    {
-                        trait_type: 'Powerup',
-                        value: '1000',
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
                     },
-                ],
+                },
             });
 
             await mintSaleTransactionService.createMintSaleTransaction({
@@ -156,11 +184,6 @@ describe('PollerService', () => {
             const result = await service.getSaleRecord();
             expect(result).toBeDefined();
             expect(result.length).toBeGreaterThanOrEqual(1);
-
-            const returnedRecord = result.find((r) => r.collection_id === collection.id);
-
-            expect(returnedRecord.attributes.length).toBeGreaterThanOrEqual(1);
-            expect(returnedRecord.attributes[0].trait_type).toBe('Powerup');
         });
 
         it('should return sale records for tier while removing empty display_type', async () => {
@@ -181,17 +204,23 @@ describe('PollerService', () => {
                 price: '100',
                 paymentTokenAddress: coin.address,
                 tierId: 0,
-                attributes: [
-                    {
-                        trait_type: 'Powerup',
-                        value: '1000',
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
                     },
-                    {
-                        display_type: '',
-                        trait_type: 'Sword',
-                        value: '20',
-                    },
-                ],
+                },
             });
 
             await mintSaleTransactionService.createMintSaleTransaction({
@@ -214,7 +243,7 @@ describe('PollerService', () => {
             expect(result.length).toBeGreaterThanOrEqual(1);
 
             const returnedRecord = result.find((r) => r.collection_id === collection.id);
-            expect(returnedRecord.attributes.find((a) => a.trait_type === 'Sword')).toBeDefined();
+            // expect(returnedRecord.attributes.find((a) => a.trait_type === 'Sword')).toBeDefined();
             // we filter the info before we write it,
             // so commented the test case
             // expect(returnedRecord.attributes.find((a) => a.trait_type === 'Sword').display_type).not.toBeDefined();

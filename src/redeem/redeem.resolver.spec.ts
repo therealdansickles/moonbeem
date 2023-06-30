@@ -74,7 +74,6 @@ describe('RedeemResolver', () => {
     });
 
     describe('createRedeem', () => {
-
         it('should forbid if signature not matched', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
@@ -145,7 +144,7 @@ describe('RedeemResolver', () => {
                 });
         });
 
-        it('should forbid if owner of the asset721 doesn\'t match the signed wallet', async () => {
+        it("should forbid if owner of the asset721 doesn't match the signed wallet", async () => {
             const ownerUser = await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
@@ -194,7 +193,7 @@ describe('RedeemResolver', () => {
                 currentId: 1,
                 tokenAddress: faker.finance.ethereumAddress().toLowerCase(),
                 collectionId: collection.id,
-            })
+            });
 
             const ownerWallet = ethers.Wallet.createRandom();
             const ownerWallet2 = ethers.Wallet.createRandom();
@@ -207,7 +206,7 @@ describe('RedeemResolver', () => {
                 address: mintSaleContract.tokenAddress,
                 tokenId,
                 owner: ownerWallet2.address,
-            })
+            });
 
             const message = 'claim a redeem font';
             const signature = await ownerWallet.signMessage(message);
@@ -246,7 +245,7 @@ describe('RedeemResolver', () => {
                     expect(body.errors).toBeTruthy();
                     expect(body.data).toBeFalsy();
                 });
-        })
+        });
 
         it('should create a redeem', async () => {
             const ownerUser = await userService.createUser({
@@ -350,5 +349,4 @@ describe('RedeemResolver', () => {
                 });
         });
     });
-
 });

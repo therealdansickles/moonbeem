@@ -2,10 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
-import { Nft } from './nft.entity';
 import { NftModule } from './nft.module';
 import { NftService } from './nft.service';
-import { Repository } from 'typeorm';
 import { TierModule } from '../tier/tier.module';
 import { TierService } from '../tier/tier.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -17,7 +15,6 @@ import { faker } from '@faker-js/faker';
 import { postgresConfig } from '../lib/configs/db.config';
 
 describe('NftService', () => {
-    let repository: Repository<Nft>;
     let service: NftService;
     let tierService: TierService;
     let collectionService: CollectionService;
@@ -52,7 +49,6 @@ describe('NftService', () => {
             ],
         }).compile();
 
-        repository = module.get('CollectionRepository');
         service = module.get<NftService>(NftService);
         userService = module.get<UserService>(UserService);
         walletService = module.get<WalletService>(WalletService);
@@ -65,8 +61,8 @@ describe('NftService', () => {
     });
 
     describe('createOrUpdateNftByTokenId', () => {
-        it('should create a nft record if didn\'t exist', async () => {
-            const owner = await userService.createUser({
+        it("should create a nft record if didn't exist", async () => {
+            await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -92,6 +88,23 @@ describe('NftService', () => {
                 price: '100',
                 // paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const result = await service.createOrUpdateNftByTokenId({
@@ -99,15 +112,15 @@ describe('NftService', () => {
                 tierId: tier.id,
                 tokenId: faker.random.numeric(1),
                 properties: {
-                    'foo': 'bar'
-                }
+                    foo: 'bar',
+                },
             });
             expect(result.id).toBeTruthy();
             expect(result.properties.foo).toEqual('bar');
         });
 
         it('should update a nft record if already exist', async () => {
-            const owner = await userService.createUser({
+            await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -133,6 +146,23 @@ describe('NftService', () => {
                 price: '100',
                 // paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const tokenId = +faker.random.numeric(1);
@@ -142,8 +172,8 @@ describe('NftService', () => {
                 tierId: tier.id,
                 tokenId,
                 properties: {
-                    'foo': 'bar'
-                }
+                    foo: 'bar',
+                },
             });
 
             const result = await service.createOrUpdateNftByTokenId({
@@ -151,8 +181,8 @@ describe('NftService', () => {
                 tierId: tier.id,
                 tokenId,
                 properties: {
-                    'foo': 'barrrrr'
-                }
+                    foo: 'barrrrr',
+                },
             });
             expect(result.id).toBeTruthy();
             expect(result.properties.foo).toEqual('barrrrr');
@@ -161,7 +191,7 @@ describe('NftService', () => {
 
     describe('getNftByQuery', () => {
         it('should work', async () => {
-            const owner = await userService.createUser({
+            await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -187,6 +217,23 @@ describe('NftService', () => {
                 price: '100',
                 // paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const tokenId = +faker.random.numeric(1);
@@ -196,16 +243,15 @@ describe('NftService', () => {
                 tierId: tier.id,
                 tokenId,
                 properties: {
-                    'foo': 'bar'
-                }
+                    foo: 'bar',
+                },
             });
 
             const result = await service.getNftByQuery({
                 collection: { id: collection.id },
-                tokenId
+                tokenId,
             });
             expect(result.id).toEqual(nft.id);
         });
     });
-
 });

@@ -123,7 +123,7 @@ export class MetadataProperty {
     @IsString()
     @IsOptional()
     @Field({ nullable: true, description: 'The display value of the property.' })
-    readonly display_type?: string;
+    readonly display_value?: string;
 
     @Field(() => String, { description: 'The value of the property.' })
     readonly value: string | number;
@@ -171,7 +171,7 @@ export class MetadataOutput {
 }
 
 @ObjectType()
-export class MetadataIuput extends OmitType(MetadataOutput, [], InputType) {}
+export class MetadataInput extends OmitType(MetadataOutput, [], InputType) {}
 
 @ObjectType()
 export class Profit {
@@ -239,32 +239,9 @@ export class Tier {
     @IsOptional()
     readonly merkleRoot?: string;
 
-    @Field(() => [AttributeOutput], {
-        description: 'A JSON object containing the attributes of the tier.',
-        nullable: true,
-    })
-    @IsArray()
-    readonly attributes?: AttributeOutput[];
-
-    @Field(() => [ConditionOutput], {
-        description: 'A JSON object containing the conditions of the tier.',
-        nullable: true,
-    })
-    @IsArray()
-    @IsOptional()
-    readonly conditions?: ConditionOutput[];
-
-    @Field(() => [PluginOutput], {
-        description: 'A JSON object containing the plugins of the tier.',
-        nullable: true,
-    })
-    @IsArray()
-    @IsOptional()
-    readonly plugins?: PluginOutput[];
-
     @Field(() => GraphQLJSONObject, { nullable: true, description: 'The full metadata of the tier.' })
     @IsObject()
-    readonly metadata?: MetadataOutput;
+    readonly metadata: MetadataOutput;
 
     @Field(() => Coin, { description: 'The tier coin', nullable: true })
     @IsOptional()
@@ -321,26 +298,9 @@ export class CreateTierInput {
     @IsOptional()
     readonly animationUrl?: string;
 
-    @Field(() => [AttributeInput], { description: 'The tier attributes', nullable: true })
-    @IsArray()
-    readonly attributes?: AttributeInput[];
-
-    @Field(() => [ConditionInput], { description: 'The tier conditions', nullable: true })
-    @IsOptional()
-    @IsArray()
-    readonly conditions?: ConditionInput[];
-
-    @IsArray()
-    @Field(() => [PluginInput], {
-        description: 'A JSON object containing the plugins of the tier.',
-        nullable: true,
-    })
-    @IsOptional()
-    readonly plugins?: PluginInput[];
-
     @Field(() => GraphQLJSONObject, { nullable: true, description: 'The full metadata of the tier.' })
     @IsObject()
-    readonly metadata?: MetadataIuput;
+    readonly metadata: MetadataInput;
 
     @IsString()
     @Field({ nullable: true, description: 'This merekleRoot of tier.' })
@@ -394,27 +354,9 @@ export class UpdateTierInput {
     @IsOptional()
     readonly animationUrl?: string;
 
-    @Field(() => [AttributeInput], { description: 'The tier attributes', nullable: true })
-    @IsArray()
-    @IsOptional()
-    readonly attributes?: AttributeInput[];
-
-    @Field(() => [ConditionInput], { description: 'The tier conditions', nullable: true })
-    @IsOptional()
-    @IsArray()
-    readonly conditions?: ConditionInput[];
-
-    @IsArray()
-    @Field(() => [PluginInput], {
-        description: 'A JSON object containing the plugins of the tier.',
-        nullable: true,
-    })
-    @IsOptional()
-    readonly plugins?: PluginInput[];
-
     @Field(() => GraphQLJSONObject, { nullable: true, description: 'The full metadata of the tier.' })
     @IsObject()
-    readonly metadata?: MetadataIuput;
+    readonly metadata?: MetadataInput;
 
     @IsString()
     @Field({ nullable: true, description: 'This merekleRoot of tier.' })
