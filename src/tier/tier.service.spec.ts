@@ -587,12 +587,64 @@ describe('TierService', () => {
         });
 
         it('should search by keyword', async () => {
-            const result = await service.searchTier(innerCollection.id, 'test');
+            const result = await service.searchTier(
+                { collectionId: innerCollection.id, keyword: 'test' },
+                '',
+                '',
+                10,
+                10
+            );
             expect(result).toBeDefined();
-            expect(result.total).toEqual(1);
-            expect(result.data).toBeDefined();
-            expect(result.data[0]).toBeDefined();
-            expect(result.data[0].name).toBe(tierName);
+            expect(result.totalCount).toEqual(1);
+            expect(result.edges).toBeDefined();
+            expect(result.edges[0]).toBeDefined();
+            expect(result.edges[0].node).toBeDefined();
+            expect(result.edges[0].node.name).toBe(tierName);
+        });
+        it('should search by properties', async () => {
+            const result = await service.searchTier(
+                { collectionId: innerCollection.id, properties: [{ name: 'holding_days', value: 125 }] },
+                '',
+                '',
+                10,
+                10
+            );
+            expect(result).toBeDefined();
+            expect(result.totalCount).toEqual(1);
+            expect(result.edges).toBeDefined();
+            expect(result.edges[0]).toBeDefined();
+            expect(result.edges[0].node).toBeDefined();
+            expect(result.edges[0].node.name).toBe(tierName);
+        });
+        it('should search by plugin', async () => {
+            const result = await service.searchTier(
+                { collectionId: innerCollection.id, plugins: ['vibexyz/creator_scoring'] },
+                '',
+                '',
+                10,
+                10
+            );
+            expect(result).toBeDefined();
+            expect(result.totalCount).toEqual(1);
+            expect(result.edges).toBeDefined();
+            expect(result.edges[0]).toBeDefined();
+            expect(result.edges[0].node).toBeDefined();
+            expect(result.edges[0].node.name).toBe(tierName);
+        });
+        it('should search by upgrade attrtibute', async () => {
+            const result = await service.searchTier(
+                { collectionId: innerCollection.id, upgrades: ['holding_days'] },
+                '',
+                '',
+                10,
+                10
+            );
+            expect(result).toBeDefined();
+            expect(result.totalCount).toEqual(1);
+            expect(result.edges).toBeDefined();
+            expect(result.edges[0]).toBeDefined();
+            expect(result.edges[0].node).toBeDefined();
+            expect(result.edges[0].node.name).toBe(tierName);
         });
     });
 });

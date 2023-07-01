@@ -2,6 +2,7 @@ import { Field, Int, ObjectType, InputType, OmitType } from '@nestjs/graphql';
 import { IsNumber, IsString, IsNumberString, IsObject, IsOptional, IsArray } from 'class-validator';
 import { GraphQLJSONObject } from 'graphql-type-json';
 import { Collection, CollectionInput } from '../collection/collection.dto';
+import Paginated from '../lib/pagination/pagination.model';
 import { Coin } from '../sync-chain/coin/coin.dto';
 
 @ObjectType('AttributeOutput')
@@ -386,32 +387,43 @@ export class BasicPriceInfo {
     readonly chainId: number;
 }
 
-@ObjectType('TierSearchBar')
-export class TierSearchBar {
-    @Field(() => Int)
-    @IsNumber()
-    readonly total: number;
+@ObjectType('TierSearchPaginated')
+export class TierSearchPaginated extends Paginated(Tier) {}
 
-    @Field(() => [Tier])
-    @IsArray()
-    readonly data: Tier[];
-}
+@InputType('MetadataPropertyInput')
+export class MetadataPropertyInput extends OmitType(MetadataProperty, ['type', 'display_value'], InputType) {}
 
 @InputType('TierSearchBarInput')
-export class TierSearchBarInput {
+export class TierSearchInput {
     @IsString()
-    @Field({ description: 'The id of the tier.' })
-    readonly collectionId: string;
+    @Field({ description: 'The id of the collection.', nullable: true })
+    @IsOptional()
+    readonly collectionId?: string;
 
     @IsString()
-    @Field({ nullable: true, description: 'The id of the tier.' })
+    @Field({ description: 'The address of the collection.', nullable: true })
+    @IsOptional()
+    readonly collectionAddress?: string;
+
+    @IsString()
+    @Field({ nullable: true, description: 'The keyword for search tier.' })
     @IsOptional()
     readonly keyword?: string;
 
     @IsArray()
-    @Field(() => [AttributeInput], { nullable: true, description: 'The id of the tier.' })
+    @Field(() => [MetadataPropertyInput], { nullable: true, description: 'The properties of the tier.' })
     @IsOptional()
-    readonly attributes?: AttributeInput[];
+    readonly properties?: MetadataPropertyInput[];
+
+    @IsArray()
+    @Field(() => [String], { nullable: true, description: 'The plugins of the tier.' })
+    @IsOptional()
+    readonly plugins: string[];
+
+    @IsArray()
+    @Field(() => [String], { nullable: true, description: 'The upgrade properties of the tier.' })
+    @IsOptional()
+    readonly upgrades: string[];
 }
 
 export class IOverview {

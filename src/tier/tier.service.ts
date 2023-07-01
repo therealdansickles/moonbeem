@@ -11,12 +11,12 @@ import {
     UpdateTierInput,
     Tier,
     Profit,
-    TierSearchBar,
-    AttributeInput,
+    TierSearchPaginated,
     IAttributeOverview,
     IOverview,
     IUpgradeOverview,
     IPluginOverview,
+    MetadataPropertyInput,
 } from './tier.dto';
 import { GraphQLError } from 'graphql';
 import { captureException } from '@sentry/node';
@@ -26,6 +26,16 @@ import BigNumber from 'bignumber.js';
 import { TierHolderData, TierHolders } from '../wallet/wallet.dto';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Wallet } from '../wallet/wallet.entity';
+import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
+
+interface ITierSearch {
+    collectionId?: string;
+    collectionAddress?: string;
+    keyword?: string;
+    properties?: MetadataPropertyInput[];
+    plugins?: string[];
+    upgrades?: string[];
+}
 
 @Injectable()
 export class TierService {
@@ -290,26 +300,80 @@ export class TierService {
         return { total: total, data: data };
     }
 
-    async searchTier(collectionId: string, keyword?: string, attributes?: AttributeInput[]): Promise<TierSearchBar> {
-        let builder = this.tierRepository
-            .createQueryBuilder('tier')
-            .leftJoinAndSelect('tier.collection', 'collection')
-            .where('collection.id = :collectionId', { collectionId });
+    async searchTier(
+        query: ITierSearch,
+        before: string,
+        after: string,
+        first: number,
+        last: number
+    ): Promise<TierSearchPaginated> {
+        if (!query.collectionAddress && !query.collectionId) return null;
+        let builder = this.tierRepository.createQueryBuilder('tier').leftJoinAndSelect('tier.collection', 'collection');
 
-        if (keyword) {
-            builder = builder.andWhere('LOWER(tier.name) LIKE :keyword', { keyword: `%${keyword}%` });
+        if (query.collectionAddress) {
+            builder = builder.where('collection.address = :collectionAddress', {
+                collectionAddress: query.collectionAddress.toLowerCase(),
+            });
+        } else if (query.collectionId) {
+            builder = builder.where('collection.id = :collectionId', { collectionId: query.collectionId });
         }
 
-        if (attributes && attributes.length > 0) {
-            attributes.forEach((attribute) => {
-                builder = builder.andWhere(`tier.attributes @> :condition`, {
-                    condition: JSON.stringify([attribute]),
+        if (query.keyword) {
+            builder = builder.andWhere('LOWER(tier.name) LIKE :keyword', {
+                keyword: `%${query.keyword.toLowerCase()}%`,
+            });
+        }
+
+        if (query.plugins && query.plugins.length > 0) {
+            builder = builder.andWhere("(tier.metadata->>'uses')::jsonb @> :uses", {
+                uses: JSON.stringify(query.plugins),
+            });
+        }
+
+        if (query.properties) {
+            query.properties.forEach((property) => {
+                const propertyNew = {};
+                propertyNew[property.name] = property;
+                builder = builder.andWhere(`(tier.metadata->>'properties')::jsonb @> :property`, {
+                    property: JSON.stringify(propertyNew),
                 });
             });
         }
 
+        if (query.upgrades) {
+            query.upgrades.forEach((upgrade) => {
+                builder = builder.andWhere(
+                    `tier.id IN
+                    (
+                        SELECT t.id
+                        FROM (
+                            SELECT tier.id, jsonb_array_elements(metadata->'conditions'->'rules')->'update' as rule_info 
+                            FROM "Tier" tier
+                        ) AS t
+                        WHERE t.rule_info @> :upgrade
+                    )
+                    `,
+                    { upgrade: JSON.stringify([{ property: upgrade }]) }
+                );
+            });
+        }
+
+        // pagination
+        if (after) {
+            builder.where('tier.createdAt > :cursor', { cursor: fromCursor(after) });
+            builder.limit(first);
+        } else if (before) {
+            builder.where('tier.createdAt < :cursor', { cursor: fromCursor(before) });
+            builder.limit(last);
+        } else {
+            const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
+            builder.limit(limit);
+        }
+
+        builder.orderBy('tier.createdAt', 'ASC');
+
         const [tiers, total] = await builder.getManyAndCount();
-        return { total: total, data: tiers };
+        return PaginatedImp(tiers, total);
     }
 
     async getArrtibutesOverview(collectionAddress: string): Promise<IOverview> {

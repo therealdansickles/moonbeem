@@ -847,11 +847,17 @@ describe('TierResolver', () => {
             const query = gql`
                 query SearchTier($input: TierSearchBarInput!) {
                     searchTierFromCollection(input: $input) {
-                        total
-                        data {
-                            id
-                            name
+                        edges {
+                            cursor
+                            node {
+                                id
+                                name
+                            }
                         }
+                        pageInfo {
+                            endCursor
+                        }
+                        totalCount
                     }
                 }
             `;
@@ -863,10 +869,47 @@ describe('TierResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.searchTierFromCollection).toBeDefined();
-                    expect(body.data.searchTierFromCollection.total).toEqual(1);
-                    expect(body.data.searchTierFromCollection.data).toBeDefined();
-                    expect(body.data.searchTierFromCollection.data[0]).toBeDefined();
-                    expect(body.data.searchTierFromCollection.data[0].name).toBe(tierName);
+                    expect(body.data.searchTierFromCollection.totalCount).toEqual(1);
+                    expect(body.data.searchTierFromCollection.edges).toBeDefined();
+                    expect(body.data.searchTierFromCollection.edges[0]).toBeDefined();
+                    expect(body.data.searchTierFromCollection.edges[0].node).toBeDefined();
+                    expect(body.data.searchTierFromCollection.edges[0].node.name).toBe(tierName);
+                });
+        });
+
+        it('should search by properties', async () => {
+            const query = gql`
+                query SearchTier($input: TierSearchBarInput!) {
+                    searchTierFromCollection(input: $input) {
+                        edges {
+                            cursor
+                            node {
+                                id
+                                name
+                            }
+                        }
+                        pageInfo {
+                            endCursor
+                        }
+                        totalCount
+                    }
+                }
+            `;
+
+            const variables = {
+                input: { collectionId: innerCollection.id, properties: [{ name: 'level', value: 'basic' }] },
+            };
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.searchTierFromCollection).toBeDefined();
+                    expect(body.data.searchTierFromCollection.totalCount).toEqual(1);
+                    expect(body.data.searchTierFromCollection.edges).toBeDefined();
+                    expect(body.data.searchTierFromCollection.edges[0]).toBeDefined();
+                    expect(body.data.searchTierFromCollection.edges[0].node).toBeDefined();
+                    expect(body.data.searchTierFromCollection.edges[0].node.name).toBe(tierName);
                 });
         });
     });

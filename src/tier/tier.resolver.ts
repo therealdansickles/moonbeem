@@ -11,8 +11,8 @@ import {
     IOverview,
     Profit,
     Tier,
-    TierSearchBar,
-    TierSearchBarInput,
+    TierSearchPaginated,
+    TierSearchInput,
     UpdateTierInput,
 } from './tier.dto';
 import { TierService } from './tier.service';
@@ -74,9 +74,22 @@ export class TierResolver {
     }
 
     @Public()
-    @Query(() => TierSearchBar, { description: 'Returns the search result for tier' })
-    async searchTierFromCollection(@Args('input') input: TierSearchBarInput): Promise<TierSearchBar> {
-        return this.tierService.searchTier(input.collectionId, input.keyword, input.attributes);
+    @Query(() => TierSearchPaginated, { description: 'Returns the search result for tier', nullable: true })
+    async searchTierFromCollection(
+        @Args('input') input: TierSearchInput,
+        @Args('before', { nullable: true }) before?: string,
+        @Args('after', { nullable: true }) after?: string,
+        @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+        @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+    ): Promise<TierSearchPaginated> {
+        const { collectionId, collectionAddress, keyword, properties, plugins, upgrades } = input;
+        return this.tierService.searchTier(
+            { collectionId, collectionAddress, keyword, properties, plugins, upgrades },
+            before,
+            after,
+            first,
+            last
+        );
     }
 
     @Public()
