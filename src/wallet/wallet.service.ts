@@ -14,6 +14,7 @@ import {
     Minted,
     UpdateWalletInput,
     EstimatedValue,
+    MintPaginated,
 } from './wallet.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { User } from '../user/user.entity';
@@ -21,6 +22,7 @@ import { Wallet } from './wallet.entity';
 import { Tier } from '../tier/tier.entity';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
+import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
 
 interface ITokenPrice {
     token: string;
@@ -39,7 +41,7 @@ export class WalletService {
         private mintSaleTransactionRepository: Repository<MintSaleTransaction>,
         @InjectRepository(MintSaleContract, 'sync_chain')
         private mintSaleContractRepository: Repository<MintSaleContract>,
-        private coinService: CoinService,
+        private coinService: CoinService
     ) {}
 
     /**
@@ -294,14 +296,33 @@ export class WalletService {
      * @param address The address of the wallet to retrieve.
      * @returns The `Minted` details + mint sale transactions associated with the given address.
      */
-    async getMintedByAddress(address: string): Promise<Minted[]> {
+    async getMintedByAddress(
+        address: string,
+        before: string,
+        after: string,
+        first: number,
+        last: number
+    ): Promise<MintPaginated> {
         const wallet = await this.getWalletByQuery({ address });
         if (!wallet) throw new Error(`Wallet with address ${address} doesn't exist.`);
 
-        // FIXME: Need to setup pagination for this.
-        const mintSaleTransactions = await this.mintSaleTransactionRepository.find({ where: { recipient: address } });
+        const builder = await this.mintSaleTransactionRepository.createQueryBuilder('tx');
+        const countBuilder = builder.clone();
 
-        const minted = await Promise.all(
+        if (after) {
+            builder.where('tx.createdAt > :cursor', { cursor: fromCursor(after) });
+            builder.limit(first);
+        } else if (before) {
+            builder.where('tx.createdAt < :cursor', { cursor: fromCursor(before) });
+            builder.limit(last);
+        } else {
+            const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
+            builder.limit(limit);
+        }
+
+        const [mintSaleTransactions, total] = await Promise.all([builder.getMany(), countBuilder.getCount()]);
+
+        const minted: Minted[] = await Promise.all(
             mintSaleTransactions.map(async (mintSaleTransaction) => {
                 const { tierId, address } = mintSaleTransaction;
 
@@ -313,10 +334,11 @@ export class WalletService {
                     .andWhere('tier.tierId = :tierId', { tierId })
                     .getOne();
 
-                return { ...mintSaleTransaction, tier } as unknown as Minted;
+                return { ...mintSaleTransaction, tier };
             })
         );
-        return minted;
+
+        return PaginatedImp(minted, total);
     }
 
     /**

@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql';
 
 import { UseGuards } from '@nestjs/common';
-import { Args, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { Collection } from '../collection/collection.dto';
 import { CollectionService } from '../collection/collection.service';
@@ -9,8 +9,14 @@ import { RelationshipService } from '../relationship/relationship.service';
 import { AuthorizedWallet, CurrentWallet, Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
 import {
-    Activity, BindWalletInput, CreateWalletInput, EstimatedValue, Minted, UnbindWalletInput,
-    UpdateWalletInput, Wallet
+    Activity,
+    BindWalletInput,
+    CreateWalletInput,
+    EstimatedValue,
+    MintPaginated,
+    UnbindWalletInput,
+    UpdateWalletInput,
+    Wallet,
 } from './wallet.dto';
 import { WalletService } from './wallet.service';
 
@@ -19,7 +25,7 @@ export class WalletResolver {
     constructor(
         private readonly walletService: WalletService,
         private readonly collectionService: CollectionService,
-        private readonly relationshipService: RelationshipService,
+        private readonly relationshipService: RelationshipService
     ) {}
 
     @Public()
@@ -48,7 +54,7 @@ export class WalletResolver {
 
     @Mutation(() => Wallet, { description: 'Unbinds a wallet from the current user.' })
     async unbindWallet(@CurrentWallet() wallet, @Args('input') input: UnbindWalletInput): Promise<Wallet> {
-        const walletInfo = await this.walletService.getWalletByQuery({ address: input.address });
+        await this.walletService.getWalletByQuery({ address: input.address });
         return await this.walletService.unbindWallet(input);
     }
 
@@ -67,9 +73,18 @@ export class WalletResolver {
     }
 
     @Public()
-    @ResolveField(() => [Minted], { description: 'Retrieves the minted NFTs for the given wallet.', nullable: true })
-    async minted(@Parent() wallet: Wallet): Promise<Minted[]> {
-        const minted = await this.walletService.getMintedByAddress(wallet.address);
+    @ResolveField(() => MintPaginated, {
+        description: 'Retrieves the minted NFTs for the given wallet.',
+        nullable: true,
+    })
+    async minted(
+        @Parent() wallet: Wallet,
+        @Args('before', { nullable: true }) before?: string,
+        @Args('after', { nullable: true }) after?: string,
+        @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+        @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+    ): Promise<MintPaginated> {
+        const minted = await this.walletService.getMintedByAddress(wallet.address, before, after, first, last);
         return minted;
     }
 

@@ -356,15 +356,15 @@ describe('WalletService', () => {
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
-            const [result] = await service.getMintedByAddress(wallet.address);
-            expect(result.address).toEqual(transaction.address);
-            expect(result.tokenAddress).toEqual(transaction.tokenAddress);
-            expect(result.paymentToken).toEqual(transaction.paymentToken);
-            expect(result.tokenId).toEqual(transaction.tokenId);
-            expect(result.price).toEqual(transaction.price);
-            expect(result.txTime).toEqual(transaction.txTime);
-            expect(result.tier.id).toEqual(tier.id);
-            expect(result.tier.collection.id).toEqual(collection.id);
+            const result = await service.getMintedByAddress(wallet.address, '', '', 10, 10);
+            expect(result.edges[0].node.address).toEqual(transaction.address);
+            expect(result.edges[0].node.tokenAddress).toEqual(transaction.tokenAddress);
+            expect(result.edges[0].node.paymentToken).toEqual(transaction.paymentToken);
+            expect(result.edges[0].node.tokenId).toEqual(transaction.tokenId);
+            expect(result.edges[0].node.price).toEqual(transaction.price);
+            expect(result.edges[0].node.txTime).toEqual(transaction.txTime);
+            expect(result.edges[0].node.tier.id).toEqual(tier.id);
+            expect(result.edges[0].node.tier.collection.id).toEqual(collection.id);
         });
     });
 

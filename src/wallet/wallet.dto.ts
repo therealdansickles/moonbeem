@@ -83,6 +83,7 @@ export class Wallet {
 
 @ObjectType('Minted', { description: 'The NFT minted by a wallet.' })
 export class Minted extends PickType(MintSaleTransaction, [
+    'id',
     'address',
     'tokenAddress',
     'paymentToken',
@@ -91,11 +92,15 @@ export class Minted extends PickType(MintSaleTransaction, [
     'txTime',
     'txHash',
     'chainId',
+    'createdAt',
 ] as const) {
     @IsObject()
     @Field(() => Tier, { description: 'The tier of the minted token.', nullable: true })
     readonly tier: Tier;
 }
+
+@ObjectType('MintPaginated')
+export class MintPaginated extends Paginated(Minted) {}
 
 export enum ActivityType {
     Mint = 'Mint',

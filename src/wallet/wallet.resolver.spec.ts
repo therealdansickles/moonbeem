@@ -650,17 +650,27 @@ describe('WalletResolver', () => {
                 query MintedByWallet($address: String!) {
                     wallet(address: $address) {
                         minted {
-                            address
-                            txTime
-                            txHash
-                            chainId
-
-                            tier {
-                                name
-
-                                collection {
-                                    name
+                            totalCount
+                            edges {
+                                cursor
+                                node {
+                                    address
+                                    txTime
+                                    txHash
+                                    chainId
+                                    tier {
+                                        name
+                                        collection {
+                                            name
+                                        }
+                                    }
                                 }
+                            }
+                            pageInfo {
+                                hasNextPage
+                                hasPreviousPage
+                                startCursor
+                                endCursor
                             }
                         }
                     }
@@ -676,13 +686,13 @@ describe('WalletResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    const [firstMint] = body.data.wallet.minted;
-                    expect(firstMint.address).toEqual(collection.address); // NOTE: These horrible `address` namings, which one is it???
-                    expect(firstMint.txTime).toEqual(transaction.txTime);
-                    expect(firstMint.txHash).toEqual(transaction.txHash);
-                    expect(firstMint.chainId).toEqual(transaction.chainId);
-                    expect(firstMint.tier.name).toEqual(tier.name);
-                    expect(firstMint.tier.collection.name).toEqual(collection.name);
+                    const result = body.data.wallet.minted;
+                    expect(result.edges[0].node.address).toEqual(collection.address); // NOTE: These horrible `address` namings, which one is it???
+                    expect(result.edges[0].node.txTime).toEqual(transaction.txTime);
+                    expect(result.edges[0].node.txHash).toEqual(transaction.txHash);
+                    expect(result.edges[0].node.chainId).toEqual(transaction.chainId);
+                    expect(result.edges[0].node.tier.name).toEqual(tier.name);
+                    expect(result.edges[0].node.tier.collection.name).toEqual(collection.name);
                 });
         });
     });
