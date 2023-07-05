@@ -1,26 +1,30 @@
+import { ethers } from 'ethers';
 import * as request from 'supertest';
 
-import { Test, TestingModule } from '@nestjs/testing';
-
+import { faker } from '@faker-js/faker';
 import { ApolloDriver } from '@nestjs/apollo';
+import { INestApplication } from '@nestjs/common';
+import { GraphQLModule } from '@nestjs/graphql';
+import { Test, TestingModule } from '@nestjs/testing';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { CollectionService } from '../collection/collection.service';
+import { postgresConfig } from '../lib/configs/db.config';
+import { OrganizationService } from '../organization/organization.service';
+import { SessionModule } from '../session/session.module';
 import { Asset721Module } from '../sync-chain/asset721/asset721.module';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
-import { CollectionService } from '../collection/collection.service';
-import { GraphQLModule } from '@nestjs/graphql';
-import { INestApplication } from '@nestjs/common';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { OrganizationService } from '../organization/organization.service';
-import { RedeemModule } from './redeem.module';
-import { SessionModule } from '../session/session.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { UserService } from '../user/user.service';
-import { ethers } from 'ethers';
-import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
+import { RedeemModule } from './redeem.module';
+import { RedeemService } from './redeem.service';
 
 export const gql = String.raw;
 
 describe('RedeemResolver', () => {
+    let redeemService: RedeemService;
     let userService: UserService;
     let organizationService: OrganizationService;
     let collectionService: CollectionService;
@@ -59,6 +63,7 @@ describe('RedeemResolver', () => {
             ],
         }).compile();
 
+        redeemService = module.get<RedeemService>(RedeemService);
         userService = module.get<UserService>(UserService);
         organizationService = module.get<OrganizationService>(OrganizationService);
         collectionService = module.get<CollectionService>(CollectionService);
@@ -71,6 +76,113 @@ describe('RedeemResolver', () => {
     afterAll(async () => {
         global.gc && global.gc();
         await app.close();
+    });
+
+    describe('getRedeemByQuery', () => {
+        it('should get a redeem', async () => {
+            const ownerUser = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: ownerUser,
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+            });
+
+            const ownerWallet = ethers.Wallet.createRandom();
+            const tokenId = faker.random.numeric(1);
+
+            const mintSaleContract = await mintSaleContractService.createMintSaleContract({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress().toLowerCase(),
+                address: faker.finance.ethereumAddress().toLowerCase(),
+                royaltyReceiver: faker.finance.ethereumAddress().toLowerCase(),
+                royaltyRate: 10000,
+                derivativeRoyaltyRate: 1000,
+                isDerivativeAllowed: true,
+                beginTime: Math.floor(faker.date.recent().getTime() / 1000),
+                endTime: Math.floor(faker.date.recent().getTime() / 1000),
+                tierId: 0,
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress().toLowerCase(),
+                startId: 1,
+                endId: 100,
+                currentId: 1,
+                tokenAddress: faker.finance.ethereumAddress().toLowerCase(),
+                collectionId: collection.id,
+            });
+
+            const asset = await asset721Service.createAsset721({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address: mintSaleContract.tokenAddress,
+                tokenId,
+                owner: ownerWallet.address,
+            });
+
+            const message = 'claim a redeem font';
+            const signature = await ownerWallet.signMessage(message);
+
+            const createdRedeem = await redeemService.createRedeem({
+                collection: { id: collection.id },
+                tokenId: parseInt(tokenId),
+                deliveryAddress: faker.address.streetAddress(),
+                deliveryCity: faker.address.city(),
+                deliveryZipcode: faker.address.zipCode(),
+                deliveryState: faker.address.state(),
+                deliveryCountry: faker.address.country(),
+                email: faker.internet.email(),
+                address: ownerWallet.address,
+                message,
+                signature,
+            })
+
+            const query = gql`
+                query GetRedeemByQuery($collectionId: String!, $tokenId: Int!) {
+                    getRedeemByQuery(collectionId: $collectionId, tokenId: $tokenId) {
+                        id
+                        deliveryAddress
+                        email
+                    }
+                }
+            `;
+
+            const variables = {
+                collectionId: collection.id,
+                tokenId: parseInt(tokenId),
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.getRedeemByQuery.id).toBeTruthy();
+                    expect(body.data.getRedeemByQuery.deliveryAddress).toEqual(createdRedeem.deliveryAddress);
+                });
+        });
     });
 
     describe('createRedeem', () => {
