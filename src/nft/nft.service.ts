@@ -1,6 +1,9 @@
+import { omit } from 'lodash';
+import { In, Repository } from 'typeorm';
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+
 import { Nft } from './nft.entity';
 
 export type INftQuery = {
@@ -8,6 +11,13 @@ export type INftQuery = {
     collection?: { id: string },
     tier?: { id: string },
     tokenId?: number,
+}
+
+export type INftListQuery = {
+    collection?: { id: string },
+    tier?: { id: string },
+    tokenIds?: number[],
+    tokenId?: any 
 }
 
 @Injectable()
@@ -32,6 +42,20 @@ export class NftService {
      */
     async getNftByQuery(query: INftQuery) {
         return await this.nftRepository.findOneBy(query);
+    }
+
+    /**
+     * get NFTs by query
+     * @param query
+     * @returns
+     */
+    async getNftListByQuery(query: INftListQuery) {
+        if (query.tokenIds) {
+            query.tokenId = In([...query.tokenIds])
+            query = omit(query, 'tokenIds')
+        }
+        console.log(query)
+        return await this.nftRepository.findBy(query)
     }
 
     /**

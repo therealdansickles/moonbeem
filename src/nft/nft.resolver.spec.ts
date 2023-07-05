@@ -1,23 +1,23 @@
 import * as request from 'supertest';
 
-import { Test, TestingModule } from '@nestjs/testing';
-
+import { faker } from '@faker-js/faker';
 import { ApolloDriver } from '@nestjs/apollo';
+import { INestApplication } from '@nestjs/common';
+import { GraphQLModule } from '@nestjs/graphql';
+import { Test, TestingModule } from '@nestjs/testing';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
-import { GraphQLModule } from '@nestjs/graphql';
-import { INestApplication } from '@nestjs/common';
-import { NftModule } from './nft.module';
-import { NftService } from './nft.service';
+import { postgresConfig } from '../lib/configs/db.config';
 import { TierModule } from '../tier/tier.module';
 import { TierService } from '../tier/tier.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from '../user/user.module';
 import { UserService } from '../user/user.service';
 import { WalletModule } from '../wallet/wallet.module';
 import { WalletService } from '../wallet/wallet.service';
-import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
+import { NftModule } from './nft.module';
+import { NftService } from './nft.service';
 
 export const gql = String.raw;
 
@@ -239,6 +239,113 @@ describe('NftResolver', () => {
                     expect(body.data.nft.id).toBeTruthy();
                     expect(body.data.nft.collection.id).toEqual(collection.id);
                     expect(body.data.nft.properties.foo).toEqual('baraaa');
+                });
+        });
+    });
+
+    describe('getNftListByQuery', () => {
+        it('query by id should work', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                creator: { id: wallet.id },
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '100',
+                tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
+            });
+
+            const tokenId1 = +faker.random.numeric(1);
+            const tokenId2 = +faker.random.numeric(2);
+            const tokenId3 = +faker.random.numeric(4);
+
+            const [nft1, nft2, nft3] = await Promise.all([
+                    service.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: tokenId1,
+                    properties: {
+                        foo: 'bar',
+                    },
+                }),
+                service.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: tokenId2,
+                    properties: {
+                        foo: 'bar',
+                    },
+                }),
+                service.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: tokenId3,
+                    properties: {
+                        foo: 'bar',
+                    },
+                }),
+            ])
+
+            const query = gql`
+                query Nfts($collectionId: String, $tierId: String, $tokenIds: [Int!]) {
+                    nfts(collectionId: $collectionId, tierId: $tierId, tokenIds: $tokenIds) {
+                        id
+                        collection {
+                            id
+                        }
+                        properties
+                    }
+                }
+            `;
+
+            const variables = {
+                collectionId: collection.id,
+                tier: tier,
+                tokenIds: [nft1.tokenId, nft3.tokenId]
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.nfts.length).toEqual(2);
+                    expect(body.data.nfts[0].id).toEqual(nft1.id);
+                    expect(body.data.nfts[1].id).toEqual(nft3.id);
                 });
         });
     });

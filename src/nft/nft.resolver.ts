@@ -4,7 +4,7 @@ import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { Public } from '../session/session.decorator';
 import { CreateOrUpdateNftInput, Nft } from './nft.dto';
-import { INftQuery, NftService } from './nft.service';
+import { INftListQuery, INftQuery, NftService } from './nft.service';
 
 @Resolver(() => Nft)
 export class NftResolver {
@@ -18,13 +18,27 @@ export class NftResolver {
         @Args({ name: 'id', nullable: true }) id: string,
         @Args({ name: 'collectionId', nullable: true }) collectionId: string,
         @Args({ name: 'tierId', nullable: true }) tierId: string,
-        @Args({ name: 'tokenId', nullable: true, type: () => Int }) tokenId: number
+        @Args({ name: 'tokenId', nullable: true, type: () => Int }) tokenId: number,
     ): Promise<Nft> {
         let query: INftQuery = { id, tokenId };
         query = omitBy(query, isNil);
         if (collectionId) query.collection = { id: collectionId };
         if (tierId) query.tier = { id: tierId };
         return await this.nftService.getNftByQuery(query);
+    }
+
+    @Public()
+    @Query(() => [Nft], { description: 'Get some NFTs by query.', nullable: true })
+    async nfts(
+        @Args({ name: 'collectionId', nullable: true }) collectionId: string,
+        @Args({ name: 'tierId', nullable: true }) tierId: string,
+        @Args({ name: 'tokenIds', nullable: true, type: () => [Int] }) tokenIds: number[]
+    ): Promise<Nft[]> {
+        let query: INftListQuery = { tokenIds };
+        query = omitBy(query, isNil);
+        if (collectionId) query.collection = { id: collectionId };
+        if (tierId) query.tier = { id: tierId };
+        return await this.nftService.getNftListByQuery(query);
     }
 
     @Mutation(() => Nft, { description: 'Mutate a NFT for the given data.' })
