@@ -1,28 +1,26 @@
+import BigNumber from 'bignumber.js';
+import { ethers, isAddress } from 'ethers';
 import { GraphQLError } from 'graphql';
+import { isEmpty, isNil, omit, omitBy } from 'lodash';
+import { Repository } from 'typeorm';
+
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { ethers } from 'ethers';
-import BigNumber from 'bignumber.js';
 import { captureException } from '@sentry/node';
-import { isEmpty, isNil, omit, omitBy } from 'lodash';
 
-import {
-    BindWalletInput,
-    CreateWalletInput,
-    UnbindWalletInput,
-    Minted,
-    UpdateWalletInput,
-    EstimatedValue,
-    MintPaginated,
-} from './wallet.dto';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import { User } from '../user/user.entity';
-import { Wallet } from './wallet.entity';
-import { Tier } from '../tier/tier.entity';
-import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import { CoinService } from '../sync-chain/coin/coin.service';
 import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { Tier } from '../tier/tier.entity';
+import { User } from '../user/user.entity';
+import {
+    BindWalletInput, CreateWalletInput, EstimatedValue, Minted, MintPaginated, UnbindWalletInput,
+    UpdateWalletInput
+} from './wallet.dto';
+import { Wallet } from './wallet.entity';
 
 interface ITokenPrice {
     token: string;
@@ -109,6 +107,10 @@ export class WalletService {
      */
     async createWallet(input: CreateWalletInput): Promise<Wallet> {
         const { ownerId, ...walletData } = input;
+        if (walletData.name && isAddress(walletData.name))
+            throw new GraphQLError(`Wallet name can't be in the address format.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
         if (!walletData.name || walletData.name === '') {
             walletData.name = walletData.address.toLowerCase();
         }
@@ -140,6 +142,10 @@ export class WalletService {
             });
         }
         if (payload.name && payload.name !== '') {
+            if (isAddress(payload.name) && payload.name.toLowerCase() !== payload.address.toLowerCase())
+                throw new GraphQLError(`Wallet name can't be in the address format.`, {
+                    extensions: { code: 'BAD_REQUEST' },
+                });
             const existedWallet = await this.getWalletByQuery({ name: payload.name });
             if (existedWallet && existedWallet.id !== id)
                 throw new GraphQLError(`Wallet name ${payload.name} already existed.`, {

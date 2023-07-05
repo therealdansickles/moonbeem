@@ -1,21 +1,28 @@
+import { ethers } from 'ethers';
+import { Repository } from 'typeorm';
+
+import { faker } from '@faker-js/faker';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
-import { ethers } from 'ethers';
 
 import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { postgresConfig } from '../lib/configs/db.config';
+import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { Wallet } from './wallet.entity';
 import { WalletModule } from './wallet.module';
 import { WalletService } from './wallet.service';
-import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 
 describe('WalletService', () => {
     let address: string;
@@ -128,6 +135,10 @@ describe('WalletService', () => {
             const wallet = await service.createWallet({ address });
             expect(wallet.address).toEqual(address.toLowerCase());
             expect(wallet.name).toEqual(address.toLowerCase());
+        });
+
+        it('should error if the wallet name have a address string.', async () => {
+            expect(() => service.createWallet({ address: faker.finance.ethereumAddress(), name: faker.finance.ethereumAddress() })).rejects.toThrow();
         });
 
         it('should error if the wallet name have been used.', async () => {
@@ -470,6 +481,12 @@ describe('WalletService', () => {
             expect(result.address).toEqual(walletAddress.toLowerCase());
             expect(updateResult.name).toEqual(name);
         });
+
+        it('should error when try to update wallet name have a address string.', async () => {
+            const wallet = await service.createWallet({ address: faker.finance.ethereumAddress(), name: faker.internet.domainName() })
+            expect(() => service.updateWallet(wallet.id, { name: faker.finance.ethereumAddress() })).rejects.toThrow();
+        });
+
     });
 
     describe('getValueGroupByToken', () => {

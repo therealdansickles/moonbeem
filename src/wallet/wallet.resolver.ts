@@ -9,14 +9,8 @@ import { RelationshipService } from '../relationship/relationship.service';
 import { AuthorizedWallet, CurrentWallet, Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
 import {
-    Activity,
-    BindWalletInput,
-    CreateWalletInput,
-    EstimatedValue,
-    MintPaginated,
-    UnbindWalletInput,
-    UpdateWalletInput,
-    Wallet,
+    Activity, BindWalletInput, CreateWalletInput, EstimatedValue, MintPaginated, UnbindWalletInput,
+    UpdateWalletInput, Wallet
 } from './wallet.dto';
 import { WalletService } from './wallet.service';
 
