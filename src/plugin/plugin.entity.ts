@@ -1,6 +1,5 @@
 import {
-    BaseEntity, Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne,
-    PrimaryGeneratedColumn, UpdateDateColumn
+    BaseEntity, Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn
 } from 'typeorm';
 
 @Entity({ name: 'Plugin' })
@@ -8,24 +7,30 @@ export class Plugin extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     readonly id: string;
 
-    @Column({ comment: 'The name of the plugin.' })
+    @Column({ unique: true, comment: 'The name of the plugin.' })
     readonly name: string;
     
     @Column({ nullable: true, comment: 'The description of the plugin.' })
-    readonly description: string;
+    readonly description?: string;
 
     @Column({ nullable: true, comment: 'The version of the plugin.' })
-    readonly version: string;
+    readonly version?: string;
 
     @Column({ nullable: true, comment: 'The author of the plugin.' })
-    readonly author: string;
+    readonly author?: string;
 
-    @Column({ default: {},
+    @Column({
+        default: {},
         type: 'jsonb',
-        comment: 'Metadata template.',
-        nullable: true
+        comment: 'Metadata template.'
     })
     readonly metadata: string;
+
+    @Column({ 
+        default: true,
+        comment: 'The status of the plugin, should not display when isPublish equals to false'
+    })
+    readonly isPublish: boolean;
 
     @CreateDateColumn()
     readonly createdAt: Date;

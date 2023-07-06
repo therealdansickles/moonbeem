@@ -14,7 +14,7 @@ export class PluginService {
      * @returns
      */
     async getPlugins(): Promise<Plugin[]> {
-        return await this.pluginRepository.find();
+        return await this.pluginRepository.findBy({ isPublish: true });
     }
 
     /**
