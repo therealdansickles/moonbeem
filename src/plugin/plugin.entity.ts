@@ -1,5 +1,5 @@
 import {
-    BaseEntity, Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn
+    BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn
 } from 'typeorm';
 
 @Entity({ name: 'Plugin' })

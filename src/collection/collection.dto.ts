@@ -1,26 +1,22 @@
 import {
-    Field,
-    Int,
-    ObjectType,
-    InputType,
-    registerEnumType,
-    PartialType,
-    OmitType,
-    PickType,
-    Float,
-} from '@nestjs/graphql';
-import { IsNumber, IsString, IsDateString, IsUrl, IsOptional, IsArray, IsObject, IsEnum } from 'class-validator';
-import { CollectionKind } from './collection.entity';
-import { Tier, MetadataOutput } from '../tier/tier.dto';
-import { Organization, OrganizationInput } from '../organization/organization.dto';
-import { CollaborationInput } from '../collaboration/collaboration.dto';
-import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
-import { Wallet, WalletInput } from '../wallet/wallet.dto';
-import { Collaboration } from '../collaboration/collaboration.dto';
-import { Asset721 } from '../sync-chain/asset721/asset721.dto';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
+    IsArray, IsDateString, IsEnum, IsNumber, IsObject, IsOptional, IsString, IsUrl
+} from 'class-validator';
 import { GraphQLJSONObject } from 'graphql-type-json';
+
+import {
+    Field, Float, InputType, Int, ObjectType, OmitType, PartialType, PickType, registerEnumType
+} from '@nestjs/graphql';
+
+import { Collaboration, CollaborationInput } from '../collaboration/collaboration.dto';
 import Paginated from '../lib/pagination/pagination.model';
+import { Metadata } from '../metadata/metadata.dto';
+import { Organization, OrganizationInput } from '../organization/organization.dto';
+import { Asset721 } from '../sync-chain/asset721/asset721.dto';
+import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
+import { Tier } from '../tier/tier.dto';
+import { Wallet, WalletInput } from '../wallet/wallet.dto';
+import { CollectionKind } from './collection.entity';
 
 export const ZeroAccount = '0x0000000000000000000000000000000000000000';
 
@@ -216,7 +212,7 @@ export class CreateTierInCollectionInput {
 
     @Field(() => GraphQLJSONObject, { nullable: true, description: 'The full metadata of the tier.' })
     @IsObject()
-    readonly metadata: MetadataOutput;
+    readonly metadata: Metadata;
 
     @IsString()
     @Field({ nullable: true, description: 'This merekleRoot of tier.' })

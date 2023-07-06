@@ -1,11 +1,11 @@
 import { GraphQLError } from 'graphql';
-import { Collection } from 'src/collection/collection.entity';
 import { Repository } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as Sentry from '@sentry/node';
 
+import { Collection } from '../collection/collection.entity';
 import { CreateRedeemInput } from './redeem.dto';
 import { Redeem } from './redeem.entity';
 

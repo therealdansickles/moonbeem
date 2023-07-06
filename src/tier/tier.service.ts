@@ -1,38 +1,34 @@
+import BigNumber from 'bignumber.js';
+import { GraphQLError } from 'graphql';
+import { DeleteResult, In, Repository, UpdateResult } from 'typeorm';
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DeleteResult, UpdateResult, In } from 'typeorm';
-import { Coin } from '../sync-chain/coin/coin.entity';
-import { Collection, CollectionKind } from '../collection/collection.entity';
-import * as tierEntity from './tier.entity';
-import {
-    BasicPriceInfo,
-    CreateTierInput,
-    UpdateTierInput,
-    Tier,
-    Profit,
-    TierSearchPaginated,
-    IAttributeOverview,
-    IOverview,
-    IUpgradeOverview,
-    IPluginOverview,
-    MetadataPropertyInput,
-} from './tier.dto';
-import { GraphQLError } from 'graphql';
 import { captureException } from '@sentry/node';
-import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import BigNumber from 'bignumber.js';
-import { TierHolderData, TierHolders } from '../wallet/wallet.dto';
-import { Asset721 } from '../sync-chain/asset721/asset721.entity';
-import { Wallet } from '../wallet/wallet.entity';
+
+import { Collection, CollectionKind } from '../collection/collection.entity';
 import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
+import { MetadataPropertySearchInput } from '../metadata/metadata.dto';
+import { Asset721 } from '../sync-chain/asset721/asset721.entity';
+import { Coin } from '../sync-chain/coin/coin.entity';
+import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { TierHolderData, TierHolders } from '../wallet/wallet.dto';
+import { Wallet } from '../wallet/wallet.entity';
+import {
+    BasicPriceInfo, CreateTierInput, IAttributeOverview, IOverview, IPluginOverview,
+    IUpgradeOverview, Profit, Tier, TierSearchPaginated, UpdateTierInput
+} from './tier.dto';
+import * as tierEntity from './tier.entity';
 
 interface ITierSearch {
     collectionId?: string;
     collectionAddress?: string;
     keyword?: string;
-    properties?: MetadataPropertyInput[];
+    properties?: MetadataPropertySearchInput[];
     plugins?: string[];
     upgrades?: string[];
 }

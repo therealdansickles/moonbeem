@@ -1,18 +1,23 @@
+import { faker } from '@faker-js/faker';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { CollectionKind } from '../collection/collection.entity';
-import { PollerService } from './poller.service';
-import { CollectionService } from '../collection/collection.service';
-import { TierService } from '../tier/tier.service';
 import { CollectionModule } from '../collection/collection.module';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { CollectionService } from '../collection/collection.service';
 import { postgresConfig } from '../lib/configs/db.config';
-import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
-import { TierModule } from '../tier/tier.module';
-import { faker } from '@faker-js/faker';
+import { Coin } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
+import {
+    MintSaleTransactionModule
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { TierModule } from '../tier/tier.module';
+import { TierService } from '../tier/tier.service';
 import { PollerModule } from './poller.module';
-import { Coin } from 'src/sync-chain/coin/coin.dto';
+import { PollerService } from './poller.service';
 
 describe('PollerService', () => {
     let service: PollerService;
