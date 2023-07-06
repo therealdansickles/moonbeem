@@ -2,39 +2,11 @@ import {
     BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn
 } from 'typeorm';
 
-class MetadataProperty {
-    name: string;
-    type: string;
-    value: any;
-    display_value: string;
-}
-
-class MetadataRule {
-    property: string;
-    rule: string;
-    value: any;
-    update: {
-        property: string;
-        value: any;
-    }[];
-}
-
-class MetadataTrigger {
-    type: string;
-    value: string;
-}
-
-class MetadataCondition {
-    operator?: string;
-    rules: Array<MetadataRule>;
-    trigger: MetadataTrigger;
-}
+import { MetadataCondition, MetadataProperties } from '../metadata/metadata.entity';
 
 class PluginMetadata {
-    properties: {
-        [key: string]: MetadataProperty;
-    };
-    conditions: MetadataCondition;
+    properties: MetadataProperties;
+    conditions: Array<MetadataCondition>;
 }
 
 @Entity({ name: 'Plugin' })
