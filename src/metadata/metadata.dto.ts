@@ -118,5 +118,8 @@ export class Metadata {
     readonly properties: { [key: string]: MetadataProperty };
 }
 
+@InputType('MetadataInput')
+export class MetadataInput extends OmitType(Metadata, [], InputType) {}
+
 @InputType('MetadataPropertySearchInput')
 export class MetadataPropertySearchInput extends OmitType(MetadataProperty, ['type', 'display_value'], InputType) {}

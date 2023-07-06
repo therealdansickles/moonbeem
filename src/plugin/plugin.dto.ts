@@ -3,7 +3,7 @@ import { GraphQLJSONObject } from 'graphql-type-json';
 
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 
-import { Metadata } from '../metadata/metadata.dto';
+import { Metadata, MetadataInput } from '../metadata/metadata.dto';
 
 @ObjectType('Plugin')
 export class Plugin {
@@ -48,6 +48,10 @@ export class InstallOnCollectionInput {
     @IsString()
     @Field({ description: 'Plugin id.' })
     readonly pluginId: string;
+
+    @IsObject()
+    @Field(() => GraphQLJSONObject, { description: "The customized metadata need to be installed on chosen tier. "})
+    readonly metadata: MetadataInput;
 }
 
 @InputType()
@@ -59,4 +63,8 @@ export class InstallOnTierInput {
     @IsString()
     @Field({ description: 'Plugin id.' })
     readonly pluginId: string;
+
+    @IsObject()
+    @Field(() => GraphQLJSONObject, { description: "The customized metadata need to be installed on chosen tier. "})
+    readonly metadata: MetadataInput;
 }
