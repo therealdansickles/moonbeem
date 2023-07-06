@@ -9,6 +9,9 @@ export class Plugin extends BaseEntity {
 
     @Column({ unique: true, comment: 'The name of the plugin.' })
     readonly name: string;
+
+    @Column({ comment: 'The display name of the plugin.' })
+    readonly displayName: string;
     
     @Column({ nullable: true, comment: 'The description of the plugin.' })
     readonly description?: string;

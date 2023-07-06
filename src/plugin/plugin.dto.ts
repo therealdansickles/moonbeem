@@ -1,7 +1,7 @@
 import { IsBoolean, IsObject, IsOptional, IsString } from 'class-validator';
 import { GraphQLJSONObject } from 'graphql-type-json';
 
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, InputType, ObjectType } from '@nestjs/graphql';
 
 import { Metadata } from '../metadata/metadata.dto';
 
@@ -37,4 +37,26 @@ export class Plugin {
     @IsObject()
     @Field(() => GraphQLJSONObject, { description: 'The properties of the NFT.' })
     readonly metadata: { [key: string]: Metadata };
+}
+
+@InputType()
+export class InstallOnCollectionInput {
+    @IsString()
+    @Field({ description: 'Collection id.' })
+    readonly collectionId: string;
+
+    @IsString()
+    @Field({ description: 'Plugin id.' })
+    readonly pluginId: string;
+}
+
+@InputType()
+export class InstallOnTierInput {
+    @IsString()
+    @Field({ description: 'Tier id.' })
+    readonly tierId: string;
+
+    @IsString()
+    @Field({ description: 'Plugin id.' })
+    readonly pluginId: string;
 }

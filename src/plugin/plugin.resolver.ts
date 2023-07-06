@@ -1,7 +1,7 @@
-import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { Public } from '../session/session.decorator';
-import { Plugin } from './plugin.dto';
+import { InstallOnCollectionInput, InstallOnTierInput, Plugin } from './plugin.dto';
 import { PluginService } from './plugin.service';
 
 @Resolver(() => Plugin)
@@ -20,5 +20,11 @@ export class PluginResolver {
     @Query(() => Plugin)
     async plugin(@Args('id') id: string) {
         return await this.pluginService.getPlugin(id);
-    } 
+    }
+
+    @Mutation()
+    async installOnCollection(@Args('input') input: InstallOnCollectionInput) {}
+
+    @Mutation()
+    async installOnTier(@Args('input') input: InstallOnTierInput) {}
 }
