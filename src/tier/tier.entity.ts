@@ -1,19 +1,12 @@
+import { Exclude } from 'class-transformer';
 import {
-    BaseEntity,
-    Column,
-    CreateDateColumn,
-    Entity,
-    JoinColumn,
-    ManyToOne,
-    OneToMany,
-    PrimaryGeneratedColumn,
-    UpdateDateColumn,
+    BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany,
+    PrimaryGeneratedColumn, UpdateDateColumn
 } from 'typeorm';
 
 import { Collection } from '../collection/collection.entity';
-import { Exclude } from 'class-transformer';
-import { Nft } from '../nft/nft.entity';
 import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
+import { Nft } from '../nft/nft.entity';
 
 export class Attribute {
     trait_type: string;

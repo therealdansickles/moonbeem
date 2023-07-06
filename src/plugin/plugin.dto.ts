@@ -1,9 +1,12 @@
 import { IsBoolean, IsObject, IsOptional, IsString } from 'class-validator';
 import { GraphQLJSONObject } from 'graphql-type-json';
 
-import { Field, InputType, ObjectType } from '@nestjs/graphql';
+import { Field, InputType, ObjectType, PickType } from '@nestjs/graphql';
 
 import { Metadata, MetadataInput } from '../metadata/metadata.dto';
+
+@ObjectType()
+export class PluginMetadata extends PickType(Metadata, ['conditions', 'properties']) {};
 
 @ObjectType('Plugin')
 export class Plugin {
@@ -36,7 +39,7 @@ export class Plugin {
 
     @IsObject()
     @Field(() => GraphQLJSONObject, { description: 'The properties of the NFT.' })
-    readonly metadata: { [key: string]: Metadata };
+    readonly metadata: PluginMetadata;
 }
 
 @InputType()

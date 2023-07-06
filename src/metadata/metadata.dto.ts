@@ -119,7 +119,7 @@ export class Metadata {
 }
 
 @InputType('MetadataInput')
-export class MetadataInput extends OmitType(Metadata, [], InputType) {}
+export class MetadataInput extends OmitType(Metadata, ['uses'], InputType) {}
 
 @InputType('MetadataPropertySearchInput')
 export class MetadataPropertySearchInput extends OmitType(MetadataProperty, ['type', 'display_value'], InputType) {}

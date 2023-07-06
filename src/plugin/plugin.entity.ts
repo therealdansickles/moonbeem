@@ -2,6 +2,41 @@ import {
     BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn
 } from 'typeorm';
 
+class MetadataProperty {
+    name: string;
+    type: string;
+    value: any;
+    display_value: string;
+}
+
+class MetadataRule {
+    property: string;
+    rule: string;
+    value: any;
+    update: {
+        property: string;
+        value: any;
+    }[];
+}
+
+class MetadataTrigger {
+    type: string;
+    value: string;
+}
+
+class MetadataCondition {
+    operator?: string;
+    rules: Array<MetadataRule>;
+    trigger: MetadataTrigger;
+}
+
+class PluginMetadata {
+    properties: {
+        [key: string]: MetadataProperty;
+    };
+    conditions: MetadataCondition;
+}
+
 @Entity({ name: 'Plugin' })
 export class Plugin extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
@@ -27,7 +62,7 @@ export class Plugin extends BaseEntity {
         type: 'jsonb',
         comment: 'Metadata template.'
     })
-    readonly metadata: string;
+    readonly metadata: PluginMetadata;
 
     @Column({ 
         default: true,
