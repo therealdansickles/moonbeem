@@ -127,7 +127,8 @@ export class Tier {
 
     @Field(() => GraphQLJSONObject, { nullable: true, description: 'The full metadata of the tier.' })
     @IsObject()
-    readonly metadata: Metadata;
+    @IsOptional()
+    readonly metadata?: Metadata;
 
     @Field(() => Coin, { description: 'The tier coin', nullable: true })
     @IsOptional()
@@ -186,7 +187,8 @@ export class CreateTierInput {
 
     @Field(() => GraphQLJSONObject, { nullable: true, description: 'The full metadata of the tier.' })
     @IsObject()
-    readonly metadata: Metadata;
+    @IsOptional()
+    readonly metadata?: Metadata;
 
     @IsString()
     @Field({ nullable: true, description: 'This merekleRoot of tier.' })
@@ -242,6 +244,7 @@ export class UpdateTierInput {
 
     @Field(() => GraphQLJSONObject, { nullable: true, description: 'The full metadata of the tier.' })
     @IsObject()
+    @IsOptional()
     readonly metadata?: Metadata;
 
     @IsString()

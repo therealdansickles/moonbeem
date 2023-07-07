@@ -6,7 +6,7 @@ import { MetadataCondition, MetadataProperties } from '../metadata/metadata.enti
 
 class PluginMetadata {
     properties: MetadataProperties;
-    conditions: Array<MetadataCondition>;
+    conditions: MetadataCondition;
 }
 
 @Entity({ name: 'Plugin' })

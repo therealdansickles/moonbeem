@@ -1,30 +1,33 @@
+import { hashSync as hashPassword } from 'bcryptjs';
 import * as request from 'supertest';
+import { Repository } from 'typeorm';
 
-import { Collection, CollectionKind } from './collection.entity';
-import { Test, TestingModule } from '@nestjs/testing';
-
+import { faker } from '@faker-js/faker';
 import { ApolloDriver } from '@nestjs/apollo';
+import { INestApplication } from '@nestjs/common';
+import { GraphQLModule } from '@nestjs/graphql';
+import { Test, TestingModule } from '@nestjs/testing';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { CollaborationService } from '../collaboration/collaboration.service';
+import { postgresConfig } from '../lib/configs/db.config';
+import { OrganizationService } from '../organization/organization.service';
+import { SessionModule } from '../session/session.module';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { CollaborationService } from '../collaboration/collaboration.service';
-import { GraphQLModule } from '@nestjs/graphql';
-import { INestApplication } from '@nestjs/common';
-import { OrganizationService } from '../organization/organization.service';
-import { Repository } from 'typeorm';
-import { SessionModule } from '../session/session.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { faker } from '@faker-js/faker';
-import { hashSync as hashPassword } from 'bcryptjs';
-import { postgresConfig } from '../lib/configs/db.config';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
+import { CollectionStat, CollectionStatus } from './collection.dto';
+import { Collection, CollectionKind } from './collection.entity';
 import { CollectionModule } from './collection.module';
 import { CollectionService } from './collection.service';
-import { CollectionStatus } from './collection.dto';
-import { CollectionStat } from './collection.dto';
 
 export const gql = String.raw;
 

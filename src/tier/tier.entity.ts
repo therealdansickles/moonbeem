@@ -1,5 +1,4 @@
 import { Exclude } from 'class-transformer';
-import { Metadata } from 'src/metadata/metadata.entity';
 import {
     BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany,
     PrimaryGeneratedColumn, UpdateDateColumn
@@ -7,6 +6,7 @@ import {
 
 import { Collection } from '../collection/collection.entity';
 import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
+import { Metadata } from '../metadata/metadata.entity';
 import { Nft } from '../nft/nft.entity';
 
 export class Attribute {

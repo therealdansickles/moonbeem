@@ -9,35 +9,46 @@ export class MetadataProperties {
     [key: string]: MetadataProperty;
 }
 
+export class MetadataRuleUpdate {
+    property: string;
+    action?: string;
+    value: any
+}
+
 export class MetadataRule {
     property: string;
     rule: string;
     value: any;
-    update: {
-        property: string;
-        value: any;
-    }[];
+    update: MetadataRuleUpdate[];
+}
+
+export class MetadataTriggerConfig {
+    start: string;
+    end: string;
+    every: number;
+    unit: string;
 }
 
 export class MetadataTrigger {
     type: string;
-    value: string;
+    last_updated_at?: string;
+    config: MetadataTriggerConfig;
 }
 
 export class MetadataCondition {
     operator?: string;
     rules: Array<MetadataRule>;
-    trigger: MetadataTrigger;
+    trigger: Array<MetadataTrigger>;
 }
 
 export class Metadata {
-    uses: string[];
+    uses?: string[];
     title: string[];
     name?: string;
     type?: string;
     external_url?: string;
     image?: string;
     image_url?: string;
-    properties: MetadataProperties;
-    conditions: Array<MetadataCondition>;
+    properties?: MetadataProperties;
+    conditions?: MetadataCondition;
 }

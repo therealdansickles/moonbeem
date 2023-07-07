@@ -24,6 +24,15 @@ describe('PluginService', () => {
                     logging: false,
                     dropSchema: true,
                 }),
+                TypeOrmModule.forRoot({
+                    name: 'sync_chain',
+                    type: 'postgres',
+                    url: postgresConfig.syncChain.url,
+                    autoLoadEntities: true,
+                    synchronize: true,
+                    logging: false,
+                    dropSchema: true,
+                }),
                 PluginModule
             ],
         }).compile();
@@ -36,6 +45,7 @@ describe('PluginService', () => {
         it('should get plugins', async () => {
             const plugin1 = await pluginRepository.save({
                 name: faker.commerce.productName(),
+                displayName: faker.commerce.productName(),
                 description: faker.commerce.productDescription(),
                 author: faker.commerce.department(),
                 version: faker.git.commitSha(),
@@ -44,6 +54,7 @@ describe('PluginService', () => {
 
             const plugin2 = await pluginRepository.save({
                 name: faker.commerce.productName(),
+                displayName: faker.commerce.productName(),
                 description: faker.commerce.productDescription(),
                 author: faker.commerce.department(),
                 version: faker.git.commitSha(),
@@ -59,6 +70,7 @@ describe('PluginService', () => {
         it('should get the plugin', async () => {
             const plugin = await pluginRepository.save({
                 name: faker.commerce.productName(),
+                displayName: faker.commerce.productName(),
                 description: faker.commerce.productDescription(),
                 author: faker.commerce.department(),
                 version: faker.git.commitSha()
@@ -72,6 +84,7 @@ describe('PluginService', () => {
         it('should get the plugin even it\'s `isPublish` equals to false', async () => {
             const plugin = await pluginRepository.save({
                 name: faker.commerce.productName(),
+                displayName: faker.commerce.productName(),
                 description: faker.commerce.productDescription(),
                 author: faker.commerce.department(),
                 version: faker.git.commitSha(),
@@ -83,4 +96,6 @@ describe('PluginService', () => {
             expect(result.author).toEqual(plugin.author);
         });
     });
+
+    
 })
