@@ -1,21 +1,26 @@
+import BigNumber from 'bignumber.js';
+
+import { faker } from '@faker-js/faker';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
 
-import { TierModule } from './tier.module';
-import { TierService } from './tier.service';
+import { Collection } from '../collection/collection.dto';
 import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
-import { CoinService } from '../sync-chain/coin/coin.service';
-import { Coin } from '../sync-chain/coin/coin.entity';
-import { Collection } from '../collection/collection.dto';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import BigNumber from 'bignumber.js';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { postgresConfig } from '../lib/configs/db.config';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
-import { Tier } from './tier.dto';
+import { Coin } from '../sync-chain/coin/coin.entity';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { WalletService } from '../wallet/wallet.service';
+import { Tier } from './tier.dto';
+import { TierModule } from './tier.module';
+import { TierService } from './tier.service';
 
 describe('TierService', () => {
     let service: TierService;
@@ -454,7 +459,6 @@ describe('TierService', () => {
                 tierId: 0,
                 metadata: {
                     uses: ['vibexyz/creator_scoring', 'vibexyz/royalty_level'],
-                    title: 'Token metadata',
                     properties: {
                         level: {
                             name: 'level',
@@ -470,6 +474,7 @@ describe('TierService', () => {
                         },
                     },
                     conditions: {
+                        operator: 'and',
                         rules: [
                             {
                                 rule: 'greater_than',
@@ -484,8 +489,18 @@ describe('TierService', () => {
                                 property: 'holding_days',
                             },
                         ],
-                        trigger: [{ type: 'schedule', value: '0 */1 * * *' }],
-                        operator: 'and',
+                        trigger: [
+                            {
+                                type: 'schedule',
+                                updatedAt: faker.date.past().toISOString(),
+                                config: {
+                                    startAt: faker.date.past().toISOString(),
+                                    endAt: faker.date.future().toISOString(),
+                                    every: +faker.random.numeric(1),
+                                    unit: 'minute'
+                                }
+                            }
+                        ],
                     },
                 },
             });

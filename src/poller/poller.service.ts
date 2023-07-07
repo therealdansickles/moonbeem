@@ -1,13 +1,18 @@
+import { omit } from 'lodash';
+import { In, Repository } from 'typeorm';
+
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import { MetadataProperty, Tier } from '../tier/tier.entity';
-import { AWSAdapter, ResourceType } from '../lib/adapters/aws.adapter';
+
 import { Collection } from '../collection/collection.entity';
-import { omit } from 'lodash';
+import { AWSAdapter, ResourceType } from '../lib/adapters/aws.adapter';
 import { appConfig } from '../lib/configs/app.config';
+import { MetadataProperties } from '../metadata/metadata.dto';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { Tier } from '../tier/tier.entity';
 
 export interface IMetadataForOpensea {
     id: string;
@@ -18,7 +23,7 @@ export interface IMetadataForOpensea {
     description: string;
     image: string;
     external_url: string;
-    properties: { [key: string]: MetadataProperty };
+    properties: MetadataProperties;
 }
 
 @Injectable()

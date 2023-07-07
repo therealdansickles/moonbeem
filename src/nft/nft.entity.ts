@@ -1,28 +1,12 @@
+import { Exclude } from 'class-transformer';
 import {
-    BaseEntity,
-    Column,
-    CreateDateColumn,
-    Entity,
-    JoinColumn,
-    ManyToOne,
-    PrimaryGeneratedColumn,
-    UpdateDateColumn,
+    BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn,
+    UpdateDateColumn
 } from 'typeorm';
 
 import { Collection } from '../collection/collection.entity';
-import { Exclude } from 'class-transformer';
+import { MetadataProperties } from '../metadata/metadata.entity';
 import { Tier } from '../tier/tier.entity';
-
-export class Property {
-    name: string;
-    type: string;
-    value: any;
-    display_value: string;
-}
-
-export class Properties {
-    [key: string]: Property
-}
 
 @Entity({ name: 'Nft' })
 export class Nft extends BaseEntity {
@@ -52,7 +36,7 @@ export class Nft extends BaseEntity {
         nullable: true,
         comment: 'Metadata properties for the NFT.',
     })
-    readonly properties: Properties;
+    readonly properties: MetadataProperties;
 
     @CreateDateColumn()
     @Exclude()

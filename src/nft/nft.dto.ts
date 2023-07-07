@@ -1,28 +1,11 @@
-import { Field, InputType, ObjectType, PickType } from '@nestjs/graphql';
 import { IsInt, IsObject, IsOptional, IsString } from 'class-validator';
+import { GraphQLJSONObject } from 'graphql-type-json';
+
+import { Field, InputType, ObjectType, PickType } from '@nestjs/graphql';
 
 import { Collection } from '../collection/collection.dto';
-import { GraphQLJSONObject } from 'graphql-type-json';
+import { MetadataProperties } from '../metadata/metadata.dto';
 import { Tier } from '../tier/tier.dto';
-
-@ObjectType()
-export class MetadataProperty {
-    @IsString()
-    @Field({ description: 'The name of the property.' })
-    readonly name: string;
-
-    @IsString()
-    @Field({ description: 'The type of the property.' })
-    readonly type: string;
-
-    @IsString()
-    @IsOptional()
-    @Field({ nullable: true, description: 'The display value of the property.' })
-    readonly display_type?: string;
-
-    @Field(() => String, { description: 'The value of the property.' })
-    readonly value: string | number;
-}
 
 @ObjectType('Nft')
 export class Nft {
@@ -45,7 +28,7 @@ export class Nft {
 
     @IsObject()
     @Field(() => GraphQLJSONObject, { description:  'The properties of the NFT.' })
-    readonly properties: { [key: string]: MetadataProperty };
+    readonly properties: MetadataProperties;
 }
 
 @InputType()

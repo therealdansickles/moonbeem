@@ -17,8 +17,12 @@ import { SessionModule } from '../session/session.module';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import { TierModule } from './tier.module';
@@ -329,57 +333,47 @@ describe('TierResolver', () => {
                 tierId: 0,
                 metadata: {
                     name: 'Token metadata',
+                    uses: ['vibexyz/creator_scoring', 'vibexyz/royalty_level'],
                     type: 'object',
                     image: 'https://media.vibe.xyz/f2f407a2-011b-4aa9-b59d-5dc35fd00375',
                     image_url: 'https://media.vibe.xyz/f2f407a2-011b-4aa9-b59d-5dc35fd00375',
-                    conditions: [
-                        {
-                            uses: 'vibexyz/creator_scoring',
-                            rules: [
-                                {
-                                    rule: 'greater_than',
-                                    value: -1,
-                                    property: 'holding_days',
-                                },
-                                {
-                                    rule: 'less_than',
-                                    value: 999,
-                                    property: 'holding_days',
-                                },
-                            ],
-                            update: {
-                                value: '1',
+                    conditions: {
+                        operator: 'and',
+                        rules: [
+                            {
                                 property: 'holding_days',
-                            },
-                            trigger: [
-                                {
-                                    type: 'schedule',
-                                    value: '0 0 * * *',
-                                },
-                            ],
-                            operator: 'and',
-                        },
-                        {
-                            uses: 'vibexyz/royalty_level',
-                            rules: [
-                                {
-                                    rule: 'greater_than',
-                                    value: 10,
+                                rule: 'greater_than',
+                                value: -1,
+                                update: [{
                                     property: 'holding_days',
-                                },
-                            ],
-                            update: {
-                                value: 'Bronze',
-                                property: 'level',
+                                    action: 'increase',
+                                    value: 1
+                                }]
                             },
-                            trigger: [
-                                {
-                                    type: 'schedule',
-                                    value: '0 */1 * * *',
+                            {
+                                property: 'holding_days',
+                                rule: 'less_than',
+                                value: 999,
+                                update: [{
+                                    property: 'holding_days',
+                                    action: 'increase',
+                                    value: 1
+                                }]
+                            },
+                        ],
+                        trigger: [
+                            {
+                                type: 'schedule',
+                                updatedAt: new Date().toISOString(),
+                                config: {
+                                    startAt: new Date().toISOString(),
+                                    endAt: new Date().toISOString(),
+                                    every: 1,
+                                    unit: 'minutes'
                                 },
-                            ],
-                        },
-                    ],
+                            },
+                        ],
+                    },
                     properties: {
                         level: {
                             name: 'level',
@@ -673,7 +667,6 @@ describe('TierResolver', () => {
                 tierId: 0,
                 metadata: {
                     uses: ['vibexyz/creator_scoring', 'vibexyz/royalty_level'],
-                    title: 'Token metadata',
                     properties: {
                         level: {
                             name: 'level',
@@ -689,22 +682,40 @@ describe('TierResolver', () => {
                         },
                     },
                     conditions: {
+                        operator: 'and',
                         rules: [
                             {
+                                property: 'holding_days',
                                 rule: 'greater_than',
                                 value: -1,
-                                update: [{ value: '1', property: 'holding_days' }],
-                                property: 'holding_days',
+                                update: [{
+                                    property: 'holding_days',
+                                    action: 'increase',
+                                    value: 1
+                                }]
                             },
                             {
-                                rule: 'greater_than',
-                                value: 10,
-                                update: [{ value: 'Bronze', property: 'level' }],
-                                property: 'holding_days',
+                                property: 'level',
+                                rule: 'Bronze',
+                                value: '',
+                                update: [{
+                                    property: 'level',
+                                    value: 'Silver'
+                                }]
                             },
                         ],
-                        trigger: [{ type: 'schedule', value: '0 */1 * * *' }],
-                        operator: 'and',
+                        trigger: [
+                            {
+                                type: 'schedule',
+                                updatedAt: new Date().toISOString(),
+                                config: {
+                                    startAt: new Date().toISOString(),
+                                    endAt: new Date().toISOString(),
+                                    every: 1,
+                                    unit: 'minutes'
+                                },
+                            },
+                        ],
                     },
                 },
             });

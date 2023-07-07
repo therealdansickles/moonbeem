@@ -1,19 +1,13 @@
+import { Exclude } from 'class-transformer';
 import {
-    BaseEntity,
-    Column,
-    CreateDateColumn,
-    Entity,
-    JoinColumn,
-    ManyToOne,
-    OneToMany,
-    PrimaryGeneratedColumn,
-    UpdateDateColumn,
+    BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany,
+    PrimaryGeneratedColumn, UpdateDateColumn
 } from 'typeorm';
 
 import { Collection } from '../collection/collection.entity';
-import { Exclude } from 'class-transformer';
-import { Nft } from '../nft/nft.entity';
 import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
+import { Metadata } from '../metadata/metadata.entity';
+import { Nft } from '../nft/nft.entity';
 
 export class Attribute {
     trait_type: string;
@@ -29,48 +23,6 @@ export class Condition {
 export class Plugin {
     type: string;
     path: string;
-}
-
-export class MetadataProperty {
-    name: string;
-    type: string;
-    value: any;
-    display_value: string;
-}
-
-export class MetadataRule {
-    property: string;
-    rule: string;
-    value: any;
-    update: {
-        property: string;
-        value: any;
-    }[];
-}
-
-export class MetadataTrigger {
-    type: string;
-    value: string;
-}
-
-export class MetadataCondition {
-    operator?: string;
-    rules: Array<MetadataRule>;
-    trigger: MetadataTrigger;
-}
-
-export class Metadata {
-    uses: string[];
-    title: string[];
-    name?: string;
-    type?: string;
-    external_url?: string;
-    image?: string;
-    image_url?: string;
-    properties: {
-        [key: string]: MetadataProperty;
-    };
-    conditions: MetadataCondition;
 }
 
 @Entity({ name: 'Tier' })
