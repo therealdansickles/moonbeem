@@ -39,19 +39,19 @@ export class MetadataRule {
 @ObjectType()
 export class MetadataTriggerConfig {
     @IsString()
-    @Field({ description: 'Start time for running the schedule.' })
-    start: string;
+    @Field({ description: 'The start time for running the schedule.' })
+    startAt: string;
 
     @IsString()
-    @Field({ description: 'Ent time for running the schedule.' })
-    end: string;
+    @Field({ description: 'The ent time for running the schedule.' })
+    endAt: string;
 
     @IsNumber()
-    @Field({ description: 'Schedule period.' })
+    @Field({ description: 'The numerical value of the schedule duration.' })
     every: number;
 
     @IsString()
-    @Field({ description: 'Schedule period unit.' })
+    @Field({ description: 'The Schedule duration unit.' })
     unit: string;
 }
 
@@ -64,7 +64,7 @@ export class MetadataTrigger {
     @IsString()
     @IsOptional()
     @Field({ nullable: true, description: 'Last updated at.' })
-    readonly last_updated_at?: string;
+    readonly updatedAt?: string;
 
     @IsString()
     @Field({ description: 'Trigger config.' })
@@ -107,6 +107,11 @@ export class MetadataProperty {
 }
 
 @ObjectType()
+export class MetadataProperties {
+    readonly [key: string]: MetadataProperty;
+}
+
+@ObjectType()
 export class Metadata {
     @IsArray()
     @IsOptional()
@@ -145,7 +150,7 @@ export class Metadata {
 
     @IsObject()
     @Field(() => GraphQLJSONObject, { nullable: true, description: 'The properties of the metadata.' })
-    readonly properties?: { [key: string]: MetadataProperty };
+    readonly properties?: MetadataProperties;
 }
 
 @InputType('MetadataInput')

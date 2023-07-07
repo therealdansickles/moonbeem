@@ -23,15 +23,15 @@ export class MetadataRule {
 }
 
 export class MetadataTriggerConfig {
-    start: string;
-    end: string;
+    startAt: string;
+    endAt: string;
     every: number;
     unit: string;
 }
 
 export class MetadataTrigger {
     type: string;
-    last_updated_at?: string;
+    updatedAt?: string;
     config: MetadataTriggerConfig;
 }
 

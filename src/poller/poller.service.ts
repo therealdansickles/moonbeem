@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Collection } from '../collection/collection.entity';
 import { AWSAdapter, ResourceType } from '../lib/adapters/aws.adapter';
 import { appConfig } from '../lib/configs/app.config';
-import { MetadataProperty } from '../metadata/metadata.dto';
+import { MetadataProperties } from '../metadata/metadata.dto';
 import {
     MintSaleTransaction
 } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
@@ -23,7 +23,7 @@ export interface IMetadataForOpensea {
     description: string;
     image: string;
     external_url: string;
-    properties: { [key: string]: MetadataProperty };
+    properties: MetadataProperties;
 }
 
 @Injectable()
