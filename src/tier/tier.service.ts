@@ -394,10 +394,12 @@ export class TierService {
                     });
                 }
 
-                if (tier.metadata.conditions) {
-                    tier.metadata.conditions.rules.forEach((rule) => {
-                        rule.update.forEach((u) => {
-                            upgrades[u.property] ? upgrades[u.property]++ : (upgrades[u.property] = 1);
+                if (tier.metadata.conditions && tier.metadata.conditions.length > 0) {
+                    tier.metadata.conditions.forEach(condition => {
+                        condition.rules.forEach((rule) => {
+                            rule.update.forEach((u) => {
+                                upgrades[u.property] ? upgrades[u.property]++ : (upgrades[u.property] = 1);
+                            });
                         });
                     });
                 }

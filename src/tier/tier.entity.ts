@@ -1,4 +1,5 @@
 import { Exclude } from 'class-transformer';
+import { Metadata } from 'src/metadata/metadata.entity';
 import {
     BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany,
     PrimaryGeneratedColumn, UpdateDateColumn
@@ -52,19 +53,19 @@ export class MetadataCondition {
     trigger: MetadataTrigger;
 }
 
-export class Metadata {
-    uses: string[];
-    title: string[];
-    name?: string;
-    type?: string;
-    external_url?: string;
-    image?: string;
-    image_url?: string;
-    properties: {
-        [key: string]: MetadataProperty;
-    };
-    conditions: MetadataCondition;
-}
+// export class Metadata {
+//     uses: string[];
+//     title: string[];
+//     name?: string;
+//     type?: string;
+//     external_url?: string;
+//     image?: string;
+//     image_url?: string;
+//     properties: {
+//         [key: string]: MetadataProperty;
+//     };
+//     conditions: MetadataCondition;
+// }
 
 @Entity({ name: 'Tier' })
 export class Tier extends BaseEntity {
