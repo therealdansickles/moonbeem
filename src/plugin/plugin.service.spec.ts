@@ -8,6 +8,8 @@ import { Collection, CollectionKind } from '../collection/collection.entity';
 import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
 import { postgresConfig } from '../lib/configs/db.config';
+import { CoinModule } from '../sync-chain/coin/coin.module';
+import { CoinService } from '../sync-chain/coin/coin.service';
 import { Tier } from '../tier/tier.entity';
 import { TierModule } from '../tier/tier.module';
 import { TierService } from '../tier/tier.service';
@@ -20,6 +22,7 @@ describe('PluginService', () => {
     let pluginService: PluginService;
     let collectionService: CollectionService;
     let tierService: TierService;
+    let coinService: CoinService;
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -44,6 +47,7 @@ describe('PluginService', () => {
                 PluginModule,
                 CollectionModule,
                 TierModule,
+                CoinModule,
             ],
         }).compile();
 
@@ -51,6 +55,7 @@ describe('PluginService', () => {
         pluginService = module.get<PluginService>(PluginService);
         tierService = module.get<TierService>(TierService);
         collectionService = module.get<CollectionService>(CollectionService);
+        coinService = module.get<CoinService>(CoinService);
     });
 
     afterAll(async () => {
@@ -114,10 +119,22 @@ describe('PluginService', () => {
     });
 
     describe('#installOnTier', () => {
+        let coin;
         let collection;
         let tier;
 
         beforeEach(async () => {
+            coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1.5,
+                enabled: true,
+                chainId: 1,
+            });
+
             collection = await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
@@ -133,6 +150,7 @@ describe('PluginService', () => {
                 totalMints: 100,
                 collection: { id: collection.id },
                 price: '100',
+                paymentTokenAddress: coin.address,
                 tierId: 0,
                 metadata: {
                     properties: {
@@ -204,7 +222,7 @@ describe('PluginService', () => {
             });
             const result = await pluginService.installOnTier({ tier, plugin });
             expect(result.metadata.conditions).toBeTruthy();
-            expect(result.metadata.conditions.rules).toEqual(2);
+            expect(result.metadata.conditions.rules.length).toEqual(2);
             expect(result.metadata.conditions.trigger.length).toEqual(1);
         });
     });
