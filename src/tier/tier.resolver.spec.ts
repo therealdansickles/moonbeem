@@ -364,10 +364,10 @@ describe('TierResolver', () => {
                         trigger: [
                             {
                                 type: 'schedule',
-                                last_updated_at: new Date().toISOString(),
+                                updatedAt: new Date().toISOString(),
                                 config: {
-                                    start: new Date().toISOString(),
-                                    end: new Date().toISOString(),
+                                    startAt: new Date().toISOString(),
+                                    endAt: new Date().toISOString(),
                                     every: 1,
                                     unit: 'minutes'
                                 },
@@ -707,10 +707,10 @@ describe('TierResolver', () => {
                         trigger: [
                             {
                                 type: 'schedule',
-                                last_updated_at: new Date().toISOString(),
+                                updatedAt: new Date().toISOString(),
                                 config: {
-                                    start: new Date().toISOString(),
-                                    end: new Date().toISOString(),
+                                    startAt: new Date().toISOString(),
+                                    endAt: new Date().toISOString(),
                                     every: 1,
                                     unit: 'minutes'
                                 },

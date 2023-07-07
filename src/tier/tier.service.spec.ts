@@ -492,10 +492,10 @@ describe('TierService', () => {
                         trigger: [
                             {
                                 type: 'schedule',
-                                last_updated_at: faker.date.past().toISOString(),
+                                updatedAt: faker.date.past().toISOString(),
                                 config: {
-                                    start: faker.date.past().toISOString(),
-                                    end: faker.date.future().toISOString(),
+                                    startAt: faker.date.past().toISOString(),
+                                    endAt: faker.date.future().toISOString(),
                                     every: +faker.random.numeric(1),
                                     unit: 'minute'
                                 }
