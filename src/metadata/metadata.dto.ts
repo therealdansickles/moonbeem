@@ -43,7 +43,7 @@ export class MetadataTriggerConfig {
     startAt: string;
 
     @IsString()
-    @Field({ description: 'The ent time for running the schedule.' })
+    @Field({ description: 'The end time for running the schedule.' })
     endAt: string;
 
     @IsNumber()
@@ -51,7 +51,7 @@ export class MetadataTriggerConfig {
     every: number;
 
     @IsString()
-    @Field({ description: 'The Schedule duration unit.' })
+    @Field({ description: 'The schedule duration unit.' })
     unit: string;
 }
 
