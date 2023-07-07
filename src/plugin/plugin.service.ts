@@ -45,12 +45,21 @@ export class PluginService {
         return await this.pluginRepository.findOneBy({ id });
     }
 
+    /**
+     * Install a plugin on the given tier, with customized config of metadata
+     *
+     * @param payload
+     * @returns
+     */
     async installOnTier(payload: { tier: TierDto, plugin: Plugin, metadata: MetadataInput}) {
         const { tier, plugin, metadata } = payload;
         const { uses = [], properties = {}, conditions = {} } = tier.metadata;
         const metadataPayload = {
+            // add plugin name on uses
             uses: sort(unique(uses.push(plugin.name))),
+            // merge properties
             properties: merge(properties, metadata.properties),
+            // merge conditions
             conditions: merge(conditions, metadata.conditions)
         }
         await this.tierService.updateTier(tier.id, { metadata: metadataPayload });
