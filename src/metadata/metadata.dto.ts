@@ -125,6 +125,11 @@ export class Metadata {
 
     @IsString()
     @IsOptional()
+    @Field({ nullable: true, description: 'The title of the metadata.' })
+    readonly title?: string;
+
+    @IsString()
+    @IsOptional()
     @Field({ nullable: true, description: 'The type of the metadata.' })
     readonly type?: string;
 

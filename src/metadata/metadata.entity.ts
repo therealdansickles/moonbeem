@@ -43,7 +43,7 @@ export class MetadataCondition {
 
 export class Metadata {
     uses?: string[];
-    title: string[];
+    title?: string;
     name?: string;
     type?: string;
     external_url?: string;
