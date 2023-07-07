@@ -695,13 +695,12 @@ describe('TierResolver', () => {
                                 }]
                             },
                             {
-                                property: 'holding_days',
-                                rule: 'less_than',
-                                value: 999,
+                                property: 'level',
+                                rule: 'Bronze',
+                                value: '',
                                 update: [{
-                                    property: 'holding_days',
-                                    action: 'increase',
-                                    value: 1
+                                    property: 'level',
+                                    value: 'Silver'
                                 }]
                             },
                         ],
