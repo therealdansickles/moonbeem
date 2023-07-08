@@ -9,7 +9,7 @@ import { CollectionModule } from './collection/collection.module';
 import { GraphQLModule } from '@nestjs/graphql';
 import { JwtModule } from '@nestjs/jwt';
 import { MembershipModule } from './membership/membership.module';
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { MongoAdapter } from './lib/adapters/mongo.adapter';
 import { MoonpayModule } from './moonpay/moonpay.module';
 import { NftModule } from './nft/nft.module';
@@ -32,6 +32,9 @@ import { WalletModule } from './wallet/wallet.module';
 import { appConfig } from './lib/configs/app.config';
 import { postgresConfig } from './lib/configs/db.config';
 import { SaleHistoryModule } from './saleHistory/saleHistory.module';
+import { NftActivityModule } from './nftActivity/nftActivity.module';
+import { AlchemyMiddleware } from './middleware/webhookUtil';
+import { AlchemyModule } from './alchemy/alchemy.module';
 
 dotenv.config();
 
@@ -55,6 +58,7 @@ dotenv.config();
         MoonpayModule,
         RedeemModule,
         NftModule,
+        NftActivityModule,
         // integration graphql
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver, // GraphQL server adapter
@@ -78,6 +82,7 @@ dotenv.config();
         OpenseaModule,
         MoonpayModule,
         SaleHistoryModule,
+        AlchemyModule,
     ],
     providers: [
         {
@@ -93,4 +98,8 @@ dotenv.config();
     ],
     exports: [],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+    configure(consumer: MiddlewareConsumer) {
+        consumer.apply(AlchemyMiddleware).forRoutes('webhook');
+    }
+}

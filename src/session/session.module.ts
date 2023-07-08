@@ -23,6 +23,8 @@ import { User } from '../user/user.entity';
 import { UserModule } from '../user/user.module';
 import { Wallet } from '../wallet/wallet.entity';
 import { WalletModule } from '../wallet/wallet.module';
+import { AlchemyModule } from '../alchemy/alchemy.module';
+import { AlchemyService } from '../alchemy/alchemy.service';
 
 @Module({
     imports: [
@@ -34,6 +36,7 @@ import { WalletModule } from '../wallet/wallet.module';
         forwardRef(() => CollectionModule),
         forwardRef(() => TierModule),
         forwardRef(() => OpenseaModule),
+        forwardRef(() => AlchemyModule),
         forwardRef(() => HttpModule),
         JwtModule.register({
             secret: process.env.SESSION_SECRET,
@@ -41,7 +44,7 @@ import { WalletModule } from '../wallet/wallet.module';
         }),
         SessionModule,
     ],
-    providers: [Asset721Service, CollectionService, TierService, OpenseaService, SessionService, SessionResolver],
+    providers: [Asset721Service, CollectionService, TierService, OpenseaService, AlchemyService, SessionService, SessionResolver],
     exports: [SessionModule, SessionResolver],
 })
-export class SessionModule {}
+export class SessionModule { }

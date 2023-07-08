@@ -31,10 +31,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from '../user/user.module';
 import { Wallet } from '../wallet/wallet.entity';
 import { WalletModule } from '../wallet/wallet.module';
+import { AlchemyModule } from '../alchemy/alchemy.module';
+import { AlchemyService } from '../alchemy/alchemy.service';
 
 @Module({
     imports: [
         HttpModule,
+        AlchemyModule,
         TypeOrmModule.forFeature([Collaboration, Collection, Organization, Tier, Nft, Wallet, Redeem]),
         TypeOrmModule.forFeature([Coin, MintSaleContract, MintSaleTransaction, Asset721], 'sync_chain'),
         forwardRef(() => CollaborationModule),
@@ -45,11 +48,12 @@ import { WalletModule } from '../wallet/wallet.module';
         forwardRef(() => TierModule),
         forwardRef(() => WalletModule),
         forwardRef(() => OpenseaModule),
+        forwardRef(() => AlchemyModule),
         forwardRef(() => UserModule),
         JwtModule,
     ],
     exports: [CollectionModule, CollectionService],
-    providers: [JwtService, OpenseaService, TierService, CollectionService, CollectionResolver],
+    providers: [JwtService, OpenseaService, TierService, AlchemyService, CollectionService, CollectionResolver],
     controllers: [],
 })
-export class CollectionModule {}
+export class CollectionModule { }

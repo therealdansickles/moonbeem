@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, UpdateResult, IsNull, In } from 'typeorm';
 import { isEmpty, isNil, omitBy } from 'lodash';
+import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
+dotenv.config();
 
 import * as collectionEntity from './collection.entity';
 import { GraphQLError } from 'graphql';
@@ -29,6 +31,8 @@ import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
 import { SaleHistory } from '../saleHistory/saleHistory.dto';
 import { getCurrentPrice } from '../saleHistory/saleHistory.service';
+import { AlchemyService, FilterNft } from '../alchemy/alchemy.service';
+import { alchemyConfig } from '../lib/configs/alchemy.config';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name'>>;
 
@@ -48,8 +52,9 @@ export class CollectionService {
         @InjectRepository(Asset721, 'sync_chain')
         private readonly asset721Repository: Repository<Asset721>,
         private tierService: TierService,
-        private openseaService: OpenseaService
-    ) {}
+        private openseaService: OpenseaService,
+        private readonly alchemyService: AlchemyService
+    ) { }
 
     /**
      * Retrieves the collection associated with the given id.
@@ -256,6 +261,12 @@ export class CollectionService {
             });
         }
 
+        // Adds the collection address to be watch on the webhook
+        if (collection.address) {
+            await this.updateWebHook(collection.address);
+        }
+
+
         const createResult = await this.collectionRepository.save(collection as Collection);
 
         if (tiers) {
@@ -268,7 +279,19 @@ export class CollectionService {
             where: { id: createResult.id },
             relations: ['tiers', 'organization', 'collaboration'],
         });
+
         return result;
+
+
+    }
+    async updateWebHook(address: string) {
+        let params: FilterNft[] = [];
+        params.push({ contract_address: address });
+        await this.alchemyService.updateWebHook({
+            webhook_id: alchemyConfig.webHookId,
+            nft_filters_to_add: params,
+            nft_filters_to_remove: []
+        });
     }
 
     /**

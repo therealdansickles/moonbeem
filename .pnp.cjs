@@ -78,6 +78,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["eslint-plugin-prettier", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:4.2.1"],\
             ["ethers", "npm:6.6.2"],\
             ["express", "npm:4.18.2"],\
+            ["express-serve-static-core", "npm:0.1.1"],\
             ["googleapis", "npm:118.0.0"],\
             ["graphql", "npm:16.6.0"],\
             ["graphql-type-json", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:0.3.2"],\
@@ -8728,6 +8729,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["express-serve-static-core", [\
+        ["npm:0.1.1", {\
+          "packageLocation": "./.yarn/cache/express-serve-static-core-npm-0.1.1-a92723f95d-0f387ae5c1.zip/node_modules/express-serve-static-core/",\
+          "packageDependencies": [\
+            ["express-serve-static-core", "npm:0.1.1"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["ext", [\
         ["npm:1.7.0", {\
           "packageLocation": "./.yarn/cache/ext-npm-1.7.0-580588ab93-ef481f9ef4.zip/node_modules/ext/",\
@@ -12613,6 +12623,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["eslint-plugin-prettier", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:4.2.1"],\
             ["ethers", "npm:6.6.2"],\
             ["express", "npm:4.18.2"],\
+            ["express-serve-static-core", "npm:0.1.1"],\
             ["googleapis", "npm:118.0.0"],\
             ["graphql", "npm:16.6.0"],\
             ["graphql-type-json", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:0.3.2"],\

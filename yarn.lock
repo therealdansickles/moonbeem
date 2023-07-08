@@ -6631,6 +6631,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"express-serve-static-core@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "express-serve-static-core@npm:0.1.1"
+  checksum: 0f387ae5c12f51b9e843ade07bd412b4a0cbe23bbd5e95e047e45f4b3e1a6aa6bee53f765b039441f93110401221ec23a533844dce3e4f118e38cda5ed3dba0a
+  languageName: node
+  linkType: hard
+
 "express@npm:4.18.2, express@npm:^4.18.2":
   version: 4.18.2
   resolution: "express@npm:4.18.2"
@@ -9999,6 +10006,7 @@ __metadata:
     eslint-plugin-prettier: ^4.0.0
     ethers: ^6.6.2
     express: ^4.18.2
+    express-serve-static-core: ^0.1.1
     googleapis: ^118.0.0
     graphql: ^16.6.0
     graphql-type-json: ^0.3.2
