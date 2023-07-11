@@ -1,34 +1,31 @@
+import { GraphQLError } from 'graphql';
+import { isEmpty, isNil, omitBy } from 'lodash';
+import { In, IsNull, Repository, UpdateResult } from 'typeorm';
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, UpdateResult, IsNull, In } from 'typeorm';
-import { isEmpty, isNil, omitBy } from 'lodash';
-
-import * as collectionEntity from './collection.entity';
-import { GraphQLError } from 'graphql';
-import { Tier } from '../tier/tier.entity';
-import {
-    Collection,
-    CollectionActivities,
-    CollectionActivityType,
-    CollectionStat,
-    CollectionStatus,
-    CreateCollectionInput,
-    LandingPageCollection,
-    CollectionPaginated,
-    SecondarySale,
-    ZeroAccount,
-} from './collection.dto';
-import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import { Wallet } from '../wallet/wallet.entity';
 import * as Sentry from '@sentry/node';
-import { TierService } from '../tier/tier.service';
-import { OpenseaService } from '../opensea/opensea.service';
-import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
-import { Asset721 } from '../sync-chain/asset721/asset721.entity';
+
 import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
+import { OpenseaService } from '../opensea/opensea.service';
 import { SaleHistory } from '../saleHistory/saleHistory.dto';
 import { getCurrentPrice } from '../saleHistory/saleHistory.service';
+import { Asset721 } from '../sync-chain/asset721/asset721.entity';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { Tier as TierDto } from '../tier/tier.dto';
+import { Tier } from '../tier/tier.entity';
+import { TierService } from '../tier/tier.service';
+import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
+import { Wallet } from '../wallet/wallet.entity';
+import {
+    Collection, CollectionActivities, CollectionActivityType, CollectionPaginated, CollectionStat,
+    CollectionStatus, CreateCollectionInput, LandingPageCollection, SecondarySale, ZeroAccount
+} from './collection.dto';
+import * as collectionEntity from './collection.entity';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name'>>;
 
@@ -48,7 +45,8 @@ export class CollectionService {
         @InjectRepository(Asset721, 'sync_chain')
         private readonly asset721Repository: Repository<Asset721>,
         private tierService: TierService,
-        private openseaService: OpenseaService
+        private openseaService: OpenseaService,
+        private coinService: CoinService,
     ) {}
 
     /**
@@ -118,8 +116,19 @@ export class CollectionService {
 
         for (const collection of collections) {
             const contract = await this.mintSaleContractRepository.findOne({ where: { collectionId: collection.id } });
+            const tiers: TierDto[] = [];
+            for (const tier of collection.tiers) {
+                if (tier.paymentTokenAddress) {
+                    const coin = await this.coinService.getCoinByAddress(tier.paymentTokenAddress);
+                    tiers.push({
+                        ...tier,
+                        coin
+                    });
+                }
+            }
+            const collectionInfo: Collection = { ...collection, tiers };
             result.push({
-                ...collection,
+                ...collectionInfo,
                 contract,
             });
         }

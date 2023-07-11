@@ -10,6 +10,8 @@ import { OpenseaModule } from '../opensea/opensea.module';
 import { OpenseaService } from '../opensea/opensea.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Coin } from '../sync-chain/coin/coin.entity';
+import { CoinModule } from '../sync-chain/coin/coin.module';
+import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import {
     MintSaleTransaction
@@ -29,8 +31,9 @@ import { PluginService } from './plugin.service';
         forwardRef(() => CollectionModule),
         forwardRef(() => TierModule),
         forwardRef(() => OpenseaModule),
+        forwardRef(() => CoinModule),
         HttpModule
     ],
-    providers: [PluginService, PluginResolver, TierService, CollectionService, OpenseaService],
+    providers: [PluginService, PluginResolver, TierService, CollectionService, CoinService, OpenseaService],
 })
 export class PluginModule {}

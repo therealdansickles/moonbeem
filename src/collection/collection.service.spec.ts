@@ -1,23 +1,28 @@
 import { Repository } from 'typeorm';
+
+import { faker } from '@faker-js/faker';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
 
+import { CollaborationService } from '../collaboration/collaboration.service';
+import { postgresConfig } from '../lib/configs/db.config';
+import { OrganizationService } from '../organization/organization.service';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { Collection } from './collection.entity';
-import { CollectionModule } from './collection.module';
-import { CollectionService } from './collection.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import { OrganizationService } from '../organization/organization.service';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
-import { CollaborationService } from '../collaboration/collaboration.service';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { Asset721Service } from '../sync-chain/asset721/asset721.service';
-import { CollectionStatus, CollectionStat } from './collection.dto';
+import { CollectionStat, CollectionStatus } from './collection.dto';
+import { Collection } from './collection.entity';
+import { CollectionModule } from './collection.module';
+import { CollectionService } from './collection.service';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
@@ -532,6 +537,8 @@ describe('CollectionService', () => {
             expect(result[0].id).not.toBeNull();
             expect(result[0].organization.name).not.toBeNull();
             expect(result[0].tiers).not.toBeNull();
+            expect(result[0].tiers[0].coin).toBeTruthy();
+            expect(result[0].tiers[0].coin.symbol).toEqual(coin.symbol);
             expect(result[0].tiers.some((tier) => tier.totalMints === 200)).toBeTruthy();
         });
     });
