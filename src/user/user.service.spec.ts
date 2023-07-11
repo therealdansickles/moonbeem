@@ -1,13 +1,15 @@
+import { hashSync as hashPassword } from 'bcryptjs';
+import { Repository } from 'typeorm';
+
+import { faker } from '@faker-js/faker';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { faker } from '@faker-js/faker';
+
 import { postgresConfig } from '../lib/configs/db.config';
+import { OrganizationService } from '../organization/organization.service';
+import { User } from './user.entity';
 import { UserModule } from './user.module';
 import { UserService } from './user.service';
-import { User } from './user.entity';
-import { OrganizationService } from '../organization/organization.service';
-import { hashSync as hashPassword } from 'bcryptjs';
 
 describe('UserService', () => {
     let service: UserService;
@@ -115,6 +117,20 @@ describe('UserService', () => {
             expect(user.username).toBeDefined();
             expect(user.email).toBeDefined();
             expect(user.password).toBeDefined();
+        });
+
+        it('should throw error if email has been take', async () => {
+            const user = await service.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            expect(async () => await service.createUser({
+                username: faker.internet.userName(),
+                email: user.email,
+                password: faker.internet.password(),
+            })).rejects.toThrow(`This email ${user.email} is already taken.`);;
         });
     });
 

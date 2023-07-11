@@ -28,7 +28,7 @@ export class PluginResolver {
         return await this.pluginService.getPlugin(id);
     }
 
-    @Mutation()
+    @Mutation(() => Plugin)
     async installOnCollection(@Args('input') input: InstallOnCollectionInput) {
         const collection = await this.collectionService.getCollection(input.collectionId);
         if (!collection) throw new GraphQLError(`Collection ${input.collectionId} doesn't exsit.`);
@@ -43,7 +43,7 @@ export class PluginResolver {
         return Promise.all(promises);
     }
 
-    @Mutation()
+    @Mutation(() => Plugin)
     async installOnTier(@Args('input') input: InstallOnTierInput) {
         const tier = await this.tierService.getTier(input.tierId);
         if (!tier) throw new GraphQLError(`Tier ${input.tierId} doesn't exist.`);

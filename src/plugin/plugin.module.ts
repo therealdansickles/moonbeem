@@ -19,6 +19,7 @@ import { TierModule } from '../tier/tier.module';
 import { TierService } from '../tier/tier.service';
 import { Wallet } from '../wallet/wallet.entity';
 import { Plugin } from './plugin.entity';
+import { PluginResolver } from './plugin.resolver';
 import { PluginService } from './plugin.service';
 
 @Module({
@@ -30,6 +31,6 @@ import { PluginService } from './plugin.service';
         forwardRef(() => OpenseaModule),
         HttpModule
     ],
-    providers: [PluginService, TierService, CollectionService, OpenseaService],
+    providers: [PluginService, PluginResolver, TierService, CollectionService, OpenseaService],
 })
 export class PluginModule {}
