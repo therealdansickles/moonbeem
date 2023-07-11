@@ -54,7 +54,6 @@ export class NftService {
             query.tokenId = In([...query.tokenIds])
             query = omit(query, 'tokenIds')
         }
-        console.log(query)
         return await this.nftRepository.findBy(query)
     }
 
