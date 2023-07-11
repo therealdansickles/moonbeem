@@ -1,23 +1,16 @@
+import { Exclude } from 'class-transformer';
 import {
-    BaseEntity,
-    Column,
-    CreateDateColumn,
-    Entity,
-    JoinColumn,
-    ManyToOne,
-    OneToMany,
-    PrimaryGeneratedColumn,
-    UpdateDateColumn,
+    BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany,
+    PrimaryGeneratedColumn, UpdateDateColumn
 } from 'typeorm';
 
 import { Collaboration } from '../collaboration/collaboration.entity';
-import { Exclude } from 'class-transformer';
+import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
 import { Nft } from '../nft/nft.entity';
 import { Organization } from '../organization/organization.entity';
 import { Redeem } from '../redeem/redeem.entity';
 import { Tier } from '../tier/tier.entity';
 import { Wallet } from '../wallet/wallet.entity';
-import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
 
 // see https://stackoverflow.com/questions/55598213/enums-not-working-with-nestjs-and-graphql
 export enum CollectionKind {
@@ -116,6 +109,12 @@ export class Collection extends BaseEntity {
             "Temporary field for store collection name in Opensea, while we can't retrieve collection stat by address",
     })
     readonly nameOnOpensea?: string;
+
+    @Column({ nullable: true, comment: 'The begin time for sales.'})
+    readonly beginSaleAt?: Date;
+
+    @Column({ nullable: true, comment: 'The end time for sales.'})
+    readonly endSaleAt?: Date;
 
     @Column({ nullable: true, comment: 'The DateTime when the collection was launched.' })
     readonly publishedAt?: Date;

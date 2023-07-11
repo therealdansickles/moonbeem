@@ -105,6 +105,14 @@ export class Collection {
     readonly nameOnOpensea?: string;
 
     @IsDateString()
+    @Field({ description: 'The begin time for sales.', nullable: true })
+    readonly beginSaleAt?: Date;
+
+    @IsDateString()
+    @Field({ description: 'The end time for sales.', nullable: true })
+    readonly endSaleAt?: Date;
+
+    @IsDateString()
     @Field({ description: 'The DateTime that this collection was published.', nullable: true })
     readonly publishedAt?: Date;
 
