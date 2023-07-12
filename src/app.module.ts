@@ -16,7 +16,7 @@ import { RedisAdapter } from './lib/adapters/redis.adapter';
 import { appConfig } from './lib/configs/app.config';
 import { postgresConfig } from './lib/configs/db.config';
 import { MembershipModule } from './membership/membership.module';
-import { UploadModule } from './modules/upload.module';
+import { UploadModule } from './upload/upload.module';
 import { MoonpayModule } from './moonpay/moonpay.module';
 import { NftModule } from './nft/nft.module';
 import { OpenseaModule } from './opensea/opensea.module';

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { UploadService } from '../services/upload.service';
-import { UploadController } from '../controllers/upload.controller';
-import { SharedModule } from './share.module';
+import { UploadService } from './upload.service';
+import { UploadController } from './upload.controller';
+import { SharedModule } from '../share/share.module';
 
 @Module({
     imports: [SharedModule],

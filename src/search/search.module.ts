@@ -1,5 +1,5 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { SharedModule } from '../modules/share.module';
+import { SharedModule } from '../share/share.module';
 import { SearchResolver } from './search.resolver';
 
 import { SearchService } from './search.service';
