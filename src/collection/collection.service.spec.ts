@@ -10,12 +10,8 @@ import { OrganizationService } from '../organization/organization.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
@@ -712,6 +708,33 @@ describe('CollectionService', () => {
             const updatedCollection = await service.getCollection(collection.id);
 
             expect(updatedCollection.collaboration.id).toEqual(newCollab.id);
+        });
+
+        it('should update beginSaleAt', async () => {
+            const beginSaleAt = Math.round(new Date().valueOf() / 1000);
+            const endSaleAt = Math.round(new Date().valueOf() / 1000) + 1000;
+
+            const collection = await repository.save({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                beginSaleAt: beginSaleAt,
+                endSaleAt: endSaleAt,
+            });
+
+            const result = await service.updateCollection(collection.id, {
+                beginSaleAt: beginSaleAt + 100,
+                endSaleAt: endSaleAt + 100,
+            });
+
+            expect(result).toBeTruthy();
+
+            const c = await repository.findOne({ where: { id: collection.id } });
+            expect(c.beginSaleAt).toBe(beginSaleAt + 100);
+            expect(c.endSaleAt).toBe(endSaleAt + 100);
         });
     });
 

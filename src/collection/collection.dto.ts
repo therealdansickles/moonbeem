@@ -110,13 +110,13 @@ export class Collection {
     @IsString()
     readonly nameOnOpensea?: string;
 
-    @IsDateString()
-    @Field({ description: 'The begin time for sales.', nullable: true })
-    public beginSaleAt?: Date;
+    @IsNumber()
+    @Field(() => Int, { description: 'The begin time for sales.', nullable: true })
+    public beginSaleAt?: number;
 
-    @IsDateString()
-    @Field({ description: 'The end time for sales.', nullable: true })
-    public endSaleAt?: Date;
+    @IsNumber()
+    @Field(() => Int, { description: 'The end time for sales.', nullable: true })
+    public endSaleAt?: number;
 
     @IsDateString()
     @Field({ description: 'The DateTime that this collection was published.', nullable: true })
@@ -151,19 +151,7 @@ export class CreateCollectionInput extends OmitType(PartialType(Collection, Inpu
     'contract',
     'creator',
     'collaboration',
-    'beginSaleAt',
-    'endSaleAt',
 ]) {
-    @IsNumber()
-    @Field(() => Int, { description: 'The begin time for sales', nullable: true })
-    @IsOptional()
-    readonly beginSaleAt?: number;
-
-    @IsNumber()
-    @Field(() => Int, { description: 'The end time for sales', nullable: true })
-    @IsOptional()
-    readonly endSaleAt?: number;
-
     @IsObject()
     @Field(() => WalletInput, { description: 'The wallet that created the collection.', nullable: true })
     @IsOptional()

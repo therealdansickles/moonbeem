@@ -15,12 +15,8 @@ import { OrganizationService } from '../organization/organization.service';
 import { SessionModule } from '../session/session.module';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
@@ -689,6 +685,47 @@ describe('CollectionResolver', () => {
                     name: faker.company.name(),
                     displayName: 'The best collection',
                     about: 'The best collection ever',
+                },
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(async ({ body }) => {
+                    expect(body.data.updateCollection).toBeTruthy();
+                });
+        });
+
+        it('should update beginSaleAt', async () => {
+            const beginSaleAt = Math.round(new Date().valueOf() / 1000);
+            const endSaleAt = Math.round(new Date().valueOf() / 1000) + 1000;
+
+            const collection = await repository.save({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                beginSaleAt: beginSaleAt,
+                endSaleAt: endSaleAt,
+            });
+
+            const query = gql`
+                mutation UpdateCollection($input: UpdateCollectionInput!) {
+                    updateCollection(input: $input)
+                }
+            `;
+
+            const variables = {
+                input: {
+                    id: collection.id,
+                    name: faker.company.name(),
+                    displayName: 'The best collection',
+                    about: 'The best collection ever',
+                    beginSaleAt: beginSaleAt + 100,
+                    endSaleAt: endSaleAt + 100,
                 },
             };
 

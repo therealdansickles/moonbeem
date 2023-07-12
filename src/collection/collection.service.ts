@@ -205,12 +205,6 @@ export class CollectionService {
      */
     async updateCollection(id: string, data: Partial<Omit<UpdateCollectionInput, 'id'>>): Promise<boolean> {
         try {
-            const { beginSaleAt, endSaleAt, ...updateData } = data;
-
-            const dd = updateData as Collection;
-            beginSaleAt ?? (dd.beginSaleAt = new Date(beginSaleAt));
-            endSaleAt ?? (dd.endSaleAt = new Date(endSaleAt));
-
             const result: UpdateResult = await this.collectionRepository.update(id, data);
             return result.affected > 0;
         } catch (e) {
@@ -269,7 +263,7 @@ export class CollectionService {
      * @returns The newly created collection.
      */
     async createCollectionWithTiers(data: CreateCollectionInput) {
-        const { tiers, beginSaleAt, endSaleAt, ...collection } = data;
+        const { tiers, ...collection } = data;
         const kind = collectionEntity.CollectionKind;
         if ([kind.whitelistEdition, kind.whitelistTiered, kind.whitelistBulk].indexOf(collection.kind) >= 0) {
             tiers.forEach((tier) => {
@@ -279,10 +273,6 @@ export class CollectionService {
         }
 
         const dd = collection as Collection;
-        if (beginSaleAt) dd.beginSaleAt = new Date(beginSaleAt);
-        if (endSaleAt) dd.endSaleAt = new Date(endSaleAt);
-
-
         const createResult = await this.collectionRepository.save(dd);
 
         if (tiers) {

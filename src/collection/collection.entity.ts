@@ -1,7 +1,14 @@
 import { Exclude } from 'class-transformer';
 import {
-    BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany,
-    PrimaryGeneratedColumn, UpdateDateColumn
+    BaseEntity,
+    Column,
+    CreateDateColumn,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 
 import { Collaboration } from '../collaboration/collaboration.entity';
@@ -110,11 +117,11 @@ export class Collection extends BaseEntity {
     })
     readonly nameOnOpensea?: string;
 
-    @Column({ nullable: true, comment: 'The begin time for sales.'})
-    readonly beginSaleAt?: Date;
+    @Column({ nullable: true, comment: 'The begin time for sales. type of timestamp, like 1672502400' })
+    readonly beginSaleAt?: number;
 
-    @Column({ nullable: true, comment: 'The end time for sales.'})
-    readonly endSaleAt?: Date;
+    @Column({ nullable: true, comment: 'The end time for sales. type of timestamp, like 1672502400' })
+    readonly endSaleAt?: number;
 
     @Column({ nullable: true, comment: 'The DateTime when the collection was launched.' })
     readonly publishedAt?: Date;
