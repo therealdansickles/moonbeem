@@ -4,7 +4,7 @@ import { GraphQLError } from 'graphql';
 import { isEmpty, isNil, omit, omitBy } from 'lodash';
 import { Repository } from 'typeorm';
 
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { captureException } from '@sentry/node';
 
@@ -179,26 +179,12 @@ export class WalletService {
     async bindWallet(data: BindWalletInput): Promise<Wallet> {
         const { address: rawAddress, owner } = data;
         const address = rawAddress.toLowerCase();
+        const wallet = await this.verifyWallet(address, data.message, data.signature);
 
-        const verifiedAddress = ethers.verifyMessage(data.message, data.signature);
-        if (address !== verifiedAddress.toLocaleLowerCase()) {
-            throw new HttpException('signature verification failure', HttpStatus.BAD_REQUEST);
-        }
-
-        let wallet = await this.walletRespository.findOne({
-            where: { address },
-            relations: ['owner'],
-        });
-
-        // if wallet doesn't existed yet, create a new one and bind the owner on it
-        if (!wallet) {
-            wallet = await this.walletRespository.create({ address, owner });
-        } else {
-            if (wallet.owner && wallet.owner.id) {
-                throw new GraphQLError(`Wallet ${address} is already bound.`, {
-                    extensions: { code: 'BAD_REQUEST' },
-                });
-            }
+        if (wallet.owner && wallet.owner.id) {
+            throw new GraphQLError(`Wallet ${address} is already bound.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
         }
 
         try {

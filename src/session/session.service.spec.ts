@@ -1,14 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ethers } from 'ethers';
-import { postgresConfig } from '../lib/configs/db.config';
 import { hashSync as hashPassword } from 'bcryptjs';
 
 import { SessionService } from './session.service';
-import { SessionModule } from './session.module';
 import { UserService } from '../user/user.service';
-import { UserModule } from '../user/user.module';
-import { WalletModule } from '../wallet/wallet.module';
 import { faker } from '@faker-js/faker';
 
 describe('SessionService', () => {
@@ -16,33 +10,13 @@ describe('SessionService', () => {
     let userService: UserService;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                SessionModule,
-                UserModule,
-                WalletModule,
-            ],
-        }).compile();
+        service = global.sessionService;
+        userService = global.userService;
+    });
 
-        service = module.get<SessionService>(SessionService);
-        userService = module.get<UserService>(UserService);
+    afterEach(async () => {
+        await global.clearDatabase();
+        global.gc && global.gc();
     });
 
     describe('createSession', () => {

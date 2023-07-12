@@ -1,34 +1,23 @@
 import { hashSync as hashPassword } from 'bcryptjs';
 import * as request from 'supertest';
-import { Repository } from 'typeorm';
-
-import { faker } from '@faker-js/faker';
-import { ApolloDriver } from '@nestjs/apollo';
-import { INestApplication } from '@nestjs/common';
-import { GraphQLModule } from '@nestjs/graphql';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-
-import { CollaborationService } from '../collaboration/collaboration.service';
-import { postgresConfig } from '../lib/configs/db.config';
-import { OrganizationService } from '../organization/organization.service';
-import { SessionModule } from '../session/session.module';
+import { Collection, CollectionKind } from './collection.entity';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
+import { CollaborationService } from '../collaboration/collaboration.service';
+import { INestApplication } from '@nestjs/common';
+import { OrganizationService } from '../organization/organization.service';
+import { faker } from '@faker-js/faker';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
-import { CollectionStat, CollectionStatus } from './collection.dto';
-import { Collection, CollectionKind } from './collection.entity';
-import { CollectionModule } from './collection.module';
 import { CollectionService } from './collection.service';
+import { CollectionStat, CollectionStatus } from './collection.dto';
 
 export const gql = String.raw;
 
 describe('CollectionResolver', () => {
-    let repository: Repository<Collection>;
     let service: CollectionService;
     let app: INestApplication;
     let organizationService: OrganizationService;
@@ -42,54 +31,23 @@ describe('CollectionResolver', () => {
     let asset721Service: Asset721Service;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                CollectionModule,
-                SessionModule,
-                GraphQLModule.forRoot({
-                    driver: ApolloDriver,
-                    autoSchemaFile: true,
-                    include: [SessionModule, CollectionModule],
-                }),
-            ],
-        }).compile();
+        app = global.app;
 
-        repository = module.get('CollectionRepository');
-        service = module.get<CollectionService>(CollectionService);
-        organizationService = module.get<OrganizationService>(OrganizationService);
-        collaborationService = module.get<CollaborationService>(CollaborationService);
-        userService = module.get<UserService>(UserService);
-        tierService = module.get<TierService>(TierService);
-        coinService = module.get<CoinService>(CoinService);
-        mintSaleTransactionService = module.get<MintSaleTransactionService>(MintSaleTransactionService);
-        mintSaleContractService = module.get<MintSaleContractService>(MintSaleContractService);
-        asset721Service = module.get<Asset721Service>(Asset721Service);
-        walletService = module.get<WalletService>(WalletService);
-
-        app = module.createNestApplication();
-        await app.init();
+        service = global.collectionService;
+        organizationService = global.organizationService;
+        collaborationService = global.collaborationService;
+        userService = global.userService;
+        tierService = global.tierService;
+        coinService = global.coinService;
+        mintSaleTransactionService = global.mintSaleTransactionService;
+        mintSaleContractService = global.mintSaleContractService;
+        asset721Service = global.asset721Service;
+        walletService = global.walletService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
-        await app.close();
     });
 
     describe('collection', () => {
@@ -109,7 +67,7 @@ describe('CollectionResolver', () => {
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
                 discord: faker.internet.userName(),
-                owner: owner,
+                owner,
             });
 
             const collection = await service.createCollection({
@@ -170,7 +128,7 @@ describe('CollectionResolver', () => {
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
                 discord: faker.internet.userName(),
-                owner: owner,
+                owner,
             });
 
             const collection = await service.createCollection({
@@ -259,7 +217,7 @@ describe('CollectionResolver', () => {
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
                 discord: faker.internet.userName(),
-                owner: owner,
+                owner,
             });
 
             const collection = await service.createCollection({
@@ -321,7 +279,7 @@ describe('CollectionResolver', () => {
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
                 discord: faker.internet.userName(),
-                owner: owner,
+                owner,
             });
 
             const collection = await service.createCollection({
@@ -377,7 +335,7 @@ describe('CollectionResolver', () => {
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
                 discord: faker.internet.userName(),
-                owner: owner,
+                owner,
             });
 
             const collection = await service.createCollection({
@@ -524,7 +482,7 @@ describe('CollectionResolver', () => {
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
                 discord: faker.internet.userName(),
-                owner: owner,
+                owner,
             });
 
             const query = gql`
@@ -595,7 +553,7 @@ describe('CollectionResolver', () => {
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
                 discord: faker.internet.userName(),
-                owner: owner,
+                owner,
             });
 
             const tokenQuery = gql`
@@ -664,6 +622,11 @@ describe('CollectionResolver', () => {
 
     describe('updateCollection', () => {
         it('should update a collection', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
             const collection = await service.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
@@ -671,7 +634,33 @@ describe('CollectionResolver', () => {
                 address: faker.finance.ethereumAddress(),
                 artists: [],
                 tags: [],
+                owner,
             });
+
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: owner.email,
+                    password: await hashPassword(owner.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
 
             const query = gql`
                 mutation UpdateCollection($input: UpdateCollectionInput!) {
@@ -690,6 +679,7 @@ describe('CollectionResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(async ({ body }) => {
@@ -698,19 +688,49 @@ describe('CollectionResolver', () => {
         });
 
         it('should update beginSaleAt', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
             const beginSaleAt = Math.round(new Date().valueOf() / 1000);
             const endSaleAt = Math.round(new Date().valueOf() / 1000) + 1000;
 
-            const collection = await repository.save({
+            const collection = await service.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
-                artists: [],
                 address: faker.finance.ethereumAddress(),
+                artists: [],
                 tags: [],
                 beginSaleAt: beginSaleAt,
                 endSaleAt: endSaleAt,
             });
+
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: owner.email,
+                    password: await hashPassword(owner.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
 
             const query = gql`
                 mutation UpdateCollection($input: UpdateCollectionInput!) {
@@ -731,6 +751,7 @@ describe('CollectionResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(async ({ body }) => {
@@ -741,6 +762,11 @@ describe('CollectionResolver', () => {
 
     describe('deleteCollection', () => {
         it('should delete a collection', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
             const collection = await service.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
@@ -748,7 +774,33 @@ describe('CollectionResolver', () => {
                 address: faker.finance.ethereumAddress(),
                 artists: [],
                 tags: [],
+                owner,
             });
+
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: owner.email,
+                    password: await hashPassword(owner.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
 
             const query = gql`
                 mutation DeleteCollection($input: CollectionInput!) {
@@ -761,9 +813,9 @@ describe('CollectionResolver', () => {
                     id: collection.id,
                 },
             };
-
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(async ({ body }) => {
@@ -835,7 +887,7 @@ describe('CollectionResolver', () => {
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
                 discord: faker.internet.userName(),
-                owner: owner,
+                owner,
             });
 
             const coin = await coinService.createCoin({
@@ -929,7 +981,7 @@ describe('CollectionResolver', () => {
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
                 discord: faker.internet.userName(),
-                owner: owner,
+                owner,
             });
 
             const coin = await coinService.createCoin({
@@ -980,12 +1032,6 @@ describe('CollectionResolver', () => {
             });
         });
 
-        afterEach(async () => {
-            await repository.query('TRUNCATE TABLE "User" CASCADE;');
-            await repository.query('TRUNCATE TABLE "Organization" CASCADE;');
-            await repository.query('TRUNCATE TABLE "Collection" CASCADE;');
-        });
-
         it.skip('should get stat data', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
@@ -1002,7 +1048,7 @@ describe('CollectionResolver', () => {
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
                 discord: faker.internet.userName(),
-                owner: owner,
+                owner,
             });
 
             const coin = await coinService.createCoin({
@@ -1111,7 +1157,8 @@ describe('CollectionResolver', () => {
     describe('getHolders', () => {
         const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
         let collection: Collection;
-        beforeAll(async () => {
+
+        beforeEach(async () => {
             const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
             const beginTime = Math.floor(faker.date.recent().getTime() / 1000);
 
@@ -1365,6 +1412,7 @@ describe('CollectionResolver', () => {
                     expect(body.data.collection.activities.data[0].transaction).toBeDefined();
                 });
         });
+
         it('should get lending page collections', async () => {
             const query = gql`
                 query GetLandingPageCollections($status: String) {

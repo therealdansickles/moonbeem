@@ -1,33 +1,15 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { RoyaltyService } from './royalty.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { postgresConfig } from '../../lib/configs/db.config';
-import { RoyaltyModule } from './royalty.module';
 import { faker } from '@faker-js/faker';
 
 describe('RoyaltyService', () => {
     let service: RoyaltyService;
 
     beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                RoyaltyModule,
-            ],
-        }).compile();
-
-        service = module.get<RoyaltyService>(RoyaltyService);
+        service = global.royaltyService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
     });
 
@@ -42,6 +24,7 @@ describe('RoyaltyService', () => {
                 userAddress: faker.finance.ethereumAddress(),
                 userRate: faker.random.numeric(3),
             });
+
             const result = await service.getRoyalty(royalty.id);
             expect(result.id).toEqual(royalty.id);
         });

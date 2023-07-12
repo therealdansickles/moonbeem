@@ -1,17 +1,17 @@
 import { SaleHistoryService } from './saleHistory.service';
 import { Account, Asset, EarningChart, EarningPerDay, PaymentToken, Sale, Transaction } from './saleHistory.dto';
-import { SaleHistoryModule } from './saleHistory.module';
-import { Test, TestingModule } from '@nestjs/testing';
 import { faker } from '@faker-js/faker';
 
 describe('SaleHistoryService', () => {
     let service: SaleHistoryService;
 
     beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [SaleHistoryModule],
-        }).compile();
-        service = module.get<SaleHistoryService>(SaleHistoryService);
+        service = global.saleHistoryService;
+    });
+
+    afterEach(async () => {
+        await global.clearDatabase();
+        global.gc && global.gc();
     });
 
     it('should list of sales and next pagination node', async () => {
@@ -21,7 +21,6 @@ describe('SaleHistoryService', () => {
         };
         jest.spyOn(service, 'getSaleHistory').mockImplementation(async () => mockResponse);
         const result = await service.getSaleHistory(faker.finance.ethereumAddress(), '');
-        console.log(result);
         expect(result.asset_events).toBeTruthy();
     });
 
@@ -31,7 +30,6 @@ describe('SaleHistoryService', () => {
         };
         jest.spyOn(service, 'getEarningChart').mockImplementation(async () => mockResponse);
         const result = await service.getEarningChart('claw-machine-catch-the-friends');
-        console.log(result);
         expect(result.totalAmountPerDay).toBeTruthy();
     });
 });

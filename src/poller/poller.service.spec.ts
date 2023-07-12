@@ -1,23 +1,11 @@
-import { faker } from '@faker-js/faker';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-
 import { CollectionKind } from '../collection/collection.entity';
-import { CollectionModule } from '../collection/collection.module';
-import { CollectionService } from '../collection/collection.service';
-import { postgresConfig } from '../lib/configs/db.config';
-import { Coin } from '../sync-chain/coin/coin.dto';
-import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleTransactionModule
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import { TierModule } from '../tier/tier.module';
-import { TierService } from '../tier/tier.service';
-import { PollerModule } from './poller.module';
 import { PollerService } from './poller.service';
+import { CollectionService } from '../collection/collection.service';
+import { TierService } from '../tier/tier.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { faker } from '@faker-js/faker';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import { Coin } from 'src/sync-chain/coin/coin.dto';
 
 describe('PollerService', () => {
     let service: PollerService;
@@ -28,42 +16,19 @@ describe('PollerService', () => {
     let coin: Coin;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                }),
-                PollerModule,
-                MintSaleTransactionModule,
-                CollectionModule,
-                TierModule,
-            ],
-        }).compile();
-
-        service = module.get<PollerService>(PollerService);
-        collectionService = module.get<CollectionService>(CollectionService);
-        tierService = module.get<TierService>(TierService);
-        mintSaleTransactionService = module.get<MintSaleTransactionService>(MintSaleTransactionService);
-        coinService = module.get<CoinService>(CoinService);
+        service = global.pollerService;
+        collectionService = global.collectionService;
+        tierService = global.tierService;
+        mintSaleTransactionService = global.mintSaleTransactionService;
+        coinService = global.coinService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
     });
 
-    describe('#getSaleRecord', () => {
+    describe('getSaleRecord', () => {
         beforeEach(async () => {
             coin = await coinService.createCoin({
                 address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
@@ -248,10 +213,8 @@ describe('PollerService', () => {
             expect(result.length).toBeGreaterThanOrEqual(1);
 
             const returnedRecord = result.find((r) => r.collection_id === collection.id);
-            // expect(returnedRecord.attributes.find((a) => a.trait_type === 'Sword')).toBeDefined();
-            // we filter the info before we write it,
-            // so commented the test case
-            // expect(returnedRecord.attributes.find((a) => a.trait_type === 'Sword').display_type).not.toBeDefined();
+            expect(returnedRecord.properties.level).toBeDefined();
+            expect(returnedRecord.properties.level.value).toBeDefined();
         });
     });
 });

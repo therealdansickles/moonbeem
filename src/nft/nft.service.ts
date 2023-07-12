@@ -7,18 +7,18 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Nft } from './nft.entity';
 
 export type INftQuery = {
-    id?: string,
-    collection?: { id: string },
-    tier?: { id: string },
-    tokenId?: number,
-}
+    id?: string;
+    collection?: { id: string };
+    tier?: { id: string };
+    tokenId?: number;
+};
 
 export type INftListQuery = {
-    collection?: { id: string },
-    tier?: { id: string },
-    tokenIds?: number[],
-    tokenId?: any 
-}
+    collection?: { id: string };
+    tier?: { id: string };
+    tokenIds?: number[];
+    tokenId?: any;
+};
 
 @Injectable()
 export class NftService {
@@ -26,7 +26,7 @@ export class NftService {
 
     /**
      * get NFT info by the id
-     * 
+     *
      * @param id
      * @returns
      */
@@ -36,7 +36,7 @@ export class NftService {
 
     /**
      * get NFT info by criteria
-     * 
+     *
      * @param query
      * @returns
      */
@@ -51,15 +51,16 @@ export class NftService {
      */
     async getNftListByQuery(query: INftListQuery) {
         if (query.tokenIds) {
-            query.tokenId = In([...query.tokenIds])
-            query = omit(query, 'tokenIds')
+            query.tokenId = In([...query.tokenIds]);
+            query = omit(query, 'tokenIds');
         }
-        return await this.nftRepository.findBy(query)
+
+        return await this.nftRepository.findBy(query);
     }
 
     /**
      * create or update NFT info
-     * 
+     *
      * @param collectionId
      * @param tierId
      * @param tokenId
@@ -67,11 +68,11 @@ export class NftService {
      * @returns
      */
     async createOrUpdateNftByTokenId({ collectionId, tierId, tokenId, properties }) {
-        return await this.nftRepository.save({ 
+        return await this.nftRepository.save({
             tokenId,
             collection: { id: collectionId },
             tier: { id: tierId },
-            properties
+            properties,
         });
     }
 }

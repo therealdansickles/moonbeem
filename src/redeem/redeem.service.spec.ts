@@ -1,17 +1,8 @@
 import { ethers } from 'ethers';
-
 import { faker } from '@faker-js/faker';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-
-import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
-import { postgresConfig } from '../lib/configs/db.config';
-import { OrganizationModule } from '../organization/organization.module';
 import { OrganizationService } from '../organization/organization.service';
-import { UserModule } from '../user/user.module';
 import { UserService } from '../user/user.service';
-import { RedeemModule } from './redeem.module';
 import { RedeemService } from './redeem.service';
 
 describe('RedeemService', () => {
@@ -21,39 +12,14 @@ describe('RedeemService', () => {
     let collectionService: CollectionService;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                RedeemModule,
-                UserModule,
-                OrganizationModule,
-                CollectionModule,
-            ],
-        }).compile();
-
-        service = module.get<RedeemService>(RedeemService);
-        userService = module.get<UserService>(UserService);
-        organizationService = module.get<OrganizationService>(OrganizationService);
-        collectionService = module.get<CollectionService>(CollectionService);
+        service = global.redeemService;
+        userService = global.userService;
+        organizationService = global.organizationService;
+        collectionService = global.collectionService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
     });
 
@@ -101,7 +67,7 @@ describe('RedeemService', () => {
             const message = 'claim a redeem font';
             const signature = await randomWallet.signMessage(message);
 
-            const redeem1 =  await service.createRedeem({
+            const redeem1 = await service.createRedeem({
                 collection: { id: collection1.id },
                 tokenId: parseInt(faker.random.numeric(2)),
                 deliveryAddress: faker.address.streetAddress(),
@@ -129,9 +95,15 @@ describe('RedeemService', () => {
                 signature,
             });
 
-            const resultForRedeem1Query = await service.getRedeemByQuery({ collection: { id: collection1.id }, tokenId: redeem1.tokenId + 1 });
+            const resultForRedeem1Query = await service.getRedeemByQuery({
+                collection: { id: collection1.id },
+                tokenId: redeem1.tokenId + 1,
+            });
             expect(resultForRedeem1Query).toBeNull();
-            const resultForRedemm2Query = await service.getRedeemByQuery({ collection: { id: collection2.id }, tokenId: redeem2.tokenId });
+            const resultForRedemm2Query = await service.getRedeemByQuery({
+                collection: { id: collection2.id },
+                tokenId: redeem2.tokenId,
+            });
             expect(resultForRedemm2Query.id).toEqual(redeem2.id);
         });
     });
@@ -186,5 +158,4 @@ describe('RedeemService', () => {
             expect(result.collection).toEqual(collection.id);
         });
     });
-
 });

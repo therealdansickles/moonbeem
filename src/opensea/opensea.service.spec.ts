@@ -1,7 +1,5 @@
 import { HttpService } from '@nestjs/axios';
-import { Test } from '@nestjs/testing';
 import { faker } from '@faker-js/faker';
-import { OpenseaModule } from './opensea.module';
 import { OpenseaService } from './opensea.service';
 import { generateAssetEvent } from '../saleHistory/saleHistory.service.spec';
 import { SaleHistory } from '../saleHistory/saleHistory.dto';
@@ -11,10 +9,6 @@ describe('OpenseaService', () => {
 
     describe('#getCollectionStat', () => {
         beforeAll(async () => {
-            await Test.createTestingModule({
-                imports: [OpenseaModule],
-            }).compile();
-            // service = module.get<OpenseaService>(OpenseaService);
             const httpRequest = new HttpService();
             service = new OpenseaService(httpRequest);
         });
@@ -46,10 +40,6 @@ describe('OpenseaService', () => {
     });
     describe('#getCollectionEvent', () => {
         beforeAll(async () => {
-            await Test.createTestingModule({
-                imports: [OpenseaModule],
-            }).compile();
-            // service = module.get<OpenseaService>(OpenseaService);
             const httpRequest = new HttpService();
             service = new OpenseaService(httpRequest);
         });
@@ -67,10 +57,6 @@ describe('OpenseaService', () => {
 
     describe('#callOpenSea', () => {
         beforeAll(async () => {
-            await Test.createTestingModule({
-                imports: [OpenseaModule],
-            }).compile();
-            // service = module.get<OpenseaService>(OpenseaService);
             const httpRequest = new HttpService();
             service = new OpenseaService(httpRequest);
         });

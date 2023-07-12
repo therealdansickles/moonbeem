@@ -1,91 +1,56 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
 
-import { Collaboration } from './collaboration.entity';
-import { CollaborationModule } from './collaboration.module';
 import { CollaborationService } from './collaboration.service';
 import { CollectionService } from '../collection/collection.service';
-import { Wallet } from '../wallet/wallet.entity';
 import { WalletService } from '../wallet/wallet.service';
-import { Organization } from '../organization/organization.entity';
 import { OrganizationService } from '../organization/organization.service';
-import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
 
 describe('CollaborationService', () => {
     let service: CollaborationService;
-    let collaboration: Collaboration;
     let collectionService: CollectionService;
-    let organization: Organization;
     let organizationService: OrganizationService;
-    let user: User;
     let userService: UserService;
-    let wallet: Wallet;
     let walletService: WalletService;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                CollaborationModule,
-            ],
-        }).compile();
-
-        service = module.get<CollaborationService>(CollaborationService);
-        collectionService = module.get<CollectionService>(CollectionService);
-        organizationService = module.get<OrganizationService>(OrganizationService);
-        userService = module.get<UserService>(UserService);
-        walletService = module.get<WalletService>(WalletService);
-
-        user = await userService.createUser({
-            username: faker.internet.userName(),
-            email: faker.internet.email(),
-            password: faker.internet.password(),
-        });
-
-        organization = await organizationService.createOrganization({
-            name: faker.company.name(),
-            displayName: faker.company.name(),
-            about: faker.company.catchPhrase(),
-            avatarUrl: faker.image.imageUrl(),
-            backgroundUrl: faker.image.imageUrl(),
-            websiteUrl: faker.internet.url(),
-            twitter: faker.internet.userName(),
-            instagram: faker.internet.userName(),
-            discord: faker.internet.userName(),
-            owner: user,
-        });
-
-        wallet = await walletService.createWallet({
-            address: `arb:${faker.finance.ethereumAddress()}`,
-            ownerId: user.id,
-        });
+        userService = global.userService;
+        walletService = global.walletService;
+        service = global.collaborationService;
+        collectionService = global.collectionService;
+        organizationService = global.organizationService;
     });
 
-    afterAll(async () => {
+    beforeEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
     });
 
     describe('createCollaboration', () => {
         it('should create a collaboration', async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: user,
+            });
+
+            const wallet = await walletService.createWallet({
+                address: `arb:${faker.finance.ethereumAddress()}`,
+                ownerId: user.id,
+            });
             const result = await service.createCollaboration({
                 walletId: wallet.id,
                 organizationId: organization.id,
@@ -100,7 +65,6 @@ describe('CollaborationService', () => {
                     },
                 ],
             });
-            collaboration = result;
             expect(result.royaltyRate).toEqual(12);
             expect(result.wallet).toBeDefined();
             expect(result.wallet.id).toEqual(wallet.id);
@@ -173,29 +137,25 @@ describe('CollaborationService', () => {
             });
             expect(collaborationForAnotherCollection.wallet).toBeDefined();
             expect(collaborationForAnotherCollection.wallet.id).toEqual(wallet1.id);
-            // would fail --> un needed
-            // const wallet3 = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
-            // expect(
-            //     (async function () {
-            //         await service.createCollaboration({
-            //             walletId: wallet3.id,
-            //             royaltyRate: 1,
-            //             collaborators: [
-            //                 {
-            //                     address: faker.finance.ethereumAddress(),
-            //                     role: faker.finance.accountName(),
-            //                     name: faker.finance.accountName(),
-            //                     rate: parseInt(faker.random.numeric(2)),
-            //                 },
-            //             ],
-            //         });
-            //     })()
-            // ).rejects.toThrowError(GraphQLError);
         });
     });
 
     describe('getCollaboration', () => {
         it('should return a collaboration', async () => {
+            const wallet = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
+            const collaboration = await service.createCollaboration({
+                walletId: wallet.id,
+                royaltyRate: 12,
+                collaborators: [
+                    {
+                        address: faker.finance.ethereumAddress(),
+                        role: faker.finance.accountName(),
+                        name: faker.finance.accountName(),
+                        rate: parseInt(faker.random.numeric(2)),
+                    },
+                ],
+            });
+
             const result = await service.getCollaboration(collaboration.id);
             expect(result).toBeDefined();
             expect(result.royaltyRate).toEqual(12);
@@ -207,6 +167,19 @@ describe('CollaborationService', () => {
         });
 
         it('should return a collaboration with its wallet and collection', async () => {
+            const wallet = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
+            const collaboration = await service.createCollaboration({
+                walletId: wallet.id,
+                royaltyRate: 12,
+                collaborators: [
+                    {
+                        address: faker.finance.ethereumAddress(),
+                        role: faker.finance.accountName(),
+                        name: faker.finance.accountName(),
+                        rate: parseInt(faker.random.numeric(2)),
+                    },
+                ],
+            });
             const result = await service.getCollaboration(collaboration.id);
             expect(result.wallet).toBeDefined();
         });
@@ -214,6 +187,24 @@ describe('CollaborationService', () => {
 
     describe('getCollaborationsByUserIdAndOrganizationId', () => {
         it('should return collaborations', async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: user,
+            });
             const newUser = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
@@ -248,6 +239,25 @@ describe('CollaborationService', () => {
 
     describe('getCollaborationsByOrganizationId', () => {
         it('should return collaborations', async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: user,
+            });
+
             const newUser = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),

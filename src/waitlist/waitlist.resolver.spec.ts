@@ -1,19 +1,7 @@
 import { ethers } from 'ethers';
 import * as request from 'supertest';
-
 import { faker } from '@faker-js/faker';
-import { ApolloDriver } from '@nestjs/apollo';
 import { INestApplication } from '@nestjs/common';
-import { GraphQLModule } from '@nestjs/graphql';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-
-import { postgresConfig } from '../lib/configs/db.config';
-import { SessionModule } from '../session/session.module';
-import {
-    MintSaleTransactionModule
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
-import { WaitlistModule } from './waitlist.module';
 import { WaitlistService } from './waitlist.service';
 
 export const gql = String.raw;
@@ -23,43 +11,13 @@ describe('WaitlistResolver', () => {
     let app: INestApplication;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                }),
-                WaitlistModule,
-                MintSaleTransactionModule,
-                SessionModule,
-                GraphQLModule.forRoot({
-                    driver: ApolloDriver,
-                    autoSchemaFile: true,
-                    include: [SessionModule, WaitlistModule],
-                }),
-            ],
-        }).compile();
-
-        service = module.get<WaitlistService>(WaitlistService);
-        app = module.createNestApplication();
-        await app.init();
+        app = global.app;
+        service = global.waitlistService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
-        await app.close();
     });
 
     describe('getWaitlist', () => {
@@ -151,6 +109,32 @@ describe('WaitlistResolver', () => {
             const message = 'Hi from tests!';
             const signature = await randomWallet.signMessage(message);
 
+            const tokenQuery = gql`
+                mutation CreateSession($input: CreateSessionInput!) {
+                    createSession(input: $input) {
+                        token
+                        wallet {
+                            id
+                            address
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    address: randomWallet.address,
+                    message,
+                    signature,
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSession;
+
             const query = gql`
                 mutation CreateWaitlist($input: CreateWaitlistInput!) {
                     createWaitlist(input: $input) {
@@ -174,6 +158,7 @@ describe('WaitlistResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -190,6 +175,32 @@ describe('WaitlistResolver', () => {
             const randomWallet2 = ethers.Wallet.createRandom();
             const message = 'Hi from tests!';
             const signature = await randomWallet.signMessage(message);
+
+            const tokenQuery = gql`
+                mutation CreateSession($input: CreateSessionInput!) {
+                    createSession(input: $input) {
+                        token
+                        wallet {
+                            id
+                            address
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    address: randomWallet.address,
+                    message,
+                    signature,
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSession;
 
             const query = gql`
                 mutation CreateWaitlist($input: CreateWaitlistInput!) {
@@ -212,6 +223,7 @@ describe('WaitlistResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -280,7 +292,7 @@ describe('WaitlistResolver', () => {
                 input: {
                     address: randomWallet.address,
                     message,
-                    signature
+                    signature,
                 },
             };
 

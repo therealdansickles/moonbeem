@@ -1,13 +1,6 @@
 import * as request from 'supertest';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../../lib/configs/db.config';
 import { INestApplication } from '@nestjs/common';
-import { ApolloDriver } from '@nestjs/apollo';
-import { GraphQLModule } from '@nestjs/graphql';
-import { SystemConfigModule } from './system-config.module';
-import { SystemConfig } from './system-config.entity';
 import { SystemConfigService } from './system-config.service';
 
 export const gql = String.raw;
@@ -15,49 +8,26 @@ export const gql = String.raw;
 describe('SystemConfigResolver', () => {
     let service: SystemConfigService;
     let app: INestApplication;
-    let cfg: SystemConfig;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                SystemConfigModule,
-                GraphQLModule.forRoot({
-                    driver: ApolloDriver,
-                    autoSchemaFile: true,
-                    include: [SystemConfigModule],
-                }),
-            ],
-        }).compile();
-
-        service = module.get<SystemConfigService>(SystemConfigService);
-        app = module.createNestApplication();
-
-        cfg = await service.createConfig({
-            name: faker.company.name(),
-            value: faker.random.numeric(5),
-            kind: 'string',
-            comment: 'The Config Comment',
-        });
-
-        await app.init();
+        app = global.app;
+        service = global.systemConfigService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
-        await app.close();
     });
 
     describe('config', () => {
         it('should return config', async () => {
+            const cfg = await service.createConfig({
+                name: faker.company.name(),
+                value: faker.random.numeric(5),
+                kind: 'string',
+                comment: 'The Config Comment',
+            });
+
             const query = gql`
                 query GetConfig($id: String!) {
                     config(id: $id) {
@@ -82,6 +52,13 @@ describe('SystemConfigResolver', () => {
 
     describe('getSystemConfigs', () => {
         it('should be return config list', async () => {
+            await service.createConfig({
+                name: faker.company.name(),
+                value: faker.random.numeric(5),
+                kind: 'string',
+                comment: 'The Config Comment',
+            });
+
             const query = gql`
                 query GetConfigs($chainId: Int) {
                     configs(chainId: $chainId) {

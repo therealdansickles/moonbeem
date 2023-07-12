@@ -2,83 +2,41 @@ import { hashSync as hashPassword } from 'bcryptjs';
 import * as request from 'supertest';
 
 import { faker } from '@faker-js/faker';
-import { ApolloDriver } from '@nestjs/apollo';
 import { INestApplication } from '@nestjs/common';
-import { GraphQLModule } from '@nestjs/graphql';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
-import { postgresConfig } from '../lib/configs/db.config';
 import { Organization } from '../organization/organization.entity';
 import { OrganizationService } from '../organization/organization.service';
-import { SessionModule } from '../session/session.module';
 import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
-import { Wallet } from '../wallet/wallet.entity';
-import { WalletModule } from '../wallet/wallet.module';
 import { WalletService } from '../wallet/wallet.service';
 import { Collaboration } from './collaboration.entity';
-import { CollaborationModule } from './collaboration.module';
 import { CollaborationService } from './collaboration.service';
 
 export const gql = String.raw;
 
 describe('CollaborationResolver', () => {
     let app: INestApplication;
-    let service: CollaborationService;
+    let userService: UserService;
     let collaboration: Collaboration;
+    let service: CollaborationService;
     let collectionService: CollectionService;
     let organizationService: OrganizationService;
-    let userService: UserService;
-    let wallet: Wallet;
     let walletService: WalletService;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                CollaborationModule,
-                SessionModule,
-                GraphQLModule.forRoot({
-                    driver: ApolloDriver,
-                    autoSchemaFile: true,
-                    include: [SessionModule, CollaborationModule, CollectionModule, WalletModule],
-                }),
-            ],
-        }).compile();
+        app = global.app;
 
-        service = module.get<CollaborationService>(CollaborationService);
-        walletService = module.get<WalletService>(WalletService);
-        collectionService = module.get<CollectionService>(CollectionService);
-        organizationService = module.get<OrganizationService>(OrganizationService);
-        userService = module.get<UserService>(UserService);
-
-        wallet = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
-        app = module.createNestApplication();
-        await app.init();
+        userService = global.userService;
+        walletService = global.walletService;
+        service = global.collaborationService;
+        collectionService = global.collectionService;
+        organizationService = global.organizationService;
     });
 
-    afterAll(async () => {
+    beforeEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
-        await app.close();
     });
 
     describe('createCollaboration', () => {
@@ -106,6 +64,8 @@ describe('CollaborationResolver', () => {
         });
 
         it('should forbid is not signed in', async () => {
+            const wallet = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
+
             const query = gql`
                 mutation CreateCollaboration($input: CreateCollaborationInput!) {
                     createCollaboration(input: $input) {
@@ -159,6 +119,7 @@ describe('CollaborationResolver', () => {
         });
 
         it('should create a collaboration', async () => {
+            const wallet = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
             const tokenQuery = gql`
                 mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
                     createSessionFromEmail(input: $input) {
@@ -246,7 +207,7 @@ describe('CollaborationResolver', () => {
 
     describe('getCollaboration', () => {
         it('should get a collaboration if we had right id', async () => {
-            wallet = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
+            const wallet = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
             collaboration = await service.createCollaboration({
                 walletId: wallet.id,
                 royaltyRate: 12,

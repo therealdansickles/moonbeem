@@ -1,12 +1,8 @@
 import { SaleHistoryService } from './saleHistory.service';
 import { EarningChart, SaleHistory } from './saleHistory.dto';
-import { SaleHistoryModule } from './saleHistory.module';
-import { Test, TestingModule } from '@nestjs/testing';
 import { faker } from '@faker-js/faker';
 import * as request from 'supertest';
 import { INestApplication } from '@nestjs/common';
-import { ApolloDriver } from '@nestjs/apollo';
-import { GraphQLModule } from '@nestjs/graphql';
 import { generateAssetEvent, generateEarningChart } from './saleHistory.service.spec';
 
 export const gql = String.raw;
@@ -15,24 +11,13 @@ describe('SaleHistoryResolver', () => {
     let service: SaleHistoryService;
     let app: INestApplication;
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                SaleHistoryModule,
-                GraphQLModule.forRoot({
-                    driver: ApolloDriver,
-                    autoSchemaFile: true,
-                    include: [SaleHistoryModule],
-                }),
-            ],
-        }).compile();
-        service = module.get<SaleHistoryService>(SaleHistoryService);
-        app = module.createNestApplication();
-        await app.init();
+        app = global.app;
+        service = global.saleHistoryService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
-        await app.close();
     });
 
     describe('Earning Chart', () => {

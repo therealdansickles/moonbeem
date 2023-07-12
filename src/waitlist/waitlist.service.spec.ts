@@ -1,12 +1,7 @@
 import { Repository } from 'typeorm';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ethers } from 'ethers';
 import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
-
 import { Waitlist } from './waitlist.entity';
-import { WaitlistModule } from './waitlist.module';
 import { WaitlistService } from './waitlist.service';
 
 describe('CollectionService', () => {
@@ -14,34 +9,12 @@ describe('CollectionService', () => {
     let service: WaitlistService;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                WaitlistModule,
-            ],
-        }).compile();
-
-        repository = module.get('WaitlistRepository');
-        service = module.get<WaitlistService>(WaitlistService);
+        repository = global.waitlistRepository;
+        service = global.waitlistService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
     });
 
@@ -141,13 +114,15 @@ describe('CollectionService', () => {
                 message,
             });
 
-            await expect(async () => {
+            try {
                 await service.claimWaitlist({
                     address: waitlist.address,
                     message: badMessage,
                     signature,
                 });
-            }).rejects.toThrow('verification failure');
+            } catch (error) {
+                expect((error as Error).message).toBe('signature verification failure');
+            }
         });
     });
 });

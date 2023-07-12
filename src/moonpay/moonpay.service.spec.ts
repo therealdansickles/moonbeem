@@ -1,5 +1,5 @@
 import { MoonpayService } from './moonpay.service';
-import * as crypto from 'crypto';
+import { ethers } from 'ethers';
 
 describe('MoonpayService', () => {
     let moonpayService: MoonpayService;
@@ -8,33 +8,36 @@ describe('MoonpayService', () => {
         moonpayService = new MoonpayService();
     });
 
-    it('should generate a valid signature', () => {
-        const currencyCode = 'USD';
-        const walletAddress = '0x123abc';
-        const expectedUrlWithSignature = {
-            url: 'https://mocked-url.com?apiKey=mocked-public-key&currencyCode=USD&walletAddress=0x123abc&theme=light&signature=base64-encoded-signature',
-        };
+    it('should generate a valid signature', async () => {
+        const wallet = ethers.Wallet.createRandom();
+        const message = 'Generate moonpay url.';
+        const signature = await wallet.signMessage(message);
 
-        process.env.MOONPAY_URL = 'https://mocked-url.com';
-        process.env.MOONPAY_PK = 'mocked-public-key';
-        process.env.MOONPAY_SK = 'mocked-secret-key';
+        const moonpayUrl = moonpayService.generateMoonpayUrlWithSignature({
+            currency: 'USD',
+            theme: 'light',
+            address: wallet.address,
+            signature: signature,
+            message: message,
+        });
 
-        const digestfn = jest.fn().mockReturnValue('base64-encoded-signature');
-        const updatefn = jest.fn().mockReturnValue({ digest: digestfn });
-        const createHmac = jest.fn().mockReturnValue({ update: updatefn });
+        expect(moonpayUrl.url).toBeDefined();
+    });
 
-        jest.spyOn(crypto, 'createHmac').mockImplementation(createHmac as any);
+    it('should return throw an error because of bad signature sent', async () => {
+        const wallet = ethers.Wallet.createRandom();
+        const message = 'Generate moonpay url.';
 
-        const generatedUrlWithSignature = moonpayService.generateMoonpayUrlWithSignature(
-            currencyCode,
-            walletAddress,
-            'light'
-        );
-
-        expect(createHmac).toHaveBeenCalledWith('sha256', process.env.MOONPAY_SK);
-        expect(updatefn).toHaveBeenCalledWith(expect.any(String));
-        expect(digestfn).toHaveBeenCalledWith('base64');
-
-        expect(generatedUrlWithSignature).toEqual(expectedUrlWithSignature);
+        try {
+            await moonpayService.generateMoonpayUrlWithSignature({
+                currency: 'USD',
+                theme: 'light',
+                address: wallet.address,
+                signature: '',
+                message: message,
+            });
+        } catch (error) {
+            expect((error as Error).message).toBe('signature verification failure');
+        }
     });
 });

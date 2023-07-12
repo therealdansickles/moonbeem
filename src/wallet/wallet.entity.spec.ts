@@ -1,43 +1,16 @@
 import { Repository } from 'typeorm';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
-
 import { Wallet } from './wallet.entity';
-import { WalletModule } from './wallet.module';
 
 describe('Wallet', () => {
     let repository: Repository<Wallet>;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                WalletModule,
-            ],
-        }).compile();
-
-        repository = module.get('WalletRepository');
+        repository = global.walletRepository;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
     });
 

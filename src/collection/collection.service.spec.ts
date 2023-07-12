@@ -1,14 +1,8 @@
 import { Repository } from 'typeorm';
-
 import { faker } from '@faker-js/faker';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-
 import { CollaborationService } from '../collaboration/collaboration.service';
-import { postgresConfig } from '../lib/configs/db.config';
 import { OrganizationService } from '../organization/organization.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
-import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
@@ -17,13 +11,11 @@ import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import { CollectionStat, CollectionStatus } from './collection.dto';
 import { Collection } from './collection.entity';
-import { CollectionModule } from './collection.module';
 import { CollectionService } from './collection.service';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
     let service: CollectionService;
-    let coin: Coin;
     let coinService: CoinService;
     let mintSaleTransactionService: MintSaleTransactionService;
     let mintSaleContractService: MintSaleContractService;
@@ -35,54 +27,21 @@ describe('CollectionService', () => {
     let collaborationService: CollaborationService;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                CollectionModule,
-            ],
-        }).compile();
-
-        repository = module.get('CollectionRepository');
-        service = module.get<CollectionService>(CollectionService);
-        organizationService = module.get<OrganizationService>(OrganizationService);
-        mintSaleTransactionService = module.get<MintSaleTransactionService>(MintSaleTransactionService);
-        mintSaleContractService = module.get<MintSaleContractService>(MintSaleContractService);
-        userService = module.get<UserService>(UserService);
-        tierService = module.get<TierService>(TierService);
-        coinService = module.get<CoinService>(CoinService);
-        walletService = module.get<WalletService>(WalletService);
-        collaborationService = module.get<CollaborationService>(CollaborationService);
-        asset721Service = module.get<Asset721Service>(Asset721Service);
-
-        coin = await coinService.createCoin({
-            address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-            name: 'Wrapped Ether',
-            symbol: 'WETH',
-            decimals: 18,
-            derivedETH: 1,
-            derivedUSDC: 1,
-            enabled: true,
-            chainId: 1,
-        });
+        repository = global.collectionRepository;
+        service = global.collectionService;
+        organizationService = global.organizationService;
+        collaborationService = global.collaborationService;
+        userService = global.userService;
+        tierService = global.tierService;
+        coinService = global.coinService;
+        mintSaleTransactionService = global.mintSaleTransactionService;
+        mintSaleContractService = global.mintSaleContractService;
+        asset721Service = global.asset721Service;
+        walletService = global.walletService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
     });
 
@@ -128,6 +87,17 @@ describe('CollectionService', () => {
         });
 
         it('should get a collection by id with tiers and collabs', async () => {
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
@@ -451,6 +421,17 @@ describe('CollectionService', () => {
         });
 
         it('should get collections by organization with tiers', async () => {
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
@@ -772,6 +753,17 @@ describe('CollectionService', () => {
         });
 
         it('should delete a collection with tiers', async () => {
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
             const collection = await repository.save({
                 name: faker.company.name(),
                 displayName: 'The best collection',
@@ -886,6 +878,17 @@ describe('CollectionService', () => {
 
     describe('getCollectionByQuery', () => {
         it('should return tier info and the coin info contained in the tier', async () => {
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
@@ -953,6 +956,17 @@ describe('CollectionService', () => {
         let collection: Collection;
 
         beforeEach(async () => {
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
@@ -1008,12 +1022,6 @@ describe('CollectionService', () => {
             });
         });
 
-        afterEach(async () => {
-            await repository.query('TRUNCATE TABLE "User" CASCADE;');
-            await repository.query('TRUNCATE TABLE "Organization" CASCADE;');
-            await repository.query('TRUNCATE TABLE "Collection" CASCADE;');
-        });
-
         it('should return the right response from opensea', async () => {
             const mockResponse = [
                 {
@@ -1049,9 +1057,20 @@ describe('CollectionService', () => {
     describe('getHolders', () => {
         const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
 
-        beforeAll(async () => {
+        beforeEach(async () => {
             const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
             const beginTime = Math.floor(faker.date.recent().getTime() / 1000);
+
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
 
             const user = await userService.createUser({
                 email: faker.internet.email(),
@@ -1180,12 +1199,6 @@ describe('CollectionService', () => {
             });
         });
 
-        afterAll(async () => {
-            await repository.query('TRUNCATE TABLE "User" CASCADE;');
-            await repository.query('TRUNCATE TABLE "Organization" CASCADE;');
-            await repository.query('TRUNCATE TABLE "Collection" CASCADE;');
-        });
-
         it('should get holders', async () => {
             const result = await service.getHolders(collectionAddress, '', '', 10, 0);
             expect(result).toBeDefined();
@@ -1222,10 +1235,9 @@ describe('CollectionService', () => {
 
     describe('Get Collection By Paging', () => {
         let collection1: Collection;
-        // let collection2: Collection;
         let cursor: string;
 
-        beforeAll(async () => {
+        beforeEach(async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
@@ -1269,12 +1281,6 @@ describe('CollectionService', () => {
             });
         });
 
-        afterAll(async () => {
-            await repository.query('TRUNCATE TABLE "User" CASCADE;');
-            await repository.query('TRUNCATE TABLE "Organization" CASCADE;');
-            await repository.query('TRUNCATE TABLE "Collection" CASCADE;');
-        });
-
         it('should get the first page', async () => {
             const result = await service.getCollections('', '', 1, 1);
             cursor = result.pageInfo.endCursor;
@@ -1296,6 +1302,7 @@ describe('CollectionService', () => {
             expect(result.totalCount).toEqual(2);
         });
     });
+
     describe('getSecondarySale', () => {
         it('should return Secondary Sale', async () => {
             const mockResponse = {

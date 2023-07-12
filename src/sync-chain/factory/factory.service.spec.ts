@@ -1,33 +1,16 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../../lib/configs/db.config';
 import { ContractType } from './factory.entity';
 import { FactoryService } from './factory.service';
-import { FactoryModule } from './factory.module';
 
 describe('FactoryService', () => {
     let service: FactoryService;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                }),
-                FactoryModule,
-            ],
-        }).compile();
-
-        service = module.get<FactoryService>(FactoryService);
+        service = global.factoryService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
     });
 

@@ -144,6 +144,7 @@ export class MembershipService {
                 inviteCode: input.inviteCode,
             },
         });
+
         if (!membership) {
             throw new GraphQLError(
                 `Decline membership request for user ${input.userId} to organization ${input.organizationId} doesn't exist.`,

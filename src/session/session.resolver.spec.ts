@@ -1,18 +1,9 @@
 import * as request from 'supertest';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { GraphQLModule } from '@nestjs/graphql';
 import { INestApplication } from '@nestjs/common';
-import { ApolloDriver } from '@nestjs/apollo';
 import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
 import { ethers } from 'ethers';
 import { hashSync as hashPassword } from 'bcryptjs';
-
-import { SessionModule } from './session.module';
-import { WalletModule } from '../wallet/wallet.module';
 import { UserService } from '../user/user.service';
-import { UserModule } from '../user/user.module';
 
 const gql = String.raw;
 
@@ -21,44 +12,13 @@ describe('SessionResolver', () => {
     let userService: UserService;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                SessionModule,
-                UserModule,
-                WalletModule,
-                GraphQLModule.forRoot({
-                    driver: ApolloDriver,
-                    autoSchemaFile: true,
-                    include: [SessionModule],
-                }),
-            ],
-        }).compile();
-
-        userService = module.get<UserService>(UserService);
-
-        app = module.createNestApplication();
-        await app.init();
+        app = global.app;
+        userService = global.userService;
     });
 
-    afterAll(async () => {
-        await app.close();
+    afterEach(async () => {
+        await global.clearDatabase();
+        global.gc && global.gc();
     });
 
     describe('createSession', () => {

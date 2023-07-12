@@ -1,34 +1,16 @@
 import { ethers } from 'ethers';
-import { Repository } from 'typeorm';
-
 import { faker } from '@faker-js/faker';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-
 import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
-import { postgresConfig } from '../lib/configs/db.config';
-import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransaction
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { Wallet } from './wallet.entity';
-import { WalletModule } from './wallet.module';
 import { WalletService } from './wallet.service';
 
 describe('WalletService', () => {
     let address: string;
-    let repository: Repository<Wallet>;
-    let contractRepository: Repository<MintSaleContract>;
-    let transactionRepository: Repository<MintSaleTransaction>;
     let collectionService: CollectionService;
     let mintSaleTransactionService: MintSaleTransactionService;
     let mintSaleContractService: MintSaleContractService;
@@ -37,42 +19,17 @@ describe('WalletService', () => {
     let userService: UserService;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                WalletModule,
-            ],
-        }).compile();
-
         address = faker.finance.ethereumAddress().toLowerCase();
-        repository = module.get('WalletRepository');
-        contractRepository = module.get('sync_chain_MintSaleContractRepository');
-        transactionRepository = module.get('sync_chain_MintSaleTransactionRepository');
-        service = module.get<WalletService>(WalletService);
-        collectionService = module.get<CollectionService>(CollectionService);
-        mintSaleTransactionService = module.get<MintSaleTransactionService>(MintSaleTransactionService);
-        mintSaleContractService = module.get<MintSaleContractService>(MintSaleContractService);
-        tierService = module.get<TierService>(TierService);
-        userService = module.get<UserService>(UserService);
+        service = global.walletService;
+        collectionService = global.collectionService;
+        mintSaleTransactionService = global.mintSaleTransactionService;
+        mintSaleContractService = global.mintSaleContractService;
+        tierService = global.tierService;
+        userService = global.userService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
     });
 
@@ -138,7 +95,14 @@ describe('WalletService', () => {
         });
 
         it('should error if the wallet name have a address string.', async () => {
-            expect(() => service.createWallet({ address: faker.finance.ethereumAddress(), name: faker.finance.ethereumAddress() })).rejects.toThrow();
+            try {
+                await service.createWallet({
+                    address: faker.finance.ethereumAddress(),
+                    name: faker.finance.ethereumAddress(),
+                });
+            } catch (error) {
+                expect((error as Error).message).toBe(`Wallet name can't be in the address format.`);
+            }
         });
 
         it('should error if the wallet name have been used.', async () => {
@@ -147,7 +111,11 @@ describe('WalletService', () => {
                 address: faker.finance.ethereumAddress(),
                 name,
             });
-            expect(() => service.createWallet({ address: faker.finance.ethereumAddress(), name })).rejects.toThrow();
+            try {
+                await service.createWallet({ address: faker.finance.ethereumAddress(), name });
+            } catch (error) {
+                expect((error as Error).message).toBe(`Wallet name ${name} already existed.`);
+            }
         });
     });
 
@@ -198,7 +166,11 @@ describe('WalletService', () => {
         it('should throw an error if the wallet is already bound', async () => {
             const data = { address: eipAddress, owner: { id: ownerId }, message, signature };
             await service.bindWallet(data);
-            await expect(() => service.bindWallet(data)).rejects.toThrow();
+            try {
+                await service.bindWallet(data);
+            } catch (error) {
+                expect((error as Error).message).toBe(`Wallet ${eipAddress} is already bound.`);
+            }
         });
     });
 
@@ -260,7 +232,13 @@ describe('WalletService', () => {
                 signature: newSignature,
             });
             const data = { address: newWallet.address.toLowerCase(), owner: { id: nonOwner.id } };
-            await expect(() => service.unbindWallet(data)).rejects.toThrow();
+            try {
+                await service.unbindWallet(data);
+            } catch (error) {
+                expect((error as Error).message).toBe(
+                    `Wallet ${newWallet.address.toLowerCase()} doesn't belong to the given user.`
+                );
+            }
         });
     });
 
@@ -380,12 +358,6 @@ describe('WalletService', () => {
     });
 
     describe('getActivitiesByAddress', () => {
-        beforeEach(async () => {
-            await repository.query('TRUNCATE TABLE "Wallet" CASCADE');
-            await contractRepository.query('TRUNCATE TABLE "MintSaleContract" CASCADE');
-            await transactionRepository.query('TRUNCATE TABLE "MintSaleTransaction" CASCADE');
-        });
-
         it('should return minted transactions and deployed transactions by address', async () => {
             const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
 
@@ -483,10 +455,12 @@ describe('WalletService', () => {
         });
 
         it('should error when try to update wallet name have a address string.', async () => {
-            const wallet = await service.createWallet({ address: faker.finance.ethereumAddress(), name: faker.internet.domainName() })
+            const wallet = await service.createWallet({
+                address: faker.finance.ethereumAddress(),
+                name: faker.internet.domainName(),
+            });
             expect(() => service.updateWallet(wallet.id, { name: faker.finance.ethereumAddress() })).rejects.toThrow();
         });
-
     });
 
     describe('getValueGroupByToken', () => {

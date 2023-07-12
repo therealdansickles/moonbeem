@@ -1,17 +1,8 @@
 import { faker } from '@faker-js/faker';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-
-import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
-import { postgresConfig } from '../lib/configs/db.config';
-import { TierModule } from '../tier/tier.module';
 import { TierService } from '../tier/tier.service';
-import { UserModule } from '../user/user.module';
 import { UserService } from '../user/user.service';
-import { WalletModule } from '../wallet/wallet.module';
 import { WalletService } from '../wallet/wallet.service';
-import { NftModule } from './nft.module';
 import { NftService } from './nft.service';
 
 describe('NftService', () => {
@@ -22,41 +13,15 @@ describe('NftService', () => {
     let walletService: WalletService;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                UserModule,
-                WalletModule,
-                CollectionModule,
-                TierModule,
-                NftModule,
-            ],
-        }).compile();
-
-        service = module.get<NftService>(NftService);
-        userService = module.get<UserService>(UserService);
-        walletService = module.get<WalletService>(WalletService);
-        collectionService = module.get<CollectionService>(CollectionService);
-        tierService = module.get<TierService>(TierService);
+        service = global.nftService;
+        userService = global.userService;
+        walletService = global.walletService;
+        collectionService = global.collectionService;
+        tierService = global.tierService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
     });
 
@@ -306,8 +271,8 @@ describe('NftService', () => {
             const tokenId2 = +faker.random.numeric(2);
             const tokenId3 = +faker.random.numeric(4);
 
-            const [nft1, nft2, nft3] = await Promise.all([
-                    service.createOrUpdateNftByTokenId({
+            const [nft1, , nft3] = await Promise.all([
+                service.createOrUpdateNftByTokenId({
                     collectionId: collection.id,
                     tierId: tier.id,
                     tokenId: tokenId1,
@@ -331,12 +296,13 @@ describe('NftService', () => {
                         foo: 'bar',
                     },
                 }),
-            ])
+            ]);
 
             const result = await service.getNftListByQuery({
                 collection: { id: collection.id },
                 tokenIds: [tokenId1, tokenId3],
             });
+            result.sort((a, b) => a.tokenId - b.tokenId); // Sort first, otherwise there may be an order error
             expect(result.length).toEqual(2);
             expect(result[0].id).toEqual(nft1.id);
             expect(result[1].id).toEqual(nft3.id);

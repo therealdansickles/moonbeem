@@ -1,15 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../../lib/configs/db.config';
-import { MintSaleContractModule } from './mint-sale-contract.module';
 import { MintSaleContractService } from './mint-sale-contract.service';
 import { CollectionService } from '../../collection/collection.service';
-import { CollectionModule } from '../../collection/collection.module';
 import { UserService } from '../../user/user.service';
 import { OrganizationService } from '../../organization/organization.service';
-import { UserModule } from '../../user/user.module';
-import { OrganizationModule } from '../../organization/organization.module';
 
 describe('MintSaleContractService', () => {
     let service: MintSaleContractService;
@@ -18,39 +11,14 @@ describe('MintSaleContractService', () => {
     let organizationService: OrganizationService;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                MintSaleContractModule,
-                CollectionModule,
-                UserModule,
-                OrganizationModule,
-            ],
-        }).compile();
-
-        service = module.get<MintSaleContractService>(MintSaleContractService);
-        collectionService = module.get<CollectionService>(CollectionService);
-        userService = module.get<UserService>(UserService);
-        organizationService = module.get<OrganizationService>(OrganizationService);
+        service = global.mintSaleContractService;
+        collectionService = global.collectionService;
+        userService = global.userService;
+        organizationService = global.organizationService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
     });
 
@@ -85,6 +53,7 @@ describe('MintSaleContractService', () => {
         const amount = faker.random.numeric(3);
         const address = faker.finance.ethereumAddress();
         let merkleRoot = '';
+
         it('should create merkle tree', async () => {
             const result = await service.createMerkleRoot({
                 data: [{ address: address, amount: amount }],
@@ -92,6 +61,7 @@ describe('MintSaleContractService', () => {
             merkleRoot = result.merkleRoot;
             expect(result.merkleRoot).toBeDefined();
         });
+
         it('should get merkle proof', async () => {
             const result = await service.getMerkleProof(address, merkleRoot);
 

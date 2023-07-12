@@ -1,15 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { postgresConfig } from '../lib/configs/db.config';
 import { faker } from '@faker-js/faker';
 import { SearchService } from './search.service';
-import { SearchModule } from './search.module';
-import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
 import { WalletService } from '../wallet/wallet.service';
-import { WalletModule } from '../wallet/wallet.module';
 import { UserService } from '../user/user.service';
-import { UserModule } from '../user/user.module';
 import { OrganizationService } from '../organization/organization.service';
 
 describe('SearchService', () => {
@@ -20,38 +13,15 @@ describe('SearchService', () => {
     let organizationService: OrganizationService;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                }),
-                SearchModule,
-                CollectionModule,
-                WalletModule,
-                UserModule,
-            ],
-        }).compile();
-
-        service = module.get<SearchService>(SearchService);
-        collectionService = module.get<CollectionService>(CollectionService);
-        walletService = module.get<WalletService>(WalletService);
-        userService = module.get<UserService>(UserService);
-        organizationService = module.get<OrganizationService>(OrganizationService);
+        service = global.searchService;
+        collectionService = global.collectionService;
+        walletService = global.walletService;
+        userService = global.userService;
+        organizationService = global.organizationService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
     });
 

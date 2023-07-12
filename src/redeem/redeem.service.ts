@@ -10,18 +10,17 @@ import { CreateRedeemInput } from './redeem.dto';
 import { Redeem } from './redeem.entity';
 
 export type IRedeemQuery = {
-    collection: { id: string },
-    tokenId: number,
-}
+    collection: { id: string };
+    tokenId: number;
+};
 
 @Injectable()
 export class RedeemService {
-
     constructor(@InjectRepository(Redeem) private redeemRepository: Repository<Redeem>) {}
 
     /**
      * Get a redeem by id
-     * 
+     *
      * @param id
      * @returns
      */
@@ -31,11 +30,11 @@ export class RedeemService {
 
     /**
      * Get a redeem by query
-     * 
+     *
      * @param query
      */
     async getRedeemByQuery(query: IRedeemQuery) {
-        return await this.redeemRepository.findOneBy(query)
+        return await this.redeemRepository.findOneBy(query);
     }
 
     /**
@@ -50,7 +49,7 @@ export class RedeemService {
                 deliveryAddress: data.deliveryAddress,
                 email: data.email,
                 tokenId: data.tokenId,
-                collection: data.collection.id as unknown as Collection
+                collection: data.collection.id as unknown as Collection,
             };
             return this.redeemRepository.save(payload);
         } catch (e) {

@@ -1,25 +1,16 @@
 import * as request from 'supertest';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { GraphQLModule } from '@nestjs/graphql';
 import { INestApplication } from '@nestjs/common';
-import { ApolloDriver } from '@nestjs/apollo';
 import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
 import { ethers } from 'ethers';
 import { hashSync as hashPassword } from 'bcryptjs';
-
-import { WalletModule } from './wallet.module';
 import { WalletService } from './wallet.service';
 import { UserService } from '../user/user.service';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-
 import { TierService } from '../tier/tier.service';
 import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
 import { RelationshipService } from '../relationship/relationship.service';
-import { SessionModule } from '../session/session.module';
 import { SessionService } from '../session/session.service';
 
 export const gql = String.raw;
@@ -37,50 +28,20 @@ describe('WalletResolver', () => {
     let address: string;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                WalletModule,
-                SessionModule,
-                GraphQLModule.forRoot({
-                    driver: ApolloDriver,
-                    autoSchemaFile: true,
-                    include: [WalletModule, SessionModule],
-                }),
-            ],
-        }).compile();
-
-        service = module.get<WalletService>(WalletService);
-        collectionService = module.get<CollectionService>(CollectionService);
-        mintSaleTransactionService = module.get<MintSaleTransactionService>(MintSaleTransactionService);
-        mintSaleContractService = module.get<MintSaleContractService>(MintSaleContractService);
-        tierService = module.get<TierService>(TierService);
-        userService = module.get<UserService>(UserService);
-        relationshipService = module.get<RelationshipService>(RelationshipService);
-        sessionService = module.get<SessionService>(SessionService);
-        app = module.createNestApplication();
-        await app.init();
+        app = global.app;
+        service = global.walletService;
+        collectionService = global.collectionService;
+        mintSaleTransactionService = global.mintSaleTransactionService;
+        mintSaleContractService = global.mintSaleContractService;
+        tierService = global.tierService;
+        userService = global.userService;
+        relationshipService = global.relationshipService;
+        sessionService = global.sessionService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
-        await app.close();
     });
 
     describe('wallet', () => {
@@ -454,7 +415,7 @@ describe('WalletResolver', () => {
                 .send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
-
+            
             const query = gql`
                 mutation BindWallet($input: BindWalletInput!) {
                     bindWallet(input: $input) {
@@ -507,6 +468,27 @@ describe('WalletResolver', () => {
             });
 
             const query = gql`
+                mutation CreateSession($input: CreateSessionInput!) {
+                    createSession(input: $input) {
+                        token
+                    }
+                }
+            `;
+
+            const input = {
+                address: wallet.address,
+                message,
+                signature,
+            };
+
+            const result = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables: { input } })
+                .then((resp) => {
+                    return resp.body.data.createSession;
+                });
+
+            const authedQuery = gql`
                 mutation UnbindWallet($input: UnbindWalletInput!) {
                     unbindWallet(input: $input) {
                         address
@@ -526,7 +508,8 @@ describe('WalletResolver', () => {
 
             return request(app.getHttpServer())
                 .post('/graphql')
-                .send({ query, variables })
+                .auth(result.token, { type: 'bearer' })
+                .send({ query: authedQuery, variables })
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.unbindWallet.owner).toEqual(null);

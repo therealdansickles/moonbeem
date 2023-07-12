@@ -1,22 +1,11 @@
 import * as request from 'supertest';
-
 import { faker } from '@faker-js/faker';
-import { ApolloDriver } from '@nestjs/apollo';
 import { INestApplication } from '@nestjs/common';
-import { GraphQLModule } from '@nestjs/graphql';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-
-import { CollectionModule } from '../collection/collection.module';
+import { hashSync as hashPassword } from 'bcryptjs';
 import { CollectionService } from '../collection/collection.service';
-import { postgresConfig } from '../lib/configs/db.config';
-import { TierModule } from '../tier/tier.module';
 import { TierService } from '../tier/tier.service';
-import { UserModule } from '../user/user.module';
 import { UserService } from '../user/user.service';
-import { WalletModule } from '../wallet/wallet.module';
 import { WalletService } from '../wallet/wallet.service';
-import { NftModule } from './nft.module';
 import { NftService } from './nft.service';
 
 export const gql = String.raw;
@@ -30,56 +19,23 @@ describe('NftResolver', () => {
     let app: INestApplication;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                UserModule,
-                WalletModule,
-                CollectionModule,
-                TierModule,
-                NftModule,
-                GraphQLModule.forRoot({
-                    driver: ApolloDriver,
-                    autoSchemaFile: true,
-                    include: [NftModule],
-                }),
-            ],
-        }).compile();
+        app = global.app;
 
-        service = module.get<NftService>(NftService);
-        userService = module.get<UserService>(UserService);
-        walletService = module.get<WalletService>(WalletService);
-        collectionService = module.get<CollectionService>(CollectionService);
-        tierService = module.get<TierService>(TierService);
-        app = module.createNestApplication();
-
-        await app.init();
+        service = global.nftService;
+        userService = global.userService;
+        walletService = global.walletService;
+        collectionService = global.collectionService;
+        tierService = global.tierService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
-        await app.close();
     });
 
     describe('getNft', () => {
         it('query by id should work', async () => {
-            const owner = await userService.createUser({
+            await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -160,7 +116,7 @@ describe('NftResolver', () => {
         });
 
         it('query by criteria should work', async () => {
-            const owner = await userService.createUser({
+            await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -245,7 +201,7 @@ describe('NftResolver', () => {
 
     describe('getNftListByQuery', () => {
         it('query by id should work', async () => {
-            const owner = await userService.createUser({
+            await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -293,8 +249,8 @@ describe('NftResolver', () => {
             const tokenId2 = +faker.random.numeric(2);
             const tokenId3 = +faker.random.numeric(4);
 
-            const [nft1, nft2, nft3] = await Promise.all([
-                    service.createOrUpdateNftByTokenId({
+            const [nft1, , nft3] = await Promise.all([
+                service.createOrUpdateNftByTokenId({
                     collectionId: collection.id,
                     tierId: tier.id,
                     tokenId: tokenId1,
@@ -318,7 +274,7 @@ describe('NftResolver', () => {
                         foo: 'bar',
                     },
                 }),
-            ])
+            ]);
 
             const query = gql`
                 query Nfts($collectionId: String, $tierId: String, $tokenIds: [Int!]) {
@@ -328,6 +284,7 @@ describe('NftResolver', () => {
                             id
                         }
                         properties
+                        tokenId
                     }
                 }
             `;
@@ -335,7 +292,7 @@ describe('NftResolver', () => {
             const variables = {
                 collectionId: collection.id,
                 tier: tier,
-                tokenIds: [nft1.tokenId, nft3.tokenId]
+                tokenIds: [nft1.tokenId, nft3.tokenId],
             };
 
             return await request(app.getHttpServer())
@@ -343,6 +300,7 @@ describe('NftResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
+                    body.data.nfts.sort((a, b) => a.tokenId - b.tokenId); // Sort first, otherwise there may be an order error
                     expect(body.data.nfts.length).toEqual(2);
                     expect(body.data.nfts[0].id).toEqual(nft1.id);
                     expect(body.data.nfts[1].id).toEqual(nft3.id);
@@ -395,6 +353,30 @@ describe('NftResolver', () => {
                     },
                 },
             });
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: owner.email,
+                    password: await hashPassword(owner.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
 
             const query = gql`
                 mutation CreateOrUpdateNft($input: CreateOrUpdateNftInput!) {
@@ -421,6 +403,7 @@ describe('NftResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {

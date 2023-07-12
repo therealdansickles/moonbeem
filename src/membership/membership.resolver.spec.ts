@@ -1,104 +1,59 @@
 import * as request from 'supertest';
-import { Test, TestingModule } from '@nestjs/testing';
-import { GraphQLModule } from '@nestjs/graphql';
 import { INestApplication } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ApolloDriver } from '@nestjs/apollo';
 import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
 import { hashSync as hashPassword } from 'bcryptjs';
-
-import { Membership } from './membership.entity';
-import { MembershipModule } from './membership.module';
 import { MembershipService } from './membership.service';
-import { Organization } from '../organization/organization.entity';
 import { OrganizationService } from '../organization/organization.service';
-import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
-import { SessionModule } from '../session/session.module';
 
 export const gql = String.raw;
 
 describe('MembershipResolver', () => {
     let app: INestApplication;
     let service: MembershipService;
-    let membership: Membership;
-    let organization: Organization;
     let organizationService: OrganizationService;
-    let user: User;
     let userService: UserService;
-    let module: TestingModule;
 
-    beforeEach(async () => {
-        module = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                MembershipModule,
-                SessionModule,
-                GraphQLModule.forRoot({
-                    driver: ApolloDriver,
-                    autoSchemaFile: true,
-                    include: [MembershipModule, SessionModule],
-                }),
-            ],
-        }).compile();
+    beforeAll(async () => {
+        app = global.app;
 
-        service = module.get<MembershipService>(MembershipService);
-        userService = module.get<UserService>(UserService);
-        organizationService = module.get<OrganizationService>(OrganizationService);
-
-        user = await userService.createUser({
-            email: faker.internet.email(),
-            username: faker.internet.userName(),
-            password: faker.internet.password(),
-        });
-
-        const owner = await userService.createUser({
-            email: faker.internet.email(),
-            username: faker.internet.userName(),
-            password: faker.internet.password(),
-        });
-
-        organization = await organizationService.createOrganization({
-            name: faker.company.name(),
-            displayName: faker.company.name(),
-            about: faker.company.catchPhrase(),
-            avatarUrl: faker.image.imageUrl(),
-            owner: owner,
-        });
-
-        membership = await service.createMembership({
-            organizationId: organization.id,
-            userId: user.id,
-        });
-
-        app = module.createNestApplication();
-        await app.init();
+        service = global.membershipService;
+        userService = global.userService;
+        organizationService = global.organizationService;
     });
 
     afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
-        await app.close();
     });
 
     describe('getMembership', () => {
         it('should return a membership', async () => {
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                owner: owner,
+            });
+
+            const membership = await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
+
             const query = gql`
                 query getMembership($id: String!) {
                     membership(id: $id) {
@@ -140,23 +95,50 @@ describe('MembershipResolver', () => {
 
     describe('createMembership', () => {
         it('should create a membership', async () => {
-            user = await userService.createUser({
-                email: 'user' + faker.internet.email(),
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
                 password: faker.internet.password(),
             });
 
             const owner = await userService.createUser({
-                email: 'owner' + faker.internet.email(),
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
                 password: faker.internet.password(),
             });
 
-            organization = await organizationService.createOrganization({
+            const organization = await organizationService.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
                 avatarUrl: faker.image.imageUrl(),
                 owner: owner,
             });
+
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: owner.email,
+                    password: await hashPassword(owner.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
 
             const query = gql`
                 mutation createMembership($input: CreateMembershipInput!) {
@@ -177,6 +159,7 @@ describe('MembershipResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -188,7 +171,7 @@ describe('MembershipResolver', () => {
 
     describe('updateMembership', () => {
         it('should update a membership', async () => {
-            user = await userService.createUser({
+            const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
                 password: faker.internet.password(),
@@ -200,7 +183,7 @@ describe('MembershipResolver', () => {
                 password: faker.internet.password(),
             });
 
-            organization = await organizationService.createOrganization({
+            const organization = await organizationService.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
@@ -208,10 +191,35 @@ describe('MembershipResolver', () => {
                 owner: owner,
             });
 
-            membership = await service.createMembership({
+            const membership = await service.createMembership({
                 organizationId: organization.id,
                 userId: user.id,
             });
+
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: owner.email,
+                    password: await hashPassword(owner.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
 
             const query = gql`
                 mutation updateMembership($input: UpdateMembershipInput!) {
@@ -231,6 +239,7 @@ describe('MembershipResolver', () => {
 
             return request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -244,7 +253,7 @@ describe('MembershipResolver', () => {
 
     describe('acceptMembership', () => {
         it('should will forbid if not signed in', async () => {
-            user = await userService.createUser({
+            const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
                 password: faker.internet.password(),
@@ -256,7 +265,7 @@ describe('MembershipResolver', () => {
                 password: faker.internet.password(),
             });
 
-            organization = await organizationService.createOrganization({
+            const organization = await organizationService.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
@@ -264,7 +273,7 @@ describe('MembershipResolver', () => {
                 owner: owner,
             });
 
-            membership = await service.createMembership({
+            const membership = await service.createMembership({
                 organizationId: organization.id,
                 userId: user.id,
             });
@@ -294,7 +303,7 @@ describe('MembershipResolver', () => {
         });
 
         it('should accept membership', async () => {
-            user = await userService.createUser({
+            const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
                 password: faker.internet.password(),
@@ -306,7 +315,7 @@ describe('MembershipResolver', () => {
                 password: faker.internet.password(),
             });
 
-            organization = await organizationService.createOrganization({
+            const organization = await organizationService.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
@@ -314,7 +323,7 @@ describe('MembershipResolver', () => {
                 owner: owner,
             });
 
-            membership = await service.createMembership({
+            const membership = await service.createMembership({
                 organizationId: organization.id,
                 userId: user.id,
             });
@@ -371,7 +380,7 @@ describe('MembershipResolver', () => {
 
     describe('declineMembership', () => {
         it('should accept a membership request', async () => {
-            user = await userService.createUser({
+            const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
                 password: faker.internet.password(),
@@ -383,7 +392,7 @@ describe('MembershipResolver', () => {
                 password: faker.internet.password(),
             });
 
-            organization = await organizationService.createOrganization({
+            const organization = await organizationService.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
@@ -391,10 +400,35 @@ describe('MembershipResolver', () => {
                 owner: owner,
             });
 
-            membership = await service.createMembership({
+            const membership = await service.createMembership({
                 organizationId: organization.id,
                 userId: user.id,
             });
+
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: owner.email,
+                    password: await hashPassword(owner.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
 
             const query = gql`
                 mutation declineMembership($input: MembershipRequestInput!) {
@@ -411,6 +445,7 @@ describe('MembershipResolver', () => {
 
             return request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -421,6 +456,56 @@ describe('MembershipResolver', () => {
 
     describe('deleteMembership', () => {
         it('should delete a membership', async () => {
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                owner: owner,
+            });
+
+            const membership = await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
+
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: owner.email,
+                    password: await hashPassword(owner.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
+
             const query = gql`
                 mutation deleteMembership($input: DeleteMembershipInput!) {
                     deleteMembership(input: $input)
@@ -435,6 +520,7 @@ describe('MembershipResolver', () => {
 
             return request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {

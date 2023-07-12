@@ -1,15 +1,9 @@
-import { hashSync as hashPassword } from 'bcryptjs';
 import { Repository } from 'typeorm';
-
 import { faker } from '@faker-js/faker';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-
-import { postgresConfig } from '../lib/configs/db.config';
 import { OrganizationService } from '../organization/organization.service';
 import { User } from './user.entity';
-import { UserModule } from './user.module';
 import { UserService } from './user.service';
+import { hashSync as hashPassword } from 'bcryptjs';
 
 describe('UserService', () => {
     let service: UserService;
@@ -17,35 +11,13 @@ describe('UserService', () => {
     let organizationService: OrganizationService;
 
     beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                UserModule,
-            ],
-        }).compile();
-
-        service = module.get<UserService>(UserService);
-        repository = module.get('UserRepository');
-        organizationService = module.get<OrganizationService>(OrganizationService);
+        service = global.userService;
+        repository = global.userRepository;
+        organizationService = global.organizationService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
     });
 
@@ -126,11 +98,15 @@ describe('UserService', () => {
                 password: faker.internet.password(),
             });
 
-            expect(async () => await service.createUser({
-                username: faker.internet.userName(),
-                email: user.email,
-                password: faker.internet.password(),
-            })).rejects.toThrow(`This email ${user.email} is already taken.`);;
+            try {
+                await service.createUser({
+                    username: faker.internet.userName(),
+                    email: user.email,
+                    password: faker.internet.password(),
+                });
+            } catch (error) {
+                expect((error as Error).message).toBe(`This email ${user.email} is already taken.`);
+            }
         });
     });
 

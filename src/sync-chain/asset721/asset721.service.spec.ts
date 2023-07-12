@@ -1,34 +1,15 @@
-import { Test, TestingModule } from '@nestjs/testing';
-
-import { Asset721Module } from './asset721.module';
-import { Asset721Service } from './asset721.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../../lib/configs/db.config';
+import { Asset721Service } from './asset721.service';
 
 describe('Asset721Service', () => {
     let service: Asset721Service;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                Asset721Module,
-            ],
-        }).compile();
-
-        service = module.get<Asset721Service>(Asset721Service);
+        service = global.asset721Service;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
     });
 
@@ -50,7 +31,7 @@ describe('Asset721Service', () => {
 
     describe('getAsset721ByQuery', () => {
         it('should get nothing', async () => {
-            const asset = await service.createAsset721({
+            await service.createAsset721({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
@@ -60,7 +41,7 @@ describe('Asset721Service', () => {
             });
 
             const result = await service.getAsset721ByQuery({});
-            expect(result).toBeNull()
+            expect(result).toBeNull();
         });
 
         it('should get an asset', async () => {
@@ -75,7 +56,7 @@ describe('Asset721Service', () => {
                 owner: faker.finance.ethereumAddress(),
             });
 
-            const asset2 = await service.createAsset721({
+            await service.createAsset721({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
@@ -83,7 +64,6 @@ describe('Asset721Service', () => {
                 tokenId: faker.random.numeric(5),
                 owner: faker.finance.ethereumAddress(),
             });
-
 
             const result = await service.getAsset721ByQuery({ tokenId: asset1.tokenId, address });
             expect(result.id).toEqual(asset1.id);

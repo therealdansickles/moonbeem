@@ -12,7 +12,7 @@ export class MetadataProperties {
 export class MetadataRuleUpdate {
     property: string;
     action?: string;
-    value: any
+    value: any;
 }
 
 export class MetadataRule {

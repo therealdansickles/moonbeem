@@ -1,113 +1,64 @@
 import { hashSync as hashPassword } from 'bcryptjs';
 import BigNumber from 'bignumber.js';
 import * as request from 'supertest';
-
 import { faker } from '@faker-js/faker';
-import { ApolloDriver } from '@nestjs/apollo';
 import { INestApplication } from '@nestjs/common';
-import { GraphQLModule } from '@nestjs/graphql';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-
 import { Collection } from '../collection/collection.dto';
 import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
-import { postgresConfig } from '../lib/configs/db.config';
-import { SessionModule } from '../session/session.module';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
-import { Coin } from '../sync-chain/coin/coin.entity';
-import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
-import { TierModule } from './tier.module';
 import { TierService } from './tier.service';
+import { CoinService } from '../sync-chain/coin/coin.service';
 
 export const gql = String.raw;
 
 describe('TierResolver', () => {
     let app: INestApplication;
     let service: TierService;
-    let collection: Collection;
     let walletService: WalletService;
     let collectionService: CollectionService;
     let userService: UserService;
 
-    // sync_chain services
-    let coin: Coin;
     let coinService: CoinService;
     let asset721Service: Asset721Service;
     let mintSaleTransactionService: MintSaleTransactionService;
     let mintSaleContractService: MintSaleContractService;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TierModule,
-                SessionModule,
-                GraphQLModule.forRoot({
-                    driver: ApolloDriver,
-                    autoSchemaFile: true,
-                    include: [SessionModule, TierModule],
-                }),
-            ],
-        }).compile();
+        app = global.app;
 
-        service = module.get<TierService>(TierService);
-        walletService = module.get<WalletService>(WalletService);
-        collectionService = module.get<CollectionService>(CollectionService);
-        userService = module.get<UserService>(UserService);
-        // sync_chain services
-        coinService = module.get<CoinService>(CoinService);
-        asset721Service = module.get<Asset721Service>(Asset721Service);
-        mintSaleContractService = module.get<MintSaleContractService>(MintSaleContractService);
-        mintSaleTransactionService = module.get<MintSaleTransactionService>(MintSaleTransactionService);
-
-        coin = await coinService.createCoin({
-            address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-            name: 'Wrapped Ether',
-            symbol: 'WETH',
-            decimals: 18,
-            derivedETH: 1,
-            derivedUSDC: 1,
-            enabled: true,
-            chainId: 1,
-        });
-
-        app = module.createNestApplication();
-        await app.init();
+        service = global.tierService;
+        walletService = global.walletService;
+        collectionService = global.collectionService;
+        userService = global.userService;
+        coinService = global.coinService;
+        asset721Service = global.asset721Service;
+        mintSaleContractService = global.mintSaleContractService;
+        mintSaleTransactionService = global.mintSaleTransactionService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
-        await app.close();
     });
 
     describe('tier', () => {
         it('should return a tier', async () => {
-            collection = await collectionService.createCollection({
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+            const collection = await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -176,7 +127,18 @@ describe('TierResolver', () => {
         });
 
         it('should return a tier with profit', async () => {
-            collection = await collectionService.createCollection({
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const collection = await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -267,7 +229,18 @@ describe('TierResolver', () => {
         });
 
         it('should return a tier with metadata', async () => {
-            collection = await collectionService.createCollection({
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const collection = await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -315,7 +288,18 @@ describe('TierResolver', () => {
         });
 
         it('should works with metadata field', async () => {
-            collection = await collectionService.createCollection({
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const collection = await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -344,21 +328,25 @@ describe('TierResolver', () => {
                                 property: 'holding_days',
                                 rule: 'greater_than',
                                 value: -1,
-                                update: [{
-                                    property: 'holding_days',
-                                    action: 'increase',
-                                    value: 1
-                                }]
+                                update: [
+                                    {
+                                        property: 'holding_days',
+                                        action: 'increase',
+                                        value: 1,
+                                    },
+                                ],
                             },
                             {
                                 property: 'holding_days',
                                 rule: 'less_than',
                                 value: 999,
-                                update: [{
-                                    property: 'holding_days',
-                                    action: 'increase',
-                                    value: 1
-                                }]
+                                update: [
+                                    {
+                                        property: 'holding_days',
+                                        action: 'increase',
+                                        value: 1,
+                                    },
+                                ],
                             },
                         ],
                         trigger: [
@@ -369,7 +357,7 @@ describe('TierResolver', () => {
                                     startAt: new Date().toISOString(),
                                     endAt: new Date().toISOString(),
                                     every: 1,
-                                    unit: 'minutes'
+                                    unit: 'minutes',
                                 },
                             },
                         ],
@@ -420,7 +408,18 @@ describe('TierResolver', () => {
 
     describe('createTier', () => {
         it('should forbid if not signed in', async () => {
-            collection = await collectionService.createCollection({
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const collection = await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -473,6 +472,17 @@ describe('TierResolver', () => {
                 password: faker.internet.password(),
             });
 
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
             const tokenQuery = gql`
                 mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
                     createSessionFromEmail(input: $input) {
@@ -498,7 +508,7 @@ describe('TierResolver', () => {
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
-            collection = await collectionService.createCollection({
+            const collection = await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -546,6 +556,33 @@ describe('TierResolver', () => {
 
     describe('updateTier', () => {
         it('should update a tier', async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+            });
+
             const tier = await service.createTier({
                 name: faker.company.name(),
                 collection: { id: collection.id },
@@ -569,6 +606,31 @@ describe('TierResolver', () => {
                     },
                 },
             });
+
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: user.email,
+                    password: await hashPassword(user.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
 
             const query = gql`
                 mutation UpdateTier($input: UpdateTierInput!) {
@@ -586,6 +648,7 @@ describe('TierResolver', () => {
 
             return request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -596,6 +659,33 @@ describe('TierResolver', () => {
 
     describe('deleteTier', () => {
         it('should delete a tier', async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+            });
+
             const tier = await service.createTier({
                 name: faker.company.name(),
                 collection: { id: collection.id },
@@ -620,6 +710,31 @@ describe('TierResolver', () => {
                 },
             });
 
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: user.email,
+                    password: await hashPassword(user.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
+
             const query = gql`
                 mutation DeleteTier($input: DeleteTierInput!) {
                     deleteTier(input: $input)
@@ -634,6 +749,7 @@ describe('TierResolver', () => {
 
             return request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -647,8 +763,19 @@ describe('TierResolver', () => {
         const tierName = 'Test Tier';
         let innerCollection: Collection;
 
-        beforeAll(async () => {
+        beforeEach(async () => {
             const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
             innerCollection = await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
@@ -688,20 +815,24 @@ describe('TierResolver', () => {
                                 property: 'holding_days',
                                 rule: 'greater_than',
                                 value: -1,
-                                update: [{
-                                    property: 'holding_days',
-                                    action: 'increase',
-                                    value: 1
-                                }]
+                                update: [
+                                    {
+                                        property: 'holding_days',
+                                        action: 'increase',
+                                        value: 1,
+                                    },
+                                ],
                             },
                             {
                                 property: 'level',
                                 rule: 'Bronze',
                                 value: '',
-                                update: [{
-                                    property: 'level',
-                                    value: 'Silver'
-                                }]
+                                update: [
+                                    {
+                                        property: 'level',
+                                        value: 'Silver',
+                                    },
+                                ],
                             },
                         ],
                         trigger: [
@@ -712,7 +843,7 @@ describe('TierResolver', () => {
                                     startAt: new Date().toISOString(),
                                     endAt: new Date().toISOString(),
                                     every: 1,
-                                    unit: 'minutes'
+                                    unit: 'minutes',
                                 },
                             },
                         ],

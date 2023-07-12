@@ -40,19 +40,19 @@ export class MetadataRule {
 export class MetadataTriggerConfig {
     @IsString()
     @Field({ description: 'The start time for running the schedule.' })
-    startAt: string;
+    readonly startAt: string;
 
     @IsString()
     @Field({ description: 'The end time for running the schedule.' })
-    endAt: string;
+    readonly endAt: string;
 
     @IsNumber()
     @Field({ description: 'The numerical value of the schedule duration.' })
-    every: number;
+    readonly every: number;
 
     @IsString()
     @Field({ description: 'The schedule duration unit.' })
-    unit: string;
+    readonly unit: string;
 }
 
 @ObjectType()

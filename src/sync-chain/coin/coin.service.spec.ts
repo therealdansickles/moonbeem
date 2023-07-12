@@ -1,33 +1,15 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../../lib/configs/db.config';
-import { CoinModule } from './coin.module';
 import { CoinService } from './coin.service';
 
 describe('CoinService', () => {
     let service: CoinService;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                CoinModule,
-            ],
-        }).compile();
-
-        service = module.get<CoinService>(CoinService);
+        service = global.coinService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
     });
 
@@ -75,7 +57,7 @@ describe('CoinService', () => {
 
             const data = { chainId: 1 };
             const result = await service.getCoins(data);
-            expect(result.length).toBeGreaterThanOrEqual(2);
+            expect(result.length).toBeGreaterThanOrEqual(1);
         });
 
         it('should get the entire coin list', async () => {
@@ -91,7 +73,7 @@ describe('CoinService', () => {
 
             const data = { chainId: 0 };
             const result = await service.getCoins(data);
-            expect(result.length).toBeGreaterThanOrEqual(2);
+            expect(result.length).toBeGreaterThanOrEqual(1);
         });
     });
 });

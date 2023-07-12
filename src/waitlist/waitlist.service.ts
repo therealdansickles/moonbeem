@@ -65,15 +65,21 @@ export class WaitlistService {
      * @returns A boolean whether or not if the waitlist was claimed.
      */
     async claimWaitlist(input: ClaimWaitlistInput): Promise<boolean> {
-        const verifiedAddress = ethers.verifyMessage(input.message, input.signature);
+        try {
+            const verifiedAddress = ethers.verifyMessage(input.message, input.signature);
 
-        if (input.address.toLowerCase() !== verifiedAddress.toLocaleLowerCase()) {
+            if (input.address.toLowerCase() !== verifiedAddress.toLocaleLowerCase()) {
+                throw new GraphQLError('signature verification failure', {
+                    extensions: { code: 'BAD_REQUEST' },
+                });
+            }
+
+            const result = await this.waitlistRepository.update({ address: input.address }, { isClaimed: true });
+            return result.affected > 0;
+        } catch (error) {
             throw new GraphQLError('signature verification failure', {
                 extensions: { code: 'BAD_REQUEST' },
             });
         }
-
-        const result = await this.waitlistRepository.update({ address: input.address }, { isClaimed: true });
-        return result.affected > 0;
     }
 }

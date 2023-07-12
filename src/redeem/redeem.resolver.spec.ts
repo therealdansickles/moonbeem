@@ -1,24 +1,12 @@
 import { ethers } from 'ethers';
 import * as request from 'supertest';
-
 import { faker } from '@faker-js/faker';
-import { ApolloDriver } from '@nestjs/apollo';
 import { INestApplication } from '@nestjs/common';
-import { GraphQLModule } from '@nestjs/graphql';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-
 import { CollectionService } from '../collection/collection.service';
-import { postgresConfig } from '../lib/configs/db.config';
 import { OrganizationService } from '../organization/organization.service';
-import { SessionModule } from '../session/session.module';
-import { Asset721Module } from '../sync-chain/asset721/asset721.module';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { UserService } from '../user/user.service';
-import { RedeemModule } from './redeem.module';
 import { RedeemService } from './redeem.service';
 
 export const gql = String.raw;
@@ -33,49 +21,19 @@ describe('RedeemResolver', () => {
     let app: INestApplication;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                GraphQLModule.forRoot({
-                    driver: ApolloDriver,
-                    autoSchemaFile: true,
-                    include: [RedeemModule],
-                }),
-                SessionModule,
-                Asset721Module,
-                RedeemModule,
-            ],
-        }).compile();
+        app = global.app;
 
-        redeemService = module.get<RedeemService>(RedeemService);
-        userService = module.get<UserService>(UserService);
-        organizationService = module.get<OrganizationService>(OrganizationService);
-        collectionService = module.get<CollectionService>(CollectionService);
-        mintSaleContractService = module.get<MintSaleContractService>(MintSaleContractService);
-        asset721Service = module.get<Asset721Service>(Asset721Service);
-        app = module.createNestApplication();
-        await app.init();
+        redeemService = global.redeemService;
+        userService = global.userService;
+        organizationService = global.organizationService;
+        collectionService = global.collectionService;
+        mintSaleContractService = global.mintSaleContractService;
+        asset721Service = global.asset721Service;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
-        await app.close();
     });
 
     describe('getRedeemByQuery', () => {
@@ -133,7 +91,7 @@ describe('RedeemResolver', () => {
                 collectionId: collection.id,
             });
 
-            const asset = await asset721Service.createAsset721({
+            await asset721Service.createAsset721({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
@@ -157,7 +115,7 @@ describe('RedeemResolver', () => {
                 address: ownerWallet.address,
                 message,
                 signature,
-            })
+            });
 
             const query = gql`
                 query GetRedeemByQuery($collectionId: String!, $tokenId: Int!) {
@@ -311,7 +269,7 @@ describe('RedeemResolver', () => {
             const ownerWallet2 = ethers.Wallet.createRandom();
             const tokenId = faker.random.numeric(1);
 
-            const asset = await asset721Service.createAsset721({
+            await asset721Service.createAsset721({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
@@ -413,7 +371,7 @@ describe('RedeemResolver', () => {
                 collectionId: collection.id,
             });
 
-            const asset = await asset721Service.createAsset721({
+            await asset721Service.createAsset721({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),

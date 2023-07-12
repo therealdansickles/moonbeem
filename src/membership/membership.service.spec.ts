@@ -1,75 +1,55 @@
 import { Repository } from 'typeorm';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
-
 import { Membership } from './membership.entity';
-import { MembershipModule } from './membership.module';
 import { MembershipService } from './membership.service';
-import { Organization } from '../organization/organization.entity';
 import { OrganizationService } from '../organization/organization.service';
-import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
 
 describe('MembershipService', () => {
     let repository: Repository<Membership>;
     let service: MembershipService;
-    let organization: Organization;
     let organizationService: OrganizationService;
-    let user: User;
     let userService: UserService;
 
-    beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                MembershipModule,
-            ],
-        }).compile();
-
-        repository = module.get('MembershipRepository');
-        service = module.get<MembershipService>(MembershipService);
-        userService = module.get<UserService>(UserService);
-        organizationService = module.get<OrganizationService>(OrganizationService);
-
-        user = await userService.createUser({
-            email: faker.internet.email(),
-            username: faker.internet.userName(),
-            password: faker.internet.password(),
-        });
-
-        organization = await organizationService.createOrganization({
-            name: faker.company.name(),
-            displayName: faker.company.name(),
-            about: faker.company.catchPhrase(),
-            avatarUrl: faker.image.imageUrl(),
-            owner: user,
-        });
+    beforeAll(async () => {
+        service = global.membershipService;
+        userService = global.userService;
+        organizationService = global.organizationService;
+        repository = global.membershipRepository;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
     });
 
     describe('getMembership', () => {
         it('should return a membership', async () => {
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                owner: owner,
+            });
+
+            await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
+
             const membership = await repository.findOneBy({
                 organization: { id: organization.id },
                 user: { id: user.id },
@@ -83,16 +63,30 @@ describe('MembershipService', () => {
 
     describe('getMembershipsByOrganizationId', () => {
         it('should return memberships', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                owner: owner,
+            });
+
             const result = await service.getMembershipsByOrganizationId(organization.id);
             expect(result.length).toEqual(1);
-            expect(result[0].user.id).toEqual(user.id);
+            expect(result[0].user.id).toEqual(owner.id);
             expect(result[0].organization.id).toEqual(organization.id);
         });
     });
 
     describe('createMembership', () => {
         it('should create a membership', async () => {
-            const newUser = await userService.createUser({
+            const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
                 password: faker.internet.password(),
@@ -104,7 +98,7 @@ describe('MembershipService', () => {
                 password: faker.internet.password(),
             });
 
-            const newOrganization = await organizationService.createOrganization({
+            const organization = await organizationService.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
@@ -113,22 +107,41 @@ describe('MembershipService', () => {
             });
 
             const result = await service.createMembership({
-                organizationId: newOrganization.id,
-                userId: newUser.id,
+                organizationId: organization.id,
+                userId: user.id,
                 canDeploy: true,
             });
             expect(result.id).toBeDefined();
             expect(result.canDeploy).toBeTruthy();
-            expect(result.organization.id).toEqual(newOrganization.id);
+            expect(result.organization.id).toEqual(organization.id);
             expect(result.organization.owner.id).not.toBeNull();
-            expect(result.user.id).toEqual(newUser.id);
+            expect(result.user.id).toEqual(user.id);
         });
 
         it('should prevent duplicate memberships', async () => {
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
                 password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                owner: owner,
+            });
+
+            await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
             });
 
             const newOrganization = await organizationService.createOrganization({
@@ -239,9 +252,13 @@ describe('MembershipService', () => {
                 userId: user.id,
             });
 
-            await expect(async () => {
+            try {
                 await service.acceptMembership({ userId: user.id, organizationId: organization.id, inviteCode: '' });
-            }).rejects.toThrow();
+            } catch (error) {
+                expect((error as Error).message).toBe(
+                    `Accept membership request for user ${user.id} to organization ${organization.id} doesn't exist.`
+                );
+            }
         });
     });
 
@@ -302,18 +319,43 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            await expect(async () => {
+            try {
                 await service.declineMembership({ userId: user.id, organizationId: organization.id, inviteCode: '' });
-            }).rejects.toThrow();
+            } catch (error) {
+                expect((error as Error).message).toBe(
+                    `Decline membership request for user ${user.id} to organization ${organization.id} doesn't exist.`
+                );
+            }
         });
     });
 
     describe('deleteMembership', () => {
         it('should delete a membership', async () => {
-            const membership = await repository.findOneBy({
-                organization: { id: organization.id },
-                user: { id: user.id },
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
             });
+
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                owner: owner,
+            });
+
+            const membership = await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
+
             const result = await service.deleteMembership(membership.id);
             expect(result).toBeTruthy();
         });
