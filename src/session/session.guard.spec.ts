@@ -39,7 +39,6 @@ describe('SessionGuard', () => {
             .send({ query })
             .expect(200)
             .expect(({ body }) => {
-                console.log(body);
                 const [err] = body.errors;
                 expect(err.message).toEqual('Forbidden resource');
             });
@@ -83,7 +82,6 @@ describe('SessionGuard', () => {
             .send({ query: authedQuery })
             .expect(200)
             .expect(({ body }) => {
-                console.log(`ddd: `, JSON.stringify(body, null, 2));
                 const { test } = body.data;
                 expect(test).toEqual(wallet.address.toLowerCase());
             });

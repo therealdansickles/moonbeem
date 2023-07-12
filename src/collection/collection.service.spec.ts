@@ -42,8 +42,9 @@ describe('CollectionService', () => {
 
     afterEach(async () => {
         await global.clearDatabase();
-        global.gc && global.gc();
+        await global.gc && await global.gc();
     });
+
 
     describe('getCollection', () => {
         it('should get a collection by id', async () => {
