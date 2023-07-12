@@ -1,10 +1,16 @@
-import {
-    IsArray, IsDateString, IsEnum, IsNumber, IsObject, IsOptional, IsString, IsUrl
-} from 'class-validator';
+import { IsArray, IsDateString, IsEnum, IsNumber, IsObject, IsOptional, IsString, IsUrl } from 'class-validator';
 import { GraphQLJSONObject } from 'graphql-type-json';
 
 import {
-    Field, Float, InputType, Int, ObjectType, OmitType, PartialType, PickType, registerEnumType
+    Field,
+    Float,
+    InputType,
+    Int,
+    ObjectType,
+    OmitType,
+    PartialType,
+    PickType,
+    registerEnumType,
 } from '@nestjs/graphql';
 
 import { Collaboration, CollaborationInput } from '../collaboration/collaboration.dto';
@@ -105,12 +111,12 @@ export class Collection {
     readonly nameOnOpensea?: string;
 
     @IsDateString()
-    @Field({ description: 'The begin time for sales.', nullable: true })
-    readonly beginSaleAt?: Date;
+    @Field(() => Int, { description: 'The begin time for sales.', nullable: true })
+    public beginSaleAt?: Date;
 
     @IsDateString()
-    @Field({ description: 'The end time for sales.', nullable: true })
-    readonly endSaleAt?: Date;
+    @Field(() => Int, { description: 'The end time for sales.', nullable: true })
+    public endSaleAt?: Date;
 
     @IsDateString()
     @Field({ description: 'The DateTime that this collection was published.', nullable: true })
@@ -145,7 +151,19 @@ export class CreateCollectionInput extends OmitType(PartialType(Collection, Inpu
     'contract',
     'creator',
     'collaboration',
+    'beginSaleAt',
+    'endSaleAt',
 ]) {
+    @IsNumber()
+    @Field({ description: 'The begin time for sales', nullable: true })
+    @IsOptional()
+    readonly beginSaleAt?: number;
+
+    @IsNumber()
+    @Field({ description: 'The end time for sales', nullable: true })
+    @IsOptional()
+    readonly endSaleAt?: number;
+
     @IsObject()
     @Field(() => WalletInput, { description: 'The wallet that created the collection.', nullable: true })
     @IsOptional()
@@ -349,7 +367,7 @@ export class CollectionActivities {
 export class SecondarySale {
     @Field(() => Number)
     @IsNumber()
-    total: number;
+    public total: number;
 }
 
 @ObjectType('CollectionActivityData')

@@ -13,17 +13,24 @@ import { getCurrentPrice } from '../saleHistory/saleHistory.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import {
-    MintSaleTransaction
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Tier as TierDto } from '../tier/tier.dto';
 import { Tier } from '../tier/tier.entity';
 import { TierService } from '../tier/tier.service';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    Collection, CollectionActivities, CollectionActivityType, CollectionPaginated, CollectionStat,
-    CollectionStatus, CreateCollectionInput, LandingPageCollection, SecondarySale, ZeroAccount
+    Collection,
+    CollectionActivities,
+    CollectionActivityType,
+    CollectionPaginated,
+    CollectionStat,
+    CollectionStatus,
+    CreateCollectionInput,
+    LandingPageCollection,
+    SecondarySale,
+    UpdateCollectionInput,
+    ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
 
@@ -46,7 +53,7 @@ export class CollectionService {
         private readonly asset721Repository: Repository<Asset721>,
         private tierService: TierService,
         private openseaService: OpenseaService,
-        private coinService: CoinService,
+        private coinService: CoinService
     ) {}
 
     /**
@@ -122,7 +129,7 @@ export class CollectionService {
                     const coin = await this.coinService.getCoinByAddress(tier.paymentTokenAddress);
                     tiers.push({
                         ...tier,
-                        coin
+                        coin,
                     });
                 }
             }
@@ -196,8 +203,14 @@ export class CollectionService {
      * @param params The id of the collection to update and the data to update it with.
      * @returns A boolean if it updated succesfully.
      */
-    async updateCollection(id: string, data: any): Promise<boolean> {
+    async updateCollection(id: string, data: Partial<Omit<UpdateCollectionInput, 'id'>>): Promise<boolean> {
         try {
+            const { beginSaleAt, endSaleAt, ...updateData } = data;
+
+            const dd = updateData as Collection;
+            beginSaleAt ?? (dd.beginSaleAt = new Date(beginSaleAt));
+            endSaleAt ?? (dd.endSaleAt = new Date(endSaleAt));
+
             const result: UpdateResult = await this.collectionRepository.update(id, data);
             return result.affected > 0;
         } catch (e) {
@@ -256,7 +269,7 @@ export class CollectionService {
      * @returns The newly created collection.
      */
     async createCollectionWithTiers(data: CreateCollectionInput) {
-        const { tiers, ...collection } = data;
+        const { tiers, beginSaleAt, endSaleAt, ...collection } = data;
         const kind = collectionEntity.CollectionKind;
         if ([kind.whitelistEdition, kind.whitelistTiered, kind.whitelistBulk].indexOf(collection.kind) >= 0) {
             tiers.forEach((tier) => {
@@ -265,7 +278,12 @@ export class CollectionService {
             });
         }
 
-        const createResult = await this.collectionRepository.save(collection as Collection);
+        const dd = collection as Collection;
+        if (beginSaleAt) dd.beginSaleAt = new Date(beginSaleAt);
+        if (endSaleAt) dd.endSaleAt = new Date(endSaleAt);
+
+
+        const createResult = await this.collectionRepository.save(dd);
 
         if (tiers) {
             for (const tier of tiers) {
