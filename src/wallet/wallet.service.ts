@@ -11,14 +11,17 @@ import { captureException } from '@sentry/node';
 import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import {
-    MintSaleTransaction
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Tier } from '../tier/tier.entity';
 import { User } from '../user/user.entity';
 import {
-    BindWalletInput, CreateWalletInput, EstimatedValue, Minted, MintPaginated, UnbindWalletInput,
-    UpdateWalletInput
+    BindWalletInput,
+    CreateWalletInput,
+    EstimatedValue,
+    Minted,
+    MintPaginated,
+    UnbindWalletInput,
+    UpdateWalletInput,
 } from './wallet.dto';
 import { Wallet } from './wallet.entity';
 
@@ -313,13 +316,14 @@ export class WalletService {
         if (!wallet) throw new Error(`Wallet with address ${address} doesn't exist.`);
 
         const builder = await this.mintSaleTransactionRepository.createQueryBuilder('tx');
+        builder.where('tx.recipient = :address', { address });
         const countBuilder = builder.clone();
 
         if (after) {
-            builder.where('tx.createdAt > :cursor', { cursor: fromCursor(after) });
+            builder.andWhere('tx.createdAt > :cursor', { cursor: fromCursor(after) });
             builder.limit(first);
         } else if (before) {
-            builder.where('tx.createdAt < :cursor', { cursor: fromCursor(before) });
+            builder.andWhere('tx.createdAt < :cursor', { cursor: fromCursor(before) });
             builder.limit(last);
         } else {
             const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
