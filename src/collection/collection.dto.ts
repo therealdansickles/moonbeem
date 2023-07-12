@@ -111,11 +111,11 @@ export class Collection {
     readonly nameOnOpensea?: string;
 
     @IsDateString()
-    @Field(() => Int, { description: 'The begin time for sales.', nullable: true })
+    @Field({ description: 'The begin time for sales.', nullable: true })
     public beginSaleAt?: Date;
 
     @IsDateString()
-    @Field(() => Int, { description: 'The end time for sales.', nullable: true })
+    @Field({ description: 'The end time for sales.', nullable: true })
     public endSaleAt?: Date;
 
     @IsDateString()
@@ -155,12 +155,12 @@ export class CreateCollectionInput extends OmitType(PartialType(Collection, Inpu
     'endSaleAt',
 ]) {
     @IsNumber()
-    @Field({ description: 'The begin time for sales', nullable: true })
+    @Field(() => Int, { description: 'The begin time for sales', nullable: true })
     @IsOptional()
     readonly beginSaleAt?: number;
 
     @IsNumber()
-    @Field({ description: 'The end time for sales', nullable: true })
+    @Field(() => Int, { description: 'The end time for sales', nullable: true })
     @IsOptional()
     readonly endSaleAt?: number;
 
