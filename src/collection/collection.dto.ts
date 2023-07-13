@@ -1,4 +1,4 @@
-import { IsArray, IsDateString, IsEnum, IsNumber, IsObject, IsOptional, IsString, IsUrl } from 'class-validator';
+import { IsArray, IsDateString, IsEnum, IsNumber, IsObject, IsOptional, IsString, IsUrl, ValidateIf } from 'class-validator';
 import { GraphQLJSONObject } from 'graphql-type-json';
 
 import {
@@ -67,7 +67,9 @@ export class Collection {
     @IsOptional()
     readonly address?: string;
 
+    @ValidateIf(collection => collection.avatarUrl !== '')
     @IsUrl()
+    @IsOptional()
     @Field({
         description: 'The image url for the avatar of the collection. This is the profile picture.',
         nullable: true,
