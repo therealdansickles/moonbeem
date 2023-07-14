@@ -33,7 +33,7 @@ export class PluginResolver {
         const collection = await this.collectionService.getCollection(input.collectionId);
         if (!collection) throw new GraphQLError(`Collection ${input.collectionId} doesn't exsit.`);
 
-        const tiers = await this.tierService.getTiersByCollection(input.collectionId);
+        const tiers = await this.tierService.getTiersByQuery({ collection: { id: input.collectionId }});
         if (!tiers || tiers.length === 0)  throw new GraphQLError(`Collection ${input.collectionId} doesn't have tiers.`);
         
         const plugin = await this.pluginService.getPlugin(input.pluginId);

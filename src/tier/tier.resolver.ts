@@ -1,21 +1,16 @@
+import { GraphQLJSONObject } from 'graphql-type-json';
+
 import { UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
-import { GraphQLJSONObject } from 'graphql-type-json';
 
 import { Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
 import { TierHolders } from '../wallet/wallet.dto';
 import {
-    CreateTierInput,
-    DeleteTierInput,
-    IOverview,
-    Profit,
-    Tier,
-    TierSearchPaginated,
-    TierSearchInput,
-    UpdateTierInput,
+    CreateTierInput, DeleteTierInput, IOverview, Profit, Tier, TierSearchInput, TierSearchPaginated,
+    UpdateTierInput
 } from './tier.dto';
-import { TierService } from './tier.service';
+import { ITierQuery, TierService } from './tier.service';
 
 @Resolver(() => Tier)
 export class TierResolver {
@@ -29,8 +24,10 @@ export class TierResolver {
 
     @Public()
     @Query(() => [Tier], { description: 'Get tiers by collection id', nullable: true })
-    async tiers(@Args('collectionId') collectionId: string): Promise<Tier[]> {
-        return await this.tierService.getTiersByCollection(collectionId);
+    async tiers(@Args('collectionId') collectionId: string, @Args('name') name: string): Promise<Tier[]> {
+        const query: ITierQuery = { name }
+        if (collectionId) query.collection = { id: collectionId }
+        return await this.tierService.getTiersByQuery(query);
     }
 
     @UseGuards(SigninByEmailGuard)

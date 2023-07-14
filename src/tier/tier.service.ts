@@ -1,5 +1,6 @@
 import BigNumber from 'bignumber.js';
 import { GraphQLError } from 'graphql';
+import { isEmpty, isNil, omitBy } from 'lodash';
 import { DeleteResult, In, Repository, UpdateResult } from 'typeorm';
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -31,6 +32,11 @@ interface ITierSearch {
     properties?: MetadataPropertySearchInput[];
     plugins?: string[];
     upgrades?: string[];
+}
+
+export type ITierQuery = {
+    name?: string;
+    collection?: { id: string };
 }
 
 @Injectable()
@@ -70,15 +76,18 @@ export class TierService {
     }
 
     /**
-     * Get the tiers belonging to a specific collection
+     * Get the tiers by query(which support tier name and collection id)
      *
-     * @param collectionId The id of the collection
+     * @param query The query of the search
      * @returns Array of tiers
      */
-    async getTiersByCollection(collectionId: string): Promise<Tier[]> {
+    async getTiersByQuery(query: ITierQuery) {
+        query = omitBy(query, isNil);
+        if (isEmpty(query)) return null;
+
         const result: Tier[] = [];
         const tiers = await this.tierRepository.find({
-            where: { collection: { id: collectionId } },
+            where: query,
             relations: { collection: true },
         });
 

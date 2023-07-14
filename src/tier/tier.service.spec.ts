@@ -1,12 +1,18 @@
 import BigNumber from 'bignumber.js';
+
 import { faker } from '@faker-js/faker';
+
 import { Collection } from '../collection/collection.dto';
 import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { WalletService } from '../wallet/wallet.service';
 import { Tier } from './tier.dto';
 import { TierService } from './tier.service';
@@ -187,7 +193,12 @@ describe('TierService', () => {
         });
     });
 
-    describe('getTiersByCollection', () => {
+    describe('getTiersByQuery', () => {
+        it('should return null if none query provided', async () => {
+            const tiers = await service.getTiersByQuery({});
+            expect(tiers).toBeNull()
+        });
+
         it('should get tiers based on collection id', async () => {
             const coin = await coinService.createCoin({
                 address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
@@ -258,8 +269,85 @@ describe('TierService', () => {
                 },
             });
 
-            const result = await service.getTiersByCollection(collection.id);
+            const result = await service.getTiersByQuery({ collection: { id: collection.id } });
             expect(result.length).toBe(2);
+
+            const specificTier = result.find((tier) => tier.totalMints === 200);
+            expect(specificTier).toBeDefined();
+        });
+
+        it('should get tiers based on tier name', async () => {
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1.5,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const tier = await service.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+                metadata: {
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
+            });
+
+            const anotherTier = await service.createTier({
+                name: faker.company.name(),
+                totalMints: 200,
+                collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+                metadata: {
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
+            });
+
+            const result = await service.getTiersByQuery({ name: anotherTier.name });
+            expect(result.length).toBe(1);
 
             const specificTier = result.find((tier) => tier.totalMints === 200);
             expect(specificTier).toBeDefined();
