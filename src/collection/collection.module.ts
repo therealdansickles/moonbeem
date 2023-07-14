@@ -5,6 +5,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Collaboration } from '../collaboration/collaboration.entity';
 import { CollaborationModule } from '../collaboration/collaboration.module';
+import { Membership } from '../membership/membership.entity';
+import { MembershipModule } from '../membership/membership.module';
+import { MembershipService } from '../membership/membership.service';
 import { Nft } from '../nft/nft.entity';
 import { OpenseaModule } from '../opensea/opensea.module';
 import { OpenseaService } from '../opensea/opensea.service';
@@ -27,7 +30,9 @@ import {
 import { Tier } from '../tier/tier.entity';
 import { TierModule } from '../tier/tier.module';
 import { TierService } from '../tier/tier.service';
+import { User } from '../user/user.entity';
 import { UserModule } from '../user/user.module';
+import { UserService } from '../user/user.service';
 import { Wallet } from '../wallet/wallet.entity';
 import { WalletModule } from '../wallet/wallet.module';
 import { Collection } from './collection.entity';
@@ -37,7 +42,7 @@ import { CollectionService } from './collection.service';
 @Module({
     imports: [
         HttpModule,
-        TypeOrmModule.forFeature([Collaboration, Collection, Organization, Tier, Nft, Wallet, Redeem]),
+        TypeOrmModule.forFeature([Collaboration, Collection, Organization, Membership, Tier, Nft, Wallet, User, Redeem]),
         TypeOrmModule.forFeature([Coin, MintSaleContract, MintSaleTransaction, Asset721], 'sync_chain'),
         forwardRef(() => CollaborationModule),
         forwardRef(() => MintSaleContractModule),
@@ -49,10 +54,11 @@ import { CollectionService } from './collection.service';
         forwardRef(() => OpenseaModule),
         forwardRef(() => UserModule),
         forwardRef(() => CoinModule),
+        forwardRef(() => MembershipModule),
         JwtModule,
     ],
     exports: [CollectionModule, CollectionService],
-    providers: [JwtService, CoinService, OpenseaService, TierService, CollectionService, CollectionResolver],
+    providers: [JwtService, CoinService, MembershipService, OpenseaService, TierService, UserService, CollectionService, CollectionResolver],
     controllers: [],
 })
 export class CollectionModule {}

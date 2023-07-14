@@ -1,9 +1,11 @@
 import { Repository } from 'typeorm';
+
 import { faker } from '@faker-js/faker';
-import { Membership } from './membership.entity';
-import { MembershipService } from './membership.service';
+
 import { OrganizationService } from '../organization/organization.service';
 import { UserService } from '../user/user.service';
+import { Membership } from './membership.entity';
+import { MembershipService } from './membership.service';
 
 describe('MembershipService', () => {
     let repository: Repository<Membership>;
@@ -81,6 +83,68 @@ describe('MembershipService', () => {
             expect(result.length).toEqual(1);
             expect(result[0].user.id).toEqual(owner.id);
             expect(result[0].organization.id).toEqual(organization.id);
+        });
+    });
+
+    describe('checkMembershipByOrganizationIdAndUserId', () => {
+        it('should return true if a record exist', async () => {
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                owner: owner,
+            });
+
+            await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
+
+            const rs = await service.checkMembershipByOrganizationIdAndUserId(organization.id, user.id);
+            expect(rs).toEqual(true);
+        });
+
+        it('should return false if no record exist', async () => {
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                owner: owner,
+            });
+
+            await service.createMembership({
+                organizationId: organization.id,
+                userId: user.id,
+            });
+
+            const rs = await service.checkMembershipByOrganizationIdAndUserId(organization.id, faker.datatype.uuid());
+            expect(rs).toEqual(false);
         });
     });
 

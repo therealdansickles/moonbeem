@@ -1,13 +1,12 @@
-import { AuthorizedTokenGuard, AuthorizedUserGuard, AuthorizedWalletAddressGuard, AuthorizedWalletGuard } from './session.guard';
 import {
-    ExecutionContext,
-    SetMetadata,
-    UseGuards,
-    applyDecorators,
-    createParamDecorator
+    applyDecorators, createParamDecorator, ExecutionContext, SetMetadata, UseGuards
 } from '@nestjs/common';
-
 import { GqlExecutionContext } from '@nestjs/graphql';
+
+import {
+    AuthorizedOrganizationGuard, AuthorizedTokenGuard, AuthorizedUserGuard,
+    AuthorizedWalletAddressGuard, AuthorizedWalletGuard
+} from './session.guard';
 
 export const IS_PUBLIC_KEY = 'isPublic';
 
@@ -20,6 +19,8 @@ export const USER_PARAMETER = Symbol('USER_PARAMETER');
 export const TOKEN_ID_PARAMETER = Symbol('TOKEN_ID_PARAMETER');
 
 export const COLLECTION_ID_PARAMETER = Symbol('COLLECTION_ID_PARAMETER');
+
+export const ORGANIZATION_ID_PARAMETER = Symbol('ORGANIZATION_ID_PARAMETER');
 
 /**
  * Set the metadata for a public endpoint.
@@ -65,6 +66,13 @@ export function AuthorizedUser(key: string) {
     return applyDecorators(
         SetMetadata(USER_PARAMETER, key),
         UseGuards(AuthorizedUserGuard)
+    );
+}
+
+export function AuthorizedOrganization(key: string) {
+    return applyDecorators(
+        SetMetadata(ORGANIZATION_ID_PARAMETER, key),
+        UseGuards(AuthorizedOrganizationGuard)
     );
 }
 

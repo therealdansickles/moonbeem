@@ -1,12 +1,16 @@
+import { GraphQLError } from 'graphql';
+import { IsNull, Repository } from 'typeorm';
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
-import { GraphQLError } from 'graphql';
-import { CreateMembershipInput, MembershipRequestInput, UpdateMembershipInput } from './membership.dto';
-import { Membership } from './membership.entity';
+
+import { MailService } from '../mail/mail.service';
 import { Organization } from '../organization/organization.entity';
 import { User } from '../user/user.entity';
-import { MailService } from '../mail/mail.service';
+import {
+    CreateMembershipInput, MembershipRequestInput, UpdateMembershipInput
+} from './membership.dto';
+import { Membership } from './membership.entity';
 
 @Injectable()
 export class MembershipService {
@@ -14,7 +18,6 @@ export class MembershipService {
         @InjectRepository(Membership) private membershipRepository: Repository<Membership>,
         @InjectRepository(User) private userRepository: Repository<User>,
         @InjectRepository(Organization) private organizationRepository: Repository<Organization>,
-        private mailService: MailService
     ) {}
 
     /**
@@ -52,6 +55,20 @@ export class MembershipService {
         return await this.membershipRepository.find({
             where: { user: { id: userId } },
         });
+    }
+
+    /**
+     * Check 
+     * 
+     * @param organizationId
+     * @param userId
+     */
+    async checkMembershipByOrganizationIdAndUserId(organizationId: string, userId: string) {
+        const count = await this.membershipRepository.countBy({
+            organization: { id: organizationId },
+            user: { id: userId }
+        });
+        return count > 0;
     }
 
     /**

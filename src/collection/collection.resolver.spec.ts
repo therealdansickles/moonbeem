@@ -1,19 +1,25 @@
 import { hashSync as hashPassword } from 'bcryptjs';
 import * as request from 'supertest';
-import { Collection, CollectionKind } from './collection.entity';
+
+import { faker } from '@faker-js/faker';
+import { INestApplication } from '@nestjs/common';
+
+import { CollaborationService } from '../collaboration/collaboration.service';
+import { OrganizationService } from '../organization/organization.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { CollaborationService } from '../collaboration/collaboration.service';
-import { INestApplication } from '@nestjs/common';
-import { OrganizationService } from '../organization/organization.service';
-import { faker } from '@faker-js/faker';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
-import { CollectionService } from './collection.service';
 import { CollectionStat, CollectionStatus } from './collection.dto';
+import { Collection, CollectionKind } from './collection.entity';
+import { CollectionService } from './collection.service';
 
 export const gql = String.raw;
 
@@ -522,6 +528,96 @@ describe('CollectionResolver', () => {
                 });
         });
 
+        it('should not allow pass a organization which not user belongs to', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const wallet1 = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
+
+            const collaboration = await collaborationService.createCollaboration({
+                walletId: wallet1.id,
+                royaltyRate: 98,
+                collaborators: [
+                    {
+                        address: faker.finance.ethereumAddress(),
+                        role: faker.finance.accountName(),
+                        name: faker.finance.accountName(),
+                        rate: parseInt(faker.random.numeric(2)),
+                    },
+                ],
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner,
+            });
+
+            const anotherOwner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const anotherOrganization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: anotherOwner,
+            });
+
+
+            const query = gql`
+                mutation CreateCollection($input: CreateCollectionInput!) {
+                    createCollection(input: $input) {
+                        name
+                        displayName
+                        kind
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    name: faker.company.name(),
+                    displayName: 'The best collection',
+                    about: 'The best collection ever',
+                    kind: CollectionKind.edition,
+                    address: faker.finance.ethereumAddress(),
+                    organization: {
+                        id: anotherOrganization.id,
+                    },
+                    collaboration: {
+                        id: collaboration.id,
+                    },
+                    tags: ['test'],
+                },
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.errors[0].extensions.code).toEqual('FORBIDDEN');
+                    expect(body.data).toBeNull();
+                });
+        });
+
         it('should allow authenticated users to create a collection', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
@@ -614,6 +710,7 @@ describe('CollectionResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
+                    console.log(body)
                     expect(body.data.createCollection.name).toEqual(variables.input.name);
                     expect(body.data.createCollection.displayName).toEqual(variables.input.displayName);
                 });

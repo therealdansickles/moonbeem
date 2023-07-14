@@ -1,23 +1,19 @@
-import { Resolver, Query, Args, Mutation, ResolveField, Parent, Int } from '@nestjs/graphql';
-import { Public } from '../session/session.decorator';
-import { CollectionService } from './collection.service';
-import {
-    Collection,
-    CollectionInput,
-    CreateCollectionInput,
-    UpdateCollectionInput,
-    CollectionStat,
-    CollectionActivities,
-    LandingPageCollection,
-    CollectionStatus,
-    CollectionPaginated,
-    SecondarySale,
-} from './collection.dto';
-import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { UseGuards } from '@nestjs/common';
+import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+
+import { AuthorizedOrganization, Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
+import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
+import {
+    Collection, CollectionActivities, CollectionInput, CollectionPaginated, CollectionStat,
+    CollectionStatus, CreateCollectionInput, LandingPageCollection, SecondarySale,
+    UpdateCollectionInput
+} from './collection.dto';
+import { CollectionService } from './collection.service';
 
 @Resolver(() => Collection)
 export class CollectionResolver {
@@ -36,6 +32,7 @@ export class CollectionResolver {
         return this.collectionService.getCollectionByQuery({ id, address, name });
     }
 
+    @AuthorizedOrganization('organization.id')
     @UseGuards(SigninByEmailGuard)
     @Mutation(() => Collection, { description: 'creates a collection' })
     async createCollection(@Args('input') input: CreateCollectionInput): Promise<Collection> {

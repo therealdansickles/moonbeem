@@ -2,12 +2,20 @@ import { HttpModule } from '@nestjs/axios';
 import { forwardRef, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { MailgunModule, MailgunService } from '@nextnm/nestjs-mailgun';
 
 import { Collection } from '../collection/collection.entity';
 import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
+import { mailgunConfig } from '../lib/configs/mailgun.config';
+import { MailModule } from '../mail/mail.module';
+import { MailService } from '../mail/mail.service';
+import { Membership } from '../membership/membership.entity';
+import { MembershipModule } from '../membership/membership.module';
+import { MembershipService } from '../membership/membership.service';
 import { OpenseaModule } from '../opensea/opensea.module';
 import { OpenseaService } from '../opensea/opensea.service';
+import { Organization } from '../organization/organization.entity';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Asset721Module } from '../sync-chain/asset721/asset721.module';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
@@ -30,7 +38,7 @@ import { SessionService } from './session.service';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Wallet, User, Collection, Tier]),
+        TypeOrmModule.forFeature([Wallet, User, Collection, Membership, Organization, Tier]),
         TypeOrmModule.forFeature([Asset721, Coin, MintSaleContract, MintSaleTransaction], 'sync_chain'),
         forwardRef(() => UserModule),
         forwardRef(() => WalletModule),
@@ -40,13 +48,14 @@ import { SessionService } from './session.service';
         forwardRef(() => OpenseaModule),
         forwardRef(() => HttpModule),
         forwardRef(() => CoinModule),
+        forwardRef(() => MembershipModule),
         JwtModule.register({
             secret: process.env.SESSION_SECRET,
             signOptions: { expiresIn: '1d' },
         }),
         SessionModule,
     ],
-    providers: [Asset721Service, CoinService, CollectionService, TierService, OpenseaService, SessionService, SessionResolver],
+    providers: [Asset721Service, CoinService, CollectionService, MembershipService, TierService, OpenseaService, SessionService, SessionResolver],
     exports: [SessionModule, SessionResolver],
 })
 export class SessionModule {}
