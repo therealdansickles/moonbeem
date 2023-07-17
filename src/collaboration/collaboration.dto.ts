@@ -1,4 +1,4 @@
-import { Field, ObjectType, InputType, Int, PickType, OmitType, PartialType } from '@nestjs/graphql';
+import { Field, ObjectType, InputType, Int, PickType, OmitType, PartialType, Float } from '@nestjs/graphql';
 import { IsObject, IsNumber, IsString, IsDateString, IsArray, IsOptional } from 'class-validator';
 import { Wallet } from '../wallet/wallet.dto';
 import { Collection } from '../collection/collection.dto';
@@ -43,7 +43,7 @@ export class Collaboration {
 
     @IsObject()
     @Field(() => Collection, { description: 'The collection of the collaboration.', nullable: true })
-    readonly collection?: Partial<Collection>;
+    readonly collections?: Collection[];
 
     @IsString()
     @Field({ description: 'The address of the collaboration contract.', nullable: true })
@@ -80,7 +80,7 @@ export class CreateCollaborationInput extends OmitType(PartialType(Collaboration
     'createdAt',
     'updatedAt',
     'wallet',
-    'collection',
+    'collections',
     'user',
     'organization',
     'collaborators',
@@ -112,3 +112,22 @@ export class CreateCollaborationInput extends OmitType(PartialType(Collaboration
 
 @InputType()
 export class CollaborationInput extends PickType(Collaboration, ['id'], InputType) {}
+
+@ObjectType()
+export class CollaboratorEarningsOutput extends CollaboratorOutput {
+    @IsNumber()
+    @Field(() => Float, { description: 'The earnings of the collaborator.' })
+    readonly earnings: number;
+}
+
+// Separate ObjectType for the modified collaboration data, which includes earnings
+// Necessary to avoid altering the existing Collaboration ObjectType
+@ObjectType()
+export class CollaborationWithEarnings extends OmitType(Collaboration, ['collaborators'] as const) {
+  @IsArray()
+  @Field(() => [CollaboratorEarningsOutput], { description: 'All collaborators of this collaboration.', nullable: true })
+  readonly collaborators?: CollaboratorEarningsOutput[];
+  @IsNumber()
+  @Field(() => Float, { description: 'Collaboration total earnings.' })
+  readonly totalEarnings: number;
+}

@@ -1,15 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateCollaborationInput } from './collaboration.dto';
+import { GraphQLError } from 'graphql';
+import { ethers } from 'ethers';
+import { CreateCollaborationInput, CollaborationWithEarnings } from './collaboration.dto';
 import { Collaboration } from './collaboration.entity';
 import { Wallet } from '../wallet/wallet.entity';
 import { User } from '../user/user.entity';
 import { Organization } from '../organization/organization.entity';
+import { CollectionService } from '../collection/collection.service';
 
 @Injectable()
 export class CollaborationService {
-    constructor(@InjectRepository(Collaboration) private collaborationRepository: Repository<Collaboration>) {}
+    constructor(
+        @InjectRepository(Collaboration)
+        private readonly collaborationRepository: Repository<Collaboration>,
+        private readonly collectionService: CollectionService,
+    ) { }
 
     /**
      * Retrieves the collaboration associated with the given id.
@@ -22,6 +29,55 @@ export class CollaborationService {
             where: { id },
             relations: ['wallet', 'user', 'organization'],
         });
+    }
+
+    /**
+     * Retrieves the collaboration associated with the given id and calculates the earnings for each collaborator.
+     * 
+     * @param id The id of the collaboration to retrieve.
+     * @returns The collaboration associated with the given id including total earnings and earnings for each collaborator .
+     */
+    async getCollaborationWithEarnings(id: string): Promise<CollaborationWithEarnings> {
+        const collaboration = await this.collaborationRepository.findOne({
+            where: { id },
+            relations: ['wallet', 'user', 'organization', 'collections'],
+        });
+
+        if (!collaboration) {
+            throw new GraphQLError(`Collaboration with id ${id} doesn't exist.`, {
+                extensions: { code: 'NOT_FOUND' },
+            });
+        }
+
+        // Get the earnings for each collection
+        // getCollectionEarningsByTokenAddress returns earnings in wei 
+        const earningsByCollection = await Promise.all(
+            collaboration.collections.map(
+                ({ address }) => this.collectionService.getCollectionEarningsByTokenAddress(address)
+                    .catch(err => {
+                        throw new Error(`Failed to get collection earnings for address ${address}: ${err.message}`);
+                    })
+            )
+        );
+
+        const totalEarningsWei = earningsByCollection.reduce((total, earnings) => total + earnings, BigInt(0));
+        // earnings in ETH are rounded to the nearest integer
+        // if precision is needed it's probably better to store earnings in wei and do conversion on the UI
+        const totalEarningsEth = Math.round(parseInt(ethers.formatEther(totalEarningsWei), 10));
+
+        const collaborators = collaboration.collaborators?.map(collaborator => ({
+            ...collaborator,
+            earnings: Math.round(totalEarningsEth * (collaborator.rate / 100) * (collaboration.royaltyRate / 100)),
+        })) || [];
+
+        // Create a new CollaborationWithEarnings object
+        const collaborationWithEarnings: CollaborationWithEarnings = {
+            ...collaboration,
+            collaborators,
+            totalEarnings: totalEarningsEth,
+        };
+
+        return collaborationWithEarnings;
     }
 
     /**

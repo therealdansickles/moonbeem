@@ -1314,4 +1314,40 @@ describe('CollectionService', () => {
             expect(result.total).toBeDefined();
         });
     });
+
+    describe('getCollectionEarningsByTokenAddress', () => {
+        it('should return correct sum of earnings for the given token address', async () => {
+            const price = faker.random.numeric(19);
+            const tokenAddress = faker.finance.ethereumAddress();
+
+            const collection = await repository.save({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: tokenAddress,
+                artists: [],
+                tags: [],
+                publishedAt: new Date(),
+            });
+
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collection.address,
+                tierId: 0,
+                tokenAddress,
+                tokenId: faker.random.numeric(3),
+                price,
+                collectionId: collection.id,
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+    
+            const earnings = await service.getCollectionEarningsByTokenAddress(tokenAddress);
+    
+            expect(earnings).toEqual(BigInt(price));
+        });
+    });
 });

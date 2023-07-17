@@ -291,4 +291,105 @@ describe('CollaborationService', () => {
             });
         });
     });
+
+    describe('getCollaborationWithEarnings', () => {
+        const totalEarningsEth = faker.datatype.number({ max: 1000 });
+        const totalEarningsWei = BigInt(totalEarningsEth * 10 ** 18);
+
+        const collaborators = [
+            {
+                address: faker.finance.ethereumAddress(),
+                role: faker.finance.accountName(),
+                name: faker.finance.accountName(),
+                rate: 20,
+            },
+            {
+                address: faker.finance.ethereumAddress(),
+                role: faker.finance.accountName(),
+                name: faker.finance.accountName(),
+                rate: 80,
+            },
+        ];
+
+        let collaboration;
+
+        beforeEach(async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const wallet = await walletService.createWallet({
+                address: `arb:${faker.finance.ethereumAddress()}`,
+                ownerId: user.id,
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: user,
+            });
+
+            collaboration = await service.createCollaboration({
+                walletId: wallet.id,
+                organizationId: organization.id,
+                userId: user.id,
+                royaltyRate: 12,
+                collaborators,
+            });
+
+            await collectionService.createCollectionWithTiers({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                organization: { id: organization.id },
+                collaboration: { id: collaboration.id },
+                tiers: [],
+            });
+
+            jest.spyOn(service['collectionService'], 'getCollectionEarningsByTokenAddress').mockResolvedValue(totalEarningsWei);
+        });
+
+        afterAll(async () => {
+            jest.clearAllMocks();
+        });
+
+        it('should return a collaboration with its total earnings', async () => {
+            const result = await service.getCollaborationWithEarnings(collaboration.id);
+
+            expect(result).toBeDefined();
+            expect(result.id).toEqual(collaboration.id);
+            expect(result.totalEarnings).toEqual(totalEarningsEth);
+        });
+
+        it('should return a collaboration with individual collaborator earnings', async () => {
+            const result = await service.getCollaborationWithEarnings(collaboration.id);
+
+            // check first collaborator earnings
+            const expectedEarningsFirst = Math.round(totalEarningsEth * (collaborators[0].rate / 100) * (collaboration.royaltyRate / 100));
+            expect(result.collaborators[0].earnings).toEqual(expectedEarningsFirst);
+
+            // check second collaborator earnings
+            const expectedEarningsSecond = Math.round(totalEarningsEth * (collaborators[1].rate / 100) * (collaboration.royaltyRate / 100));
+            expect(result.collaborators[1].earnings).toEqual(expectedEarningsSecond);
+        });
+
+        it('should throw error if the collaboration does not exist', async () => {
+            try {
+                await service.getCollaborationWithEarnings(faker.datatype.uuid());
+            } catch (error) {
+                expect(error.message).toMatch(/Collaboration with id .* doesn't exist\./);
+            }
+        });
+    });
 });

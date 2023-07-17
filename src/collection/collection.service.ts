@@ -547,4 +547,21 @@ export class CollectionService {
             return acc;
         }, 0);
     }
+
+    /**
+     * Get collection earnings by token address
+     * 
+     * @param tokenAddress
+     * 
+     * @returns {bigint} collection earnings in wei
+     */
+    public async getCollectionEarningsByTokenAddress(tokenAddress: string): Promise<bigint> {
+        const earnings = await this.mintSaleTransactionRepository
+            .createQueryBuilder('MintSaleTransaction')
+            .select('SUM(CAST("MintSaleTransaction"."price" as NUMERIC))', 'sum')
+            .where('"MintSaleTransaction"."tokenAddress" = :tokenAddress', { tokenAddress })
+            .getRawOne();
+
+        return BigInt(earnings?.sum || 0);
+    }
 }
