@@ -262,3 +262,28 @@ export class TierHolders {
     @IsArray()
     readonly data: TierHolderData[];
 }
+
+@ObjectType('WalletSold')
+export class WalletSold extends PickType(
+    MintSaleTransaction,
+    [
+        'id',
+        'address',
+        'tokenAddress',
+        'paymentToken',
+        'tokenId',
+        'price',
+        'txTime',
+        'txHash',
+        'chainId',
+        'createdAt',
+    ] as const,
+    ObjectType
+) {
+    @Field(() => Tier)
+    @IsObject()
+    readonly tier?: Tier;
+}
+
+@ObjectType('WalletSoldPaginated')
+export class WalletSoldPaginated extends Paginated(WalletSold) {}

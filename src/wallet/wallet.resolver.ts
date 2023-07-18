@@ -17,6 +17,7 @@ import {
     UnbindWalletInput,
     UpdateWalletInput,
     Wallet,
+    WalletSoldPaginated,
 } from './wallet.dto';
 import { WalletService } from './wallet.service';
 import { Profit } from '../tier/tier.dto';
@@ -116,6 +117,18 @@ export class WalletResolver {
     @ResolveField(() => [Collection], { description: 'Retrieve the owned collections by the wallet address.' })
     async createdCollections(@Parent() wallet: Wallet): Promise<Collection[]> {
         return await this.collectionService.getCreatedCollectionsByWalletId(wallet.id);
+    }
+
+    @Public()
+    @ResolveField(() => WalletSoldPaginated)
+    async sold(
+        @Parent() wallet: Wallet,
+        @Args('before', { nullable: true }) before?: string,
+        @Args('after', { nullable: true }) after?: string,
+        @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+        @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+    ): Promise<WalletSoldPaginated> {
+        return await this.walletService.getSold(wallet.address, before, after, first, last);
     }
 
     @Public()

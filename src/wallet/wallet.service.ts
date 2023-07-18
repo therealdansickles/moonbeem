@@ -22,6 +22,8 @@ import {
     MintPaginated,
     UnbindWalletInput,
     UpdateWalletInput,
+    WalletSold,
+    WalletSoldPaginated,
 } from './wallet.dto';
 import { Wallet } from './wallet.entity';
 import { BasicPriceInfo, Profit } from '../tier/tier.dto';
@@ -451,6 +453,55 @@ export class WalletService {
             captureException(e);
             return [];
         }
+    }
+
+    async getSold(
+        address: string,
+        before: string,
+        after: string,
+        first: number,
+        last: number
+    ): Promise<WalletSoldPaginated> {
+        const collections = await this.collectionRespository
+            .createQueryBuilder('collection')
+            .leftJoinAndSelect('collection.creator', 'wallet')
+            .where('wallet.address = :address', { address: address })
+            .andWhere('collection.address IS NOT NULL')
+            .getMany();
+
+        if (collections.length <= 0) return PaginatedImp([], 0);
+
+        const builder = this.mintSaleTransactionRepository.createQueryBuilder('txn');
+        builder.where('address IN (:...addresses)', {
+            addresses: collections.map((c) => {
+                return c.address;
+            }),
+        });
+        const countBuilder = builder.clone();
+
+        if (after) {
+            builder.andWhere('txn.createdAt > :cursor', { cursor: fromCursor(after) });
+            builder.limit(first);
+        } else if (before) {
+            builder.andWhere('txn.createdAt < :cursor', { cursor: fromCursor(before) });
+            builder.limit(last);
+        } else {
+            const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
+            builder.limit(limit);
+        }
+
+        const [transactions, total] = await Promise.all([builder.getMany(), countBuilder.getCount()]);
+        const data: WalletSold[] = await Promise.all(
+            transactions.map(async (txn) => {
+                const tier = await this.tierRepository.findOne({ where: { tierId: txn.tierId } });
+                return {
+                    ...txn,
+                    tier: tier,
+                };
+            })
+        );
+
+        return PaginatedImp(data, total);
     }
 
     public async getWalletProfit(address: string): Promise<Profit[]> {
