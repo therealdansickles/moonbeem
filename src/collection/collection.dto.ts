@@ -1,4 +1,14 @@
-import { IsArray, IsDateString, IsEnum, IsNumber, IsObject, IsOptional, IsString, IsUrl, ValidateIf } from 'class-validator';
+import {
+    IsArray,
+    IsDateString,
+    IsEnum,
+    IsNumber,
+    IsObject,
+    IsOptional,
+    IsString,
+    IsUrl,
+    ValidateIf,
+} from 'class-validator';
 import { GraphQLJSONObject } from 'graphql-type-json';
 
 import {
@@ -67,7 +77,7 @@ export class Collection {
     @IsOptional()
     readonly address?: string;
 
-    @ValidateIf(collection => collection.avatarUrl !== '')
+    @ValidateIf((collection) => collection.avatarUrl !== '')
     @IsUrl()
     @IsOptional()
     @Field({
@@ -388,3 +398,28 @@ export class LandingPageCollection {
 
 @ObjectType('CollectionPaginated')
 export class CollectionPaginated extends Paginated(Collection) {}
+
+@ObjectType('CollectionSold')
+export class CollectionSold extends PickType(
+    MintSaleTransaction,
+    [
+        'id',
+        'address',
+        'tokenAddress',
+        'paymentToken',
+        'tokenId',
+        'price',
+        'txTime',
+        'txHash',
+        'chainId',
+        'createdAt',
+    ] as const,
+    ObjectType
+) {
+    @Field(() => Tier)
+    @IsObject()
+    readonly tier?: Tier;
+}
+
+@ObjectType('CollectionSoldPaginated')
+export class CollectionSoldPaginated extends Paginated(CollectionSold) {}

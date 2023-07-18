@@ -4,14 +4,20 @@ import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nes
 import { AuthorizedOrganization, Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import {
-    Collection, CollectionActivities, CollectionInput, CollectionPaginated, CollectionStat,
-    CollectionStatus, CreateCollectionInput, LandingPageCollection, SecondarySale,
-    UpdateCollectionInput
+    Collection,
+    CollectionActivities,
+    CollectionInput,
+    CollectionPaginated,
+    CollectionSoldPaginated,
+    CollectionStat,
+    CollectionStatus,
+    CreateCollectionInput,
+    LandingPageCollection,
+    SecondarySale,
+    UpdateCollectionInput,
 } from './collection.dto';
 import { CollectionService } from './collection.service';
 
@@ -135,5 +141,17 @@ export class CollectionResolver {
     @ResolveField(() => Number)
     async secondaySale(@Parent() collection: Collection): Promise<SecondarySale> {
         return await this.collectionService.getSecondarySale(collection.address);
+    }
+
+    @Public()
+    @ResolveField(() => CollectionSoldPaginated, { description: 'Returns the sale history per collection.' })
+    async sold(
+        @Parent() collection: Collection,
+        @Args('before', { nullable: true }) before?: string,
+        @Args('after', { nullable: true }) after?: string,
+        @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+        @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+    ): Promise<CollectionSoldPaginated> {
+        return this.collectionService.getCollectionSold(collection.address, before, after, first, last);
     }
 }

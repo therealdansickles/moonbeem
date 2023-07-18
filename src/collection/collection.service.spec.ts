@@ -42,9 +42,8 @@ describe('CollectionService', () => {
 
     afterEach(async () => {
         await global.clearDatabase();
-        await global.gc && await global.gc();
+        (await global.gc) && (await global.gc());
     });
-
 
     describe('getCollection', () => {
         it('should get a collection by id', async () => {
@@ -1344,10 +1343,86 @@ describe('CollectionService', () => {
                 collectionId: collection.id,
                 paymentToken: faker.finance.ethereumAddress(),
             });
-    
+
             const earnings = await service.getCollectionEarningsByTokenAddress(tokenAddress);
-    
+
             expect(earnings).toEqual(BigInt(price));
+        });
+    });
+
+    describe('getCollectionSold', () => {
+        it('should return the sale history per collection.', async () => {
+            const sender1 = faker.finance.ethereumAddress();
+            const paymentToken = faker.finance.ethereumAddress();
+            const collectionAddress = faker.finance.ethereumAddress();
+
+            const collection = await service.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                address: collectionAddress,
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                tierId: 1,
+                collection: { id: collection.id },
+                paymentTokenAddress: faker.finance.ethereumAddress(),
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
+            });
+
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: sender1,
+                recipient: faker.finance.ethereumAddress(),
+                address: collection.address,
+                tierId: tier.tierId,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken,
+            });
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: sender1,
+                recipient: faker.finance.ethereumAddress(),
+                address: collection.address,
+                tierId: tier.tierId,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken,
+            });
+
+            const result = await service.getCollectionSold(collection.address, '', '', 10, 0);
+            expect(result.edges).toBeDefined();
+            expect(result.edges.length).toBe(2);
+            expect(result.edges[0].node).toBeDefined();
+            expect(result.edges[0].node.address).toBe(collectionAddress);
+            expect(result.totalCount).toBe(2);
         });
     });
 });

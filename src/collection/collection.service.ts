@@ -13,18 +13,26 @@ import { getCurrentPrice } from '../saleHistory/saleHistory.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import {
-    MintSaleTransaction
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Tier as TierDto } from '../tier/tier.dto';
 import { Tier } from '../tier/tier.entity';
 import { TierService } from '../tier/tier.service';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    Collection, CollectionActivities, CollectionActivityType, CollectionPaginated, CollectionStat,
-    CollectionStatus, CreateCollectionInput, LandingPageCollection, SecondarySale,
-    UpdateCollectionInput, ZeroAccount
+    Collection,
+    CollectionActivities,
+    CollectionActivityType,
+    CollectionPaginated,
+    CollectionSold,
+    CollectionSoldPaginated,
+    CollectionStat,
+    CollectionStatus,
+    CreateCollectionInput,
+    LandingPageCollection,
+    SecondarySale,
+    UpdateCollectionInput,
+    ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
 
@@ -78,7 +86,9 @@ export class CollectionService {
         });
 
         if (collection) {
-            collection.tiers = (await this.tierService.getTiersByQuery({ collection: { id: collection.id }})) as Tier[];
+            collection.tiers = (await this.tierService.getTiersByQuery({
+                collection: { id: collection.id },
+            })) as Tier[];
         }
 
         return collection;
@@ -479,7 +489,9 @@ export class CollectionService {
 
         const data = await Promise.all(
             collections.map(async (collection) => {
-                collection.tiers = (await this.tierService.getTiersByQuery({ collection: { id: collection.id }})) as Tier[];
+                collection.tiers = (await this.tierService.getTiersByQuery({
+                    collection: { id: collection.id },
+                })) as Tier[];
                 return { ...collection };
             })
         );
@@ -550,9 +562,9 @@ export class CollectionService {
 
     /**
      * Get collection earnings by token address
-     * 
+     *
      * @param tokenAddress
-     * 
+     *
      * @returns {bigint} collection earnings in wei
      */
     public async getCollectionEarningsByTokenAddress(tokenAddress: string): Promise<bigint> {
@@ -563,5 +575,52 @@ export class CollectionService {
             .getRawOne();
 
         return BigInt(earnings?.sum || 0);
+    }
+
+    public async getCollectionSold(
+        address: string,
+        before: string,
+        after: string,
+        first: number,
+        last: number
+    ): Promise<CollectionSoldPaginated> {
+        console.log(address);
+        if (!address) return PaginatedImp([], 0);
+
+        const builder = this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .where('txn.address = :address', { address });
+        const countBuilder = builder.clone();
+
+        if (after) {
+            builder.andWhere('txn.createdAt > :cursor', { cursor: fromCursor(after) });
+            builder.limit(first);
+        } else if (before) {
+            builder.andWhere('txn.createdAt < :cursor', { cursor: fromCursor(before) });
+            builder.limit(last);
+        } else {
+            const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
+            builder.limit(limit);
+        }
+
+        const [transactions, total] = await Promise.all([builder.getMany(), countBuilder.getCount()]);
+        const data: CollectionSold[] = await Promise.all(
+            transactions.map(async (txn) => {
+                const tier = await this.tierRepository.findOne({
+                    where: {
+                        tierId: txn.tierId,
+                        collection: {
+                            address: address,
+                        },
+                    },
+                });
+                return {
+                    ...txn,
+                    tier: tier,
+                };
+            })
+        );
+
+        return PaginatedImp(data, total);
     }
 }
