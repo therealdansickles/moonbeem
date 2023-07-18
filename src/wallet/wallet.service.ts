@@ -24,6 +24,8 @@ import {
     UpdateWalletInput,
 } from './wallet.dto';
 import { Wallet } from './wallet.entity';
+import { BasicPriceInfo, Profit } from '../tier/tier.dto';
+import { Collection } from '../collection/collection.entity';
 
 interface ITokenPrice {
     token: string;
@@ -36,6 +38,7 @@ type IWalletQuery = Partial<Pick<Wallet, 'name' | 'address'>>;
 export class WalletService {
     constructor(
         @InjectRepository(Wallet) private walletRespository: Repository<Wallet>,
+        @InjectRepository(Collection) private collectionRespository: Repository<Collection>,
         @InjectRepository(User) private userRepository: Repository<User>,
         @InjectRepository(Tier) private tierRepository: Repository<Tier>,
         @InjectRepository(MintSaleTransaction, 'sync_chain')
@@ -448,5 +451,44 @@ export class WalletService {
             captureException(e);
             return [];
         }
+    }
+
+    public async getWalletProfit(address: string): Promise<Profit[]> {
+        const collections = await this.collectionRespository
+            .createQueryBuilder('collection')
+            .leftJoinAndSelect('collection.creator', 'wallet')
+            .where('wallet.address = :address', { address: address })
+            .andWhere('collection.address IS NOT NULL')
+            .getMany();
+
+        if (collections.length <= 0) return [];
+
+        const result = await this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .select('SUM("txn".price::decimal(30,0))', 'price')
+            .addSelect('txn.paymentToken', 'token')
+            .where('txn.address IN (:...addresses)', {
+                addresses: collections.map((c) => {
+                    if (c.address) return c.address;
+                }),
+            })
+            .groupBy('txn.paymentToken')
+            .getRawMany();
+
+        const data = await Promise.all(
+            result.map(async (item) => {
+                const itemData = item as BasicPriceInfo;
+                const coin = await this.coinService.getCoinByAddress(itemData.token.toLowerCase());
+
+                const totalTokenPrice = new BigNumber(itemData.price).div(new BigNumber(10).pow(coin.decimals));
+                const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(coin.derivedUSDC);
+                return {
+                    inPaymentToken: totalTokenPrice.toString(),
+                    inUSDC: totalUSDC.toString(),
+                };
+            })
+        );
+
+        return data;
     }
 }

@@ -9,10 +9,17 @@ import { RelationshipService } from '../relationship/relationship.service';
 import { AuthorizedWallet, CurrentWallet, Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
 import {
-    Activity, BindWalletInput, CreateWalletInput, EstimatedValue, MintPaginated, UnbindWalletInput,
-    UpdateWalletInput, Wallet
+    Activity,
+    BindWalletInput,
+    CreateWalletInput,
+    EstimatedValue,
+    MintPaginated,
+    UnbindWalletInput,
+    UpdateWalletInput,
+    Wallet,
 } from './wallet.dto';
 import { WalletService } from './wallet.service';
+import { Profit } from '../tier/tier.dto';
 
 @Resolver(() => Wallet)
 export class WalletResolver {
@@ -109,5 +116,11 @@ export class WalletResolver {
     @ResolveField(() => [Collection], { description: 'Retrieve the owned collections by the wallet address.' })
     async createdCollections(@Parent() wallet: Wallet): Promise<Collection[]> {
         return await this.collectionService.getCreatedCollectionsByWalletId(wallet.id);
+    }
+
+    @Public()
+    @ResolveField(() => [Profit], { description: 'Returns the total raised for the given wallet' })
+    async profit(@Parent() wallet: Wallet): Promise<Profit[]> {
+        return await this.walletService.getWalletProfit(wallet.address);
     }
 }

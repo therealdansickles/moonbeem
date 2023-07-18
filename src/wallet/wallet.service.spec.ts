@@ -8,6 +8,8 @@ import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { Wallet } from './wallet.entity';
 import { WalletService } from './wallet.service';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import BigNumber from 'bignumber.js';
 
 describe('WalletService', () => {
     let address: string;
@@ -17,6 +19,7 @@ describe('WalletService', () => {
     let service: WalletService;
     let tierService: TierService;
     let userService: UserService;
+    let coinService: CoinService;
 
     beforeAll(async () => {
         address = faker.finance.ethereumAddress().toLowerCase();
@@ -26,6 +29,7 @@ describe('WalletService', () => {
         mintSaleContractService = global.mintSaleContractService;
         tierService = global.tierService;
         userService = global.userService;
+        coinService = global.coinService;
     });
 
     afterEach(async () => {
@@ -654,6 +658,75 @@ describe('WalletService', () => {
 
             const estimatedValue = await service.getEstimatesByAddress(sender1);
             expect(+estimatedValue[0].total).toBeGreaterThan(0);
+        });
+    });
+    describe('getWalletProfit', () => {
+        it('should get wallet profits', async () => {
+            const price = faker.random.numeric(19);
+            const sender1 = faker.finance.ethereumAddress();
+            const paymentToken = faker.finance.ethereumAddress();
+            const collectionAddress = faker.finance.ethereumAddress();
+
+            const wallet = await service.createWallet({ address: sender1 });
+
+            const coin = await coinService.createCoin({
+                address: paymentToken,
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1.5,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: collectionAddress,
+                creator: { id: wallet.id },
+            });
+
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collection.address,
+                tierId: 1,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: price,
+                paymentToken,
+            });
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collection.address,
+                tierId: 1,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: price,
+                paymentToken,
+            });
+
+            const result = await service.getWalletProfit(sender1);
+            expect(result.length).toBeGreaterThan(0);
+
+            const totalProfitInToken = new BigNumber(price)
+                .plus(new BigNumber(price))
+                .div(new BigNumber(10).pow(coin.decimals))
+                .toString();
+
+            expect(result[0].inPaymentToken).toBe(totalProfitInToken);
         });
     });
 });
