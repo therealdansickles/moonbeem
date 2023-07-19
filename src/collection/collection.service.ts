@@ -191,6 +191,10 @@ export class CollectionService {
      * @returns Whether the given data can be saved as a new collection
      */
     async precheckCollection(data: any): Promise<boolean> {
+        // only validate when we have both `startSaleAt` and `endSaleAt`
+        if (data.startSaleAt && data.endSaleAt && data.startSaleAt > data.endSaleAt) {
+            throw new Error(`The endSaleAt should be greater than startSaleAt.`)
+        }
         const existedCollection = await this.collectionRepository.findOneBy({ name: data.name });
         if (existedCollection) throw new Error(`The collection name ${data.name} already existed.`);
         return true
