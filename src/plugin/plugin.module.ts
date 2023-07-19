@@ -1,6 +1,8 @@
 import { HttpModule } from '@nestjs/axios';
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CoinMarketCapModule } from '../coinmarketcap/coinmarketcap.module';
+import { CoinMarketCapService } from '../coinmarketcap/coinmarketcap.service';
 
 import { Collection } from '../collection/collection.entity';
 import { CollectionModule } from '../collection/collection.module';
@@ -13,9 +15,7 @@ import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinModule } from '../sync-chain/coin/coin.module';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import {
-    MintSaleTransaction
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Tier } from '../tier/tier.entity';
 import { TierModule } from '../tier/tier.module';
 import { TierService } from '../tier/tier.service';
@@ -31,9 +31,18 @@ import { PluginService } from './plugin.service';
         forwardRef(() => CollectionModule),
         forwardRef(() => TierModule),
         forwardRef(() => OpenseaModule),
+        forwardRef(() => CoinMarketCapModule),
         forwardRef(() => CoinModule),
-        HttpModule
+        HttpModule,
     ],
-    providers: [PluginService, PluginResolver, TierService, CollectionService, CoinService, OpenseaService],
+    providers: [
+        PluginService,
+        PluginResolver,
+        TierService,
+        CollectionService,
+        CoinService,
+        OpenseaService,
+        CoinMarketCapService,
+    ],
 })
 export class PluginModule {}

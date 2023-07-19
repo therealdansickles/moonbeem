@@ -22,7 +22,7 @@ export class Coin extends BaseEntity {
     readonly derivedETH: string;
 
     @Column({ comment: 'Price of tokens converted to USDC. Required decimals are 18' })
-    readonly derivedUSDC: string;
+    public derivedUSDC: string;
 
     @Column({ default: false, comment: 'Is this token address a native token' })
     readonly native: boolean;

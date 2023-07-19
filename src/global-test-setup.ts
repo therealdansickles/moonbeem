@@ -71,6 +71,7 @@ import { Wallet } from './wallet/wallet.dto';
 import { APP_GUARD } from '@nestjs/core';
 import { SessionGuard } from './session/session.guard';
 import { JwtService } from '@nestjs/jwt';
+import { CoinMarketCapModule } from './coinmarketcap/coinmarketcap.module';
 
 @Resolver()
 export class TestResolver {
@@ -115,6 +116,7 @@ export default async () => {
             SessionModule,
             MoonpayModule,
             OpenseaModule,
+            CoinMarketCapModule,
             SaleHistoryModule,
             SearchModule,
             PollerModule,
