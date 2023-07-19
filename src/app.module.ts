@@ -16,7 +16,6 @@ import { RedisAdapter } from './lib/adapters/redis.adapter';
 import { appConfig } from './lib/configs/app.config';
 import { postgresConfig } from './lib/configs/db.config';
 import { MembershipModule } from './membership/membership.module';
-import { UploadModule } from './upload/upload.module';
 import { MoonpayModule } from './moonpay/moonpay.module';
 import { NftModule } from './nft/nft.module';
 import { OpenseaModule } from './opensea/opensea.module';
@@ -30,6 +29,7 @@ import { SearchModule } from './search/search.module';
 import { SessionGuard } from './session/session.guard';
 import { SessionModule } from './session/session.module';
 import { SyncChainModule } from './sync-chain/sync-chain.module';
+import { UploadModule } from './upload/upload.module';
 import { UserModule } from './user/user.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { WalletModule } from './wallet/wallet.module';
@@ -78,7 +78,7 @@ dotenv.config();
         }),
         JwtModule.register({
             secret: process.env.SESSION_SECRET,
-            signOptions: { expiresIn: '1d' },
+            signOptions: { expiresIn: '30d' },
         }),
     ],
     providers: [
