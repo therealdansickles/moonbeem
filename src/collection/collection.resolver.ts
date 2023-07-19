@@ -1,3 +1,5 @@
+import { GraphQLError } from 'graphql';
+
 import { UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
@@ -42,6 +44,11 @@ export class CollectionResolver {
     @UseGuards(SigninByEmailGuard)
     @Mutation(() => Collection, { description: 'creates a collection' })
     async createCollection(@Args('input') input: CreateCollectionInput): Promise<Collection> {
+        try {
+            await this.collectionService.precheckCollection(input);
+        } catch (err) {
+            throw new GraphQLError(err.message)
+        }
         return this.collectionService.createCollectionWithTiers(input);
     }
 

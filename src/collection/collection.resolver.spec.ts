@@ -618,6 +618,113 @@ describe('CollectionResolver', () => {
                 });
         });
 
+        it('should throw an error if collection name already exist', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const wallet1 = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
+
+            const collaboration = await collaborationService.createCollaboration({
+                walletId: wallet1.id,
+                royaltyRate: 98,
+                collaborators: [
+                    {
+                        address: faker.finance.ethereumAddress(),
+                        role: faker.finance.accountName(),
+                        name: faker.finance.accountName(),
+                        rate: parseInt(faker.random.numeric(2)),
+                    },
+                ],
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner,
+            });
+
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: owner.email,
+                    password: await hashPassword(owner.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
+
+            const query = gql`
+                mutation CreateCollection($input: CreateCollectionInput!) {
+                    createCollection(input: $input) {
+                        name
+                        displayName
+                        kind
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    name: faker.company.name(),
+                    displayName: 'The best collection',
+                    about: 'The best collection ever',
+                    kind: CollectionKind.edition,
+                    address: faker.finance.ethereumAddress(),
+                    organization: {
+                        id: organization.id,
+                    },
+                    collaboration: {
+                        id: collaboration.id,
+                    },
+                    tags: ['test'],
+                },
+            };
+
+            await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.createCollection.name).toEqual(variables.input.name);
+                    expect(body.data.createCollection.displayName).toEqual(variables.input.displayName);
+                });
+                
+            await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.errors[0].message).toMatch(`The collection name ${variables.input.name} already existed`);
+                });
+        });
+
+
         it('should allow authenticated users to create a collection', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
@@ -710,7 +817,6 @@ describe('CollectionResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    console.log(body)
                     expect(body.data.createCollection.name).toEqual(variables.input.name);
                     expect(body.data.createCollection.displayName).toEqual(variables.input.displayName);
                 });

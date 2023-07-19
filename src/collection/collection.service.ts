@@ -185,6 +185,18 @@ export class CollectionService {
     }
 
     /**
+     * Check the data is good for saving as a new collection
+     * 
+     * @param data
+     * @returns Whether the given data can be saved as a new collection
+     */
+    async precheckCollection(data: any): Promise<boolean> {
+        const existedCollection = await this.collectionRepository.findOneBy({ name: data.name });
+        if (existedCollection) throw new Error(`The collection name ${data.name} already existed.`);
+        return true
+    }
+        
+    /**
      * Creates a new collection with the given data.
      *
      * @param data The data to use when creating the collection.
