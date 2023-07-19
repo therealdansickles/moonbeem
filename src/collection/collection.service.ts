@@ -56,7 +56,7 @@ export class CollectionService {
         private tierService: TierService,
         private openseaService: OpenseaService,
         private coinService: CoinService
-    ) {}
+    ) { }
 
     /**
      * Retrieves the collection associated with the given id.
@@ -92,6 +92,21 @@ export class CollectionService {
         }
 
         return collection;
+    }
+
+    /**
+     * Retrieves collections related to the given collaboration ID.
+     *
+     * @param collaborationId The ID of the collaboration to retrieve collections for.
+     * @returns The collections related to the given collaboration.
+     */
+    async getCollectionsByCollaborationId(collaborationId: string): Promise<Collection[]> {
+        const collections = await this.collectionRepository.find({
+            where: { collaboration: { id: collaborationId } },
+            relations: ['organization', 'creator', 'collaboration'],
+        });
+
+        return collections;
     }
     /**
      * Retrieves the collection associated with the given address.
@@ -197,9 +212,9 @@ export class CollectionService {
         }
         const existedCollection = await this.collectionRepository.findOneBy({ name: data.name });
         if (existedCollection) throw new Error(`The collection name ${data.name} already existed.`);
-        return true
+        return true;
     }
-        
+
     /**
      * Creates a new collection with the given data.
      *

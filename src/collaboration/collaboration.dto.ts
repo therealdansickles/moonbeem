@@ -41,8 +41,8 @@ export class Collaboration {
     @Field(() => Wallet, { description: 'The wallet of the collaboration.', nullable: true })
     readonly wallet?: Partial<Wallet>;
 
-    @IsObject()
-    @Field(() => Collection, { description: 'The collection of the collaboration.', nullable: true })
+    @IsArray()
+    @Field(() => [Collection], { description: 'The collections of the collaboration.', nullable: 'itemsAndList' })
     readonly collections?: Collection[];
 
     @IsString()

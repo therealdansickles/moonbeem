@@ -1,19 +1,29 @@
 import { UseGuards } from '@nestjs/common';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver, ResolveField, Parent } from '@nestjs/graphql';
 
 import { Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
 import { Collaboration, CreateCollaborationInput, CollaborationWithEarnings } from './collaboration.dto';
 import { CollaborationService } from './collaboration.service';
+import { Collection } from '../collection/collection.dto';
+import { CollectionService } from '../collection/collection.service';
 
 @Resolver(() => Collaboration)
 export class CollaborationResolver {
-    constructor(private readonly collaborationService: CollaborationService) {}
+    constructor(
+        private readonly collaborationService: CollaborationService, 
+        private readonly collectionService: CollectionService
+    ) {}
 
     @Public()
     @Query(() => CollaborationWithEarnings, { description: 'returns a collaboration for a given uuid', nullable: true })
     async collaboration(@Args('id') id: string): Promise<CollaborationWithEarnings> {
         return await this.collaborationService.getCollaborationWithEarnings(id);
+    }
+
+    @ResolveField(() => [Collection], { nullable: 'itemsAndList' })
+    async collections(@Parent() collaboration: Collaboration): Promise<Collection[]> {
+        return await this.collectionService.getCollectionsByCollaborationId(collaboration.id);
     }
 
     @Public()
