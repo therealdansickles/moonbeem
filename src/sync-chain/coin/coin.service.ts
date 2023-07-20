@@ -38,6 +38,12 @@ export class CoinService {
     }
 
     async getCoins(data: any): Promise<Coin[]> {
+        if (data.chainId === 0) {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { _chainId, ...rest } = data;
+            data = rest;
+        }
+
         const coins = await this.coinRepository.find({ where: data });
 
         const result = await Promise.all(

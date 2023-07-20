@@ -4,7 +4,6 @@ import { RateLimiterMemory } from 'rate-limiter-flexible';
 import { catchError, firstValueFrom, of } from 'rxjs';
 import * as Sentry from '@sentry/node';
 import { coinMarketCapConfig } from '../lib/configs/coinmarketcap.config';
-import { GraphQLError } from 'graphql';
 
 const opts = {
     points: 4, // 4 points
@@ -23,17 +22,15 @@ export class CoinMarketCapService {
                     .consume(coinMarketCapConfig.url, 1)
                     .then(async () => {
                         try {
-                            const { data } = await firstValueFrom(
+                            const response = await firstValueFrom(
                                 this.httpRequest.get(url, params).pipe(
                                     catchError((error) => {
                                         Sentry.captureException(error);
                                         return of(null);
-                                        throw new GraphQLError('Bad response from CoinMarketCap', {
-                                            extensions: { code: 'INTERNAL_SERVER_ERROR' },
-                                        });
                                     })
                                 )
                             );
+                            const { data } = response || {};
                             resolve(data);
                         } catch (error) {
                             reject(error);
@@ -60,7 +57,10 @@ export class CoinMarketCapService {
             amount: 1,
         };
         const result = await this.callCoinMarketCap<any>(url, { headers, params });
-        if (!result) return {};
+        if (!result || Object.keys(result).length === 0) {
+            return {};
+        }
+
         return result.data[0].quote;
     }
 
