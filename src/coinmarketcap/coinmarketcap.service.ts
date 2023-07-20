@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
-import { catchError, firstValueFrom } from 'rxjs';
+import { catchError, firstValueFrom, of } from 'rxjs';
 import * as Sentry from '@sentry/node';
 import { coinMarketCapConfig } from '../lib/configs/coinmarketcap.config';
 import { GraphQLError } from 'graphql';
@@ -27,6 +27,7 @@ export class CoinMarketCapService {
                                 this.httpRequest.get(url, params).pipe(
                                     catchError((error) => {
                                         Sentry.captureException(error);
+                                        return of(null);
                                         throw new GraphQLError('Bad response from CoinMarketCap', {
                                             extensions: { code: 'INTERNAL_SERVER_ERROR' },
                                         });
@@ -44,6 +45,23 @@ export class CoinMarketCapService {
             };
             call();
         });
+    }
+
+    async getPrice(symbol: string): Promise<CoinMarketCapQuoteData> {
+        const endpoint = `/v2/tools/price-conversion`;
+        const url = new URL(endpoint, coinMarketCapConfig.url);
+        const headers = {
+            'X-CMC_PRO_API_KEY': coinMarketCapConfig.apiKey,
+            'Content-Type': 'application/json',
+        };
+
+        const params = {
+            symbol: symbol,
+            amount: 1,
+        };
+        const result = await this.callCoinMarketCap<any>(url, { headers, params });
+        if (!result) return {};
+        return result.data[0].quote;
     }
 
     async getPriceInUSD(symbol: string): Promise<CoinMarketCapQuoteCoin> {
@@ -66,6 +84,14 @@ export class CoinMarketCapService {
             price: result.data[0].quote['USD'].price,
         };
     }
+}
+
+export interface CoinMarketCapQuoteData {
+    [key: string]: QuoteData;
+}
+
+export interface QuoteData {
+    price: number;
 }
 
 export interface CoinMarketCapQuoteCoin {

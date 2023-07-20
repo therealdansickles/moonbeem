@@ -14,16 +14,23 @@ import { MetadataPropertySearchInput } from '../metadata/metadata.dto';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import {
-    MintSaleTransaction
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { TierHolderData, TierHolders } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    BasicPriceInfo, CreateTierInput, IAttributeOverview, IOverview, IPluginOverview,
-    IUpgradeOverview, Profit, Tier, TierSearchPaginated, UpdateTierInput
+    BasicPriceInfo,
+    CreateTierInput,
+    IAttributeOverview,
+    IOverview,
+    IPluginOverview,
+    IUpgradeOverview,
+    Profit,
+    Tier,
+    TierSearchPaginated,
+    UpdateTierInput,
 } from './tier.dto';
 import * as tierEntity from './tier.entity';
+import { CoinService } from '../sync-chain/coin/coin.service';
 
 interface ITierSearch {
     collectionId?: string;
@@ -37,7 +44,7 @@ interface ITierSearch {
 export type ITierQuery = {
     name?: string;
     collection?: { id: string };
-}
+};
 
 @Injectable()
 export class TierService {
@@ -56,7 +63,8 @@ export class TierService {
         @InjectRepository(MintSaleTransaction, 'sync_chain')
         private readonly transactionRepository: Repository<MintSaleTransaction>,
         @InjectRepository(Asset721, 'sync_chain')
-        private readonly asset721Repository: Repository<Asset721>
+        private readonly asset721Repository: Repository<Asset721>,
+        private coinService: CoinService
     ) {}
 
     /**
@@ -67,7 +75,7 @@ export class TierService {
      */
     async getTier(id: string): Promise<Tier> {
         const tier = await this.tierRepository.findOne({ where: { id }, relations: ['collection'] });
-        const coin = await this.coinRepository.findOne({ where: { address: tier.paymentTokenAddress.toLowerCase() } });
+        const coin = await this.coinService.getCoinByAddress(tier.paymentTokenAddress.toLowerCase());
 
         return {
             ...tier,
@@ -92,9 +100,8 @@ export class TierService {
         });
 
         for (const tier of tiers) {
-            const coin = await this.coinRepository.findOne({
-                where: { address: tier.paymentTokenAddress.toLowerCase() },
-            });
+            const coin = await this.coinService.getCoinByAddress(tier.paymentTokenAddress.toLowerCase());
+
             result.push({
                 ...tier,
                 coin,

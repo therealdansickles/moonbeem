@@ -1,15 +1,13 @@
 import { Repository } from 'typeorm';
-
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-
-import { Coin } from './coin.entity';
+import { Coin } from './coin.dto';
 import { CoinMarketCapService } from '../../coinmarketcap/coinmarketcap.service';
-
+import * as coinEntity from './coin.entity';
 @Injectable()
 export class CoinService {
     constructor(
-        @InjectRepository(Coin, 'sync_chain') private readonly coinRepository: Repository<Coin>,
+        @InjectRepository(coinEntity.Coin, 'sync_chain') private readonly coinRepository: Repository<coinEntity.Coin>,
         private coinMarketCapService: CoinMarketCapService
     ) {}
 
@@ -18,33 +16,38 @@ export class CoinService {
     }
 
     async getCoin(id: string): Promise<Coin> {
-        return await this.coinRepository.findOneBy({ id });
+        const coin = await this.coinRepository.findOneBy({ id });
+        const coinData: Coin = coin as any as Coin;
+
+        if (coinData) {
+            const price = await this.coinMarketCapService.getPrice(coin.symbol);
+            return { ...coinData, quote: price };
+        }
+        return coinData;
     }
 
     async getCoinByAddress(address: string): Promise<Coin> {
         const coin = await this.coinRepository.findOneBy({ address });
-        if (coin) {
-            const priceFromCoinMarketCap = await this.coinMarketCapService.getPriceInUSD(coin.symbol);
-            if (priceFromCoinMarketCap?.price) {
-                coin.derivedUSDC = priceFromCoinMarketCap.price.toString();
-            }
-            return coin;
+        const coinData: Coin = coin as any as Coin;
+
+        if (coinData) {
+            const price = await this.coinMarketCapService.getPrice(coin.symbol);
+            return { ...coinData, quote: price };
         }
-        return coin;
+        return coinData;
     }
 
     async getCoins(data: any): Promise<Coin[]> {
-        if (data.chainId == 0) data.chainId = 1;
-
         const coins = await this.coinRepository.find({ where: data });
 
         const result = await Promise.all(
             coins.map(async (c) => {
-                const priceFromCoinMarketCap = await this.coinMarketCapService.getPriceInUSD(c.symbol);
-                if (priceFromCoinMarketCap?.price) {
-                    c.derivedUSDC = priceFromCoinMarketCap.price.toString();
+                const coinData: Coin = c as any as Coin;
+                if (coinData) {
+                    const price = await this.coinMarketCapService.getPrice(c.symbol);
+                    return { ...coinData, quote: price };
                 }
-                return c;
+                return coinData;
             })
         );
         return result;
