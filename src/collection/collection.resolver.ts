@@ -47,7 +47,7 @@ export class CollectionResolver {
         try {
             await this.collectionService.precheckCollection(input);
         } catch (err) {
-            throw new GraphQLError(err.message)
+            throw new GraphQLError(err.message);
         }
         return this.collectionService.createCollectionWithTiers(input);
     }
@@ -160,5 +160,11 @@ export class CollectionResolver {
         @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
     ): Promise<CollectionSoldPaginated> {
         return this.collectionService.getCollectionSold(collection.address, before, after, first, last);
+    }
+
+    @Public()
+    @ResolveField(() => Int, { description: 'Returns total amount of unique wallets that have purchased.' })
+    async owners(@Parent() collection: Collection): Promise<number> {
+        return this.collectionService.getOwners(collection.address);
     }
 }

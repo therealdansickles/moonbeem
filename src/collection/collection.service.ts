@@ -56,7 +56,7 @@ export class CollectionService {
         private tierService: TierService,
         private openseaService: OpenseaService,
         private coinService: CoinService
-    ) { }
+    ) {}
 
     /**
      * Retrieves the collection associated with the given id.
@@ -201,14 +201,14 @@ export class CollectionService {
 
     /**
      * Check the data is good for saving as a new collection
-     * 
+     *
      * @param data
      * @returns Whether the given data can be saved as a new collection
      */
     async precheckCollection(data: any): Promise<boolean> {
         // only validate when we have both `startSaleAt` and `endSaleAt`
         if (data.startSaleAt && data.endSaleAt && data.startSaleAt > data.endSaleAt) {
-            throw new Error(`The endSaleAt should be greater than startSaleAt.`)
+            throw new Error(`The endSaleAt should be greater than startSaleAt.`);
         }
         const existedCollection = await this.collectionRepository.findOneBy({ name: data.name });
         if (existedCollection) throw new Error(`The collection name ${data.name} already existed.`);
@@ -653,5 +653,17 @@ export class CollectionService {
         );
 
         return PaginatedImp(data, total);
+    }
+
+    async getOwners(address: string): Promise<number> {
+        if (!address) return 0;
+
+        const result = await this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .select('COUNT(DISTINCT txn.recipient)', 'total')
+            .where('txn.address = :address', { address })
+            .getRawOne();
+
+        return parseInt(result.total);
     }
 }
