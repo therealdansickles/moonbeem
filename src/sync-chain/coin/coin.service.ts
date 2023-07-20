@@ -4,6 +4,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Coin } from './coin.dto';
 import { CoinMarketCapService } from '../../coinmarketcap/coinmarketcap.service';
 import * as coinEntity from './coin.entity';
+import { omit } from 'lodash';
+
 @Injectable()
 export class CoinService {
     constructor(
@@ -39,9 +41,7 @@ export class CoinService {
 
     async getCoins(data: any): Promise<Coin[]> {
         if (data.chainId === 0) {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { _chainId, ...rest } = data;
-            data = rest;
+            data = omit(data, 'chainId');
         }
 
         const coins = await this.coinRepository.find({ where: data });
