@@ -549,7 +549,7 @@ describe('CollectionResolver', () => {
                 ],
             });
 
-            const organization = await organizationService.createOrganization({
+            const _organization = await organizationService.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),

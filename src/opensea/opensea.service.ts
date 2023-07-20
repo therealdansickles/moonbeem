@@ -77,7 +77,7 @@ export class OpenseaService {
         };
     }
 
-    async getCollectionEventOld(addresContract: string = '', cursor: String = ''): Promise<SaleHistory> {
+    async getCollectionEventOld(addresContract: string = '', cursor: string = ''): Promise<SaleHistory> {
         const url = new URL('/api/v1/events', openseaConfig.url).toString();
         const headers = {
             'X-API-KEY': openseaConfig.apiKey,

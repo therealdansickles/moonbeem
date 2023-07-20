@@ -124,10 +124,10 @@ export class CollaboratorEarningsOutput extends CollaboratorOutput {
 // Necessary to avoid altering the existing Collaboration ObjectType
 @ObjectType()
 export class CollaborationWithEarnings extends OmitType(Collaboration, ['collaborators'] as const) {
-  @IsArray()
-  @Field(() => [CollaboratorEarningsOutput], { description: 'All collaborators of this collaboration.', nullable: true })
-  readonly collaborators?: CollaboratorEarningsOutput[];
-  @IsNumber()
-  @Field(() => Float, { description: 'Collaboration total earnings.' })
-  readonly totalEarnings: number;
+    @IsArray()
+    @Field(() => [CollaboratorEarningsOutput], { description: 'All collaborators of this collaboration.', nullable: true })
+    readonly collaborators?: CollaboratorEarningsOutput[];
+    @IsNumber()
+    @Field(() => Float, { description: 'Collaboration total earnings.' })
+    readonly totalEarnings: number;
 }

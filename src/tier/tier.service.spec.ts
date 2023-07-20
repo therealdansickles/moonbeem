@@ -196,7 +196,7 @@ describe('TierService', () => {
     describe('getTiersByQuery', () => {
         it('should return null if none query provided', async () => {
             const tiers = await service.getTiersByQuery({});
-            expect(tiers).toBeNull()
+            expect(tiers).toBeNull();
         });
 
         it('should get tiers based on collection id', async () => {
@@ -298,7 +298,7 @@ describe('TierService', () => {
                 address: faker.finance.ethereumAddress(),
             });
 
-            const tier = await service.createTier({
+            const _tier = await service.createTier({
                 name: faker.company.name(),
                 totalMints: 100,
                 collection: { id: collection.id },

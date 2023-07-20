@@ -70,8 +70,8 @@ export class TierResolver {
     @ResolveField(() => TierHolders, { description: 'Returns the holder for a tier.' })
     async holders(
         @Parent() tier: Tier,
-        @Args('offset', { type: () => Int, nullable: true, defaultValue: 0 }) offset?: number,
-        @Args('limit', { type: () => Int, nullable: true, defaultValue: 10 }) limit?: number
+            @Args('offset', { type: () => Int, nullable: true, defaultValue: 0 }) offset?: number,
+            @Args('limit', { type: () => Int, nullable: true, defaultValue: 10 }) limit?: number
     ): Promise<TierHolders> {
         return await this.tierService.getHolders(tier.id, offset, limit);
     }
@@ -80,10 +80,10 @@ export class TierResolver {
     @Query(() => TierSearchPaginated, { description: 'Returns the search result for tier', nullable: true })
     async searchTierFromCollection(
         @Args('input') input: TierSearchInput,
-        @Args('before', { nullable: true }) before?: string,
-        @Args('after', { nullable: true }) after?: string,
-        @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
-        @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+            @Args('before', { nullable: true }) before?: string,
+            @Args('after', { nullable: true }) after?: string,
+            @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
     ): Promise<TierSearchPaginated> {
         const { collectionId, collectionAddress, keyword, properties, plugins, upgrades } = input;
         return this.tierService.searchTier(

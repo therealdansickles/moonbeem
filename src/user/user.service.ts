@@ -74,7 +74,7 @@ export class UserService {
     async createUser(payload: Partial<User>): Promise<User> {
         // only email is unique, so just need to check by email
         const existedUser = await this.userRepository.findOneBy({ email: payload.email });
-        if (existedUser) throw new GraphQLError(`This email ${payload.email} is already taken.`)
+        if (existedUser) throw new GraphQLError(`This email ${payload.email} is already taken.`);
         await this.userRepository.insert(payload);
         return await this.userRepository.findOneBy({ email: payload.email });
     }

@@ -3,8 +3,6 @@ import { IsNull, Repository } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-
-import { MailService } from '../mail/mail.service';
 import { Organization } from '../organization/organization.entity';
 import { User } from '../user/user.entity';
 import {

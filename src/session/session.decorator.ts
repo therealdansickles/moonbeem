@@ -82,5 +82,5 @@ export function AuthorizedToken(parameter: { token: string, collection: string, 
         SetMetadata(COLLECTION_ID_PARAMETER, parameter.collection),
         SetMetadata(WALLET_ADDRESS_PARAMETER, parameter.owner),
         UseGuards(AuthorizedTokenGuard)
-    )
+    );
 }

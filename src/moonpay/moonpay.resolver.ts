@@ -11,10 +11,10 @@ export class MoonpayResolver {
     @Query(() => MoonpayUrl)
     public getMoonpaySignature(
         @Args('currency') currency: string,
-        @Args('address') address: string,
-        @Args('theme') theme: string,
-        @Args('signature') signature: string,
-        @Args('message') message: string
+            @Args('address') address: string,
+            @Args('theme') theme: string,
+            @Args('signature') signature: string,
+            @Args('message') message: string
     ): MoonpayUrl {
         return this.moonpay.generateMoonpayUrlWithSignature({ currency, address, theme, signature, message });
     }

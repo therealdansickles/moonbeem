@@ -34,7 +34,6 @@ import { UserModule } from './user/user.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { WalletModule } from './wallet/wallet.module';
 import { CoinMarketCapModule } from './coinmarketcap/coinmarketcap.module';
-import { CoinMarketCapService } from './coinmarketcap/coinmarketcap.service';
 
 dotenv.config();
 

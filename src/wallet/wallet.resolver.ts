@@ -37,7 +37,7 @@ export class WalletResolver {
     })
     async wallet(
         @Args('address', { description: 'an ethereum or EIP-3770 address.', nullable: true }) address: string,
-        @Args('name', { description: 'a name of the wallet.', nullable: true }) name: string
+            @Args('name', { description: 'a name of the wallet.', nullable: true }) name: string
     ): Promise<Wallet> {
         return this.walletService.getWalletByQuery({ name, address });
     }
@@ -81,10 +81,10 @@ export class WalletResolver {
     })
     async minted(
         @Parent() wallet: Wallet,
-        @Args('before', { nullable: true }) before?: string,
-        @Args('after', { nullable: true }) after?: string,
-        @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
-        @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+            @Args('before', { nullable: true }) before?: string,
+            @Args('after', { nullable: true }) after?: string,
+            @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
     ): Promise<MintPaginated> {
         const minted = await this.walletService.getMintedByAddress(wallet.address, before, after, first, last);
         return minted;
@@ -123,10 +123,10 @@ export class WalletResolver {
     @ResolveField(() => WalletSoldPaginated)
     async sold(
         @Parent() wallet: Wallet,
-        @Args('before', { nullable: true }) before?: string,
-        @Args('after', { nullable: true }) after?: string,
-        @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
-        @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+            @Args('before', { nullable: true }) before?: string,
+            @Args('after', { nullable: true }) after?: string,
+            @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
     ): Promise<WalletSoldPaginated> {
         return await this.walletService.getSold(wallet.address, before, after, first, last);
     }

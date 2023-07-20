@@ -5,94 +5,94 @@ import { ObjectType, Field } from '@nestjs/graphql';
 export class PaymentToken {
     @Field()
     @IsString()
-    symbol: string;
+        symbol: string;
 
     @Field({ description: "author's wallet" })
     @IsString()
-    address: string;
+        address: string;
 
     @Field({ description: 'address of image' })
     @IsString()
-    image_url: string;
+        image_url: string;
 
     @Field({ description: 'nft name' })
     @IsString()
-    name: string;
+        name: string;
 
     @Field({ description: 'decimal to find the price ETH' })
     @IsString()
-    decimals: string;
+        decimals: string;
 
     @Field({ description: 'Price ETH' })
     @IsString()
-    eth_price: string;
+        eth_price: string;
 
     @Field({ description: 'Price USD' })
     @IsString()
-    usd_price: string;
+        usd_price: string;
 }
 
 @ObjectType()
 export class Account {
     @Field({ description: 'Address user' })
     @IsString()
-    address: string;
+        address: string;
 
     @Field({ description: 'Address image user' })
     @IsString()
-    profile_img_url: string;
+        profile_img_url: string;
 }
 
 @ObjectType()
 export class Transaction {
     @Field({ description: 'User contact ' })
     @IsObject()
-    from_account: Account;
+        from_account: Account;
 
     @Field({ description: ' User contact ' })
     @IsObject()
-    to_account: Account;
+        to_account: Account;
 
     @Field({ description: 'Date of transaction' })
     @IsString()
-    timestamp: string;
+        timestamp: string;
 }
 
 @ObjectType()
 export class AssetContract {
     @Field()
     @IsString()
-    address: string;
+        address: string;
 }
 
 @ObjectType()
 export class CollectionOPenSea {
     @Field()
     @IsBoolean()
-    is_rarity_enabled: boolean;
+        is_rarity_enabled: boolean;
 }
 
 @ObjectType()
 export class Asset {
     @Field({ description: 'Num of sales' })
     @IsString()
-    num_sales: string;
+        num_sales: string;
 
     @Field({ description: 'Address od image' })
     @IsString()
-    image_url: string;
+        image_url: string;
 
     @Field()
     @IsString()
-    name: string;
+        name: string;
 
     @Field({ description: 'Is rarity' })
     @IsObject()
-    collection: CollectionOPenSea;
+        collection: CollectionOPenSea;
 
     @Field({ description: 'Address contract' })
     @IsObject()
-    asset_contract: AssetContract;
+        asset_contract: AssetContract;
 }
 
 @ObjectType()
@@ -103,11 +103,11 @@ export class Sale {
 
     @Field()
     @IsObject()
-    payment_token: PaymentToken;
+        payment_token: PaymentToken;
 
     @Field()
     @IsString()
-    event_timestamp: string;
+        event_timestamp: string;
 
     @Field()
     @IsString()
@@ -115,7 +115,7 @@ export class Sale {
 
     @Field()
     @IsString()
-    quantity: string;
+        quantity: string;
 
     @Field()
     @IsString()
@@ -127,39 +127,39 @@ export class Sale {
 
     @Field({ description: 'NFT Name' })
     @IsString()
-    nftName: string;
+        nftName: string;
 
     @Field()
     @IsString()
-    nftPicture: string;
+        nftPicture: string;
 
     @Field()
     @IsString()
-    currentPrice: string;
+        currentPrice: string;
 
     @Field()
     @IsBoolean()
-    rarity: boolean;
+        rarity: boolean;
 
     @Field()
     @IsString()
-    timeListed: string;
+        timeListed: string;
 
     @Field({ description: "sender's transfer" })
     @IsString()
-    from: string;
+        from: string;
 
     @Field({ description: 'receiving wallet address' })
     @IsString()
-    to: string;
+        to: string;
 
     @Field()
     @IsString()
-    time: string;
+        time: string;
 
     @Field({ description: 'date created' })
     @IsString()
-    created_date: string;
+        created_date: string;
 }
 
 @ObjectType()

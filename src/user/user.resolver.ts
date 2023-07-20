@@ -20,7 +20,7 @@ export class UserResolver {
     @Query(() => User, { description: 'Returns an user for the given id or username', nullable: true })
     async user(
         @Args({ name: 'id', nullable: true }) id: string,
-        @Args({ name: 'username', nullable: true }) username: string
+            @Args({ name: 'username', nullable: true }) username: string
     ): Promise<User> {
         return await this.userService.getUserByQuery({ id, username });
     }

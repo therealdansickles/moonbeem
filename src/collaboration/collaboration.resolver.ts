@@ -30,7 +30,7 @@ export class CollaborationResolver {
     @Query(() => [Collaboration], { description: 'returns all collaborations for a given user and organization' })
     async collaborations(
         @Args('userId') userId: string,
-        @Args('organizationId') organizationId: string
+            @Args('organizationId') organizationId: string
     ): Promise<Collaboration[]> {
         return await this.collaborationService.getCollaborationsByUserIdAndOrganizationId(userId, organizationId);
     }

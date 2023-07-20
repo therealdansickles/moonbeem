@@ -34,8 +34,8 @@ export class CollectionResolver {
     @Query(() => Collection, { description: 'returns a collection for a given uuid', nullable: true })
     async collection(
         @Args({ name: 'id', nullable: true }) id: string,
-        @Args({ name: 'address', nullable: true }) address: string,
-        @Args({ name: 'name', nullable: true }) name: string
+            @Args({ name: 'address', nullable: true }) address: string,
+            @Args({ name: 'name', nullable: true }) name: string
     ): Promise<Collection> {
         return this.collectionService.getCollectionByQuery({ id, address, name });
     }
@@ -84,10 +84,10 @@ export class CollectionResolver {
     @ResolveField(() => CollectionHoldersPaginated, { description: 'Returns the holder for a collection.' })
     async holders(
         @Parent() collection: Collection,
-        @Args('before', { nullable: true }) before?: string,
-        @Args('after', { nullable: true }) after?: string,
-        @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
-        @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+            @Args('before', { nullable: true }) before?: string,
+            @Args('after', { nullable: true }) after?: string,
+            @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
     ): Promise<CollectionHoldersPaginated> {
         return this.collectionService.getHolders(collection.address, before, after, first, last);
     }
@@ -102,7 +102,7 @@ export class CollectionResolver {
     @Query(() => [CollectionStat], { description: 'Get collection stat from secondary markets' })
     async secondaryMarketStat(
         @Args({ name: 'id', nullable: true }) id: string,
-        @Args({ name: 'address', nullable: true }) address: string
+            @Args({ name: 'address', nullable: true }) address: string
     ): Promise<CollectionStat[]> {
         return this.collectionService.getSecondartMarketStat({ id, address });
     }
@@ -111,8 +111,8 @@ export class CollectionResolver {
     @ResolveField(() => CollectionActivities, { description: 'Returns the activity for collection' })
     async activities(
         @Parent() collection: Collection,
-        @Args('offset', { nullable: true, defaultValue: 0 }) offset?: number,
-        @Args('limit', { nullable: true, defaultValue: 10 }) limit?: number
+            @Args('offset', { nullable: true, defaultValue: 0 }) offset?: number,
+            @Args('limit', { nullable: true, defaultValue: 10 }) limit?: number
     ): Promise<CollectionActivities> {
         return this.collectionService.getCollectionActivities(collection.address, offset, limit);
     }
@@ -121,8 +121,8 @@ export class CollectionResolver {
     @Query(() => LandingPageCollection, { description: 'Returns the upcoming collections.' })
     async landingPage(
         @Args('status', { nullable: true, defaultValue: CollectionStatus.active }) status: CollectionStatus,
-        @Args('offset', { nullable: true, defaultValue: 0 }) offset?: number,
-        @Args('limit', { nullable: true, defaultValue: 10 }) limit?: number
+            @Args('offset', { nullable: true, defaultValue: 0 }) offset?: number,
+            @Args('limit', { nullable: true, defaultValue: 10 }) limit?: number
     ): Promise<LandingPageCollection> {
         return this.collectionService.getLandingPageCollections(status, offset, limit);
     }
@@ -137,9 +137,9 @@ export class CollectionResolver {
     @Query(() => CollectionPaginated, { description: 'Returns the collection list' })
     async collections(
         @Args('before', { nullable: true }) before?: string,
-        @Args('after', { nullable: true }) after?: string,
-        @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
-        @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+            @Args('after', { nullable: true }) after?: string,
+            @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
     ): Promise<CollectionPaginated> {
         return this.collectionService.getCollections(before, after, first, last);
     }
@@ -154,10 +154,10 @@ export class CollectionResolver {
     @ResolveField(() => CollectionSoldPaginated, { description: 'Returns the sale history per collection.' })
     async sold(
         @Parent() collection: Collection,
-        @Args('before', { nullable: true }) before?: string,
-        @Args('after', { nullable: true }) after?: string,
-        @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
-        @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+            @Args('before', { nullable: true }) before?: string,
+            @Args('after', { nullable: true }) after?: string,
+            @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
     ): Promise<CollectionSoldPaginated> {
         return this.collectionService.getCollectionSold(collection.address, before, after, first, last);
     }

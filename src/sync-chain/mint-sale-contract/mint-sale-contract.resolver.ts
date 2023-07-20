@@ -28,9 +28,9 @@ export class MintSaleContractResolver {
     @Query(() => GetMerkleProofOutput, { nullable: true, description: 'Merkle Tree Verify' })
     async getMerkleProof(
         @Args('address') address: string,
-        @Args('merkleRoot') merkleRoot: string,
-        @Args('collectionAddress', { nullable: true, description: '' }) collectionAddress?: string,
-        @Args('tierId', { nullable: true, description: '' }) tierId?: number
+            @Args('merkleRoot') merkleRoot: string,
+            @Args('collectionAddress', { nullable: true, description: '' }) collectionAddress?: string,
+            @Args('tierId', { nullable: true, description: '' }) tierId?: number
     ): Promise<GetMerkleProofOutput> {
         return await this.mintSaleContractService.getMerkleProof(address, merkleRoot, collectionAddress, tierId);
     }

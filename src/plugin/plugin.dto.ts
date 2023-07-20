@@ -6,7 +6,7 @@ import { Field, InputType, ObjectType, PickType } from '@nestjs/graphql';
 import { Metadata, MetadataInput } from '../metadata/metadata.dto';
 
 @ObjectType()
-export class PluginMetadata extends PickType(Metadata, ['conditions', 'properties']) {};
+export class PluginMetadata extends PickType(Metadata, ['conditions', 'properties']) {}
 
 @ObjectType('Plugin')
 export class Plugin {
@@ -53,7 +53,7 @@ export class InstallOnCollectionInput {
     readonly pluginId: string;
 
     @IsObject()
-    @Field(() => GraphQLJSONObject, { description: "The customized metadata need to be installed on chosen tier. "})
+    @Field(() => GraphQLJSONObject, { description: 'The customized metadata need to be installed on chosen tier. '})
     readonly metadata: MetadataInput;
 }
 
@@ -68,6 +68,6 @@ export class InstallOnTierInput {
     readonly pluginId: string;
 
     @IsObject()
-    @Field(() => GraphQLJSONObject, { description: "The customized metadata need to be installed on chosen tier. "})
+    @Field(() => GraphQLJSONObject, { description: 'The customized metadata need to be installed on chosen tier. '})
     readonly metadata: MetadataInput;
 }

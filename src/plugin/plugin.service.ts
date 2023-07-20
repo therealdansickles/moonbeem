@@ -52,8 +52,8 @@ export class PluginService {
             properties: merge(properties, plugin.metadata.properties),
             // merge conditions
             conditions: merge(conditions, plugin.metadata.conditions, metadata?.conditions)
-        }
+        };
         await this.tierService.updateTier(tier.id, { metadata: metadataPayload });
-        return this.tierService.getTier(tier.id)
+        return this.tierService.getTier(tier.id);
     }
 }

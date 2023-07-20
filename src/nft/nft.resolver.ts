@@ -16,9 +16,9 @@ export class NftResolver {
     @Query(() => Nft, { description: 'Get a specific NFT by id.', nullable: true })
     async nft(
         @Args({ name: 'id', nullable: true }) id: string,
-        @Args({ name: 'collectionId', nullable: true }) collectionId: string,
-        @Args({ name: 'tierId', nullable: true }) tierId: string,
-        @Args({ name: 'tokenId', nullable: true, type: () => Int }) tokenId: number,
+            @Args({ name: 'collectionId', nullable: true }) collectionId: string,
+            @Args({ name: 'tierId', nullable: true }) tierId: string,
+            @Args({ name: 'tokenId', nullable: true, type: () => Int }) tokenId: number,
     ): Promise<Nft> {
         let query: INftQuery = { id, tokenId };
         query = omitBy(query, isNil);
@@ -31,8 +31,8 @@ export class NftResolver {
     @Query(() => [Nft], { description: 'Get some NFTs by query.', nullable: true })
     async nfts(
         @Args({ name: 'collectionId', nullable: true }) collectionId: string,
-        @Args({ name: 'tierId', nullable: true }) tierId: string,
-        @Args({ name: 'tokenIds', nullable: true, type: () => [Int] }) tokenIds: number[]
+            @Args({ name: 'tierId', nullable: true }) tierId: string,
+            @Args({ name: 'tokenIds', nullable: true, type: () => [Int] }) tokenIds: number[]
     ): Promise<Nft[]> {
         let query: INftListQuery = { tokenIds };
         query = omitBy(query, isNil);

@@ -4,7 +4,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Coin } from './coin.dto';
 import { CoinMarketCapService } from '../../coinmarketcap/coinmarketcap.service';
 import * as coinEntity from './coin.entity';
-import { omit } from 'lodash';
 
 @Injectable()
 export class CoinService {
@@ -41,7 +40,8 @@ export class CoinService {
 
     async getCoins(data: any): Promise<Coin[]> {
         if (data.chainId === 0) {
-            data = omit(data, 'chainId');
+            const { _chainId, ...rest } = data;
+            data = rest;
         }
 
         const coins = await this.coinRepository.find({ where: data });

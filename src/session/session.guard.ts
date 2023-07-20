@@ -230,7 +230,7 @@ export class SignatureGuard implements CanActivate {
         const ctx = GqlExecutionContext.create(context);
         const request: IGraphQLRequest = ctx.getContext().req;
         // these 3 parameters could be fixed, don't need to inject extenally
-        const { address, message , signature } = request.body.variables?.input;
+        const { address, message , signature } = request.body?.variables?.input || {};
         const addressFromSignature = ethers.verifyMessage(message, signature);
         if (address.toLowerCase() === addressFromSignature.toLowerCase()) return true;
         return false;
@@ -264,7 +264,7 @@ export class AuthorizedTokenGuard implements CanActivate {
         const mintSaleContract = await this.mintSaleContractService.getMintSaleContractByCollection(collection.id);
         if (!mintSaleContract) return false;
 
-        const asset = await this.asset721Service.getAsset721ByQuery({ tokenId: tokenIdFromParameter.toString(), address: mintSaleContract.tokenAddress })
+        const asset = await this.asset721Service.getAsset721ByQuery({ tokenId: tokenIdFromParameter.toString(), address: mintSaleContract.tokenAddress });
         if (!asset) return false;
         if (asset?.owner?.toLowerCase() === ownerAddress.toLowerCase()) return true;
         return false;
