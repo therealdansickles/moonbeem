@@ -543,6 +543,33 @@ export class WalletService {
         return data;
     }
 
+    async getMonthlyBuyers(address: string): Promise<number> {
+        const collections = await this.collectionRespository
+            .createQueryBuilder('collection')
+            .leftJoinAndSelect('collection.creator', 'wallet')
+            .where('wallet.address = :address', { address: address })
+            .andWhere('collection.address IS NOT NULL')
+            .getMany();
+
+        if (collections.length <= 0) return 0;
+        const currentDate = new Date();
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1;
+
+        const total = await this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            // txTime is a timestamp that needs to be converted to a date type
+            .where('EXTRACT(YEAR FROM TO_TIMESTAMP(txn.txTime)) = :year', { year })
+            .andWhere('EXTRACT(MONTH FROM TO_TIMESTAMP(txn.txTime)) = :month', { month })
+            .andWhere('txn.address IN (:...addresses)', {
+                addresses: collections.map((c) => {
+                    if (c.address) return c.address;
+                }),
+            })
+            .getCount();
+        return total;
+    }
+
     public async getMonthlyCollections(address: string): Promise<number> {
         const currentDate = new Date();
         const year = currentDate.getFullYear();
