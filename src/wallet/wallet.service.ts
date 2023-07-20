@@ -542,4 +542,19 @@ export class WalletService {
 
         return data;
     }
+
+    public async getMonthlyCollections(address: string): Promise<number> {
+        const currentDate = new Date();
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1;
+
+        const total = await this.collectionRespository
+            .createQueryBuilder('collection')
+            .leftJoinAndSelect('collection.creator', 'wallet')
+            .where('wallet.address = :address', { address })
+            .andWhere('EXTRACT(YEAR FROM collection.createdAt) = :year', { year })
+            .andWhere('EXTRACT(MONTH FROM collection.createdAt) = :month', { month })
+            .getCount();
+        return total;
+    }
 }

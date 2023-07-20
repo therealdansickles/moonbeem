@@ -415,7 +415,7 @@ describe('WalletResolver', () => {
                 .send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
-            
+
             const query = gql`
                 mutation BindWallet($input: BindWalletInput!) {
                     bindWallet(input: $input) {
@@ -936,6 +936,54 @@ describe('WalletResolver', () => {
                 .expect(({ body }) => {
                     const [firstCollection] = body.data.wallet.createdCollections;
                     expect(firstCollection.name).toEqual(collection.name);
+                });
+        });
+    });
+
+    describe('getMonthlyCollections', () => {
+        it('should get the monthly collections for given wallet', async () => {
+            const sender = faker.finance.ethereumAddress();
+            const wallet = await service.createWallet({ address: sender });
+
+            await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: faker.finance.accountName(),
+                about: faker.company.name(),
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+                creator: { id: wallet.id },
+            });
+
+            await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: faker.finance.accountName(),
+                about: faker.company.name(),
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+                creator: { id: wallet.id },
+            });
+
+            const query = gql`
+                query GetMonthlyCollections($address: String!) {
+                    wallet(address: $address) {
+                        monthlyCollections
+                    }
+                }
+            `;
+
+            const variables = { address: wallet.address };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.wallet).toBeDefined();
+                    expect(body.data.wallet.monthlyCollections).toBe(2);
                 });
         });
     });

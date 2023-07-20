@@ -808,4 +808,36 @@ describe('WalletService', () => {
             expect(result[0].inPaymentToken).toBe(totalProfitInToken);
         });
     });
+
+    describe('getMonthlyCollections', () => {
+        it('should get the monthly collections for given wallet', async () => {
+            const sender = faker.finance.ethereumAddress();
+            const wallet = await service.createWallet({ address: sender });
+
+            await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: faker.finance.accountName(),
+                about: faker.company.name(),
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+                creator: { id: wallet.id },
+            });
+
+            await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: faker.finance.accountName(),
+                about: faker.company.name(),
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+                creator: { id: wallet.id },
+            });
+
+            const result = await service.getMonthlyCollections(sender);
+            expect(result).toBe(2);
+        });
+    });
 });

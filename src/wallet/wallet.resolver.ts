@@ -136,4 +136,10 @@ export class WalletResolver {
     async profit(@Parent() wallet: Wallet): Promise<Profit[]> {
         return await this.walletService.getWalletProfit(wallet.address);
     }
+
+    @Public()
+    @ResolveField(() => Int, { description: 'Returns the monthly collections for given wallet' })
+    async monthlyCollections(@Parent() wallet: Wallet): Promise<number> {
+        return await this.walletService.getMonthlyCollections(wallet.address);
+    }
 }
