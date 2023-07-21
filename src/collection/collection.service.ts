@@ -13,26 +13,18 @@ import { getCurrentPrice } from '../saleHistory/saleHistory.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Tier as TierDto } from '../tier/tier.dto';
 import { Tier } from '../tier/tier.entity';
 import { TierService } from '../tier/tier.service';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    Collection,
-    CollectionActivities,
-    CollectionActivityType,
-    CollectionPaginated,
-    CollectionSold,
-    CollectionSoldPaginated,
-    CollectionStat,
-    CollectionStatus,
-    CreateCollectionInput,
-    LandingPageCollection,
-    SecondarySale,
-    UpdateCollectionInput,
-    ZeroAccount,
+    Collection, CollectionActivities, CollectionActivityType, CollectionPaginated, CollectionSold,
+    CollectionSoldPaginated, CollectionStat, CollectionStatus, CreateCollectionInput,
+    LandingPageCollection, SecondarySale, UpdateCollectionInput, ZeroAccount
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
 
@@ -185,9 +177,11 @@ export class CollectionService {
         const collection = await this.collectionRepository.findOne({ where: query });
         if (!collection) return null;
         if (!collection.nameOnOpensea || collection.nameOnOpensea == '') {
-            throw new GraphQLError('The nameOnOpensea must provide', {
-                extensions: { code: 'INTERNAL_SERVER_ERROR' },
-            });
+            // throw new GraphQLError('The nameOnOpensea must provide', {
+            //     extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            // });
+            console.error('The nameOnOpensea must provide')
+            return null;
         }
         const statFromOpensea = await this.openseaService.getCollectionStat(collection.nameOnOpensea);
         // may have multiple sources, so make it as array
