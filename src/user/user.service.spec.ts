@@ -14,6 +14,8 @@ describe('UserService', () => {
         service = global.userService;
         repository = global.userRepository;
         organizationService = global.organizationService;
+        jest.spyOn(global.mailService, 'sendWelcomeEmail').mockImplementation(async () => {});
+        jest.spyOn(global.mailService, 'sendInviteEmail').mockImplementation(async () => {});
     });
 
     afterEach(async () => {

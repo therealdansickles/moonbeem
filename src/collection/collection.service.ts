@@ -180,7 +180,7 @@ export class CollectionService {
             // throw new GraphQLError('The nameOnOpensea must provide', {
             //     extensions: { code: 'INTERNAL_SERVER_ERROR' },
             // });
-            console.error('The nameOnOpensea must provide')
+            console.error('The nameOnOpensea must provide');
             return null;
         }
         const statFromOpensea = await this.openseaService.getCollectionStat(collection.nameOnOpensea);

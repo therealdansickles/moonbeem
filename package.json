@@ -68,7 +68,9 @@
     "graphql-type-json": "^0.3.2",
     "lodash": "^4.17.21",
     "merkletreejs": "^0.3.10",
+    "mjml": "^4.14.1",
     "mongodb": "^4.13.0",
+    "mustache": "^4.2.0",
     "nest-raven": "^9.2.0",
     "nftscan-api": "^1.6.1",
     "passport": "^0.6.0",
@@ -118,6 +120,9 @@
     "typescript": "^4.4.4"
   },
   "jest": {
+    "setupFilesAfterEnv": [
+      "<rootDir>/test-setup.ts"
+    ],
     "globalSetup": "<rootDir>/global-test-setup.ts",
     "globalTeardown": "<rootDir>/global-test-teardown.ts",
     "moduleFileExtensions": [

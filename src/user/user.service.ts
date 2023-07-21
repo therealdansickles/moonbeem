@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { captureException } from '@sentry/node';
 
 import { googleConfig } from '../lib/configs/app.config';
+import { MailService } from '../mail/mail.service';
 import { OrganizationService } from '../organization/organization.service';
 import { User } from './user.entity';
 
@@ -23,6 +24,7 @@ type IUserQuery = Partial<Pick<User, 'id' | 'username'>>;
 export class UserService {
     constructor(
         private organizationService: OrganizationService,
+        private mailService: MailService,
         @InjectRepository(User) private userRepository: Repository<User>
     ) {}
 
@@ -62,6 +64,7 @@ export class UserService {
     async createUserWithOrganization(payload: Partial<User>): Promise<User> {
         const user = await this.createUser(payload);
         await this.organizationService.createPersonalOrganization(user);
+        await this.mailService.sendWelcomeEmail(user.email, {});
         return user;
     }
 

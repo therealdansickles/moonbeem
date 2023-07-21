@@ -7,6 +7,7 @@ import { postgresConfig } from './lib/configs/db.config';
 // platform modules
 import { CollaborationModule } from './collaboration/collaboration.module';
 import { CollectionModule } from './collection/collection.module';
+import { MailModule } from './mail/mail.module';
 import { MembershipModule } from './membership/membership.module';
 import { NftModule } from './nft/nft.module';
 import { OrganizationModule } from './organization/organization.module';
@@ -36,6 +37,7 @@ import { SystemConfigModule } from './sync-chain/system-config/system-config.mod
 // platform services
 import { CollaborationService } from './collaboration/collaboration.service';
 import { CollectionService } from './collection/collection.service';
+import { MailService } from './mail/mail.service';
 import { MembershipService } from './membership/membership.service';
 import { NftService } from './nft/nft.service';
 import { OrganizationService } from './organization/organization.service';
@@ -105,6 +107,7 @@ export default async () => {
             // import platform modules
             CollaborationModule,
             CollectionModule,
+            MailModule,
             MembershipModule,
             NftModule,
             OrganizationModule,
@@ -149,23 +152,24 @@ export default async () => {
     }).compile();
 
     // platform services
-    global.nftService = module.get<NftService>(NftService);
-    global.userService = module.get<UserService>(UserService);
-    global.tierService = module.get<TierService>(TierService);
-    global.pluginService = module.get<PluginService>(PluginService);
-    global.walletService = module.get<WalletService>(WalletService);
-    global.redeemService = module.get<RedeemService>(RedeemService);
-    global.pollerService = module.get<PollerService>(PollerService);
-    global.searchService = module.get<SearchService>(SearchService);
-    global.moonPayService = module.get<MoonpayService>(MoonpayService);
-    global.sessionService = module.get<SessionService>(SessionService);
-    global.waitlistService = module.get<WaitlistService>(WaitlistService);
-    global.membershipService = module.get<MembershipService>(MembershipService);
-    global.collectionService = module.get<CollectionService>(CollectionService);
-    global.saleHistoryService = module.get<SaleHistoryService>(SaleHistoryService);
-    global.relationshipService = module.get<RelationshipService>(RelationshipService);
-    global.organizationService = module.get<OrganizationService>(OrganizationService);
     global.collaborationService = module.get<CollaborationService>(CollaborationService);
+    global.collectionService = module.get<CollectionService>(CollectionService);
+    global.mailService = module.get<MailService>(MailService);
+    global.membershipService = module.get<MembershipService>(MembershipService);
+    global.moonPayService = module.get<MoonpayService>(MoonpayService);
+    global.nftService = module.get<NftService>(NftService);
+    global.organizationService = module.get<OrganizationService>(OrganizationService);
+    global.pluginService = module.get<PluginService>(PluginService);
+    global.pollerService = module.get<PollerService>(PollerService);
+    global.redeemService = module.get<RedeemService>(RedeemService);
+    global.relationshipService = module.get<RelationshipService>(RelationshipService);
+    global.saleHistoryService = module.get<SaleHistoryService>(SaleHistoryService);
+    global.searchService = module.get<SearchService>(SearchService);
+    global.sessionService = module.get<SessionService>(SessionService);
+    global.tierService = module.get<TierService>(TierService);
+    global.userService = module.get<UserService>(UserService);
+    global.waitlistService = module.get<WaitlistService>(WaitlistService);
+    global.walletService = module.get<WalletService>(WalletService);
 
     // sync chain services
     global.asset721Service = module.get<Asset721Service>(Asset721Service);

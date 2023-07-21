@@ -7,6 +7,7 @@ import { CoinMarketCapService } from '../coinmarketcap/coinmarketcap.service';
 
 import { Collaboration } from '../collaboration/collaboration.entity';
 import { CollaborationModule } from '../collaboration/collaboration.module';
+import { MailModule } from '../mail/mail.module';
 import { Membership } from '../membership/membership.entity';
 import { MembershipModule } from '../membership/membership.module';
 import { MembershipService } from '../membership/membership.service';
@@ -52,18 +53,19 @@ import { CollectionService } from './collection.service';
             Redeem,
         ]),
         TypeOrmModule.forFeature([Coin, MintSaleContract, MintSaleTransaction, Asset721], 'sync_chain'),
+        forwardRef(() => Asset721Module),
+        forwardRef(() => CoinMarketCapModule),
+        forwardRef(() => CoinModule),
         forwardRef(() => CollaborationModule),
+        forwardRef(() => MailModule),
+        forwardRef(() => MembershipModule),
         forwardRef(() => MintSaleContractModule),
         forwardRef(() => MintSaleTransactionModule),
-        forwardRef(() => Asset721Module),
+        forwardRef(() => OpenseaModule),
         forwardRef(() => OrganizationModule),
         forwardRef(() => TierModule),
-        forwardRef(() => WalletModule),
-        forwardRef(() => OpenseaModule),
         forwardRef(() => UserModule),
-        forwardRef(() => CoinModule),
-        forwardRef(() => MembershipModule),
-        forwardRef(() => CoinMarketCapModule),
+        forwardRef(() => WalletModule),
         JwtModule,
     ],
     exports: [CollectionModule, CollectionService],

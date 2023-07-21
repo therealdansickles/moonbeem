@@ -8,6 +8,7 @@ import { CoinMarketCapService } from '../coinmarketcap/coinmarketcap.service';
 import { Collection } from '../collection/collection.entity';
 import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
+import { MailModule } from '../mail/mail.module';
 import { Membership } from '../membership/membership.entity';
 import { MembershipModule } from '../membership/membership.module';
 import { MembershipService } from '../membership/membership.service';
@@ -36,16 +37,17 @@ import { SessionService } from './session.service';
     imports: [
         TypeOrmModule.forFeature([Wallet, User, Collection, Membership, Organization, Tier]),
         TypeOrmModule.forFeature([Asset721, Coin, MintSaleContract, MintSaleTransaction], 'sync_chain'),
+        forwardRef(() => Asset721Module),
+        forwardRef(() => CoinMarketCapModule),
+        forwardRef(() => CoinModule),
+        forwardRef(() => CollectionModule),
+        forwardRef(() => HttpModule),
+        forwardRef(() => MailModule),
+        forwardRef(() => MembershipModule),
+        forwardRef(() => OpenseaModule),
+        forwardRef(() => TierModule),
         forwardRef(() => UserModule),
         forwardRef(() => WalletModule),
-        forwardRef(() => Asset721Module),
-        forwardRef(() => CollectionModule),
-        forwardRef(() => TierModule),
-        forwardRef(() => OpenseaModule),
-        forwardRef(() => HttpModule),
-        forwardRef(() => CoinModule),
-        forwardRef(() => MembershipModule),
-        forwardRef(() => CoinMarketCapModule),
         JwtModule.register({
             secret: process.env.SESSION_SECRET,
             signOptions: { expiresIn: '1d' },

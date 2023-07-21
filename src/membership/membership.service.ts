@@ -8,11 +8,13 @@ import { User } from '../user/user.entity';
 import {
     CreateMembershipInput, MembershipRequestInput, UpdateMembershipInput
 } from './membership.dto';
+import { MailService } from '../mail/mail.service';
 import { Membership } from './membership.entity';
 
 @Injectable()
 export class MembershipService {
     constructor(
+        private readonly mailService: MailService,
         @InjectRepository(Membership) private membershipRepository: Repository<Membership>,
         @InjectRepository(User) private userRepository: Repository<User>,
         @InjectRepository(Organization) private organizationRepository: Repository<Organization>,
@@ -81,6 +83,7 @@ export class MembershipService {
         membership.organization = await this.organizationRepository.findOneBy({ id: organizationId });
         membership.user = await this.userRepository.findOneBy({ id: userId });
         await this.membershipRepository.insert(membership);
+        await this.mailService.sendInviteEmail(membership.user.email, { token: membership.inviteCode});
         return await this.membershipRepository.findOneBy({ id: membership.id });
     }
 

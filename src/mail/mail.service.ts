@@ -1,71 +1,154 @@
+import * as Mustache from 'mustache';
+import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
+import * as fsPromise from 'fs/promises';
+import * as mjml from 'mjml';
 import { Injectable } from '@nestjs/common';
 import { MailgunService, EmailOptions } from '@nextnm/nestjs-mailgun';
-// import { Mailable } from './interfaces/mail.interface';
-import { mailgunConfig } from '../lib/configs/mailgun.config';
-import { getPasswordResetEmail, getVerificationEmailTemplate, getWelcomeEmailTemplate } from './mail.templates';
-import { captureException } from '@sentry/node';
+
+dotenv.config();
 
 @Injectable()
 export class MailService {
     constructor(private mailgunService: MailgunService) {}
 
-    async sendEmail(emailAddress: string, subject: string, content: string) {
-        try {
-            const options: EmailOptions = {
-                from: mailgunConfig.EMAIL_ADDRESS,
-                to: emailAddress,
-                subject,
-                html: content,
-            };
+    /**
+     * Send an email using Mailgun
+     *
+     * @param emailAddress - The email address to send the email to
+     * @param subject - The subject of the email
+     * @param content - The content of the email
+     *
+     * @returns
+     */
+    async sendEmail(emailAddress: string, subject: string, content: string): Promise<void> {
+        const domain = process.env.MAILGUN_DOMAIN || 'mail.vibe-support.xyz';
 
-            if (mailgunConfig.USERNAME !== 'none' && mailgunConfig.KEY !== 'none') {
-                await this.mailgunService.createEmail(mailgunConfig.DOMAIN, options);
-            }
-        } catch (e) {
-            captureException(e);
-            // This service is not exposed to GraphQL thus it doesnt need to throw GraphQL error.
-            // It should silently error.
-            console.error('Mailgun service error:', e);
-        }
+        const options: EmailOptions = {
+            from: process.env.MAILGUN_FROM_EMAIL || 'support@vibe-support.xyz',
+            to: emailAddress,
+            subject,
+            html: content,
+        };
+
+        await this.mailgunService.createEmail(domain, options);
     }
 
-    async sendVerificationEmail(token: string, email: string) {
-        const verificationUrl = `${
-            mailgunConfig.BASE_URI_CONFIG.DASHBOARD
-        }/signup/basename?token=${token}&identity=${Buffer.from(email, 'utf8').toString('base64')}`;
-        const html = getVerificationEmailTemplate(verificationUrl);
-        await this.sendEmail(email, 'Signup Verification Code', html);
+    /**
+     * Render a MJML email template with data
+     *
+     * @param templateName - The template name to render (not full path)
+     * @param data - The data to render the template with
+     *
+     * @returns The rendered template
+     */
+    async renderTemplate(templateName: string, data: any): Promise<string> {
+        const template = await fsPromise.readFile(`./src/mail/templates/${templateName}`, 'utf8');
+        const rendered = await Mustache.render(template, data);
+        return mjml(rendered).html;
     }
 
-    async sendWelcomeEmail(email: string) {
-        const html = getWelcomeEmailTemplate();
-        await this.sendEmail(email, 'Welcome to Vibe!', html);
+    /**
+     * Send a welcome email to a user
+     *
+     * @param emailAddress - The email address to send the email to
+     * @param data - The data to render the template with
+     * @returns
+     */
+    async sendWelcomeEmail(emailAddress: string, data: any) {
+        const content = await this.renderTemplate('welcome.mjml', data);
+        await this.sendEmail(emailAddress, 'Welcome to Vibe!', content);
     }
 
-    //async sendMemberInviteEmail(
-    //orgName: string,
-    //inviteCode: string,
-    //user: AuthPayload,
-    //email: string,
-    //inviteExistingUser: boolean
-    //) {
-    //const registrationUrl = new URL(mailgunConfig.BASE_URI_CONFIG.DASHBOARD);
-    //registrationUrl.pathname = '/authentication/orgInvite/';
-    //registrationUrl.searchParams.append('inviteCode', inviteCode);
-    //registrationUrl.searchParams.append('identity', Buffer.from(email, 'utf8').toString('base64'));
-    //registrationUrl.searchParams.append('exist', inviteExistingUser.toString());
+    /**
+     * Send a verification email to a user
+     *
+     * @param emailAddress - The email address to send the email to
+     * @param data - The data to render the template with
+     * @returns
+     */
+    async sendVerificationEmail(emailAddress: string, data: any): Promise<void> {
+        const content = await this.renderTemplate('verification.mjml', {ctaUrl: this.generateVerificationUrl(emailAddress, data.token)});
+        await this.sendEmail(emailAddress, 'Your Signup Verification Code on Vibe', content);
+    }
 
-    //const html = getUserInviteEmail(registrationUrl.toString(), user, orgName);
-    //await this.sendEmail(email, "You're invited to Vibe!", html);
-    //}
 
-    async sendForgotPasswordEmail(token: string, email: string, name: string) {
-        const resetPasswordUrl = `${mailgunConfig.BASE_URI_CONFIG.DASHBOARD}/signin/newpassword?identity=${Buffer.from(
-            email,
-            'utf8'
-        ).toString('base64')}&token=${token}`;
+    /**
+     * Send an invite email to a user
+     *
+     * @param emailAddress - The email address to send the email to
+     * @param data - The data to render the template with
+     * @returns
+     */
+    async sendInviteEmail(emailAddress: string, data: any): Promise<void> {
+        const content = await this.renderTemplate('invite.mjml', {ctaUrl: this.generateInviteUrl(emailAddress, data.token)});
+        await this.sendEmail(emailAddress, 'Your Signup Verification Code on Vibe', content);
+    }
 
-        const html = getPasswordResetEmail(resetPasswordUrl, name);
-        await this.sendEmail(email, 'You have requested to reset password', html);
+    /**
+     * Send a password reset email to a user
+     *
+     * @param emailAddress - The email address to send the email to
+     * @param data - The data to render the template with
+     * @returns
+     */
+    async sendPasswordResetEmail(emailAddress: string, data: any): Promise<void> {
+        const content = await this.renderTemplate('reset.mjml', {ctaUrl: this.generatePasswordResetUrl(emailAddress, data.token)});
+        await this.sendEmail(emailAddress, 'Your Password Reset Code on Vibe', content);
+    }
+
+    /**
+     * Generates the dashboard verification url.
+     *
+     * @param emailAddress - The email address to send the email to
+     * @param token - The token to use for verification
+     *
+     * @returns The verification url
+     */
+    generateVerificationUrl(emailAddress: string, token: string): string {
+        const verificationUrl = this.generateDashboardUrl(emailAddress);
+        verificationUrl.pathname = '/signup/basename';
+        verificationUrl.searchParams.append('token', token);
+        verificationUrl.searchParams.append('identity', Buffer.from(emailAddress, 'utf8').toString('base64'));
+        return verificationUrl.toString();
+    }
+
+    /**
+     * Generates the dashboard password reset url.
+     *
+     * @param emailAddress - The email address to send the email to
+     * @param token - The token to use for password reset
+     * @returns The password reset url
+     */
+    generatePasswordResetUrl(emailAddress: string, token: string): string {
+        const resetUrl = this.generateDashboardUrl(emailAddress);
+        resetUrl.pathname = '/signin/newpassword';
+        resetUrl.searchParams.append('token', token);
+        return resetUrl.toString();
+    }
+
+    /**
+     * Generates the dashboard invite url.
+     *
+     * @param emailAddress - The email address to send the email to
+     * @param token - The token to use for invite
+     * @returns The invite url
+     */
+    generateInviteUrl(emailAddress: string, token: string): string {
+        const inviteUrl = this.generateDashboardUrl(emailAddress);
+        inviteUrl.pathname = '/authentication/orgInvite';
+        inviteUrl.searchParams.append('inviteCode', token);
+        return inviteUrl.toString();
+    }
+
+    /**
+     * Generates the base dashboard url.
+     *
+     * @param email - The email address to send the email to
+     * @returns The dashboard URL object
+     */
+    private generateDashboardUrl(email: string): URL {
+        const dashboardUrl = new URL(process.env.DASHBOARD_BASE_URL || 'https://dashboard.vibe.xyz');
+        dashboardUrl.searchParams.append('identity', Buffer.from(email, 'utf8').toString('base64'));
+        return dashboardUrl;
     }
 }

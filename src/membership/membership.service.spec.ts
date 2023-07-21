@@ -18,6 +18,7 @@ describe('MembershipService', () => {
         userService = global.userService;
         organizationService = global.organizationService;
         repository = global.membershipRepository;
+        jest.spyOn(global.mailService, 'sendInviteEmail').mockImplementation(() => {});
     });
 
     afterEach(async () => {
@@ -175,12 +176,14 @@ describe('MembershipService', () => {
                 userId: user.id,
                 canDeploy: true,
             });
+
             expect(result.id).toBeDefined();
             expect(result.canDeploy).toBeTruthy();
             expect(result.organization.id).toEqual(organization.id);
             expect(result.organization.owner.id).not.toBeNull();
             expect(result.user.id).toEqual(user.id);
         });
+
 
         it('should prevent duplicate memberships', async () => {
             const user = await userService.createUser({
