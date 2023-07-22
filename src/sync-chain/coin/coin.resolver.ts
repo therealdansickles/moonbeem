@@ -1,10 +1,10 @@
-import { Args, Int, Query, Resolver } from '@nestjs/graphql';
-
+import { Args, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { GraphQLJSONObject } from 'graphql-type-json';
 import { Public } from '../../session/session.decorator';
-import { Coin } from './coin.dto';
+import { Coin, CoinQuotes } from './coin.dto';
 import { CoinService } from './coin.service';
 
-@Resolver('Coin')
+@Resolver(() => Coin)
 export class CoinResolver {
     constructor(private readonly coinService: CoinService) {}
 
@@ -22,5 +22,11 @@ export class CoinResolver {
     ): Promise<Coin[]> {
         const data = { chainId, enable };
         return await this.coinService.getCoins(data);
+    }
+
+    @Public()
+    @ResolveField(() => GraphQLJSONObject, { description: 'returns the pairs' })
+    async quote(@Parent() coin: Coin): Promise<CoinQuotes> {
+        return this.coinService.getQuote(coin.symbol);
     }
 }

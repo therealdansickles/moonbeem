@@ -1,6 +1,5 @@
 import { ObjectType, Field, ID } from '@nestjs/graphql';
-import { IsString, IsDateString, IsNumber, IsBoolean, IsObject } from 'class-validator';
-import { GraphQLJSONObject } from 'graphql-type-json';
+import { IsString, IsDateString, IsNumber, IsBoolean } from 'class-validator';
 
 @ObjectType()
 export class CoinQuote {
@@ -9,7 +8,6 @@ export class CoinQuote {
     readonly price: number;
 }
 
-@ObjectType()
 export class CoinQuotes {
     readonly [key: string]: CoinQuote;
 }
@@ -57,10 +55,6 @@ export class Coin {
     @IsNumber()
     @Field({ description: 'The chain id for the coin.' })
     readonly chainId?: number;
-
-    @IsObject()
-    @Field(() => GraphQLJSONObject, { nullable: true, description: 'An object map of price conversions.' })
-    public quote?: CoinQuotes;
 
     @IsDateString()
     @Field({ description: 'The created time.' })

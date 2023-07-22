@@ -1,5 +1,4 @@
 import { faker } from '@faker-js/faker';
-
 import { CoinService } from './coin.service';
 
 describe('CoinService', () => {
@@ -16,85 +15,83 @@ describe('CoinService', () => {
 
     describe('coin', () => {
         it('should get an coin', async () => {
-            const uuid = faker.datatype.uuid();
-            const mockResponse = {
-                id: uuid,
+            const coin = await service.createCoin({
                 address: faker.finance.ethereumAddress(),
                 name: 'USD Coin',
                 symbol: 'USDC',
                 decimals: 6,
                 native: false,
                 enable: true,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            };
-            jest.spyOn(service, 'getCoin').mockImplementation(async () => mockResponse);
-            const result = await service.getCoin(uuid);
-            expect(result.id).toEqual(uuid);
+                derivedETH: faker.random.numeric(5),
+                derivedUSDC: faker.random.numeric(5),
+            });
+
+            const result = await service.getCoin(coin.id);
+            expect(result.id).toEqual(coin.id);
         });
 
         it('should get an coin by address', async () => {
             const address = faker.finance.ethereumAddress();
-            const mockResponse = {
-                id: faker.datatype.uuid(),
+            const coin = await service.createCoin({
                 address: address,
                 name: 'USD Coin',
                 symbol: 'USDC',
                 decimals: 6,
                 native: false,
                 enable: true,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            };
-            jest.spyOn(service, 'getCoinByAddress').mockImplementation(async () => mockResponse);
-            const result = await service.getCoinByAddress(address);
-            expect(result.address).toEqual(address);
+                derivedETH: faker.random.numeric(5),
+                derivedUSDC: faker.random.numeric(5),
+            });
+            const result = await service.getCoinByAddress(coin.address);
+            expect(result.address).toEqual(coin.address);
         });
 
         it('should get coin list for chainId', async () => {
-            const address = faker.finance.ethereumAddress();
-            const mockResponse = [
-                {
-                    id: faker.datatype.uuid(),
-                    address: address,
-                    name: 'USD Coin',
-                    symbol: 'USDC',
-                    decimals: 6,
-                    native: false,
-                    enable: true,
-                    chainId: 1,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                },
-            ];
-            jest.spyOn(service, 'getCoins').mockImplementation(async () => mockResponse);
+            await service.createCoin({
+                address: faker.finance.ethereumAddress(),
+                name: 'USD Coin',
+                symbol: 'USDC',
+                decimals: 6,
+                chainId: 1,
+                native: false,
+                enable: true,
+                derivedETH: faker.random.numeric(5),
+                derivedUSDC: faker.random.numeric(5),
+            });
+            await service.createCoin({
+                address: faker.finance.ethereumAddress(),
+                name: 'VIBE Coin',
+                symbol: 'VIBE',
+                decimals: 6,
+                chainId: 42161,
+                native: false,
+                enable: true,
+                derivedETH: faker.random.numeric(5),
+                derivedUSDC: faker.random.numeric(5),
+            });
 
-            const data = { chainId: 1 };
+            // Should return all coins if chainid is 0 or null.
+            const data = { chainId: 0 };
             const result = await service.getCoins(data);
-            expect(result.length).toBeGreaterThanOrEqual(1);
+            expect(result.length).toBeGreaterThanOrEqual(2);
+
+            // Should return all coins with chainId=1
+            const data1 = { chainId: 1 };
+            const result1 = await service.getCoins(data1);
+            expect(result1.length).toBeGreaterThanOrEqual(1);
+            expect(result1[0].chainId).toEqual(1);
         });
 
-        it('should get the entire coin list', async () => {
-            const address = faker.finance.ethereumAddress();
-            const mockResponse = [
-                {
-                    id: faker.datatype.uuid(),
-                    address: address,
-                    name: 'USD Coin',
-                    symbol: 'USDC',
-                    decimals: 6,
-                    native: false,
-                    enable: true,
-                    chainId: 1,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
+        it('should get the quote for given coin', async () => {
+            const mockResponse = {
+                USDC: {
+                    price: 1.23456789,
                 },
-            ];
-            jest.spyOn(service, 'getCoins').mockImplementation(async () => mockResponse);
+            };
+            jest.spyOn(service, 'getQuote').mockImplementation(async () => mockResponse);
 
-            const data = {};
-            const result = await service.getCoins(data);
-            expect(result.length).toBeGreaterThanOrEqual(1);
+            const result = await service.getQuote('USDC');
+            expect(result['USDC'].price).toBe(1.23456789);
         });
     });
 });
