@@ -1412,13 +1412,12 @@ describe('CollectionService', () => {
     describe('getCollectionEarningsByTokenAddress', () => {
         it('should return correct sum of earnings for the given token address', async () => {
             const price = faker.random.numeric(19);
-            const tokenAddress = faker.finance.ethereumAddress();
 
             const collection = await repository.save({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
-                address: tokenAddress,
+                address: faker.finance.ethereumAddress(),
                 artists: [],
                 tags: [],
                 publishedAt: new Date(),
@@ -1432,14 +1431,14 @@ describe('CollectionService', () => {
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: 0,
-                tokenAddress,
+                tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.random.numeric(3),
                 price,
                 collectionId: collection.id,
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
-            const earnings = await service.getCollectionEarningsByTokenAddress(tokenAddress);
+            const earnings = await service.getCollectionEarningsByCollectionAddress(collection.address);
 
             expect(earnings).toEqual(BigInt(price));
         });

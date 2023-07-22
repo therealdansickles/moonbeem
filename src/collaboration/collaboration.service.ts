@@ -53,7 +53,7 @@ export class CollaborationService {
         // getCollectionEarningsByTokenAddress returns earnings in wei 
         const earningsByCollection = await Promise.all(
             collaboration.collections.map(
-                ({ address }) => this.collectionService.getCollectionEarningsByTokenAddress(address)
+                ({ address }) => this.collectionService.getCollectionEarningsByCollectionAddress(address)
                     .catch(err => {
                         throw new Error(`Failed to get collection earnings for address ${address}: ${err.message}`);
                     })

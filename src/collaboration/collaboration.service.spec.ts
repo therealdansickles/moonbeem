@@ -357,7 +357,7 @@ describe('CollaborationService', () => {
                 tiers: [],
             });
 
-            jest.spyOn(service['collectionService'], 'getCollectionEarningsByTokenAddress').mockResolvedValue(totalEarningsWei);
+            jest.spyOn(service['collectionService'], 'getCollectionEarningsByCollectionAddress').mockResolvedValue(totalEarningsWei);
         });
 
         afterAll(async () => {

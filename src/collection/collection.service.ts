@@ -586,17 +586,17 @@ export class CollectionService {
     }
 
     /**
-     * Get collection earnings by token address
+     * Get collection earnings by collection address
      *
-     * @param tokenAddress
+     * @param address The address of the collection
      *
      * @returns {bigint} collection earnings in wei
      */
-    public async getCollectionEarningsByTokenAddress(tokenAddress: string): Promise<bigint> {
+    public async getCollectionEarningsByCollectionAddress(address: string): Promise<bigint> {
         const earnings = await this.mintSaleTransactionRepository
             .createQueryBuilder('MintSaleTransaction')
             .select('SUM(CAST("MintSaleTransaction"."price" as NUMERIC))', 'sum')
-            .where('"MintSaleTransaction"."tokenAddress" = :tokenAddress', { tokenAddress })
+            .where('"MintSaleTransaction"."address" = :address', { address })
             .getRawOne();
 
         return BigInt(earnings?.sum || 0);
