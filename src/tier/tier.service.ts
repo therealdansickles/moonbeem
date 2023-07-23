@@ -342,14 +342,17 @@ export class TierService {
             });
         }
 
-        if (query.properties) {
-            query.properties.forEach((property) => {
-                const propertyNew = {};
-                propertyNew[property.name] = property;
-                builder = builder.andWhere(`(tier.metadata->>'properties')::jsonb @> :property`, {
-                    property: JSON.stringify(propertyNew),
-                });
+        if (query.properties?.length > 0) {
+            const propertyConditions = query.properties.map((property) => {
+                const propertyName = property.name;
+                const propertyValue = property.value;
+
+                const value = typeof propertyValue === 'string' ? `"${propertyValue}"` : propertyValue;
+                return `(tier.metadata->>'properties')::jsonb @> '{"${propertyName}":{"name":"${propertyName}","value":${value}}}'`;
             });
+
+            const conditionString = propertyConditions.join(' OR ');
+            builder = builder.andWhere(`(${conditionString})`);
         }
 
         if (query.upgrades) {

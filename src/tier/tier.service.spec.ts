@@ -7,12 +7,8 @@ import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { WalletService } from '../wallet/wallet.service';
 import { Tier } from './tier.dto';
 import { TierService } from './tier.service';
@@ -634,6 +630,25 @@ describe('TierService', () => {
                 },
             });
 
+            tier = await service.createTier({
+                name: faker.finance.accountName(),
+                totalMints: 100,
+                collection: { id: innerCollection.id },
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        color: {
+                            name: 'color',
+                            type: 'string',
+                            value: 'red',
+                            display_value: 'Red',
+                        },
+                    },
+                },
+            });
+
             await mintSaleContractService.createMintSaleContract({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
@@ -745,6 +760,7 @@ describe('TierService', () => {
             expect(result.edges[0].node).toBeDefined();
             expect(result.edges[0].node.name).toBe(tierName);
         });
+
         it('should search by properties', async () => {
             const result = await service.searchTier(
                 { collectionId: innerCollection.id, properties: [{ name: 'holding_days', value: 125 }] },
@@ -760,6 +776,7 @@ describe('TierService', () => {
             expect(result.edges[0].node).toBeDefined();
             expect(result.edges[0].node.name).toBe(tierName);
         });
+
         it('should search by plugin', async () => {
             const result = await service.searchTier(
                 { collectionId: innerCollection.id, plugins: ['vibexyz/creator_scoring'] },
@@ -775,6 +792,7 @@ describe('TierService', () => {
             expect(result.edges[0].node).toBeDefined();
             expect(result.edges[0].node.name).toBe(tierName);
         });
+
         it('should search by upgrade attrtibute', async () => {
             const result = await service.searchTier(
                 { collectionId: innerCollection.id, upgrades: ['holding_days'] },
@@ -789,6 +807,25 @@ describe('TierService', () => {
             expect(result.edges[0]).toBeDefined();
             expect(result.edges[0].node).toBeDefined();
             expect(result.edges[0].node.name).toBe(tierName);
+        });
+
+        it('should search two tier, if input two attributes', async () => {
+            const result = await service.searchTier(
+                {
+                    collectionId: innerCollection.id,
+                    properties: [
+                        { name: 'holding_days', value: 125 },
+                        { name: 'color', value: 'red' },
+                    ],
+                },
+                '',
+                '',
+                10,
+                10
+            );
+            expect(result).toBeDefined();
+            expect(result.totalCount).toEqual(2);
+            expect(result.edges.length).toBe(2);
         });
     });
 });
