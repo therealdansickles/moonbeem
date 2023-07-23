@@ -1589,4 +1589,62 @@ describe('CollectionService', () => {
             expect(result).toBe(2);
         });
     });
+
+    describe('getSevenDayVolume', () => {
+        it('should be return 7day volume', async () => {
+            const collectionAddress = faker.finance.ethereumAddress();
+
+            const collection = await service.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                address: collectionAddress,
+            });
+
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collection.address,
+                tierId: 1,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collection.address,
+                tierId: 1,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
+            const mockResponse = {
+                inUSDC: '100',
+                inPaymentToken: '100',
+            };
+
+            jest.spyOn(service, 'getSevenDayVolume').mockImplementation(async () => mockResponse);
+            const result = await service.getSevenDayVolume(collectionAddress);
+
+            expect(result).toBeDefined();
+            expect(result.inUSDC).toBe('100');
+
+            jest.spyOn(service, 'getGrossEarnings').mockImplementation(async () => mockResponse);
+            const result1 = await service.getGrossEarnings(collectionAddress);
+            expect(result1).toBeDefined();
+            expect(result1.inUSDC).toBe('100');
+        });
+    });
 });

@@ -13,20 +13,31 @@ import { getCurrentPrice } from '../saleHistory/saleHistory.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import {
-    MintSaleTransaction
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Tier as TierDto } from '../tier/tier.dto';
 import { Tier } from '../tier/tier.entity';
 import { TierService } from '../tier/tier.service';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    Collection, CollectionActivities, CollectionActivityType, CollectionPaginated, CollectionSold,
-    CollectionSoldPaginated, CollectionStat, CollectionStatus, CreateCollectionInput,
-    LandingPageCollection, SecondarySale, UpdateCollectionInput, ZeroAccount
+    Collection,
+    CollectionActivities,
+    CollectionActivityType,
+    CollectionPaginated,
+    CollectionSold,
+    CollectionSoldPaginated,
+    CollectionStat,
+    CollectionStatus,
+    CreateCollectionInput,
+    GrossEarnings,
+    LandingPageCollection,
+    SecondarySale,
+    SevenDayVolume,
+    UpdateCollectionInput,
+    ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
+import BigNumber from 'bignumber.js';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name'>>;
 
@@ -659,5 +670,73 @@ export class CollectionService {
             .getRawOne();
 
         return parseInt(result.total);
+    }
+
+    async getSevenDayVolume(address: string): Promise<SevenDayVolume> {
+        if (!address) return { inPaymentToken: '0', inUSDC: '0' };
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const startDate = Math.floor(sevenDaysAgo.getTime() / 1000);
+        const endDate = Math.floor(Date.now() / 1000);
+
+        const result = await this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .select('txn.paymentToken', 'token')
+            .addSelect('SUM(txn.price::numeric(20,0))', 'total_price')
+            .where('txn.txTime BETWEEN :startDate AND :endDate', { startDate, endDate })
+            .andWhere('txn.address = :address', { address })
+            .addGroupBy('txn.paymentToken')
+            .getRawOne();
+
+        if (result) {
+            const coin = await this.coinService.getCoinByAddress(result.token);
+            const quote = await this.coinService.getQuote(coin.symbol);
+            const usdPrice = quote['USD'].price;
+
+            const tokenPrice = new BigNumber(result.total_price).div(new BigNumber(10).pow(coin.decimals));
+            const volume = new BigNumber(tokenPrice).multipliedBy(usdPrice);
+            return {
+                inPaymentToken: tokenPrice.toString(),
+                inUSDC: volume.toString(),
+            };
+        }
+        return { inPaymentToken: '0', inUSDC: '0' };
+    }
+
+    private async getTotalPrice(address: string, between?: number[]): Promise<GrossEarnings> {
+        const builder = await this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .select('txn.paymentToken', 'token')
+            .addSelect('SUM(txn.price::numeric(20,0))', 'total_price')
+            .andWhere('txn.address = :address', { address });
+        if (between && between.length == 2) {
+            builder.andWhere('txn.txTime BETWEEN :startDate AND :endDate', {
+                startDate: between[0],
+                endDate: between[1],
+            });
+        }
+
+        builder.groupBy('txn.paymentToken');
+        const result = await builder.getRawOne();
+
+        if (result) {
+            const coin = await this.coinService.getCoinByAddress(result.token);
+            const quote = await this.coinService.getQuote(coin.symbol);
+            const usdPrice = quote['USD'].price;
+
+            const tokenPrice = new BigNumber(result.total_price).div(new BigNumber(10).pow(coin.decimals));
+            const volume = new BigNumber(tokenPrice).multipliedBy(usdPrice);
+
+            return {
+                inPaymentToken: tokenPrice.toString(),
+                inUSDC: volume.toString(),
+            };
+        }
+    }
+
+    async getGrossEarnings(address: string): Promise<GrossEarnings> {
+        if (!address) return { inPaymentToken: '0', inUSDC: '0' };
+
+        return await this.getTotalPrice(address);
     }
 }

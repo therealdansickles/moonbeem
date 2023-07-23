@@ -423,3 +423,22 @@ export class CollectionSold extends PickType(
 
 @ObjectType('CollectionSoldPaginated')
 export class CollectionSoldPaginated extends Paginated(CollectionSold) {}
+
+@ObjectType('Volume')
+export class Volume {
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'Profits in payment token', nullable: true })
+    readonly inPaymentToken?: string;
+
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'Profits converted to USDC', nullable: true })
+    readonly inUSDC?: string;
+}
+
+@ObjectType('SevenDayVolume')
+export class SevenDayVolume extends Volume {}
+
+@ObjectType('GrossEarnings')
+export class GrossEarnings extends Volume {}

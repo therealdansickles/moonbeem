@@ -17,8 +17,10 @@ import {
     CollectionStat,
     CollectionStatus,
     CreateCollectionInput,
+    GrossEarnings,
     LandingPageCollection,
     SecondarySale,
+    SevenDayVolume,
     UpdateCollectionInput,
 } from './collection.dto';
 import { CollectionService } from './collection.service';
@@ -166,5 +168,17 @@ export class CollectionResolver {
     @ResolveField(() => Int, { description: 'Returns total amount of unique wallets that have purchased.' })
     async owners(@Parent() collection: Collection): Promise<number> {
         return this.collectionService.getOwners(collection.address);
+    }
+
+    @Public()
+    @ResolveField(() => SevenDayVolume, {description: 'Returns 7 days of volume for given collection.'})
+    async sevenDayVolume(@Parent() collection: Collection): Promise<SevenDayVolume> { 
+        return this.collectionService.getSevenDayVolume(collection.address);
+    }
+
+    @Public()
+    @ResolveField(() => GrossEarnings, { description: 'Returns gross earnings for given collection.'})
+    async grossEarnings(@Parent() collection: Collection): Promise<GrossEarnings> { 
+        return this.collectionService.getGrossEarnings(collection.address);
     }
 }
