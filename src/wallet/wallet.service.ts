@@ -584,4 +584,43 @@ export class WalletService {
             .getCount();
         return total;
     }
+
+    public async getMonthlyEarnings(address: string): Promise<number> {
+        const collections = await this.collectionRespository
+            .createQueryBuilder('collection')
+            .leftJoinAndSelect('collection.creator', 'wallet')
+            .where('wallet.address = :address', { address: address })
+            .andWhere('collection.address IS NOT NULL')
+            .getMany();
+
+        if (collections.length <= 0) return 0;
+        const currentDate = new Date();
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1;
+
+        const result = await this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .select('txn.paymentToken', 'token')
+            .addSelect('SUM(txn.price::numeric(20,0))', 'total_price')
+            .where('EXTRACT(YEAR FROM TO_TIMESTAMP(txn.txTime)) = :year', { year })
+            .andWhere('EXTRACT(MONTH FROM TO_TIMESTAMP(txn.txTime)) = :month', { month })
+            .andWhere('txn.address IN (:...addresses)', {
+                addresses: collections.map((c) => {
+                    if (c.address) return c.address;
+                }),
+            })
+            .addGroupBy('txn.paymentToken')
+            .getRawMany();
+
+        const totalEarning = result.reduce(async (accumulator, current) => {
+            const coin = await this.coinService.getCoinByAddress(current.token);
+            const quote = await this.coinService.getQuote(coin.symbol);
+            const usdPrice = quote['USD'].price;
+
+            const totalTokenPrice = new BigNumber(current.total_price).div(new BigNumber(10).pow(coin.decimals));
+            const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(usdPrice);
+            return accumulator + totalUSDC;
+        }, 0);
+        return totalEarning;
+    }
 }
