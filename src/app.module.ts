@@ -34,6 +34,7 @@ import { UserModule } from './user/user.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { WalletModule } from './wallet/wallet.module';
 import { CoinMarketCapModule } from './coinmarketcap/coinmarketcap.module';
+import { MerkleTreeModule } from './merkleTree/merkleTree.module';
 
 dotenv.config();
 
@@ -61,6 +62,7 @@ dotenv.config();
         MoonpayModule,
         SaleHistoryModule,
         PluginModule,
+        MerkleTreeModule,
         // integration graphql
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver, // GraphQL server adapter

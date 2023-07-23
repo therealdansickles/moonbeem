@@ -1,7 +1,6 @@
-import { ObjectType, Field, ID, InputType, registerEnumType, Int } from '@nestjs/graphql';
+import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsDateString, IsNumber, IsBoolean, IsNumberString, IsObject, IsArray } from 'class-validator';
-import { OrganizationInput } from '../../organization/organization.dto';
+import { IsString, IsDateString, IsNumber, IsBoolean } from 'class-validator';
 import { ContractType } from '../factory/factory.entity';
 
 registerEnumType(ContractType, { name: 'ContractType' });
@@ -126,73 +125,4 @@ export class MintSaleContract {
     @IsDateString()
     @Field({ description: 'The DateTime that this contract was last updated.' })
     readonly updatedAt: Date;
-}
-
-@InputType('CreateMerkleRootInput')
-export class CreateMerkleRootInput {
-    @ApiProperty()
-    @IsArray()
-    @Field(() => [CreateMerkleRootData], { description: 'Create data for merkle.' })
-    readonly data: CreateMerkleRootData[];
-
-    @ApiProperty()
-    @IsObject()
-    @Field(() => OrganizationInput, {
-        nullable: true,
-        description: 'MerkleRoot association to collection.',
-    })
-    readonly organization?: OrganizationInput;
-}
-
-@InputType('CreateMerkleRootData')
-export class CreateMerkleRootData {
-    @ApiProperty()
-    @IsString()
-    @Field({ description: 'Address added to merkleTree' })
-    readonly address: string;
-
-    @ApiProperty()
-    @IsNumberString()
-    @Field({ description: 'Amount available, using string, the merkleTree can be expanded to erc20 tokens' })
-    readonly amount: string;
-}
-
-@ObjectType()
-export class CreateMerkleRootOutput {
-    @ApiProperty()
-    @IsBoolean()
-    @Field({ description: 'Status' })
-    readonly success: boolean;
-
-    @ApiProperty()
-    @IsString()
-    @Field({ description: 'MerkleTree' })
-    readonly merkleRoot: string;
-}
-
-@ObjectType()
-export class GetMerkleProofOutput {
-    @IsString()
-    @Field({ description: 'User Address' })
-    readonly address: string;
-
-    @IsString()
-    @Field({ description: 'Available Amount' })
-    readonly amount: string;
-
-    @IsString()
-    @Field(() => [String], { description: 'Merkle Proof' })
-    readonly proof: string[];
-
-    @IsBoolean()
-    @Field({ description: 'Status' })
-    readonly success: boolean;
-
-    @Field(() => Int, {
-        nullable: true,
-        defaultValue: 0,
-        description: 'Given merekleRoot and collection, return the number of available',
-    })
-    @IsNumber()
-    readonly usable?: number;
 }

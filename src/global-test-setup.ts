@@ -74,6 +74,8 @@ import { APP_GUARD } from '@nestjs/core';
 import { SessionGuard } from './session/session.guard';
 import { JwtService } from '@nestjs/jwt';
 import { CoinMarketCapModule } from './coinmarketcap/coinmarketcap.module';
+import { MerkleTreeModule } from './merkleTree/merkleTree.module';
+import { MerkleTreeService } from './merkleTree/merkleTree.service';
 
 @Resolver()
 export class TestResolver {
@@ -125,6 +127,7 @@ export default async () => {
             PollerModule,
             PluginModule,
             WaitlistModule,
+            MerkleTreeModule,
             TestResolver,
             // import sync modules
             Asset721Module,
@@ -170,6 +173,7 @@ export default async () => {
     global.userService = module.get<UserService>(UserService);
     global.waitlistService = module.get<WaitlistService>(WaitlistService);
     global.walletService = module.get<WalletService>(WalletService);
+    global.merkleTreeService = module.get<MerkleTreeService>(MerkleTreeService);
 
     // sync chain services
     global.asset721Service = module.get<Asset721Service>(Asset721Service);
@@ -195,6 +199,7 @@ export default async () => {
     global.OrganizationRepository = module.get('OrganizationRepository');
     global.relationshipRepository = module.get('RelationshipRepository');
     global.collaborationRepository = module.get('CollaborationRepository');
+    global.merkleTreeRepository = module.get('MerkleTreeRepository');
 
     // sync chain repositories
     global.asset721Repository = module.get('sync_chain_Asset721Repository');
