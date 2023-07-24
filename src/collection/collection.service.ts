@@ -184,7 +184,7 @@ export class CollectionService {
             console.error('The nameOnOpensea must provide');
             return null;
         }
-        const statFromOpensea = await this.openseaService.getCollectionStat(collection.nameOnOpensea);
+        const statFromOpensea = await this.openseaService.getCollection(collection.nameOnOpensea);
         // may have multiple sources, so make it as array
         return [
             {

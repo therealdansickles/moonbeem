@@ -3,6 +3,7 @@ import { GraphQLError } from 'graphql';
 import { UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
+import { OpenseaService } from '../opensea/opensea.service';
 import { AuthorizedOrganization, Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
@@ -13,7 +14,7 @@ import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import {
     Collection, CollectionActivities, CollectionInput, CollectionPaginated, CollectionSoldPaginated,
     CollectionStat, CollectionStatus, CreateCollectionInput, GrossEarnings, LandingPageCollection,
-    SecondarySale, SevenDayVolume, UpdateCollectionInput
+    SevenDayVolume, UpdateCollectionInput
 } from './collection.dto';
 import { CollectionService } from './collection.service';
 
@@ -21,7 +22,8 @@ import { CollectionService } from './collection.service';
 export class CollectionResolver {
     constructor(
         private readonly collectionService: CollectionService,
-        private readonly MintSaleContractService: MintSaleContractService
+        private readonly MintSaleContractService: MintSaleContractService,
+        private readonly openseaService: OpenseaService,
     ) {}
 
     @Public()
@@ -136,12 +138,6 @@ export class CollectionResolver {
             @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
     ): Promise<CollectionPaginated> {
         return this.collectionService.getCollections(before, after, first, last);
-    }
-
-    @Public()
-    @ResolveField(() => Number)
-    async secondarySale(@Parent() collection: Collection): Promise<SecondarySale> {
-        return await this.collectionService.getSecondarySale(collection.address);
     }
 
     @Public()

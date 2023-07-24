@@ -287,11 +287,22 @@ export class CollectionStatDataPeriodItem {
 
     @Field(() => Float, { nullable: true })
     @IsNumber()
-    readonly total?: number;
+    readonly monthly?: number;
 
     @Field(() => Float, { nullable: true })
-    @IsObject()
-    readonly thirtyDayAvg?: number;
+    @IsNumber()
+    readonly total?: number;
+}
+
+@ObjectType('CollectionStatDataPaymentToken')
+export class CollectionStatDataPaymentToken {
+    @Field(() => String, { nullable: true })
+    @IsString()
+    readonly symbol?: string;
+
+    @Field(() => Float, { nullable: true })
+    @IsNumber()
+    readonly priceInUSD?: number;
 }
 
 @ObjectType('CollectionStatData')
@@ -304,17 +315,25 @@ export class CollectionStatData {
     @IsObject()
     readonly sales?: CollectionStatDataPeriodItem;
 
-    @Field(() => Float, { nullable: true })
-    @IsNumber()
-    readonly supply: number;
+    @Field(() => CollectionStatDataPeriodItem, { nullable: true })
+    @IsObject()
+    readonly price?: CollectionStatDataPeriodItem;
 
     @Field(() => Float, { nullable: true })
     @IsNumber()
-    readonly floorPrice: number;
+    readonly supply?: number;
+
+    @Field(() => Float, { nullable: true })
+    @IsNumber()
+    readonly floorPrice?: number;
 
     @Field(() => Float, { description: 'The collection net Gross from open sea', nullable: true })
-    @IsString()
-    readonly netGrossEarning: number;
+    @IsNumber()
+    readonly netGrossEarning?: number;
+
+    @Field(() => CollectionStatDataPaymentToken, { nullable: true })
+    @IsObject()
+    readonly paymentToken?: CollectionStatDataPaymentToken;
 }
 
 @ObjectType('CollectionStat')

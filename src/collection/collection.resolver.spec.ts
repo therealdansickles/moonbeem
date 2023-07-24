@@ -1329,6 +1329,7 @@ describe('CollectionResolver', () => {
                             hourly: faker.datatype.float(),
                             daily: faker.datatype.float(),
                             weekly: faker.datatype.float(),
+                            monthly: faker.datatype.float(),
                             total: faker.datatype.float(),
                         },
                         sales: {
@@ -1336,7 +1337,7 @@ describe('CollectionResolver', () => {
                             daily: faker.datatype.float(),
                             weekly: faker.datatype.float(),
                             total: faker.datatype.float(),
-                            thirtyDayAvg: faker.datatype.float(),
+                            monthly: faker.datatype.float(),
                         },
                         netGrossEarning: faker.datatype.float(),
                     },
