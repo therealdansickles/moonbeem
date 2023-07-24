@@ -1,15 +1,21 @@
+import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
+
 import { faker } from '@faker-js/faker';
+
 import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { Wallet } from './wallet.entity';
 import { WalletService } from './wallet.service';
-import { CoinService } from '../sync-chain/coin/coin.service';
-import BigNumber from 'bignumber.js';
 
 describe('WalletService', () => {
     let address: string;
@@ -171,7 +177,13 @@ describe('WalletService', () => {
             const data = { address: eipAddress, owner: { id: ownerId }, message, signature };
             await service.bindWallet(data);
             try {
-                await service.bindWallet(data);
+                const anotherOwner = await userService.createUser({
+                    email: faker.internet.email(),
+                    password: faker.internet.password(),
+                });
+                message = 'Hi from tests!';
+                signature = await wallet.signMessage(message);
+                await service.bindWallet({ address: eipAddress, owner: { id: anotherOwner.id }, message, signature });
             } catch (error) {
                 expect((error as Error).message).toBe(`Wallet ${eipAddress} is already bound.`);
             }

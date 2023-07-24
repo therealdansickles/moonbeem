@@ -8,26 +8,21 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { captureException } from '@sentry/node';
 
+import { Collection } from '../collection/collection.entity';
 import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { BasicPriceInfo, Profit } from '../tier/tier.dto';
 import { Tier } from '../tier/tier.entity';
 import { User } from '../user/user.entity';
 import {
-    BindWalletInput,
-    CreateWalletInput,
-    EstimatedValue,
-    Minted,
-    MintPaginated,
-    UnbindWalletInput,
-    UpdateWalletInput,
-    WalletSold,
-    WalletSoldPaginated,
+    BindWalletInput, CreateWalletInput, EstimatedValue, Minted, MintPaginated, UnbindWalletInput,
+    UpdateWalletInput, WalletSold, WalletSoldPaginated
 } from './wallet.dto';
 import { Wallet } from './wallet.entity';
-import { BasicPriceInfo, Profit } from '../tier/tier.dto';
-import { Collection } from '../collection/collection.entity';
 
 interface ITokenPrice {
     token: string;
@@ -246,20 +241,20 @@ export class WalletService {
     /**
      * Verifies that the given address signed the given message.
      *
-     * @param address The address to verify.
+     * @param walletAddress The address to verify.
      * @param message The message that was signed.
      * @param signature The signature of the message.
      * @returns a Wallet object.
      */
-    async verifyWallet(address: string, message: string, signature: string): Promise<Wallet | null> {
-        if (ethers.verifyMessage(message, signature).toLowerCase() === address.toLowerCase()) {
-            const wallet = this.walletRespository.create({ address, name: address.toLowerCase() });
-            const existedWallet = await this.walletRespository.findOneBy({ address: wallet.address });
+    async verifyWallet(walletAddress: string, message: string, signature: string): Promise<Wallet | null> {
+        const address = walletAddress.toLowerCase();
+        if (ethers.verifyMessage(message, signature).toLowerCase() === address) {
+            const existedWallet = await this.walletRespository.findOneBy({ address });
             if (existedWallet) return existedWallet;
             else {
-                await this.walletRespository.insert(wallet);
+                await this.walletRespository.insert({ address, name: address });
                 return this.walletRespository.findOne({
-                    where: { address: address.toLowerCase() },
+                    where: { address },
                     relations: ['owner'],
                 });
             }
