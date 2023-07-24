@@ -402,6 +402,16 @@ describe('CollaborationService', () => {
             expect(result.totalEarnings).toEqual(totalEarningsUsd);
         });
 
+        it('should return a collaboration with its zero earnings if no mint sales', async () => {
+            jest.spyOn(service['collectionService'], 'getCollectionEarningsByCollectionAddress').mockResolvedValue(null);
+            
+            const result = await service.getCollaborationWithEarnings(collaboration.id);
+
+            expect(result).toBeDefined();
+            expect(result.id).toEqual(collaboration.id);
+            expect(result.totalEarnings).toEqual(0);
+        });
+
         it('should return a collaboration with individual collaborator earnings', async () => {
             const result = await service.getCollaborationWithEarnings(collaboration.id);
 

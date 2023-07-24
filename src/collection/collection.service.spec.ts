@@ -1570,6 +1570,22 @@ describe('CollectionService', () => {
                 sum: price,
             });
         });
+
+        it('should return null if there are no mint sale transaction', async () => {
+            const collection = await repository.save({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                publishedAt: new Date(),
+            });
+
+            const earnings = await service.getCollectionEarningsByCollectionAddress(collection.address);
+
+            expect(earnings).toEqual(null);
+        });
     });
 
     describe('getCollectionSold', () => {

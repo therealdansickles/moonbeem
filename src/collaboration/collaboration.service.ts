@@ -33,8 +33,14 @@ export class CollaborationService {
     }
 
     private async calculateEarningsUsd(
-        { sum, paymentToken }: { sum: string | null, paymentToken: string | null }
+        earningObject: { sum: string, paymentToken: string }
     ): Promise<bigint> {
+        if (!earningObject) {
+            return BigInt(0);
+        }
+
+        const { sum, paymentToken } = earningObject;
+
         const token = await this.coinService.getCoinByAddress(paymentToken);
         if (!token) {
             throw new Error(`Failed to get token ${paymentToken}`);
@@ -75,7 +81,7 @@ export class CollaborationService {
             collaboration.collections.map(({ address }) => this.collectionService.getCollectionEarningsByCollectionAddress(address))
         );
 
-        const collectionEarningsInUsd = await Promise.all(
+        const collectionEarningsInUsd: bigint[] = await Promise.all(
             earningsByCollection.map(this.calculateEarningsUsd.bind(this))
         );
 

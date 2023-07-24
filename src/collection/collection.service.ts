@@ -610,8 +610,9 @@ export class CollectionService {
             .where('"MintSaleTransaction"."address" = :address', { address })
             .getRawOne();
         
+        // Return null if collection does not have any mint sale transactions
         if (!result.sum || !result.paymentToken) {
-            throw new Error(`Failed to get earnings and/or payment token for collection address ${address}`);
+            return null;
         }
 
         return result;
