@@ -749,7 +749,7 @@ describe('CollectionService', () => {
                 },
                 creator: { id: wallet.id },
                 startSaleAt: Math.floor(faker.date.future(1).getTime() / 1000),
-                endSaleAt: Math.floor(faker.date.future(2).getTime() / 1000),
+                endSaleAt: Math.floor(faker.date.future(10).getTime() / 1000),
             });
             expect(result).toEqual(true);
         });

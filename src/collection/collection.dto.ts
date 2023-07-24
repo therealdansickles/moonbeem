@@ -1,26 +1,10 @@
 import {
-    IsArray,
-    IsDateString,
-    IsEnum,
-    IsNumber,
-    IsObject,
-    IsOptional,
-    IsString,
-    IsUrl,
-    ValidateIf,
+    IsArray, IsDateString, IsEnum, IsNumber, IsObject, IsOptional, IsString, IsUrl, ValidateIf
 } from 'class-validator';
 import { GraphQLJSONObject } from 'graphql-type-json';
 
 import {
-    Field,
-    Float,
-    InputType,
-    Int,
-    ObjectType,
-    OmitType,
-    PartialType,
-    PickType,
-    registerEnumType,
+    Field, Float, InputType, Int, ObjectType, OmitType, PartialType, PickType, registerEnumType
 } from '@nestjs/graphql';
 
 import { Collaboration, CollaborationInput } from '../collaboration/collaboration.dto';
@@ -320,16 +304,16 @@ export class CollectionStatData {
     @IsObject()
     readonly sales?: CollectionStatDataPeriodItem;
 
-    @Field(() => Float)
+    @Field(() => Float, { nullable: true })
     @IsNumber()
     readonly supply: number;
 
-    @Field(() => Float)
+    @Field(() => Float, { nullable: true })
     @IsNumber()
     readonly floorPrice: number;
 
-    @IsString()
     @Field(() => Float, { description: 'The collection net Gross from open sea', nullable: true })
+    @IsString()
     readonly netGrossEarning: number;
 }
 
