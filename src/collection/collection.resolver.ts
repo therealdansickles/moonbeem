@@ -6,22 +6,14 @@ import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nes
 import { AuthorizedOrganization, Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import {
-    Collection,
-    CollectionActivities,
-    CollectionInput,
-    CollectionPaginated,
-    CollectionSoldPaginated,
-    CollectionStat,
-    CollectionStatus,
-    CreateCollectionInput,
-    GrossEarnings,
-    LandingPageCollection,
-    SecondarySale,
-    SevenDayVolume,
-    UpdateCollectionInput,
+    Collection, CollectionActivities, CollectionInput, CollectionPaginated, CollectionSoldPaginated,
+    CollectionStat, CollectionStatus, CreateCollectionInput, GrossEarnings, LandingPageCollection,
+    SecondarySale, SevenDayVolume, UpdateCollectionInput
 } from './collection.dto';
 import { CollectionService } from './collection.service';
 
@@ -95,7 +87,7 @@ export class CollectionResolver {
     }
 
     @Public()
-    @ResolveField(() => Number, { description: 'Returns the unique holder count for collection.' })
+    @ResolveField(() => Number, { description: 'Returns the unique holder count for collection.', nullable: true })
     async uniqueHolderCount(@Parent() collection: Collection): Promise<number> {
         return this.collectionService.getUniqueHolderCount(collection.address);
     }
