@@ -258,6 +258,72 @@ describe('OrganizationService', () => {
             const result = await service.deleteOrganization(organization.id);
             expect(result).toBeTruthy();
         });
+        it('shoule delete organization and membership, if only one member', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await service.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const result = await service.deleteOrganization(organization.id);
+            expect(result).toBeTruthy();
+
+            const memberships = await membershipRepository.findBy({
+                organization: { id: organization.id },
+                user: { id: owner.id },
+            });
+
+            expect(memberships.length).toEqual(0);
+        });
+
+        it('should throw an error, if org contains more than two memberships', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const owner2 = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await service.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+            await membershipRepository.create({
+                canEdit: true,
+                canDeploy: true,
+                canManage: true,
+                user: { id: owner2.id },
+                organization: { id: organization.id },
+            });
+            try {
+                await service.deleteOrganization(organization.id);
+            } catch (error) {
+                expect((error as Error).message).toBe(/Organization contains more than two memberships./);
+            }
+        });
     });
 
     describe('transferOrganization', () => {

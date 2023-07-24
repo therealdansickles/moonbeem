@@ -136,8 +136,20 @@ export class OrganizationService {
      * @returns true if the organization was deleted, false otherwise.
      */
     async deleteOrganization(id: string): Promise<boolean> {
+        const memberships = await this.membershipService.getMembershipsByOrganizationId(id);
+        if (memberships.length > 1) {
+            throw new GraphQLError('Organization contains more than two memberships.', {
+                extensions: { code: 'BAD_REQUEST' },
+            });
+        }
+
+        let deleteMembershipAffected = true;
+        if (memberships.length == 1) {
+            deleteMembershipAffected = await this.membershipService.deleteMembership(memberships[0].id);
+        }
+
         const result = await this.organizationRepository.delete({ id });
-        return result.affected > 0;
+        return deleteMembershipAffected && result.affected > 0;
     }
 
     /**
