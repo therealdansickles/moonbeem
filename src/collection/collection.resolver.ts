@@ -122,7 +122,7 @@ export class CollectionResolver {
     }
 
     @Public()
-    @ResolveField(() => String, { description: 'Returns the floor price from tier' })
+    @ResolveField(() => String, { description: 'Returns the floor price from tier', nullable: true })
     async floorPrice(@Parent() collection: Collection): Promise<string> {
         return this.collectionService.getFloorPrice(collection.address);
     }
@@ -140,7 +140,7 @@ export class CollectionResolver {
 
     @Public()
     @ResolveField(() => Number)
-    async secondaySale(@Parent() collection: Collection): Promise<SecondarySale> {
+    async secondarySale(@Parent() collection: Collection): Promise<SecondarySale> {
         return await this.collectionService.getSecondarySale(collection.address);
     }
 
