@@ -6083,7 +6083,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"date-fns@npm:^2.29.3":
+"date-fns@npm:^2.29.3, date-fns@npm:^2.30.0":
   version: 2.30.0
   resolution: "date-fns@npm:2.30.0"
   dependencies:
@@ -11008,6 +11008,7 @@ __metadata:
     class-transformer: ^0.5.1
     class-validator: ^0.14.0
     commander: ^10.0.1
+    date-fns: ^2.30.0
     dotenv: ^16.0.3
     eslint: ^8.45.0
     eslint-config-prettier: ^8.8.0

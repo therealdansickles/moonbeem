@@ -72,6 +72,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["class-transformer", "npm:0.5.1"],\
             ["class-validator", "npm:0.14.0"],\
             ["commander", "npm:10.0.1"],\
+            ["date-fns", "npm:2.30.0"],\
             ["dotenv", "npm:16.3.1"],\
             ["eslint", "npm:8.45.0"],\
             ["eslint-config-prettier", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:8.8.0"],\
@@ -13675,6 +13676,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["class-transformer", "npm:0.5.1"],\
             ["class-validator", "npm:0.14.0"],\
             ["commander", "npm:10.0.1"],\
+            ["date-fns", "npm:2.30.0"],\
             ["dotenv", "npm:16.3.1"],\
             ["eslint", "npm:8.45.0"],\
             ["eslint-config-prettier", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:8.8.0"],\

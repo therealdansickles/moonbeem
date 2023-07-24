@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js';
 import { GraphQLError } from 'graphql';
 import { isEmpty, isNil, omitBy } from 'lodash';
 import { In, IsNull, Repository, UpdateResult } from 'typeorm';
@@ -13,31 +14,20 @@ import { getCurrentPrice } from '../saleHistory/saleHistory.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Tier as TierDto } from '../tier/tier.dto';
 import { Tier } from '../tier/tier.entity';
 import { TierService } from '../tier/tier.service';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    Collection,
-    CollectionActivities,
-    CollectionActivityType,
-    CollectionPaginated,
-    CollectionSold,
-    CollectionSoldPaginated,
-    CollectionStat,
-    CollectionStatus,
-    CreateCollectionInput,
-    GrossEarnings,
-    LandingPageCollection,
-    SecondarySale,
-    SevenDayVolume,
-    UpdateCollectionInput,
-    ZeroAccount,
+    Collection, CollectionActivities, CollectionActivityType, CollectionPaginated, CollectionSold,
+    CollectionSoldPaginated, CollectionStat, CollectionStatus, CreateCollectionInput, GrossEarnings,
+    LandingPageCollection, SecondarySale, SevenDayVolume, UpdateCollectionInput, ZeroAccount
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
-import BigNumber from 'bignumber.js';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name'>>;
 
@@ -211,9 +201,13 @@ export class CollectionService {
      * @returns Whether the given data can be saved as a new collection
      */
     async precheckCollection(data: any): Promise<boolean> {
-        // only validate when we have both `startSaleAt` and `endSaleAt`
-        if (data.startSaleAt && data.endSaleAt && data.startSaleAt > data.endSaleAt) {
-            throw new Error(`The endSaleAt should be greater than startSaleAt.`);
+        if (data.startSaleAt) {
+            if (new Date().getTime() / 1000 > data.startSaleAt) {
+                throw new Error(`The startSaleAt should be greater than today.`);
+            }
+            if (data.endSaleAt && data.startSaleAt > data.endSaleAt) {
+                throw new Error(`The endSaleAt should be greater than startSaleAt.`);
+            }
         }
         const existedCollection = await this.collectionRepository.findOneBy({ name: data.name });
         if (existedCollection) throw new Error(`The collection name ${data.name} already existed.`);

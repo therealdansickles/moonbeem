@@ -6,8 +6,12 @@ import { CollaborationService } from '../collaboration/collaboration.service';
 import { OrganizationService } from '../organization/organization.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
@@ -615,6 +619,52 @@ describe('CollectionService', () => {
             ).rejects.toThrow(`The endSaleAt should be greater than startSaleAt.`);
         });
 
+        it('startDate should be greater than today', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            await expect(
+                async () =>
+                    await service.precheckCollection({
+                        name: faker.company.name(),
+                        displayName: 'The best collection',
+                        about: 'The best collection ever',
+                        address: faker.finance.ethereumAddress(),
+                        tags: [],
+                        tiers: [
+                            {
+                                name: faker.company.name(),
+                                totalMints: parseInt(faker.random.numeric(5)),
+                            },
+                        ],
+                        organization: {
+                            id: organization.id,
+                        },
+                        creator: { id: wallet.id },
+                        startSaleAt: faker.date.past().getTime() / 1000,
+                    })
+            ).rejects.toThrow(`The startSaleAt should be greater than today.`);
+        });
+
         it('should pass if startDate or endDate is not provided', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
@@ -655,6 +705,51 @@ describe('CollectionService', () => {
                 },
                 creator: { id: wallet.id },
                 startSaleAt: faker.date.future().getTime() / 1000,
+            });
+            expect(result).toEqual(true);
+        });
+
+        it('should pass if startDate and endDate are valid', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const result = await service.precheckCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: parseInt(faker.random.numeric(5)),
+                    },
+                ],
+                organization: {
+                    id: organization.id,
+                },
+                creator: { id: wallet.id },
+                startSaleAt: Math.floor(faker.date.future(1).getTime() / 1000),
+                endSaleAt: Math.floor(faker.date.future(2).getTime() / 1000),
             });
             expect(result).toEqual(true);
         });
