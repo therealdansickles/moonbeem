@@ -412,6 +412,7 @@ export class CollectionService {
 
     async getUniqueHolderCount(address: string): Promise<number> {
         const contract = await this.mintSaleContractRepository.findOneBy({ address });
+        if (!contract) return null;
 
         const total = await this.asset721Repository
             .createQueryBuilder('asset')
