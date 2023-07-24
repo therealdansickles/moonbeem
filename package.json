@@ -49,7 +49,7 @@
     "@openzeppelin/merkle-tree": "^1.0.4",
     "@sentry/node": "^7.47.0",
     "@uploadcare/upload-client": "^6.2.1",
-    "alchemy-sdk": "^2.9.0",
+    "alchemy-sdk": "^2.9.2",
     "apollo-server-core": "^3.12.0",
     "apollo-server-express": "^3.11.1",
     "aws-sdk": "^2.1322.0",

@@ -9,6 +9,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { AlchemyModule } from './alchemy/alchemy.module';
+import { CoinMarketCapModule } from './coinmarketcap/coinmarketcap.module';
 import { CollaborationModule } from './collaboration/collaboration.module';
 import { CollectionModule } from './collection/collection.module';
 import { MongoAdapter } from './lib/adapters/mongo.adapter';
@@ -16,6 +18,7 @@ import { RedisAdapter } from './lib/adapters/redis.adapter';
 import { appConfig } from './lib/configs/app.config';
 import { postgresConfig } from './lib/configs/db.config';
 import { MembershipModule } from './membership/membership.module';
+import { MerkleTreeModule } from './merkleTree/merkleTree.module';
 import { MoonpayModule } from './moonpay/moonpay.module';
 import { NftModule } from './nft/nft.module';
 import { OpenseaModule } from './opensea/opensea.module';
@@ -33,8 +36,6 @@ import { UploadModule } from './upload/upload.module';
 import { UserModule } from './user/user.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { WalletModule } from './wallet/wallet.module';
-import { CoinMarketCapModule } from './coinmarketcap/coinmarketcap.module';
-import { MerkleTreeModule } from './merkleTree/merkleTree.module';
 
 dotenv.config();
 
@@ -62,6 +63,7 @@ dotenv.config();
         MoonpayModule,
         SaleHistoryModule,
         PluginModule,
+        AlchemyModule,
         MerkleTreeModule,
         // integration graphql
         GraphQLModule.forRoot<ApolloDriverConfig>({

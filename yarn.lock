@@ -4612,9 +4612,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"alchemy-sdk@npm:^2.9.0":
-  version: 2.9.0
-  resolution: "alchemy-sdk@npm:2.9.0"
+"alchemy-sdk@npm:^2.9.2":
+  version: 2.9.2
+  resolution: "alchemy-sdk@npm:2.9.2"
   dependencies:
     "@ethersproject/abi": ^5.7.0
     "@ethersproject/abstract-provider": ^5.7.0
@@ -4630,7 +4630,7 @@ __metadata:
     axios: ^0.26.1
     sturdy-websocket: ^0.2.1
     websocket: ^1.0.34
-  checksum: 6d26c01e11048e340918ada4df3121accb903004d52d484a026efa83576538de8345aa19e434a766f2c041befdb3f668f7887a7839f7393cd9d765f555802945
+  checksum: 1b9ac2dacc6260607343edf718bd8c4af8a0c8ebcfa493669f9ec58682a53903231fb71e00af13bd6507670f3f5ec198da935572925cd1f0dfc8376ab37674f9
   languageName: node
   linkType: hard
 
@@ -10997,7 +10997,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^6.1.0
     "@typescript-eslint/parser": ^6.1.0
     "@uploadcare/upload-client": ^6.2.1
-    alchemy-sdk: ^2.9.0
+    alchemy-sdk: ^2.9.2
     apollo-server-core: ^3.12.0
     apollo-server-express: ^3.11.1
     aws-sdk: ^2.1322.0
