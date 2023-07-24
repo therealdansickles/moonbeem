@@ -416,7 +416,7 @@ describe('WalletService', () => {
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
-            await await mintSaleContractService.createMintSaleContract({
+            await mintSaleContractService.createMintSaleContract({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: txTime + 1,
@@ -438,7 +438,7 @@ describe('WalletService', () => {
             });
 
             const list = await service.getActivitiesByAddress(wallet.address);
-            const [deployItem, mintItem] = list;
+            const [mintItem, deployItem] = list;
             expect(list.length).toEqual(2);
             expect(deployItem.type).toEqual('Deploy');
             expect(mintItem.type).toEqual('Mint');

@@ -379,10 +379,11 @@ export class WalletService {
             address: tx.address,
             paymentToken: tx.paymentToken,
             price: tx.price,
-            // tokenId: tx.tokenId,
             tierId: tx.tierId,
         }));
-        const mergedList = [...(mintList || []), ...(deployList || [])].sort((item) => item.txTime * -1);
+
+        // merge and sort in chronological order
+        const mergedList = [...mintList, ...deployList].sort((a, b) => a.txTime - b.txTime);
 
         const activities = await Promise.all(
             mergedList.map(async (item) => {
