@@ -9,11 +9,22 @@ import {
     registerEnumType,
     Int,
 } from '@nestjs/graphql';
-import { IsString, IsEthereumAddress, IsObject, IsOptional, IsEnum, IsNumber, IsArray } from 'class-validator';
+import {
+    IsString,
+    IsEthereumAddress,
+    IsObject,
+    IsOptional,
+    IsEnum,
+    IsNumber,
+    IsArray,
+    IsDateString,
+    IsNumberString,
+} from 'class-validator';
 import { User, UserInput } from '../user/user.dto';
 import { Tier } from '../tier/tier.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
 import { Asset721 } from '../sync-chain/asset721/asset721.dto';
+import Paginated from '../lib/pagination/pagination.model';
 
 @ObjectType('Wallet')
 export class Wallet {
@@ -73,6 +84,7 @@ export class Wallet {
 
 @ObjectType('Minted', { description: 'The NFT minted by a wallet.' })
 export class Minted extends PickType(MintSaleTransaction, [
+    'id',
     'address',
     'tokenAddress',
     'paymentToken',
@@ -81,11 +93,15 @@ export class Minted extends PickType(MintSaleTransaction, [
     'txTime',
     'txHash',
     'chainId',
+    'createdAt',
 ] as const) {
     @IsObject()
     @Field(() => Tier, { description: 'The tier of the minted token.', nullable: true })
     readonly tier: Tier;
 }
+
+@ObjectType('MintPaginated')
+export class MintPaginated extends Paginated(Minted) {}
 
 export enum ActivityType {
     Mint = 'Mint',
@@ -209,7 +225,15 @@ export class SearchWallet {
 }
 
 @ObjectType('CollectionHolderData')
-export class CollectionHolderData extends OmitType(Wallet, ['owner'], ObjectType) {
+export class CollectionHolderData extends PartialType(OmitType(Wallet, ['owner'], ObjectType)) {
+    @Field({ description: 'Price of tier' })
+    @IsNumberString()
+    readonly price: string;
+
+    @Field({ description: 'Total price of tier purchased' })
+    @IsNumberString()
+    readonly totalPrice: string;
+
     @Field(() => Int)
     @IsNumber()
     readonly quantity: number;
@@ -217,18 +241,14 @@ export class CollectionHolderData extends OmitType(Wallet, ['owner'], ObjectType
     @Field(() => Tier, { description: 'The collection tiers', nullable: true })
     @IsObject()
     readonly tier?: Tier;
+
+    @IsDateString()
+    @Field({ description: 'The DateTime that this collection was created(initially created as a draft).' })
+    readonly createdAt: Date;
 }
 
-@ObjectType('CollectionHolder')
-export class CollectionHolder {
-    @Field(() => Int)
-    @IsNumber()
-    readonly total: number;
-
-    @Field(() => [CollectionHolderData])
-    @IsArray()
-    readonly data: CollectionHolderData[];
-}
+@ObjectType('CollectionHoldersPaginated')
+export class CollectionHoldersPaginated extends Paginated(CollectionHolderData) {}
 
 @ObjectType('TierHolderData')
 export class TierHolderData extends PartialType(OmitType(Wallet, ['owner'], ObjectType)) {
@@ -251,3 +271,28 @@ export class TierHolders {
     @IsArray()
     readonly data: TierHolderData[];
 }
+
+@ObjectType('WalletSold')
+export class WalletSold extends PickType(
+    MintSaleTransaction,
+    [
+        'id',
+        'address',
+        'tokenAddress',
+        'paymentToken',
+        'tokenId',
+        'price',
+        'txTime',
+        'txHash',
+        'chainId',
+        'createdAt',
+    ] as const,
+    ObjectType
+) {
+    @Field(() => Tier)
+    @IsObject()
+    readonly tier?: Tier;
+}
+
+@ObjectType('WalletSoldPaginated')
+export class WalletSoldPaginated extends Paginated(WalletSold) {}

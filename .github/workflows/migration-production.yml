@@ -12,6 +12,11 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@master
+      
+      - run: yarn set version stable
+
+      - run: yarn install --immutable
+
       - run: yarn typeorm:schema:log
         env:
           NODE_ENV: ${{ vars.NODE_ENV }}

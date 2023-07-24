@@ -17,7 +17,8 @@
         "@typescript-eslint"
     ],
     "rules": {
-        "indent": [
+        "indent": "off",
+        "@typescript-eslint/indent": [
             "error",
             4,
             {
@@ -42,6 +43,13 @@
         ],
         "no-var": [
             "error"
+        ],
+        "no-unused-vars": "off",
+        "@typescript-eslint/no-unused-vars": [
+            "error",
+            {
+                "varsIgnorePattern": "^_"
+            }
         ],
         "@typescript-eslint/no-explicit-any": [
             "off"

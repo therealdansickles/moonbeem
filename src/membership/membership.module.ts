@@ -1,14 +1,16 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Membership } from './membership.entity';
-import { MembershipService } from './membership.service';
-import { MembershipResolver } from './membership.resolver';
+
+import { MailModule } from '../mail/mail.module';
 import { Organization } from '../organization/organization.entity';
 import { OrganizationModule } from '../organization/organization.module';
 import { OrganizationService } from '../organization/organization.service';
 import { User } from '../user/user.entity';
 import { UserModule } from '../user/user.module';
-import { MailModule } from '../mail/mail.module';
+import { Membership } from './membership.entity';
+import { MembershipResolver } from './membership.resolver';
+import { MembershipService } from './membership.service';
 
 @Module({
     imports: [
@@ -16,9 +18,10 @@ import { MailModule } from '../mail/mail.module';
         forwardRef(() => OrganizationModule),
         forwardRef(() => UserModule),
         forwardRef(() => MailModule),
+        JwtModule
     ],
     exports: [MembershipModule, MembershipService],
-    providers: [MembershipService, MembershipResolver, OrganizationService],
+    providers: [JwtService, MembershipService, MembershipResolver, OrganizationService],
     controllers: [],
 })
 export class MembershipModule {}

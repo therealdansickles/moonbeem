@@ -1,21 +1,23 @@
+import { Exclude } from 'class-transformer';
 import {
-    Entity,
-    Column,
-    PrimaryGeneratedColumn,
-    CreateDateColumn,
-    UpdateDateColumn,
     BaseEntity,
+    Column,
+    CreateDateColumn,
+    Entity,
+    JoinColumn,
     ManyToOne,
     OneToMany,
-    JoinColumn,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
-import { Exclude } from 'class-transformer';
-//import { Contract } from '../contract/contract.entity';
-import { Wallet } from '../wallet/wallet.entity';
-import { Organization } from '../organization/organization.entity';
+
 import { Collaboration } from '../collaboration/collaboration.entity';
-import { Tier } from '../tier/tier.entity';
 import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
+import { Nft } from '../nft/nft.entity';
+import { Organization } from '../organization/organization.entity';
+import { Redeem } from '../redeem/redeem.entity';
+import { Tier } from '../tier/tier.entity';
+import { Wallet } from '../wallet/wallet.entity';
 
 // see https://stackoverflow.com/questions/55598213/enums-not-working-with-nestjs-and-graphql
 export enum CollectionKind {
@@ -96,11 +98,17 @@ export class Collection extends BaseEntity {
     @OneToMany(() => Tier, (tier) => tier.collection, { nullable: true })
     public tiers?: Tier[];
 
+    @OneToMany(() => Nft, (nft) => nft.collection, { nullable: true })
+    readonly nfts?: Nft[];
+
     @ManyToOne(() => Collaboration, (collaboration) => collaboration.collections, { eager: true, nullable: true })
     readonly collaboration?: Collaboration;
 
     @Column({ nullable: true, default: 1, comment: 'The chain id for the collection.' })
     readonly chainId?: number;
+
+    @OneToMany(() => Redeem, (redeem) => redeem.collection, { nullable: true })
+    readonly redeems?: Redeem[];
 
     @Column({
         nullable: true,
@@ -108,6 +116,12 @@ export class Collection extends BaseEntity {
             "Temporary field for store collection name in Opensea, while we can't retrieve collection stat by address",
     })
     readonly nameOnOpensea?: string;
+
+    @Column({ nullable: true, comment: 'The begin time for sales. type of timestamp, like 1672502400' })
+    readonly beginSaleAt?: number;
+
+    @Column({ nullable: true, comment: 'The end time for sales. type of timestamp, like 1672502400' })
+    readonly endSaleAt?: number;
 
     @Column({ nullable: true, comment: 'The DateTime when the collection was launched.' })
     readonly publishedAt?: Date;

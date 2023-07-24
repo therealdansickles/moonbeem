@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Collaboration } from '../collaboration/collaboration.entity';
 import { CollaborationModule } from '../collaboration/collaboration.module';
+import { MailModule } from '../mail/mail.module';
 import { Membership } from '../membership/membership.entity';
 import { MembershipModule } from '../membership/membership.module';
 import { Organization } from '../organization/organization.entity';
@@ -19,6 +20,7 @@ import { JwtService } from '@nestjs/jwt';
     imports: [
         TypeOrmModule.forFeature([User, Wallet, Membership, Organization, Collaboration]),
         forwardRef(() => CollaborationModule),
+        forwardRef(() => MailModule),
         forwardRef(() => MembershipModule),
         forwardRef(() => OrganizationModule),
         forwardRef(() => WalletModule),

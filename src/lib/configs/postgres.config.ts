@@ -1,4 +1,7 @@
 import { DataSource } from 'typeorm';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 // we can use this one to replace `lib/configs/db.config.ts`
 // but for now, let's split the config into two files

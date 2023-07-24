@@ -1,91 +1,58 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
 
-import { Collaboration } from './collaboration.entity';
-import { CollaborationModule } from './collaboration.module';
 import { CollaborationService } from './collaboration.service';
 import { CollectionService } from '../collection/collection.service';
-import { Wallet } from '../wallet/wallet.entity';
 import { WalletService } from '../wallet/wallet.service';
-import { Organization } from '../organization/organization.entity';
 import { OrganizationService } from '../organization/organization.service';
-import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
+import { Coin } from '../sync-chain/coin/coin.entity';
+import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 
 describe('CollaborationService', () => {
     let service: CollaborationService;
-    let collaboration: Collaboration;
     let collectionService: CollectionService;
-    let organization: Organization;
     let organizationService: OrganizationService;
-    let user: User;
     let userService: UserService;
-    let wallet: Wallet;
     let walletService: WalletService;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                CollaborationModule,
-            ],
-        }).compile();
-
-        service = module.get<CollaborationService>(CollaborationService);
-        collectionService = module.get<CollectionService>(CollectionService);
-        organizationService = module.get<OrganizationService>(OrganizationService);
-        userService = module.get<UserService>(UserService);
-        walletService = module.get<WalletService>(WalletService);
-
-        user = await userService.createUser({
-            username: faker.internet.userName(),
-            email: faker.internet.email(),
-            password: faker.internet.password(),
-        });
-
-        organization = await organizationService.createOrganization({
-            name: faker.company.name(),
-            displayName: faker.company.name(),
-            about: faker.company.catchPhrase(),
-            avatarUrl: faker.image.imageUrl(),
-            backgroundUrl: faker.image.imageUrl(),
-            websiteUrl: faker.internet.url(),
-            twitter: faker.internet.userName(),
-            instagram: faker.internet.userName(),
-            discord: faker.internet.userName(),
-            owner: user,
-        });
-
-        wallet = await walletService.createWallet({
-            address: `arb:${faker.finance.ethereumAddress()}`,
-            ownerId: user.id,
-        });
+        userService = global.userService;
+        walletService = global.walletService;
+        service = global.collaborationService;
+        collectionService = global.collectionService;
+        organizationService = global.organizationService;
     });
 
-    afterAll(async () => {
+    beforeEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
     });
 
     describe('createCollaboration', () => {
         it('should create a collaboration', async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: user,
+            });
+
+            const wallet = await walletService.createWallet({
+                address: `arb:${faker.finance.ethereumAddress()}`,
+                ownerId: user.id,
+            });
             const result = await service.createCollaboration({
                 walletId: wallet.id,
                 organizationId: organization.id,
@@ -100,7 +67,6 @@ describe('CollaborationService', () => {
                     },
                 ],
             });
-            collaboration = result;
             expect(result.royaltyRate).toEqual(12);
             expect(result.wallet).toBeDefined();
             expect(result.wallet.id).toEqual(wallet.id);
@@ -173,29 +139,25 @@ describe('CollaborationService', () => {
             });
             expect(collaborationForAnotherCollection.wallet).toBeDefined();
             expect(collaborationForAnotherCollection.wallet.id).toEqual(wallet1.id);
-            // would fail --> un needed
-            // const wallet3 = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
-            // expect(
-            //     (async function () {
-            //         await service.createCollaboration({
-            //             walletId: wallet3.id,
-            //             royaltyRate: 1,
-            //             collaborators: [
-            //                 {
-            //                     address: faker.finance.ethereumAddress(),
-            //                     role: faker.finance.accountName(),
-            //                     name: faker.finance.accountName(),
-            //                     rate: parseInt(faker.random.numeric(2)),
-            //                 },
-            //             ],
-            //         });
-            //     })()
-            // ).rejects.toThrowError(GraphQLError);
         });
     });
 
     describe('getCollaboration', () => {
         it('should return a collaboration', async () => {
+            const wallet = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
+            const collaboration = await service.createCollaboration({
+                walletId: wallet.id,
+                royaltyRate: 12,
+                collaborators: [
+                    {
+                        address: faker.finance.ethereumAddress(),
+                        role: faker.finance.accountName(),
+                        name: faker.finance.accountName(),
+                        rate: parseInt(faker.random.numeric(2)),
+                    },
+                ],
+            });
+
             const result = await service.getCollaboration(collaboration.id);
             expect(result).toBeDefined();
             expect(result.royaltyRate).toEqual(12);
@@ -207,6 +169,19 @@ describe('CollaborationService', () => {
         });
 
         it('should return a collaboration with its wallet and collection', async () => {
+            const wallet = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
+            const collaboration = await service.createCollaboration({
+                walletId: wallet.id,
+                royaltyRate: 12,
+                collaborators: [
+                    {
+                        address: faker.finance.ethereumAddress(),
+                        role: faker.finance.accountName(),
+                        name: faker.finance.accountName(),
+                        rate: parseInt(faker.random.numeric(2)),
+                    },
+                ],
+            });
             const result = await service.getCollaboration(collaboration.id);
             expect(result.wallet).toBeDefined();
         });
@@ -214,6 +189,24 @@ describe('CollaborationService', () => {
 
     describe('getCollaborationsByUserIdAndOrganizationId', () => {
         it('should return collaborations', async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: user,
+            });
             const newUser = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
@@ -248,6 +241,25 @@ describe('CollaborationService', () => {
 
     describe('getCollaborationsByOrganizationId', () => {
         it('should return collaborations', async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: user,
+            });
+
             const newUser = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
@@ -280,5 +292,164 @@ describe('CollaborationService', () => {
                 expect(collaboration.organization.id).toEqual(organization.id);
             });
         });
+    });
+
+    describe('getCollaborationWithEarnings', () => {
+        const totalEarnings = faker.datatype.number({ max: 1000 });
+        const tokenPriceUSD = faker.datatype.number({ max: 1000 });
+        const tokenDecimals = faker.datatype.number({ max: 18, min: 1 });
+        const totalEarningsUsd = totalEarnings * tokenPriceUSD;
+
+        const mockCoin: Coin = Object.assign(new Coin(), {
+            id: faker.datatype.uuid(),
+            address: faker.finance.ethereumAddress(),
+            name: faker.finance.currencyName(),
+            symbol: faker.finance.currencySymbol(),
+            decimals: tokenDecimals,
+            derivedETH: faker.finance.amount(),
+            derivedUSDC: faker.finance.amount(),
+            native: false,
+            enable: true,
+            chainId: 1,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        });
+
+        const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+            price: tokenPriceUSD,
+        });
+
+        const collaborators = [
+            {
+                address: faker.finance.ethereumAddress(),
+                role: faker.finance.accountName(),
+                name: faker.finance.accountName(),
+                rate: 20,
+            },
+            {
+                address: faker.finance.ethereumAddress(),
+                role: faker.finance.accountName(),
+                name: faker.finance.accountName(),
+                rate: 80,
+            },
+        ];
+
+        let collaboration;
+
+        beforeEach(async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const wallet = await walletService.createWallet({
+                address: `arb:${faker.finance.ethereumAddress()}`,
+                ownerId: user.id,
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: user,
+            });
+
+            collaboration = await service.createCollaboration({
+                walletId: wallet.id,
+                organizationId: organization.id,
+                userId: user.id,
+                royaltyRate: 12,
+                collaborators,
+            });
+
+            await collectionService.createCollectionWithTiers({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                organization: { id: organization.id },
+                collaboration: { id: collaboration.id },
+                tiers: [],
+            });
+
+            jest.spyOn(service['collectionService'], 'getCollectionEarningsByCollectionAddress').mockResolvedValue({
+                sum: (BigInt(totalEarnings) * BigInt(10) ** BigInt(tokenDecimals)).toString(),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
+            jest.spyOn(service['coinService'], 'getCoinByAddress').mockResolvedValue(mockCoin);
+
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
+        });
+
+        afterAll(async () => {
+            jest.clearAllMocks();
+        });
+
+        it('should return a collaboration with its total earnings', async () => {
+            const result = await service.getCollaborationWithEarnings(collaboration.id);
+
+            expect(result).toBeDefined();
+            expect(result.id).toEqual(collaboration.id);
+            expect(result.totalEarnings).toEqual(totalEarningsUsd);
+        });
+
+        it('should return a collaboration with its zero earnings if no mint sales', async () => {
+            jest.spyOn(service['collectionService'], 'getCollectionEarningsByCollectionAddress').mockResolvedValue(null);
+            
+            const result = await service.getCollaborationWithEarnings(collaboration.id);
+
+            expect(result).toBeDefined();
+            expect(result.id).toEqual(collaboration.id);
+            expect(result.totalEarnings).toEqual(0);
+        });
+
+        it('should return a collaboration with individual collaborator earnings', async () => {
+            const result = await service.getCollaborationWithEarnings(collaboration.id);
+
+            // check first collaborator earnings
+            const expectedEarningsFirst = Math.round(totalEarningsUsd * (collaborators[0].rate / 100) * (collaboration.royaltyRate / 100));
+            expect(result.collaborators[0].earnings).toEqual(expectedEarningsFirst);
+
+            // check second collaborator earnings
+            const expectedEarningsSecond = Math.round(totalEarningsUsd * (collaborators[1].rate / 100) * (collaboration.royaltyRate / 100));
+            expect(result.collaborators[1].earnings).toEqual(expectedEarningsSecond);
+        });
+
+        it('should throw error if the collaboration does not exist', async () => {
+            try {
+                await service.getCollaborationWithEarnings(faker.datatype.uuid());
+            } catch (error) {
+                expect(error.message).toMatch(/Collaboration with id .* doesn't exist\./);
+            }
+        });
+
+        it('should throw an error if coinService.getCoinByAddress returns no token', async () => {
+            jest.spyOn(service['coinService'], 'getCoinByAddress').mockResolvedValue(null);
+        
+            try {
+                await service.getCollaborationWithEarnings(collaboration.id);
+            } catch (error) {
+                expect(error.message).toMatch(/Failed to get token/);
+            }
+        });
+
+        it('should throw an error if coinService.getQuote returns no quote', async () => {
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(null);
+        
+            try {
+                await service.getCollaborationWithEarnings(collaboration.id);
+            } catch (error) {
+                expect(error.message).toMatch(/Failed to get price for token/);
+            }
+        }); 
     });
 });

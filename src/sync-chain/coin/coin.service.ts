@@ -1,11 +1,18 @@
-import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+
+import { CoinMarketCapService } from '../../coinmarketcap/coinmarketcap.service';
 import { Coin } from './coin.entity';
+import { CoinQuotes } from './coin.dto';
 
 @Injectable()
 export class CoinService {
-    constructor(@InjectRepository(Coin, 'sync_chain') private readonly coinRepository: Repository<Coin>) {}
+    constructor(
+        @InjectRepository(Coin, 'sync_chain') private readonly coinRepository: Repository<Coin>,
+        private coinMarketCapService: CoinMarketCapService
+    ) {}
 
     async createCoin(data: any): Promise<Coin> {
         return await this.coinRepository.save(data);
@@ -21,9 +28,15 @@ export class CoinService {
 
     async getCoins(data: any): Promise<Coin[]> {
         if (data.chainId === 0) {
-            const { enable } = data;
-            return await this.coinRepository.find({ where: { enable } });
+            const { chainId: _chainId, ...rest } = data;
+            data = rest;
         }
-        return await this.coinRepository.find({ where: data });
+
+        const coins = await this.coinRepository.find({ where: data });
+        return coins;
+    }
+
+    async getQuote(symbol: string): Promise<CoinQuotes> {
+        return await this.coinMarketCapService.getPrice(symbol);
     }
 }

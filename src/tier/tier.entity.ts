@@ -1,16 +1,13 @@
-import {
-    Entity,
-    Column,
-    JoinColumn,
-    PrimaryGeneratedColumn,
-    CreateDateColumn,
-    UpdateDateColumn,
-    BaseEntity,
-    ManyToOne,
-} from 'typeorm';
 import { Exclude } from 'class-transformer';
+import {
+    BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany,
+    PrimaryGeneratedColumn, UpdateDateColumn
+} from 'typeorm';
+
 import { Collection } from '../collection/collection.entity';
 import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
+import { Metadata } from '../metadata/metadata.entity';
+import { Nft } from '../nft/nft.entity';
 
 export class Attribute {
     trait_type: string;
@@ -26,46 +23,6 @@ export class Condition {
 export class Plugin {
     type: string;
     path: string;
-}
-
-export class MetadataProperty {
-    name: string;
-    type: string;
-    value: any;
-    display_value: string;
-}
-
-export class MetadataRule {
-    property: string;
-    rule: string;
-    value: any;
-    update: {
-        property: string;
-        value: any;
-    };
-}
-
-export class MetadataTrigger {
-    type: string;
-    value: string;
-}
-
-export class MetadataCondition {
-    operator?: string;
-    rules: Array<MetadataRule>;
-    trigger: MetadataTrigger;
-}
-
-export class Metadata {
-    name: string;
-    type: string;
-    external_url?: string;
-    image?: string;
-    image_url?: string;
-    properties: {
-        [key: string]: MetadataProperty;
-    };
-    conditions: Array<MetadataCondition>;
 }
 
 @Entity({ name: 'Tier' })
@@ -84,6 +41,9 @@ export class Tier extends BaseEntity {
     @ManyToOne(() => Collection, (collection) => collection.tiers)
     @JoinColumn()
     public collection: Collection;
+
+    @OneToMany(() => Nft, (nft) => nft.collection, { nullable: true })
+    readonly nfts?: Nft[];
 
     // This in part drives the following fields:
     // * `beginId`
@@ -142,28 +102,6 @@ export class Tier extends BaseEntity {
     readonly description?: string;
 
     @Column({
-        type: 'jsonb',
-        default: [],
-        comment:
-            'A JSON object with arbitrary data. This can be used to store any additional information about the item.',
-    })
-    readonly attributes?: Attribute[];
-
-    @Column({
-        default: [],
-        type: 'jsonb',
-        comment: 'A JSON object containing the data of the conditions of this item.',
-    })
-    readonly conditions?: Condition[];
-
-    @Column({
-        default: [],
-        type: 'jsonb',
-        comment: 'A JSON object containing the data of the tier plugins data.',
-    })
-    readonly plugins?: Plugin[];
-
-    @Column({
         nullable: true,
         length: 6,
         comment: 'Background color of the item. Must be a six-character hexadecimal without a pre-pended #.',
@@ -179,8 +117,7 @@ export class Tier extends BaseEntity {
     @Column({
         default: {},
         type: 'jsonb',
-        nullable: true,
         comment: 'Full metadata info for the tier.',
     })
-    readonly metadata?: Metadata;
+    readonly metadata: Metadata;
 }

@@ -1,102 +1,64 @@
+import { hashSync as hashPassword } from 'bcryptjs';
+import BigNumber from 'bignumber.js';
 import * as request from 'supertest';
-import { Test, TestingModule } from '@nestjs/testing';
-import { GraphQLModule } from '@nestjs/graphql';
-import { INestApplication } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ApolloDriver } from '@nestjs/apollo';
 import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
-
+import { INestApplication } from '@nestjs/common';
+import { Collection } from '../collection/collection.dto';
 import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
-import { TierModule } from './tier.module';
-import { TierService } from './tier.service';
-import { CoinService } from '../sync-chain/coin/coin.service';
-import { Coin } from '../sync-chain/coin/coin.entity';
-import { Collection } from '../collection/collection.dto';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import BigNumber from 'bignumber.js';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
+import { TierService } from './tier.service';
+import { CoinService } from '../sync-chain/coin/coin.service';
 
 export const gql = String.raw;
 
 describe('TierResolver', () => {
     let app: INestApplication;
     let service: TierService;
-    let collection: Collection;
     let walletService: WalletService;
     let collectionService: CollectionService;
+    let userService: UserService;
 
-    // sync_chain services
-    let coin: Coin;
     let coinService: CoinService;
     let asset721Service: Asset721Service;
     let mintSaleTransactionService: MintSaleTransactionService;
     let mintSaleContractService: MintSaleContractService;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TierModule,
-                GraphQLModule.forRoot({
-                    driver: ApolloDriver,
-                    autoSchemaFile: true,
-                    include: [TierModule],
-                }),
-            ],
-        }).compile();
+        app = global.app;
 
-        service = module.get<TierService>(TierService);
-        walletService = module.get<WalletService>(WalletService);
-        collectionService = module.get<CollectionService>(CollectionService);
-        // sync_chain services
-        coinService = module.get<CoinService>(CoinService);
-        asset721Service = module.get<Asset721Service>(Asset721Service);
-        mintSaleContractService = module.get<MintSaleContractService>(MintSaleContractService);
-        mintSaleTransactionService = module.get<MintSaleTransactionService>(MintSaleTransactionService);
-
-        coin = await coinService.createCoin({
-            address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-            name: 'Wrapped Ether',
-            symbol: 'WETH',
-            decimals: 18,
-            derivedETH: 1,
-            derivedUSDC: 1,
-            enabled: true,
-            chainId: 1,
-        });
-
-        app = module.createNestApplication();
-        await app.init();
+        service = global.tierService;
+        walletService = global.walletService;
+        collectionService = global.collectionService;
+        userService = global.userService;
+        coinService = global.coinService;
+        asset721Service = global.asset721Service;
+        mintSaleContractService = global.mintSaleContractService;
+        mintSaleTransactionService = global.mintSaleTransactionService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
-        await app.close();
     });
 
     describe('tier', () => {
         it('should return a tier', async () => {
-            collection = await collectionService.createCollection({
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+            const collection = await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -112,6 +74,22 @@ describe('TierResolver', () => {
                 totalMints: 10,
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const query = gql`
@@ -149,7 +127,18 @@ describe('TierResolver', () => {
         });
 
         it('should return a tier with profit', async () => {
-            collection = await collectionService.createCollection({
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const collection = await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -165,6 +154,22 @@ describe('TierResolver', () => {
                 totalMints: 10,
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const transaction = await mintSaleTransactionService.createMintSaleTransaction({
@@ -223,8 +228,19 @@ describe('TierResolver', () => {
                 });
         });
 
-        it('should return a tier with plugins, attributes and conditions', async () => {
-            collection = await collectionService.createCollection({
+        it('should return a tier with metadata', async () => {
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const collection = await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -240,35 +256,7 @@ describe('TierResolver', () => {
                 totalMints: 10,
                 paymentTokenAddress: coin.address,
                 tierId: 0,
-                attributes: [
-                    {
-                        trait_type: 'Powerup',
-                        value: '1000',
-                    },
-                ],
-                conditions: [
-                    {
-                        trait_type: 'Ranking',
-                        rules: {
-                            trait_type: 'greater_than',
-                            value: '10',
-                        },
-                        update: {
-                            trait_type: 'Claimble',
-                            value: 'true',
-                        },
-                    },
-                ],
-                plugins: [
-                    {
-                        type: 'gitub',
-                        path: 'vibexyz/vibes',
-                    },
-                    {
-                        type: 'vibe',
-                        path: 'points',
-                    },
-                ],
+                metadata: {},
             });
 
             const query = gql`
@@ -279,25 +267,7 @@ describe('TierResolver', () => {
                         coin {
                             address
                         }
-                        attributes {
-                            trait_type
-                            value
-                        }
-                        conditions {
-                            trait_type
-                            rules {
-                                trait_type
-                                value
-                            }
-                            update {
-                                trait_type
-                                value
-                            }
-                        }
-                        plugins {
-                            type
-                            path
-                        }
+                        metadata
                     }
                 }
             `;
@@ -313,14 +283,23 @@ describe('TierResolver', () => {
                 .expect(({ body }) => {
                     expect(body.data.tier.id).toBe(tier.id);
                     expect(body.data.tier.name).toBe(tier.name);
-                    expect(body.data.tier.plugins).toStrictEqual(tier.plugins);
-                    expect(body.data.tier.attributes).toStrictEqual(tier.attributes);
-                    expect(body.data.tier.conditions).toStrictEqual(tier.conditions);
+                    expect(body.data.tier.metadata).toBeDefined();
                 });
         });
 
         it('should works with metadata field', async () => {
-            collection = await collectionService.createCollection({
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const collection = await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -338,61 +317,67 @@ describe('TierResolver', () => {
                 tierId: 0,
                 metadata: {
                     name: 'Token metadata',
+                    uses: ['vibexyz/creator_scoring', 'vibexyz/royalty_level'],
                     type: 'object',
                     image: 'https://media.vibe.xyz/f2f407a2-011b-4aa9-b59d-5dc35fd00375',
                     image_url: 'https://media.vibe.xyz/f2f407a2-011b-4aa9-b59d-5dc35fd00375',
-                    conditions: [{
-                        uses: 'vibexyz/creator_scoring',
-                        rules: [{
-                            rule: 'greater_than',
-                            value: -1,
-                            property: 'holding_days'
-                        }, {
-                            rule: 'less_than',
-                            value: 999,
-                            property: 'holding_days'
-                        }],
-                        update: {
-                            value: '1',
-                            property: 'holding_days'
-                        },
-                        trigger: [{
-                            type: 'schedule',
-                            value: '0 0 * * *'
-                        }],
-                        operator: 'and'
-                    }, {
-                        uses: 'vibexyz/royalty_level',
-                        rules: [{
-                            rule: 'greater_than',
-                            value: 10,
-                            property: 'holding_days'
-                        }],
-                        update: {
-                            value: 'Bronze',
-                            property: 'level'
-                        },
-                        trigger: [{
-                            type: 'schedule',
-                            value: '0 */1 * * *'
-                        }]
-                    }],
+                    conditions: {
+                        operator: 'and',
+                        rules: [
+                            {
+                                property: 'holding_days',
+                                rule: 'greater_than',
+                                value: -1,
+                                update: [
+                                    {
+                                        property: 'holding_days',
+                                        action: 'increase',
+                                        value: 1,
+                                    },
+                                ],
+                            },
+                            {
+                                property: 'holding_days',
+                                rule: 'less_than',
+                                value: 999,
+                                update: [
+                                    {
+                                        property: 'holding_days',
+                                        action: 'increase',
+                                        value: 1,
+                                    },
+                                ],
+                            },
+                        ],
+                        trigger: [
+                            {
+                                type: 'schedule',
+                                updatedAt: new Date().toISOString(),
+                                config: {
+                                    startAt: new Date().toISOString(),
+                                    endAt: new Date().toISOString(),
+                                    every: 1,
+                                    unit: 'minutes',
+                                },
+                            },
+                        ],
+                    },
                     properties: {
                         level: {
                             name: 'level',
                             type: 'string',
                             value: 'basic',
-                            display_value: 'Basic'
+                            display_value: 'Basic',
                         },
                         holding_days: {
                             name: 'holding_days',
                             type: 'integer',
                             value: 125,
-                            display_value: 'Days of holding'
-                        }
+                            display_value: 'Days of holding',
+                        },
                     },
-                    external_url: 'https://vibe.xyz'
-                }
+                    external_url: 'https://vibe.xyz',
+                },
             });
 
             const query = gql`
@@ -421,9 +406,20 @@ describe('TierResolver', () => {
         });
     });
 
-    describe('tiers', () => {
-        it('should return tiers by collection id', async () => {
-            collection = await collectionService.createCollection({
+    describe('createTier', () => {
+        it('should forbid if not signed in', async () => {
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const collection = await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -433,25 +429,9 @@ describe('TierResolver', () => {
                 address: faker.finance.ethereumAddress(),
             });
 
-            await service.createTier({
-                name: faker.company.name(),
-                collection: { id: collection.id },
-                totalMints: 10,
-                paymentTokenAddress: coin.address,
-                tierId: 0,
-            });
-
-            await service.createTier({
-                name: faker.company.name(),
-                collection: { id: collection.id },
-                totalMints: 10,
-                paymentTokenAddress: coin.address,
-                tierId: 0,
-            });
-
             const query = gql`
-                query getTiersByCollection($collectionId: String!) {
-                    tiers(collectionId: $collectionId) {
+                mutation CreateTier($input: CreateTierInput!) {
+                    createTier(input: $input) {
                         id
                         name
                         collection {
@@ -466,7 +446,13 @@ describe('TierResolver', () => {
             `;
 
             const variables = {
-                collectionId: collection.id,
+                input: {
+                    name: faker.company.name(),
+                    collection: { id: collection.id },
+                    totalMints: 10,
+                    paymentTokenAddress: coin.address,
+                    tierId: 0,
+                },
             };
 
             return await request(app.getHttpServer())
@@ -474,20 +460,177 @@ describe('TierResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.data.tiers.length).toBe(2);
+                    expect(body.errors[0].extensions.code).toEqual('FORBIDDEN');
+                    expect(body.data).toBeNull();
+                });
+        });
+
+        it('should work', async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: user.email,
+                    password: await hashPassword(user.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const query = gql`
+                mutation CreateTier($input: CreateTierInput!) {
+                    createTier(input: $input) {
+                        id
+                        name
+                        collection {
+                            id
+                        }
+                        coin {
+                            id
+                        }
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    name: faker.company.name(),
+                    collection: { id: collection.id },
+                    totalMints: 10,
+                    paymentTokenAddress: coin.address,
+                    tierId: 0,
+                },
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.createTier.name).toEqual(variables.input.name);
                 });
         });
     });
 
     describe('updateTier', () => {
         it('should update a tier', async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+            });
+
             const tier = await service.createTier({
                 name: faker.company.name(),
                 collection: { id: collection.id },
                 totalMints: 10,
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
+
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: user.email,
+                    password: await hashPassword(user.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
 
             const query = gql`
                 mutation UpdateTier($input: UpdateTierInput!) {
@@ -505,6 +648,7 @@ describe('TierResolver', () => {
 
             return request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -515,13 +659,81 @@ describe('TierResolver', () => {
 
     describe('deleteTier', () => {
         it('should delete a tier', async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+            });
+
             const tier = await service.createTier({
                 name: faker.company.name(),
                 collection: { id: collection.id },
                 totalMints: 10,
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
+
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: user.email,
+                    password: await hashPassword(user.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
 
             const query = gql`
                 mutation DeleteTier($input: DeleteTierInput!) {
@@ -537,6 +749,7 @@ describe('TierResolver', () => {
 
             return request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -547,10 +760,23 @@ describe('TierResolver', () => {
 
     describe('getHoldersOfTier', () => {
         const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
+        const tierName = 'Test Tier';
+        let innerCollection: Collection;
 
         beforeEach(async () => {
             const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
-            const collection = await collectionService.createCollection({
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            innerCollection = await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -561,11 +787,68 @@ describe('TierResolver', () => {
             });
 
             await service.createTier({
-                name: faker.company.name(),
+                name: tierName,
                 totalMints: 100,
-                collection: { id: collection.id },
+                collection: { id: innerCollection.id },
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    uses: ['vibexyz/creator_scoring', 'vibexyz/royalty_level'],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                    conditions: {
+                        operator: 'and',
+                        rules: [
+                            {
+                                property: 'holding_days',
+                                rule: 'greater_than',
+                                value: -1,
+                                update: [
+                                    {
+                                        property: 'holding_days',
+                                        action: 'increase',
+                                        value: 1,
+                                    },
+                                ],
+                            },
+                            {
+                                property: 'level',
+                                rule: 'Bronze',
+                                value: '',
+                                update: [
+                                    {
+                                        property: 'level',
+                                        value: 'Silver',
+                                    },
+                                ],
+                            },
+                        ],
+                        trigger: [
+                            {
+                                type: 'schedule',
+                                updatedAt: new Date().toISOString(),
+                                config: {
+                                    startAt: new Date().toISOString(),
+                                    endAt: new Date().toISOString(),
+                                    every: 1,
+                                    unit: 'minutes',
+                                },
+                            },
+                        ],
+                    },
+                },
             });
 
             await mintSaleContractService.createMintSaleContract({
@@ -587,7 +870,7 @@ describe('TierResolver', () => {
                 endId: 100,
                 currentId: 1,
                 tokenAddress: tokenAddress,
-                collectionId: collection.id,
+                collectionId: innerCollection.id,
             });
             const owner1 = faker.finance.ethereumAddress().toLowerCase();
             await walletService.createWallet({ address: owner1 });
@@ -674,6 +957,101 @@ describe('TierResolver', () => {
                     expect(body.data.collection.tiers.length).toEqual(1);
                     expect(body.data.collection.tiers[0].holders.total).toEqual(2);
                     expect(body.data.collection.tiers[0].holders.data.length).toEqual(2);
+                });
+        });
+
+        it('should get attribute overview', async () => {
+            const query = gql`
+                query overview($collectionAddress: String!) {
+                    attributeOverview(collectionAddress: $collectionAddress)
+                }
+            `;
+
+            const variables = { collectionAddress: collectionAddress.toLowerCase() };
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.attributeOverview).toBeDefined();
+                    expect(body.data.attributeOverview.attributes).toBeDefined();
+                    expect(body.data.attributeOverview.attributes.level).toBeDefined();
+                    expect(body.data.attributeOverview.attributes.level.basic).toEqual(1);
+
+                    expect(body.data.attributeOverview.upgrades).toBeDefined();
+                    expect(body.data.attributeOverview.upgrades.level).toEqual(1);
+
+                    expect(body.data.attributeOverview.plugins).toBeDefined();
+                    expect(body.data.attributeOverview.plugins['vibexyz/creator_scoring']).toEqual(1);
+                });
+        });
+        it('should search by keyword', async () => {
+            const query = gql`
+                query SearchTier($input: TierSearchBarInput!) {
+                    searchTierFromCollection(input: $input) {
+                        edges {
+                            cursor
+                            node {
+                                id
+                                name
+                            }
+                        }
+                        pageInfo {
+                            endCursor
+                        }
+                        totalCount
+                    }
+                }
+            `;
+
+            const variables = { input: { collectionId: innerCollection.id, keyword: 'test' } };
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.searchTierFromCollection).toBeDefined();
+                    expect(body.data.searchTierFromCollection.totalCount).toEqual(1);
+                    expect(body.data.searchTierFromCollection.edges).toBeDefined();
+                    expect(body.data.searchTierFromCollection.edges[0]).toBeDefined();
+                    expect(body.data.searchTierFromCollection.edges[0].node).toBeDefined();
+                    expect(body.data.searchTierFromCollection.edges[0].node.name).toBe(tierName);
+                });
+        });
+
+        it('should search by properties', async () => {
+            const query = gql`
+                query SearchTier($input: TierSearchBarInput!) {
+                    searchTierFromCollection(input: $input) {
+                        edges {
+                            cursor
+                            node {
+                                id
+                                name
+                            }
+                        }
+                        pageInfo {
+                            endCursor
+                        }
+                        totalCount
+                    }
+                }
+            `;
+
+            const variables = {
+                input: { collectionId: innerCollection.id, properties: [{ name: 'level', value: 'basic' }] },
+            };
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.searchTierFromCollection).toBeDefined();
+                    expect(body.data.searchTierFromCollection.totalCount).toEqual(1);
+                    expect(body.data.searchTierFromCollection.edges).toBeDefined();
+                    expect(body.data.searchTierFromCollection.edges[0]).toBeDefined();
+                    expect(body.data.searchTierFromCollection.edges[0].node).toBeDefined();
+                    expect(body.data.searchTierFromCollection.edges[0].node.name).toBe(tierName);
                 });
         });
     });

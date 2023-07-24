@@ -11,8 +11,8 @@ export class MintSaleTransactionResolver {
     @Query(() => MintSaleTransaction, { nullable: true, description: 'returns transaction for a given uuid' })
     async transaction(
         @Args({ name: 'id', nullable: true }) id: string,
-        @Args({ name: 'address', nullable: true }) address: string,
-        @Args({ name: 'recipient', nullable: true }) recipient: string
+            @Args({ name: 'address', nullable: true }) address: string,
+            @Args({ name: 'recipient', nullable: true }) recipient: string
     ): Promise<MintSaleTransaction> {
         return await this.transactionService.getMintSaleTransaction({ id, address, recipient });
     }

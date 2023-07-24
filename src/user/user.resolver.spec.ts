@@ -1,15 +1,8 @@
 import * as request from 'supertest';
-import { Test, TestingModule } from '@nestjs/testing';
-import { GraphQLModule } from '@nestjs/graphql';
 import { INestApplication } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ApolloDriver } from '@nestjs/apollo';
 import { faker } from '@faker-js/faker';
 import { hashSync as hashPassword } from 'bcryptjs';
-import { postgresConfig } from '../lib/configs/db.config';
-import { UserModule } from './user.module';
 import { UserService } from '../user/user.service';
-import { SessionModule } from '../session/session.module';
 
 export const gql = String.raw;
 
@@ -18,44 +11,15 @@ describe('UserResolver', () => {
     let app: INestApplication;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                UserModule,
-                SessionModule,
-                GraphQLModule.forRoot({
-                    driver: ApolloDriver,
-                    autoSchemaFile: true,
-                    include: [UserModule, SessionModule],
-                }),
-            ],
-        }).compile();
-
-        service = module.get<UserService>(UserService);
-        app = module.createNestApplication();
-
-        await app.init();
+        app = global.app;
+        service = global.userService;
+        jest.spyOn(global.mailService, 'sendWelcomeEmail').mockImplementation(async () => {});
+        jest.spyOn(global.mailService, 'sendInviteEmail').mockImplementation(async () => {});
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
-        await app.close();
     });
 
     describe('getUser', () => {
@@ -156,7 +120,7 @@ describe('UserResolver', () => {
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
-    
+
             const tokenQuery = gql`
                 mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
                     createSessionFromEmail(input: $input) {
@@ -203,7 +167,7 @@ describe('UserResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
-                .set('authorization', `Bearer ${token}`)
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {

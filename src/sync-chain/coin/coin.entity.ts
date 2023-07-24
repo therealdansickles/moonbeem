@@ -18,11 +18,13 @@ export class Coin extends BaseEntity {
     @Column({ comment: 'The decimals of coin.' })
     readonly decimals: number;
 
+    // It will be deleted after the frontend has finished integrating
     @Column({ comment: 'Price of tokens converted to ETH. Required decimals are 18' })
     readonly derivedETH: string;
 
+    // It will be deleted after the frontend has finished integrating
     @Column({ comment: 'Price of tokens converted to USDC. Required decimals are 18' })
-    readonly derivedUSDC: string;
+    public derivedUSDC: string;
 
     @Column({ default: false, comment: 'Is this token address a native token' })
     readonly native: boolean;

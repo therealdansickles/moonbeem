@@ -1,26 +1,33 @@
-import { GraphQLError } from 'graphql';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { ethers } from 'ethers';
 import BigNumber from 'bignumber.js';
-import { captureException } from '@sentry/node';
+import { ethers, isAddress } from 'ethers';
+import { GraphQLError } from 'graphql';
 import { isEmpty, isNil, omit, omitBy } from 'lodash';
+import { Repository } from 'typeorm';
 
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { captureException } from '@sentry/node';
+
+import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { Tier } from '../tier/tier.entity';
+import { User } from '../user/user.entity';
 import {
     BindWalletInput,
     CreateWalletInput,
-    UnbindWalletInput,
-    Minted,
-    UpdateWalletInput,
     EstimatedValue,
+    Minted,
+    MintPaginated,
+    UnbindWalletInput,
+    UpdateWalletInput,
+    WalletSold,
+    WalletSoldPaginated,
 } from './wallet.dto';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import { User } from '../user/user.entity';
 import { Wallet } from './wallet.entity';
-import { Tier } from '../tier/tier.entity';
-import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import { CoinService } from '../sync-chain/coin/coin.service';
+import { BasicPriceInfo, Profit } from '../tier/tier.dto';
+import { Collection } from '../collection/collection.entity';
 
 interface ITokenPrice {
     token: string;
@@ -33,13 +40,14 @@ type IWalletQuery = Partial<Pick<Wallet, 'name' | 'address'>>;
 export class WalletService {
     constructor(
         @InjectRepository(Wallet) private walletRespository: Repository<Wallet>,
+        @InjectRepository(Collection) private collectionRespository: Repository<Collection>,
         @InjectRepository(User) private userRepository: Repository<User>,
         @InjectRepository(Tier) private tierRepository: Repository<Tier>,
         @InjectRepository(MintSaleTransaction, 'sync_chain')
         private mintSaleTransactionRepository: Repository<MintSaleTransaction>,
         @InjectRepository(MintSaleContract, 'sync_chain')
         private mintSaleContractRepository: Repository<MintSaleContract>,
-        private coinService: CoinService,
+        private coinService: CoinService
     ) {}
 
     /**
@@ -107,6 +115,10 @@ export class WalletService {
      */
     async createWallet(input: CreateWalletInput): Promise<Wallet> {
         const { ownerId, ...walletData } = input;
+        if (walletData.name && isAddress(walletData.name))
+            throw new GraphQLError(`Wallet name can't be in the address format.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
         if (!walletData.name || walletData.name === '') {
             walletData.name = walletData.address.toLowerCase();
         }
@@ -138,6 +150,10 @@ export class WalletService {
             });
         }
         if (payload.name && payload.name !== '') {
+            if (isAddress(payload.name) && payload.name.toLowerCase() !== payload.address.toLowerCase())
+                throw new GraphQLError(`Wallet name can't be in the address format.`, {
+                    extensions: { code: 'BAD_REQUEST' },
+                });
             const existedWallet = await this.getWalletByQuery({ name: payload.name });
             if (existedWallet && existedWallet.id !== id)
                 throw new GraphQLError(`Wallet name ${payload.name} already existed.`, {
@@ -168,26 +184,12 @@ export class WalletService {
     async bindWallet(data: BindWalletInput): Promise<Wallet> {
         const { address: rawAddress, owner } = data;
         const address = rawAddress.toLowerCase();
+        const wallet = await this.verifyWallet(address, data.message, data.signature);
 
-        const verifiedAddress = ethers.verifyMessage(data.message, data.signature);
-        if (address !== verifiedAddress.toLocaleLowerCase()) {
-            throw new HttpException('signature verification failure', HttpStatus.BAD_REQUEST);
-        }
-
-        let wallet = await this.walletRespository.findOne({
-            where: { address },
-            relations: ['owner'],
-        });
-
-        // if wallet doesn't existed yet, create a new one and bind the owner on it
-        if (!wallet) {
-            wallet = { address, owner } as Wallet;
-        } else {
-            if (wallet.owner && wallet.owner.id) {
-                throw new GraphQLError(`Wallet ${address} is already bound.`, {
-                    extensions: { code: 'BAD_REQUEST' },
-                });
-            }
+        if (wallet.owner && wallet.owner.id) {
+            throw new GraphQLError(`Wallet ${address} is already bound.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
         }
 
         try {
@@ -294,14 +296,34 @@ export class WalletService {
      * @param address The address of the wallet to retrieve.
      * @returns The `Minted` details + mint sale transactions associated with the given address.
      */
-    async getMintedByAddress(address: string): Promise<Minted[]> {
+    async getMintedByAddress(
+        address: string,
+        before: string,
+        after: string,
+        first: number,
+        last: number
+    ): Promise<MintPaginated> {
         const wallet = await this.getWalletByQuery({ address });
         if (!wallet) throw new Error(`Wallet with address ${address} doesn't exist.`);
 
-        // FIXME: Need to setup pagination for this.
-        const mintSaleTransactions = await this.mintSaleTransactionRepository.find({ where: { recipient: address } });
+        const builder = await this.mintSaleTransactionRepository.createQueryBuilder('tx');
+        builder.where('tx.recipient = :address', { address });
+        const countBuilder = builder.clone();
 
-        const minted = await Promise.all(
+        if (after) {
+            builder.andWhere('tx.createdAt > :cursor', { cursor: fromCursor(after) });
+            builder.limit(first);
+        } else if (before) {
+            builder.andWhere('tx.createdAt < :cursor', { cursor: fromCursor(before) });
+            builder.limit(last);
+        } else {
+            const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
+            builder.limit(limit);
+        }
+
+        const [mintSaleTransactions, total] = await Promise.all([builder.getMany(), countBuilder.getCount()]);
+
+        const minted: Minted[] = await Promise.all(
             mintSaleTransactions.map(async (mintSaleTransaction) => {
                 const { tierId, address } = mintSaleTransaction;
 
@@ -313,10 +335,11 @@ export class WalletService {
                     .andWhere('tier.tierId = :tierId', { tierId })
                     .getOne();
 
-                return { ...mintSaleTransaction, tier } as unknown as Minted;
+                return { ...mintSaleTransaction, tier };
             })
         );
-        return minted;
+
+        return PaginatedImp(minted, total);
     }
 
     /**
@@ -430,5 +453,174 @@ export class WalletService {
             captureException(e);
             return [];
         }
+    }
+
+    async getSold(
+        address: string,
+        before: string,
+        after: string,
+        first: number,
+        last: number
+    ): Promise<WalletSoldPaginated> {
+        const collections = await this.collectionRespository
+            .createQueryBuilder('collection')
+            .leftJoinAndSelect('collection.creator', 'wallet')
+            .where('wallet.address = :address', { address: address })
+            .andWhere('collection.address IS NOT NULL')
+            .getMany();
+
+        if (collections.length <= 0) return PaginatedImp([], 0);
+
+        const builder = this.mintSaleTransactionRepository.createQueryBuilder('txn');
+        builder.where('address IN (:...addresses)', {
+            addresses: collections.map((c) => {
+                return c.address;
+            }),
+        });
+        const countBuilder = builder.clone();
+
+        if (after) {
+            builder.andWhere('txn.createdAt > :cursor', { cursor: fromCursor(after) });
+            builder.limit(first);
+        } else if (before) {
+            builder.andWhere('txn.createdAt < :cursor', { cursor: fromCursor(before) });
+            builder.limit(last);
+        } else {
+            const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
+            builder.limit(limit);
+        }
+
+        const [transactions, total] = await Promise.all([builder.getMany(), countBuilder.getCount()]);
+        const data: WalletSold[] = await Promise.all(
+            transactions.map(async (txn) => {
+                const tier = await this.tierRepository.findOne({ where: { tierId: txn.tierId } });
+                return {
+                    ...txn,
+                    tier: tier,
+                };
+            })
+        );
+
+        return PaginatedImp(data, total);
+    }
+
+    public async getWalletProfit(address: string): Promise<Profit[]> {
+        const collections = await this.collectionRespository
+            .createQueryBuilder('collection')
+            .leftJoinAndSelect('collection.creator', 'wallet')
+            .where('wallet.address = :address', { address: address })
+            .andWhere('collection.address IS NOT NULL')
+            .getMany();
+
+        if (collections.length <= 0) return [];
+
+        const result = await this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .select('SUM("txn".price::decimal(30,0))', 'price')
+            .addSelect('txn.paymentToken', 'token')
+            .where('txn.address IN (:...addresses)', {
+                addresses: collections.map((c) => {
+                    if (c.address) return c.address;
+                }),
+            })
+            .groupBy('txn.paymentToken')
+            .getRawMany();
+
+        const data = await Promise.all(
+            result.map(async (item) => {
+                const itemData = item as BasicPriceInfo;
+                const coin = await this.coinService.getCoinByAddress(itemData.token.toLowerCase());
+
+                const totalTokenPrice = new BigNumber(itemData.price).div(new BigNumber(10).pow(coin.decimals));
+                const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(coin.derivedUSDC);
+                return {
+                    inPaymentToken: totalTokenPrice.toString(),
+                    inUSDC: totalUSDC.toString(),
+                };
+            })
+        );
+
+        return data;
+    }
+
+    async getMonthlyBuyers(address: string): Promise<number> {
+        const collections = await this.collectionRespository
+            .createQueryBuilder('collection')
+            .leftJoinAndSelect('collection.creator', 'wallet')
+            .where('wallet.address = :address', { address: address })
+            .andWhere('collection.address IS NOT NULL')
+            .getMany();
+
+        if (collections.length <= 0) return 0;
+        const currentDate = new Date();
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1;
+
+        const total = await this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            // txTime is a timestamp that needs to be converted to a date type
+            .where('EXTRACT(YEAR FROM TO_TIMESTAMP(txn.txTime)) = :year', { year })
+            .andWhere('EXTRACT(MONTH FROM TO_TIMESTAMP(txn.txTime)) = :month', { month })
+            .andWhere('txn.address IN (:...addresses)', {
+                addresses: collections.map((c) => {
+                    if (c.address) return c.address;
+                }),
+            })
+            .getCount();
+        return total;
+    }
+
+    public async getMonthlyCollections(address: string): Promise<number> {
+        const currentDate = new Date();
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1;
+
+        const total = await this.collectionRespository
+            .createQueryBuilder('collection')
+            .leftJoinAndSelect('collection.creator', 'wallet')
+            .where('wallet.address = :address', { address })
+            .andWhere('EXTRACT(YEAR FROM collection.createdAt) = :year', { year })
+            .andWhere('EXTRACT(MONTH FROM collection.createdAt) = :month', { month })
+            .getCount();
+        return total;
+    }
+
+    public async getMonthlyEarnings(address: string): Promise<number> {
+        const collections = await this.collectionRespository
+            .createQueryBuilder('collection')
+            .leftJoinAndSelect('collection.creator', 'wallet')
+            .where('wallet.address = :address', { address: address })
+            .andWhere('collection.address IS NOT NULL')
+            .getMany();
+
+        if (collections.length <= 0) return 0;
+        const currentDate = new Date();
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1;
+
+        const result = await this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .select('txn.paymentToken', 'token')
+            .addSelect('SUM(txn.price::numeric(20,0))', 'total_price')
+            .where('EXTRACT(YEAR FROM TO_TIMESTAMP(txn.txTime)) = :year', { year })
+            .andWhere('EXTRACT(MONTH FROM TO_TIMESTAMP(txn.txTime)) = :month', { month })
+            .andWhere('txn.address IN (:...addresses)', {
+                addresses: collections.map((c) => {
+                    if (c.address) return c.address;
+                }),
+            })
+            .addGroupBy('txn.paymentToken')
+            .getRawMany();
+
+        const totalEarning = result.reduce(async (accumulator, current) => {
+            const coin = await this.coinService.getCoinByAddress(current.token);
+            const quote = await this.coinService.getQuote(coin.symbol);
+            const usdPrice = quote['USD'].price;
+
+            const totalTokenPrice = new BigNumber(current.total_price).div(new BigNumber(10).pow(coin.decimals));
+            const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(usdPrice);
+            return accumulator + totalUSDC;
+        }, 0);
+        return totalEarning;
     }
 }

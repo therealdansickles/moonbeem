@@ -1,6 +1,5 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { AWSAdapter, ResourceType } from './aws.adapter';
-import { HttpModule, HttpService } from '@nestjs/axios';
+import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { faker } from '@faker-js/faker';
 import { v4 as uuidv4 } from 'uuid';
@@ -11,12 +10,8 @@ describe('AWSAdapter', () => {
     let awsAdapter: AWSAdapter;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [HttpModule],
-            providers: [AWSAdapter],
-        }).compile();
-        awsAdapter = module.get<AWSAdapter>(AWSAdapter);
-        requestService = module.get<HttpService>(HttpService);
+        awsAdapter = global.awsAdapter;
+        requestService = global.httpService;
     });
 
     it('s3PutData should upload successfully', async () => {

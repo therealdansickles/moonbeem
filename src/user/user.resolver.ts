@@ -6,7 +6,7 @@ import { Membership } from '../membership/membership.dto';
 import { MembershipService } from '../membership/membership.service';
 import { Organization } from '../organization/organization.dto';
 import { OrganizationService } from '../organization/organization.service';
-import { AuthorizedUser } from '../authorization/authorization.decorator';
+import { AuthorizedUser } from '../session/session.decorator';
 
 @Resolver(() => User)
 export class UserResolver {
@@ -20,7 +20,7 @@ export class UserResolver {
     @Query(() => User, { description: 'Returns an user for the given id or username', nullable: true })
     async user(
         @Args({ name: 'id', nullable: true }) id: string,
-        @Args({ name: 'username', nullable: true }) username: string
+            @Args({ name: 'username', nullable: true }) username: string
     ): Promise<User> {
         return await this.userService.getUserByQuery({ id, username });
     }

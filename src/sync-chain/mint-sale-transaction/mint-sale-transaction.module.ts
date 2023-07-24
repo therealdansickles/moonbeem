@@ -3,7 +3,7 @@ import { MintSaleTransaction } from './mint-sale-transaction.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MintSaleTransactionService } from './mint-sale-transaction.service';
 import { MintSaleTransactionResolver } from './mint-sale-transaction.resolver';
-import { SharedModule } from '../../modules/share.module';
+import { SharedModule } from '../../share/share.module';
 
 @Module({
     imports: [SharedModule, TypeOrmModule.forFeature([MintSaleTransaction], 'sync_chain')],

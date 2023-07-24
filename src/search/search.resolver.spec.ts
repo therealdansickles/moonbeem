@@ -1,18 +1,9 @@
 import * as request from 'supertest';
-import { Test, TestingModule } from '@nestjs/testing';
-import { GraphQLModule } from '@nestjs/graphql';
 import { INestApplication } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ApolloDriver } from '@nestjs/apollo';
 import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
 import { CollectionService } from '../collection/collection.service';
-import { SearchModule } from './search.module';
-import { CollectionModule } from '../collection/collection.module';
 import { WalletService } from '../wallet/wallet.service';
-import { WalletModule } from '../wallet/wallet.module';
 import { UserService } from '../user/user.service';
-import { UserModule } from '../user/user.module';
 import { OrganizationService } from '../organization/organization.service';
 
 export const gql = String.raw;
@@ -25,46 +16,16 @@ describe('SearchResolver', () => {
     let organizationService: OrganizationService;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                }),
-                SearchModule,
-                CollectionModule,
-                WalletModule,
-                UserModule,
-                GraphQLModule.forRoot({
-                    driver: ApolloDriver,
-                    autoSchemaFile: true,
-                    include: [SearchModule, WalletModule],
-                }),
-            ],
-        }).compile();
-
-        userService = module.get<UserService>(UserService);
-        walletService = module.get<WalletService>(WalletService);
-        collectionService = module.get<CollectionService>(CollectionService);
-        organizationService = module.get<OrganizationService>(OrganizationService);
-        app = module.createNestApplication();
-        await app.init();
+        app = global.app;
+        userService = global.userService;
+        walletService = global.walletService;
+        collectionService = global.collectionService;
+        organizationService = global.organizationService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
-        await app.close();
     });
 
     describe('search bar', () => {
@@ -110,6 +71,23 @@ describe('SearchResolver', () => {
                         paymentTokenAddress: faker.finance.ethereumAddress(),
                         tierId: 0,
                         price: '200',
+                        metadata: {
+                            uses: [],
+                            properties: {
+                                level: {
+                                    name: 'level',
+                                    type: 'string',
+                                    value: 'basic',
+                                    display_value: 'Basic',
+                                },
+                                holding_days: {
+                                    name: 'holding_days',
+                                    type: 'integer',
+                                    value: 125,
+                                    display_value: 'Days of holding',
+                                },
+                            },
+                        },
                     },
                 ],
                 organization: organization,

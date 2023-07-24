@@ -3,7 +3,7 @@ import { MintSaleContract } from './mint-sale-contract.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MintSaleContractService } from './mint-sale-contract.service';
 import { MintSaleContractResolver } from './mint-sale-contract.resolver';
-import { SharedModule } from '../../modules/share.module';
+import { SharedModule } from '../../share/share.module';
 import { Factory } from '../factory/factory.entity';
 import { FactoryModule } from '../factory/factory.module';
 import { MintSaleTransactionModule } from '../mint-sale-transaction/mint-sale-transaction.module';

@@ -1,15 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateCollaborationInput } from './collaboration.dto';
+import { GraphQLError } from 'graphql';
+import { CreateCollaborationInput, CollaborationWithEarnings } from './collaboration.dto';
 import { Collaboration } from './collaboration.entity';
 import { Wallet } from '../wallet/wallet.entity';
 import { User } from '../user/user.entity';
 import { Organization } from '../organization/organization.entity';
+import { CollectionService } from '../collection/collection.service';
+import { CoinService } from '../sync-chain/coin/coin.service';
 
 @Injectable()
 export class CollaborationService {
-    constructor(@InjectRepository(Collaboration) private collaborationRepository: Repository<Collaboration>) {}
+    constructor(
+        @InjectRepository(Collaboration)
+        private readonly collaborationRepository: Repository<Collaboration>,
+        private readonly collectionService: CollectionService,
+        private readonly coinService: CoinService,
+    ) { }
 
     /**
      * Retrieves the collaboration associated with the given id.
@@ -22,6 +30,78 @@ export class CollaborationService {
             where: { id },
             relations: ['wallet', 'user', 'organization'],
         });
+    }
+
+    private async calculateEarningsUsd(
+        earningObject: { sum: string, paymentToken: string }
+    ): Promise<bigint> {
+        if (!earningObject) {
+            return BigInt(0);
+        }
+
+        const { sum, paymentToken } = earningObject;
+
+        const token = await this.coinService.getCoinByAddress(paymentToken);
+        if (!token) {
+            throw new Error(`Failed to get token ${paymentToken}`);
+        }
+
+        const priceUsd = await this.coinService.getQuote(token.symbol);
+        if (!priceUsd) {
+            throw new Error(`Failed to get price for token ${token.symbol}`);
+        }
+
+        const tokenDecimals = token?.decimals || 18;
+        const base = BigInt(10);
+        const earningsToken = BigInt(sum) / (base ** BigInt(tokenDecimals));
+        const earningsUsd = earningsToken * BigInt(priceUsd.price as any);
+
+        return earningsUsd;
+    }
+
+    /**
+     * Retrieves the collaboration associated with the given id and calculates the earnings for each collaborator.
+     * 
+     * @param id The id of the collaboration to retrieve.
+     * @returns The collaboration associated with the given id including total earnings and earnings for each collaborator .
+     */
+    async getCollaborationWithEarnings(id: string): Promise<CollaborationWithEarnings> {
+        const collaboration = await this.collaborationRepository.findOne({
+            where: { id },
+            relations: ['wallet', 'user', 'organization', 'collections'],
+        });
+
+        if (!collaboration) {
+            throw new GraphQLError(`Collaboration with id ${id} doesn't exist.`, {
+                extensions: { code: 'NOT_FOUND' },
+            });
+        }
+
+        const earningsByCollection = await Promise.all(
+            collaboration.collections.map(({ address }) => this.collectionService.getCollectionEarningsByCollectionAddress(address))
+        );
+
+        const collectionEarningsInUsd: bigint[] = await Promise.all(
+            earningsByCollection.map(this.calculateEarningsUsd.bind(this))
+        );
+
+        const totalEarnings = Number(collectionEarningsInUsd.reduce((total: bigint, earnings: bigint) => total + earnings, BigInt(0)));
+
+        const collaborators = collaboration.collaborators?.map(collaborator => {
+            const earnings = Math.round(totalEarnings * (collaborator.rate / 100) * (collaboration.royaltyRate / 100));
+            return {
+                ...collaborator,
+                earnings,
+            };
+        }) || [];
+
+        const collaborationWithEarnings: CollaborationWithEarnings = {
+            ...collaboration,
+            collaborators,
+            totalEarnings,
+        };
+
+        return collaborationWithEarnings;
     }
 
     /**

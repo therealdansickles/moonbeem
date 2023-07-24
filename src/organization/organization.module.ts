@@ -20,6 +20,7 @@ import { User } from '../user/user.entity';
 import { UserModule } from '../user/user.module';
 import { Wallet } from '../wallet/wallet.entity';
 import { WalletModule } from '../wallet/wallet.module';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 
 @Module({
     imports: [
@@ -33,9 +34,10 @@ import { WalletModule } from '../wallet/wallet.module';
         forwardRef(() => TierModule),
         forwardRef(() => UserModule),
         forwardRef(() => WalletModule),
+        JwtModule,
     ],
     exports: [OrganizationModule, OrganizationService],
-    providers: [MembershipService, OrganizationService, OrganizationResolver],
+    providers: [JwtService, MembershipService, OrganizationService, OrganizationResolver],
     controllers: [],
 })
 export class OrganizationModule {}

@@ -1,30 +1,29 @@
+import { omit } from 'lodash';
+import { In, Repository } from 'typeorm';
+
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import { Tier } from '../tier/tier.entity';
-import { AWSAdapter, ResourceType } from '../lib/adapters/aws.adapter';
+
 import { Collection } from '../collection/collection.entity';
-import { omit } from 'lodash';
+import { AWSAdapter, ResourceType } from '../lib/adapters/aws.adapter';
 import { appConfig } from '../lib/configs/app.config';
+import { MetadataProperties } from '../metadata/metadata.dto';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { Tier } from '../tier/tier.entity';
 
 export interface IMetadataForOpensea {
     id: string;
-    token: string;
-    token_id: string;
     collection_id: string;
+    token_id: string;
+
     name: string;
     description: string;
     image: string;
     external_url: string;
-    attributes: IAttributeForOpensea[];
-}
-
-export interface IAttributeForOpensea {
-    trait_type: string;
-    value: unknown;
-    display_type?: string;
+    properties: MetadataProperties;
 }
 
 @Injectable()
@@ -50,20 +49,16 @@ export class PollerService {
                     tierId: record.tierId,
                     collection: { id: collection.id },
                 });
-                const attributes: IAttributeForOpensea[] = tier?.attributes
-                    ? (tier.attributes as IAttributeForOpensea[])
-                    : [];
 
                 result.push({
                     id: record.id,
-                    token: record.address,
-                    token_id: record.tokenId,
                     collection_id: collection.id,
+                    token_id: record.tokenId,
                     name: tier?.name,
                     description: tier?.description,
                     image: tier?.image,
                     external_url: tier?.externalUrl,
-                    attributes,
+                    properties: tier.metadata.properties,
                 });
             }
         }
@@ -86,7 +81,7 @@ export class PollerService {
         const ids = [];
         for (const record of records) {
             const baseUrlId = `${record.collection_id}/${record.token_id}`;
-            await this.upload(baseUrlId, omit(record, ['id', 'collection_id']));
+            await this.upload(baseUrlId, omit(record, ['id', 'collection_id', 'token_id']));
             ids.push(record.id);
         }
         await this.markIsUploaded(ids);

@@ -1,19 +1,19 @@
-import { Resolver, Query, Args, Mutation, ResolveField, Parent } from '@nestjs/graphql';
-import { Public } from '../session/session.decorator';
-import {
-    Organization,
-    OrganizationInput,
-    CreateOrganizationInput,
-    UpdateOrganizationInput,
-    TransferOrganizationInput,
-} from './organization.dto';
-import { OrganizationService } from './organization.service';
+import { UseGuards } from '@nestjs/common';
+import { Args, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+
 import { Collaboration } from '../collaboration/collaboration.dto';
 import { CollaborationService } from '../collaboration/collaboration.service';
 import { Collection } from '../collection/collection.dto';
 import { CollectionService } from '../collection/collection.service';
 import { Membership } from '../membership/membership.dto';
 import { MembershipService } from '../membership/membership.service';
+import { Public } from '../session/session.decorator';
+import { SigninByEmailGuard } from '../session/session.guard';
+import {
+    CreateOrganizationInput, Organization, OrganizationInput, TransferOrganizationInput,
+    UpdateOrganizationInput
+} from './organization.dto';
+import { OrganizationService } from './organization.service';
 
 @Resolver(() => Organization)
 export class OrganizationResolver {
@@ -30,6 +30,7 @@ export class OrganizationResolver {
         return await this.organizationService.getOrganization(id);
     }
 
+    @UseGuards(SigninByEmailGuard)
     @Mutation(() => Organization, { description: 'Creates an organization.' })
     async createOrganization(@Args('input') input: CreateOrganizationInput): Promise<Organization> {
         return await this.organizationService.createOrganization(input);

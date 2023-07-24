@@ -1,29 +1,33 @@
 import {
-    Field,
-    Int,
-    ObjectType,
-    InputType,
-    registerEnumType,
-    PartialType,
-    OmitType,
-    PickType,
-    Float,
-} from '@nestjs/graphql';
-import { IsNumber, IsString, IsDateString, IsUrl, IsOptional, IsArray, IsObject, IsEnum } from 'class-validator';
-import { CollectionKind } from './collection.entity';
-import { AttributeInput, Tier, PluginInput, ConditionInput, MetadataOutput } from '../tier/tier.dto';
-import { Organization, OrganizationInput } from '../organization/organization.dto';
-import { CollaborationInput } from '../collaboration/collaboration.dto';
-import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
-import { Wallet, WalletInput } from '../wallet/wallet.dto';
-import { Collaboration } from '../collaboration/collaboration.dto';
-import { Asset721 } from '../sync-chain/asset721/asset721.dto';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
+    IsArray, IsDateString, IsEnum, IsNumber, IsObject, IsOptional, IsString, IsUrl, ValidateIf
+} from 'class-validator';
 import { GraphQLJSONObject } from 'graphql-type-json';
+
+import {
+    Field, Float, InputType, Int, ObjectType, OmitType, PartialType, PickType, registerEnumType
+} from '@nestjs/graphql';
+
+import { Collaboration, CollaborationInput } from '../collaboration/collaboration.dto';
+import Paginated from '../lib/pagination/pagination.model';
+import { Metadata } from '../metadata/metadata.dto';
+import { Organization, OrganizationInput } from '../organization/organization.dto';
+import { Asset721 } from '../sync-chain/asset721/asset721.dto';
+import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
+import { Tier } from '../tier/tier.dto';
+import { Wallet, WalletInput } from '../wallet/wallet.dto';
+import { CollectionKind } from './collection.entity';
 
 export const ZeroAccount = '0x0000000000000000000000000000000000000000';
 
+export enum CollectionStatus {
+    closed = 'closed',
+    upcoming = 'upcoming',
+    active = 'active',
+}
+
 registerEnumType(CollectionKind, { name: 'CollectionKind' });
+registerEnumType(CollectionStatus, { name: 'CollectionStatus' });
 
 @ObjectType('Collection')
 export class Collection {
@@ -57,7 +61,9 @@ export class Collection {
     @IsOptional()
     readonly address?: string;
 
+    @ValidateIf((collection) => collection.avatarUrl !== '')
     @IsUrl()
+    @IsOptional()
     @Field({
         description: 'The image url for the avatar of the collection. This is the profile picture.',
         nullable: true,
@@ -99,6 +105,14 @@ export class Collection {
     })
     @IsString()
     readonly nameOnOpensea?: string;
+
+    @IsNumber()
+    @Field(() => Int, { description: 'The begin time for sales.', nullable: true })
+    public beginSaleAt?: number;
+
+    @IsNumber()
+    @Field(() => Int, { description: 'The end time for sales.', nullable: true })
+    public endSaleAt?: number;
 
     @IsDateString()
     @Field({ description: 'The DateTime that this collection was published.', nullable: true })
@@ -206,24 +220,9 @@ export class CreateTierInCollectionInput {
     @IsOptional()
     readonly animationUrl?: string;
 
-    @Field(() => [AttributeInput], { description: 'The tier attributes', nullable: true })
-    @IsArray()
-    @IsOptional()
-    readonly attributes?: AttributeInput[];
-
-    @Field(() => [ConditionInput], { description: 'The tier attributes', nullable: true })
-    @IsArray()
-    @IsOptional()
-    readonly conditions?: ConditionInput[];
-
-    @Field(() => [PluginInput], { description: 'The tier attributes', nullable: true })
-    @IsArray()
-    @IsOptional()
-    readonly plugins?: PluginInput[];
-
     @Field(() => GraphQLJSONObject, { nullable: true, description: 'The full metadata of the tier.' })
     @IsObject()
-    readonly metadata?: MetadataOutput;
+    readonly metadata: Metadata;
 
     @IsString()
     @Field({ nullable: true, description: 'This merekleRoot of tier.' })
@@ -288,7 +287,22 @@ export class CollectionStatDataPeriodItem {
 
     @Field(() => Float, { nullable: true })
     @IsNumber()
+    readonly monthly?: number;
+
+    @Field(() => Float, { nullable: true })
+    @IsNumber()
     readonly total?: number;
+}
+
+@ObjectType('CollectionStatDataPaymentToken')
+export class CollectionStatDataPaymentToken {
+    @Field(() => String, { nullable: true })
+    @IsString()
+    readonly symbol?: string;
+
+    @Field(() => Float, { nullable: true })
+    @IsNumber()
+    readonly priceInUSD?: number;
 }
 
 @ObjectType('CollectionStatData')
@@ -301,13 +315,25 @@ export class CollectionStatData {
     @IsObject()
     readonly sales?: CollectionStatDataPeriodItem;
 
-    @Field(() => Float)
-    @IsNumber()
-    readonly supply: number;
+    @Field(() => CollectionStatDataPeriodItem, { nullable: true })
+    @IsObject()
+    readonly price?: CollectionStatDataPeriodItem;
 
-    @Field(() => Float)
+    @Field(() => Float, { nullable: true })
     @IsNumber()
-    readonly floorPrice: number;
+    readonly supply?: number;
+
+    @Field(() => Float, { nullable: true })
+    @IsNumber()
+    readonly floorPrice?: number;
+
+    @Field(() => Float, { description: 'The collection net Gross from open sea', nullable: true })
+    @IsNumber()
+    readonly netGrossEarning?: number;
+
+    @Field(() => CollectionStatDataPaymentToken, { nullable: true })
+    @IsObject()
+    readonly paymentToken?: CollectionStatDataPaymentToken;
 }
 
 @ObjectType('CollectionStat')
@@ -340,6 +366,13 @@ export class CollectionActivities {
     readonly data: CollectionActivityData[];
 }
 
+@ObjectType('SecondarySale')
+export class SecondarySale {
+    @Field(() => Number)
+    @IsNumber()
+    public total: number;
+}
+
 @ObjectType('CollectionActivityData')
 export class CollectionActivityData extends OmitType(Asset721, [], ObjectType) {
     @IsObject()
@@ -354,3 +387,61 @@ export class CollectionActivityData extends OmitType(Asset721, [], ObjectType) {
     @Field(() => MintSaleTransaction, { description: 'The transaction of the activity data.' })
     readonly transaction: MintSaleTransaction;
 }
+
+@ObjectType('LandingPageCollection')
+export class LandingPageCollection {
+    @Field(() => Int)
+    @IsNumber()
+    readonly total: number;
+
+    @Field(() => [Collection])
+    @IsArray()
+    readonly data: Collection[];
+}
+
+@ObjectType('CollectionPaginated')
+export class CollectionPaginated extends Paginated(Collection) {}
+
+@ObjectType('CollectionSold')
+export class CollectionSold extends PickType(
+    MintSaleTransaction,
+    [
+        'id',
+        'address',
+        'tokenAddress',
+        'paymentToken',
+        'tokenId',
+        'price',
+        'txTime',
+        'txHash',
+        'chainId',
+        'createdAt',
+    ] as const,
+    ObjectType
+) {
+    @Field(() => Tier)
+    @IsObject()
+    readonly tier?: Tier;
+}
+
+@ObjectType('CollectionSoldPaginated')
+export class CollectionSoldPaginated extends Paginated(CollectionSold) {}
+
+@ObjectType('Volume')
+export class Volume {
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'Profits in payment token', nullable: true })
+    readonly inPaymentToken?: string;
+
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'Profits converted to USDC', nullable: true })
+    readonly inUSDC?: string;
+}
+
+@ObjectType('SevenDayVolume')
+export class SevenDayVolume extends Volume {}
+
+@ObjectType('GrossEarnings')
+export class GrossEarnings extends Volume {}

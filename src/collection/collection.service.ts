@@ -1,28 +1,33 @@
+import BigNumber from 'bignumber.js';
+import { GraphQLError } from 'graphql';
+import { isEmpty, isNil, omitBy } from 'lodash';
+import { In, IsNull, Repository, UpdateResult } from 'typeorm';
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, UpdateResult, IsNull, In } from 'typeorm';
-import { isEmpty, isNil, omitBy } from 'lodash';
-
-import * as collectionEntity from './collection.entity';
-import { GraphQLError } from 'graphql';
-import { Tier } from '../tier/tier.entity';
-import {
-    Collection,
-    CollectionActivities,
-    CollectionActivityType,
-    CollectionStat,
-    CreateCollectionInput,
-    ZeroAccount,
-} from './collection.dto';
-import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import { Wallet } from '../wallet/wallet.entity';
-import { Collaboration } from '../collaboration/collaboration.entity';
 import * as Sentry from '@sentry/node';
-import { TierService } from '../tier/tier.service';
+
+import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
 import { OpenseaService } from '../opensea/opensea.service';
-import { CollectionHolder } from '../wallet/wallet.dto';
+import { SaleHistory } from '../saleHistory/saleHistory.dto';
+import { getCurrentPrice } from '../saleHistory/saleHistory.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { Tier as TierDto } from '../tier/tier.dto';
+import { Tier } from '../tier/tier.entity';
+import { TierService } from '../tier/tier.service';
+import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
+import { Wallet } from '../wallet/wallet.entity';
+import {
+    Collection, CollectionActivities, CollectionActivityType, CollectionPaginated, CollectionSold,
+    CollectionSoldPaginated, CollectionStat, CollectionStatus, CreateCollectionInput, GrossEarnings,
+    LandingPageCollection, SecondarySale, SevenDayVolume, UpdateCollectionInput, ZeroAccount
+} from './collection.dto';
+import * as collectionEntity from './collection.entity';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name'>>;
 
@@ -35,8 +40,6 @@ export class CollectionService {
         private readonly tierRepository: Repository<Tier>,
         @InjectRepository(Wallet)
         private readonly walletRepository: Repository<Wallet>,
-        @InjectRepository(Collaboration)
-        private readonly collaborationRepository: Repository<Collaboration>,
         @InjectRepository(MintSaleContract, 'sync_chain')
         private readonly mintSaleContractRepository: Repository<MintSaleContract>,
         @InjectRepository(MintSaleTransaction, 'sync_chain')
@@ -44,8 +47,9 @@ export class CollectionService {
         @InjectRepository(Asset721, 'sync_chain')
         private readonly asset721Repository: Repository<Asset721>,
         private tierService: TierService,
-        private openseaService: OpenseaService
-    ) {}
+        private openseaService: OpenseaService,
+        private coinService: CoinService
+    ) { }
 
     /**
      * Retrieves the collection associated with the given id.
@@ -74,10 +78,29 @@ export class CollectionService {
             relations: ['organization', 'creator', 'collaboration'],
         });
 
-        if (collection) collection.tiers = (await this.tierService.getTiersByCollection(collection.id)) as Tier[];
+        if (collection) {
+            collection.tiers = (await this.tierService.getTiersByQuery({
+                collection: { id: collection.id },
+            })) as Tier[];
+        }
+
         return collection;
     }
 
+    /**
+     * Retrieves collections related to the given collaboration ID.
+     *
+     * @param collaborationId The ID of the collaboration to retrieve collections for.
+     * @returns The collections related to the given collaboration.
+     */
+    async getCollectionsByCollaborationId(collaborationId: string): Promise<Collection[]> {
+        const collections = await this.collectionRepository.find({
+            where: { collaboration: { id: collaborationId } },
+            relations: ['organization', 'creator', 'collaboration'],
+        });
+
+        return collections;
+    }
     /**
      * Retrieves the collection associated with the given address.
      *
@@ -112,8 +135,19 @@ export class CollectionService {
 
         for (const collection of collections) {
             const contract = await this.mintSaleContractRepository.findOne({ where: { collectionId: collection.id } });
+            const tiers: TierDto[] = [];
+            for (const tier of collection.tiers) {
+                if (tier.paymentTokenAddress) {
+                    const coin = await this.coinService.getCoinByAddress(tier.paymentTokenAddress);
+                    tiers.push({
+                        ...tier,
+                        coin,
+                    });
+                }
+            }
+            const collectionInfo: Collection = { ...collection, tiers };
             result.push({
-                ...collection,
+                ...collectionInfo,
                 contract,
             });
         }
@@ -144,11 +178,13 @@ export class CollectionService {
         const collection = await this.collectionRepository.findOne({ where: query });
         if (!collection) return null;
         if (!collection.nameOnOpensea || collection.nameOnOpensea == '') {
-            throw new GraphQLError('The nameOnOpensea must provide', {
-                extensions: { code: 'INTERNAL_SERVER_ERROR' },
-            });
+            // throw new GraphQLError('The nameOnOpensea must provide', {
+            //     extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            // });
+            console.error('The nameOnOpensea must provide');
+            return null;
         }
-        const statFromOpensea = await this.openseaService.getCollectionStat(collection.nameOnOpensea);
+        const statFromOpensea = await this.openseaService.getCollection(collection.nameOnOpensea);
         // may have multiple sources, so make it as array
         return [
             {
@@ -156,6 +192,26 @@ export class CollectionService {
                 data: statFromOpensea,
             },
         ];
+    }
+
+    /**
+     * Check the data is good for saving as a new collection
+     *
+     * @param data
+     * @returns Whether the given data can be saved as a new collection
+     */
+    async precheckCollection(data: any): Promise<boolean> {
+        if (data.startSaleAt) {
+            if (new Date().getTime() / 1000 > data.startSaleAt) {
+                throw new Error(`The startSaleAt should be greater than today.`);
+            }
+            if (data.endSaleAt && data.startSaleAt > data.endSaleAt) {
+                throw new Error(`The endSaleAt should be greater than startSaleAt.`);
+            }
+        }
+        const existedCollection = await this.collectionRepository.findOneBy({ name: data.name });
+        if (existedCollection) throw new Error(`The collection name ${data.name} already existed.`);
+        return true;
     }
 
     /**
@@ -181,7 +237,7 @@ export class CollectionService {
      * @param params The id of the collection to update and the data to update it with.
      * @returns A boolean if it updated succesfully.
      */
-    async updateCollection(id: string, data: any): Promise<boolean> {
+    async updateCollection(id: string, data: Partial<Omit<UpdateCollectionInput, 'id'>>): Promise<boolean> {
         try {
             const result: UpdateResult = await this.collectionRepository.update(id, data);
             return result.affected > 0;
@@ -250,7 +306,8 @@ export class CollectionService {
             });
         }
 
-        const createResult = await this.collectionRepository.save(collection as Collection);
+        const dd = collection as Collection;
+        const createResult = await this.collectionRepository.save(dd);
 
         if (tiers) {
             for (const tier of tiers) {
@@ -285,29 +342,46 @@ export class CollectionService {
         //return await this.walletRepository.find({ where: { address: In(result.map((r) => r.recipient)) } });
     }
 
-    async getHolders(address: string, offset: number, limit: number): Promise<CollectionHolder> {
+    async getHolders(
+        address: string,
+        before: string,
+        after: string,
+        first: number,
+        last: number
+    ): Promise<CollectionHoldersPaginated> {
         const contract = await this.mintSaleContractRepository.findOneBy({ address });
 
+        const builder = this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .leftJoinAndSelect(Asset721, 'asset', 'asset.tokenId = txn.tokenId')
+            .select('txn.tierId', 'tierId')
+            .addSelect('asset.owner', 'owner')
+            .addSelect('COUNT(*)', 'quantity')
+            .addSelect('MIN(asset.txTime)', 'txTime')
+            .addSelect('txn.price', 'price')
+            .addSelect('SUM(txn.price::numeric(20,0))', 'totalPrice')
+            .where('asset.address = :address AND txn.tokenAddress = :address', {
+                address: contract.tokenAddress,
+            })
+            .groupBy('asset.owner')
+            .addGroupBy('txn.tierId')
+            .addGroupBy('txn.price');
+        if (after) {
+            builder.andWhere('asset.txTime > :cursor', { cursor: new Date(fromCursor(after)).valueOf() / 1000 });
+            builder.limit(first);
+        } else if (before) {
+            builder.andWhere('asset.txTime < :cursor', { cursor: fromCursor(before) });
+            builder.limit(last);
+        } else {
+            const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
+            builder.limit(limit);
+        }
+
         const [holderResults, totalResult] = await Promise.all([
+            builder.getRawMany(),
             this.asset721Repository
                 .createQueryBuilder('asset')
-                .leftJoinAndSelect(MintSaleTransaction, 'transaction', 'asset.tokenId = transaction.tokenId')
-                .select('asset.owner', 'owner')
-                .addSelect('asset.tokenId', 'tokenId')
-                .addSelect('COUNT(asset.tokenId)', 'quantity')
-                .addSelect('transaction.tierId', 'tierId')
-                .where('asset.address = :address AND transaction.tokenAddress = :address', {
-                    address: contract.tokenAddress,
-                })
-                .offset(offset)
-                .limit(limit)
-                .groupBy('asset.owner')
-                .addGroupBy('asset.tokenId')
-                .addGroupBy('transaction.tierId')
-                .getRawMany(),
-            this.asset721Repository
-                .createQueryBuilder('asset')
-                .select('COUNT(asset.owner) AS count')
+                .select('COUNT(DISTINCT(asset.owner)) AS count')
                 .where('asset.address = :address', { address: contract.tokenAddress })
                 .getRawOne(),
         ]);
@@ -322,18 +396,23 @@ export class CollectionService {
                     .where('tier.tierId = :tierId', { tierId: holder.tierId })
                     .andWhere('collection.address = :address', { address })
                     .getOne();
+                const createdAt = new Date(holder.txTime * 1000);
                 return {
                     ...wallet,
+                    price: holder.price,
+                    totalPrice: holder.totalPrice,
                     quantity: holder.quantity ? parseInt(holder.quantity) : 0,
                     tier,
+                    createdAt: new Date(createdAt.getTime() + createdAt.getTimezoneOffset() * 60 * 1000), // timestamp to iso time
                 };
             })
         );
-        return { total: totalResult ? parseInt(totalResult.count) : 0, data: data };
+        return PaginatedImp(data, totalResult ? parseInt(totalResult.count) : 0);
     }
 
     async getUniqueHolderCount(address: string): Promise<number> {
         const contract = await this.mintSaleContractRepository.findOneBy({ address });
+        if (!contract) return null;
 
         const total = await this.asset721Repository
             .createQueryBuilder('asset')
@@ -389,5 +468,279 @@ export class CollectionService {
         );
 
         return { data, total };
+    }
+
+    async getLandingPageCollections(
+        status: CollectionStatus,
+        offset: number,
+        limit: number
+    ): Promise<LandingPageCollection> {
+        const currentTimestamp = Math.round(new Date().valueOf() / 1000);
+
+        let inWhere = '';
+        switch (status) {
+            case CollectionStatus.active:
+                inWhere = `"beginTime" <= ${currentTimestamp} AND "endTime" >= ${currentTimestamp}`;
+                break;
+            case CollectionStatus.closed:
+                inWhere = `"endTime" <= ${currentTimestamp}`;
+                break;
+            case CollectionStatus.upcoming:
+                inWhere = `"beginTime" >= ${currentTimestamp}`;
+                break;
+            default:
+                inWhere = `"beginTime" >= ${currentTimestamp} OR "beginTime" <= ${currentTimestamp} AND "endTime" >= ${currentTimestamp}`;
+                break;
+        }
+
+        const [contracts, totalResult] = await Promise.all([
+            this.mintSaleContractRepository
+                .createQueryBuilder('contract')
+                .distinctOn(['contract.address'])
+                .where(inWhere)
+                .offset(offset)
+                .limit(limit)
+                .getMany(),
+            this.mintSaleContractRepository
+                .createQueryBuilder('contract')
+                .select('COUNT(DISTINCT("contract".address)) AS count')
+                .where(inWhere)
+                .getRawOne(),
+        ]);
+
+        const collections = await this.collectionRepository.find({
+            where: {
+                address: In(
+                    contracts.map((contract) => {
+                        return contract.address;
+                    })
+                ),
+            },
+            relations: ['organization', 'tiers', 'creator', 'collaboration'],
+        });
+
+        const data = await Promise.all(
+            collections.map(async (collection) => {
+                collection.tiers = (await this.tierService.getTiersByQuery({
+                    collection: { id: collection.id },
+                })) as Tier[];
+                return { ...collection };
+            })
+        );
+
+        return {
+            total: totalResult ? parseInt(totalResult.count) : 0,
+            data: data,
+        };
+    }
+
+    async getFloorPrice(address: string): Promise<string> {
+        const result = await this.mintSaleContractRepository
+            .createQueryBuilder('contract')
+            .select('MIN(price)')
+            .where('address = :address', { address })
+            .getRawOne();
+        return result.min;
+    }
+
+    async getCollections(before: string, after: string, first: number, last: number): Promise<CollectionPaginated> {
+        const builder = this.collectionRepository.createQueryBuilder('collection');
+        const countBuilder = builder.clone();
+
+        // pagination
+        if (after) {
+            builder.where('collection.createdAt > :cursor', { cursor: fromCursor(after) });
+            builder.limit(first);
+        } else if (before) {
+            builder.where('collection.createdAt < :cursor', { cursor: fromCursor(before) });
+            builder.limit(last);
+        } else {
+            const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
+            builder.limit(limit);
+        }
+
+        builder.orderBy('collection.createdAt', 'ASC');
+
+        const [result, total] = await Promise.all([builder.getMany(), countBuilder.getCount()]);
+        return PaginatedImp(result, total);
+    }
+
+    async getSecondarySale(address: string): Promise<SecondarySale> {
+        const params = { asset_contract_address: address, cursor: null };
+        let sales: SaleHistory;
+        let total = 0;
+        const result: SecondarySale = { total: 0 };
+
+        do {
+            sales = await this.openseaService.getCollectionEvent(params);
+            params.cursor = sales.next;
+            // Process data from opensea
+            total += this.totalValue(sales);
+        } while (sales.next != null);
+
+        result.total = total;
+        return result;
+    }
+
+    private totalValue(sale: SaleHistory): number {
+        return sale.asset_events.reduce((acc, curr) => {
+            if (curr.asset.asset_contract.address != curr.transaction.from_account.address) {
+                return acc + getCurrentPrice(curr);
+            }
+
+            return acc;
+        }, 0);
+    }
+
+    /**
+     * Get collection earnings by collection address
+     *
+     * @param address The address of the collection
+     *
+     * @returns The earnings and payment token of the collection
+     */
+    public async getCollectionEarningsByCollectionAddress(address: string): Promise<{
+        sum: string;
+        paymentToken: string;
+    } | null> {
+        const result = await this.mintSaleTransactionRepository
+            .createQueryBuilder('MintSaleTransaction')
+            .select('SUM(CAST("MintSaleTransaction"."price" as NUMERIC))', 'sum')
+            .addSelect('MAX("MintSaleTransaction"."paymentToken")', 'paymentToken')
+            .where('"MintSaleTransaction"."address" = :address', { address })
+            .getRawOne();
+        
+        // Return null if collection does not have any mint sale transactions
+        if (!result.sum || !result.paymentToken) {
+            return null;
+        }
+
+        return result;
+    }
+
+    public async getCollectionSold(
+        address: string,
+        before: string,
+        after: string,
+        first: number,
+        last: number
+    ): Promise<CollectionSoldPaginated> {
+        if (!address) return PaginatedImp([], 0);
+
+        const builder = this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .where('txn.address = :address', { address });
+        const countBuilder = builder.clone();
+
+        if (after) {
+            builder.andWhere('txn.createdAt > :cursor', { cursor: fromCursor(after) });
+            builder.limit(first);
+        } else if (before) {
+            builder.andWhere('txn.createdAt < :cursor', { cursor: fromCursor(before) });
+            builder.limit(last);
+        } else {
+            const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
+            builder.limit(limit);
+        }
+
+        const [transactions, total] = await Promise.all([builder.getMany(), countBuilder.getCount()]);
+        const data: CollectionSold[] = await Promise.all(
+            transactions.map(async (txn) => {
+                const tier = await this.tierRepository.findOne({
+                    where: {
+                        tierId: txn.tierId,
+                        collection: {
+                            address: address,
+                        },
+                    },
+                });
+                return {
+                    ...txn,
+                    tier: tier,
+                };
+            })
+        );
+
+        return PaginatedImp(data, total);
+    }
+
+    async getOwners(address: string): Promise<number> {
+        if (!address) return 0;
+
+        const result = await this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .select('COUNT(DISTINCT txn.recipient)', 'total')
+            .where('txn.address = :address', { address })
+            .getRawOne();
+
+        return parseInt(result.total);
+    }
+
+    async getSevenDayVolume(address: string): Promise<SevenDayVolume> {
+        if (!address) return { inPaymentToken: '0', inUSDC: '0' };
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const startDate = Math.floor(sevenDaysAgo.getTime() / 1000);
+        const endDate = Math.floor(Date.now() / 1000);
+
+        const result = await this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .select('txn.paymentToken', 'token')
+            .addSelect('SUM(txn.price::numeric(20,0))', 'total_price')
+            .where('txn.txTime BETWEEN :startDate AND :endDate', { startDate, endDate })
+            .andWhere('txn.address = :address', { address })
+            .addGroupBy('txn.paymentToken')
+            .getRawOne();
+
+        if (result) {
+            const coin = await this.coinService.getCoinByAddress(result.token);
+            const quote = await this.coinService.getQuote(coin.symbol);
+            const usdPrice = quote['USD'].price;
+
+            const tokenPrice = new BigNumber(result.total_price).div(new BigNumber(10).pow(coin.decimals));
+            const volume = new BigNumber(tokenPrice).multipliedBy(usdPrice);
+            return {
+                inPaymentToken: tokenPrice.toString(),
+                inUSDC: volume.toString(),
+            };
+        }
+        return { inPaymentToken: '0', inUSDC: '0' };
+    }
+
+    private async getTotalPrice(address: string, between?: number[]): Promise<GrossEarnings> {
+        const builder = await this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .select('txn.paymentToken', 'token')
+            .addSelect('SUM(txn.price::numeric(20,0))', 'total_price')
+            .andWhere('txn.address = :address', { address });
+        if (between && between.length == 2) {
+            builder.andWhere('txn.txTime BETWEEN :startDate AND :endDate', {
+                startDate: between[0],
+                endDate: between[1],
+            });
+        }
+
+        builder.groupBy('txn.paymentToken');
+        const result = await builder.getRawOne();
+
+        if (result) {
+            const coin = await this.coinService.getCoinByAddress(result.token);
+            const quote = await this.coinService.getQuote(coin.symbol);
+            const usdPrice = quote['USD'].price;
+
+            const tokenPrice = new BigNumber(result.total_price).div(new BigNumber(10).pow(coin.decimals));
+            const volume = new BigNumber(tokenPrice).multipliedBy(usdPrice);
+
+            return {
+                inPaymentToken: tokenPrice.toString(),
+                inUSDC: volume.toString(),
+            };
+        }
+    }
+
+    async getGrossEarnings(address: string): Promise<GrossEarnings> {
+        if (!address) return { inPaymentToken: '0', inUSDC: '0' };
+
+        return await this.getTotalPrice(address);
     }
 }

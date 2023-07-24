@@ -1,24 +1,16 @@
 import * as request from 'supertest';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { GraphQLModule } from '@nestjs/graphql';
 import { INestApplication } from '@nestjs/common';
-import { ApolloDriver } from '@nestjs/apollo';
 import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
 import { ethers } from 'ethers';
-
-import { WalletModule } from './wallet.module';
+import { hashSync as hashPassword } from 'bcryptjs';
 import { WalletService } from './wallet.service';
 import { UserService } from '../user/user.service';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-
 import { TierService } from '../tier/tier.service';
 import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
 import { RelationshipService } from '../relationship/relationship.service';
-import { SessionModule } from '../session/session.module';
 import { SessionService } from '../session/session.service';
 
 export const gql = String.raw;
@@ -36,50 +28,20 @@ describe('WalletResolver', () => {
     let address: string;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                WalletModule,
-                GraphQLModule.forRoot({
-                    driver: ApolloDriver,
-                    autoSchemaFile: true,
-                    include: [WalletModule],
-                }),
-                SessionModule,
-            ],
-        }).compile();
-
-        service = module.get<WalletService>(WalletService);
-        collectionService = module.get<CollectionService>(CollectionService);
-        mintSaleTransactionService = module.get<MintSaleTransactionService>(MintSaleTransactionService);
-        mintSaleContractService = module.get<MintSaleContractService>(MintSaleContractService);
-        tierService = module.get<TierService>(TierService);
-        userService = module.get<UserService>(UserService);
-        relationshipService = module.get<RelationshipService>(RelationshipService);
-        sessionService = module.get<SessionService>(SessionService);
-        app = module.createNestApplication();
-        await app.init();
+        app = global.app;
+        service = global.walletService;
+        collectionService = global.collectionService;
+        mintSaleTransactionService = global.mintSaleTransactionService;
+        mintSaleContractService = global.mintSaleContractService;
+        tierService = global.tierService;
+        userService = global.userService;
+        relationshipService = global.relationshipService;
+        sessionService = global.sessionService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
-        await app.close();
     });
 
     describe('wallet', () => {
@@ -298,7 +260,7 @@ describe('WalletResolver', () => {
     });
 
     describe('bindWallet', () => {
-        it('should bind a wallet', async () => {
+        it('should forbid if not signed in', async () => {
             const randomWallet = ethers.Wallet.createRandom();
             const message = 'Hi from tests!';
             const signature = await randomWallet.signMessage(message);
@@ -339,6 +301,148 @@ describe('WalletResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
+                    expect(body.errors[0].extensions.code).toEqual('FORBIDDEN');
+                    expect(body.data).toBeNull();
+                });
+        });
+
+        it('should bind a wallet', async () => {
+            const randomWallet = ethers.Wallet.createRandom();
+            const message = 'Hi from tests!';
+            const signature = await randomWallet.signMessage(message);
+
+            const name = faker.internet.userName();
+            const email = faker.internet.email();
+            const password = faker.internet.password();
+
+            const owner = await userService.createUser({
+                name,
+                email,
+                password,
+            });
+            const wallet = await service.createWallet({ address: randomWallet.address });
+
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: owner.email,
+                    password: await hashPassword(owner.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
+            const query = gql`
+                mutation BindWallet($input: BindWalletInput!) {
+                    bindWallet(input: $input) {
+                        address
+                        owner {
+                            id
+                        }
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    address: wallet.address,
+                    owner: { id: owner.id },
+                    message,
+                    signature,
+                },
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.bindWallet.owner.id).toEqual(variables.input.owner.id);
+                });
+        });
+
+        it('should bind a wallet even if the wallet doesnt exist', async () => {
+            const randomWallet = ethers.Wallet.createRandom();
+            const message = 'Hi from tests!';
+            const signature = await randomWallet.signMessage(message);
+
+            const name = faker.internet.userName();
+            const email = faker.internet.email();
+            const password = faker.internet.password();
+
+            const owner = await userService.createUser({
+                name,
+                email,
+                password,
+            });
+
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: owner.email,
+                    password: await hashPassword(owner.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
+
+            const query = gql`
+                mutation BindWallet($input: BindWalletInput!) {
+                    bindWallet(input: $input) {
+                        address
+                        owner {
+                            id
+                        }
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    address: randomWallet.address,
+                    owner: { id: owner.id },
+                    message,
+                    signature,
+                },
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.bindWallet.address).toEqual(randomWallet.address.toLowerCase());
                     expect(body.data.bindWallet.owner.id).toEqual(variables.input.owner.id);
                 });
         });
@@ -364,6 +468,27 @@ describe('WalletResolver', () => {
             });
 
             const query = gql`
+                mutation CreateSession($input: CreateSessionInput!) {
+                    createSession(input: $input) {
+                        token
+                    }
+                }
+            `;
+
+            const input = {
+                address: wallet.address,
+                message,
+                signature,
+            };
+
+            const result = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables: { input } })
+                .then((resp) => {
+                    return resp.body.data.createSession;
+                });
+
+            const authedQuery = gql`
                 mutation UnbindWallet($input: UnbindWalletInput!) {
                     unbindWallet(input: $input) {
                         address
@@ -383,7 +508,8 @@ describe('WalletResolver', () => {
 
             return request(app.getHttpServer())
                 .post('/graphql')
-                .send({ query, variables })
+                .auth(result.token, { type: 'bearer' })
+                .send({ query: authedQuery, variables })
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.unbindWallet.owner).toEqual(null);
@@ -469,6 +595,23 @@ describe('WalletResolver', () => {
                 tierId: 1,
                 collection: { id: collection.id },
                 paymentTokenAddress: faker.finance.ethereumAddress(),
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const transaction = await mintSaleTransactionService.createMintSaleTransaction({
@@ -490,17 +633,27 @@ describe('WalletResolver', () => {
                 query MintedByWallet($address: String!) {
                     wallet(address: $address) {
                         minted {
-                            address
-                            txTime
-                            txHash
-                            chainId
-
-                            tier {
-                                name
-
-                                collection {
-                                    name
+                            totalCount
+                            edges {
+                                cursor
+                                node {
+                                    address
+                                    txTime
+                                    txHash
+                                    chainId
+                                    tier {
+                                        name
+                                        collection {
+                                            name
+                                        }
+                                    }
                                 }
+                            }
+                            pageInfo {
+                                hasNextPage
+                                hasPreviousPage
+                                startCursor
+                                endCursor
                             }
                         }
                     }
@@ -516,13 +669,13 @@ describe('WalletResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    const [firstMint] = body.data.wallet.minted;
-                    expect(firstMint.address).toEqual(collection.address); // NOTE: These horrible `address` namings, which one is it???
-                    expect(firstMint.txTime).toEqual(transaction.txTime);
-                    expect(firstMint.txHash).toEqual(transaction.txHash);
-                    expect(firstMint.chainId).toEqual(transaction.chainId);
-                    expect(firstMint.tier.name).toEqual(tier.name);
-                    expect(firstMint.tier.collection.name).toEqual(collection.name);
+                    const result = body.data.wallet.minted;
+                    expect(result.edges[0].node.address).toEqual(collection.address); // NOTE: These horrible `address` namings, which one is it???
+                    expect(result.edges[0].node.txTime).toEqual(transaction.txTime);
+                    expect(result.edges[0].node.txHash).toEqual(transaction.txHash);
+                    expect(result.edges[0].node.chainId).toEqual(transaction.chainId);
+                    expect(result.edges[0].node.tier.name).toEqual(tier.name);
+                    expect(result.edges[0].node.tier.collection.name).toEqual(collection.name);
                 });
         });
     });
@@ -547,6 +700,23 @@ describe('WalletResolver', () => {
                 tierId: 1,
                 collection: { id: collection.id },
                 paymentTokenAddress: faker.finance.ethereumAddress(),
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const transaction = await mintSaleTransactionService.createMintSaleTransaction({
@@ -630,6 +800,23 @@ describe('WalletResolver', () => {
                 tierId: 1,
                 collection: { id: collection.id },
                 paymentTokenAddress: faker.finance.ethereumAddress(),
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             const paymentToken = faker.finance.ethereumAddress();
@@ -749,6 +936,142 @@ describe('WalletResolver', () => {
                 .expect(({ body }) => {
                     const [firstCollection] = body.data.wallet.createdCollections;
                     expect(firstCollection.name).toEqual(collection.name);
+                });
+        });
+    });
+
+    describe('getMonthlyCollections', () => {
+        it('should get the monthly collections for given wallet', async () => {
+            const sender = faker.finance.ethereumAddress();
+            const wallet = await service.createWallet({ address: sender });
+
+            await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: faker.finance.accountName(),
+                about: faker.company.name(),
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+                creator: { id: wallet.id },
+            });
+
+            await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: faker.finance.accountName(),
+                about: faker.company.name(),
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+                creator: { id: wallet.id },
+            });
+
+            const query = gql`
+                query GetMonthlyCollections($address: String!) {
+                    wallet(address: $address) {
+                        monthlyCollections
+                    }
+                }
+            `;
+
+            const variables = { address: wallet.address };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.wallet).toBeDefined();
+                    expect(body.data.wallet.monthlyCollections).toBe(2);
+                });
+        });
+    });
+
+    describe('getMonthlyBuyers', () => {
+        it('should return the monthly buyers for given wallet', async () => {
+            const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+                creator: { id: wallet.id },
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                tierId: 1,
+                collection: { id: collection.id },
+                paymentTokenAddress: faker.finance.ethereumAddress(),
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
+            });
+
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().valueOf() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collection.address,
+                tierId: tier.tierId,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().valueOf() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collection.address,
+                tierId: tier.tierId,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
+            const query = gql`
+                query wallet($address: String!) {
+                    wallet(address: $address) {
+                        id
+                        monthlyBuyers
+                    }
+                }
+            `;
+            const variables = { address: wallet.address };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.wallet).toBeDefined();
+                    expect(body.data.wallet.monthlyBuyers).toBe(2);
                 });
         });
     });

@@ -1,13 +1,8 @@
 import { faker } from '@faker-js/faker';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { WalletService } from '../wallet/wallet.service';
 import { Repository } from 'typeorm';
-import { postgresConfig } from '../lib/configs/db.config';
 import { Relationship } from './relationship.entity';
-import { RelationshipModule } from './relationship.module';
 import { RelationshipService } from './relationship.service';
-import { WalletModule } from '../wallet/wallet.module';
 
 describe('RelationshipService', () => {
     let repository: Repository<Relationship>;
@@ -15,36 +10,13 @@ describe('RelationshipService', () => {
     let walletService: WalletService;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                RelationshipModule,
-                WalletModule,
-            ],
-        }).compile();
-
-        service = module.get<RelationshipService>(RelationshipService);
-        walletService = module.get<WalletService>(WalletService);
-        repository = module.get('RelationshipRepository');
+        service = global.relationshipService;
+        walletService = global.walletService;
+        repository = global.relationshipRepository;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
     });
 

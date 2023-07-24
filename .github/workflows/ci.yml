@@ -2,98 +2,99 @@ name: CI
 on: [push]
 
 env:
-  V1_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_test
-  V1_DATABASE_HOST: localhost
-  V1_DATABASE_PORT: 5432
-  V1_DATABASE_NAME: platform_test
-  V1_DATABASE_USERNAME: postgres
-  V1_DATABASE_PASSWORD: postgres
-  SYNC_CHAIN_DATABASE_URL: postgresql://postgres:postgres@localhost:5442/sync_chain_test
-  SYNC_CHAIN_DATABASE_HOST: localhost
-  SYNC_CHAIN_DATABASE_PORT: 5442
-  SYNC_CHAIN_DATABASE_NAME: sync_chain_test
-  SYNC_CHAIN_DATABASE_USERNAME: postgres
-  SYNC_CHAIN_DATABASE_PASSWORD: postgres
-  NODE_ENV: dev
-  DATABASE_URL: postgres://root:root@postgres/vibe-server
-  REDIS_URL: redis://localhost:6379
-  MONGO_URL: mongodb://localhost:27017
-  SESSION_SECRET: secretKey
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
-  AWS_METADATA_BASE_URI: ${{ secrets.AWS_METADATA_BASE_URI }}
-  AWS_IMAGE_BASE_URI: ${{ secrets.AWS_IMAGE_BASE_URI }}
-  AWS_BASE_URL: ${{ secrets.AWS_BASE_URL }}
-  RPC_URL: https://goerli-rollup.arbitrum.io/rpc
-  CHAIN_ID: 421613
-  NETWORK: arbitrum
-  KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-  PROFILE_NFT_CONTRACT: "0x7961f5c879604dc0a291ff66efd3cab4ec2bcfc7"
+    V1_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_test
+    V1_DATABASE_HOST: localhost
+    V1_DATABASE_PORT: 5432
+    V1_DATABASE_NAME: platform_test
+    V1_DATABASE_USERNAME: postgres
+    V1_DATABASE_PASSWORD: postgres
+    SYNC_CHAIN_DATABASE_URL: postgresql://postgres:postgres@localhost:5442/sync_chain_test
+    SYNC_CHAIN_DATABASE_HOST: localhost
+    SYNC_CHAIN_DATABASE_PORT: 5442
+    SYNC_CHAIN_DATABASE_NAME: sync_chain_test
+    SYNC_CHAIN_DATABASE_USERNAME: postgres
+    SYNC_CHAIN_DATABASE_PASSWORD: postgres
+    NODE_ENV: dev
+    DATABASE_URL: postgres://root:root@postgres/vibe-server
+    REDIS_URL: redis://localhost:6379
+    MONGO_URL: mongodb://localhost:27017
+    SESSION_SECRET: secretKey
+    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
+    AWS_METADATA_BASE_URI: ${{ secrets.AWS_METADATA_BASE_URI }}
+    AWS_IMAGE_BASE_URI: ${{ secrets.AWS_IMAGE_BASE_URI }}
+    AWS_BASE_URL: ${{ secrets.AWS_BASE_URL }}
+    RPC_URL: https://goerli-rollup.arbitrum.io/rpc
+    CHAIN_ID: 421613
+    NETWORK: arbitrum
+    KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+    PROFILE_NFT_CONTRACT: '0x7961f5c879604dc0a291ff66efd3cab4ec2bcfc7'
+    COIN_MARKET_CAP_API_KEY: ${{ secrets.COIN_MARKET_CAP_API_KEY }}
 
 jobs:
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_PORT: 5432
-          POSTGRES_DB: platform_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
+    test:
+        name: Test
+        runs-on: ubuntu-latest-m
+        services:
+            postgres:
+                image: postgres
+                env:
+                    POSTGRES_PASSWORD: postgres
+                    POSTGRES_USER: postgres
+                    POSTGRES_PORT: 5432
+                    POSTGRES_DB: platform_test
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    - 5432:5432
 
-      postgres-sync-chain:
-        image: postgres
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_PORT: 5432
-          POSTGRES_DB: sync_chain_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5442:5432
-      redis:
-        image: redis
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379
-      mongodb:
-        image: mongo
-        ports:
-        - 27017:27017
-    steps:
-      - uses: actions/checkout@v3
+            postgres-sync-chain:
+                image: postgres
+                env:
+                    POSTGRES_PASSWORD: postgres
+                    POSTGRES_USER: postgres
+                    POSTGRES_PORT: 5432
+                    POSTGRES_DB: sync_chain_test
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    - 5442:5432
+            redis:
+                image: redis
+                options: >-
+                    --health-cmd "redis-cli ping"
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    - 6379:6379
+            mongodb:
+                image: mongo
+                ports:
+                    - 27017:27017
+        steps:
+            - uses: actions/checkout@v3
 
-      - name: Set Node.js 16.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.10.0
-          cache: 'yarn'
+            - name: Set Node.js 16.x
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 16.10.0
+                  cache: 'yarn'
 
-      - name: Set Yarn 3
-        run: yarn set version stable
+            - name: Set Yarn 3
+              run: yarn set version stable
 
-      - name: yarn install --immutable
-        run: yarn install --immutable
+            - name: yarn install --immutable
+              run: yarn install --immutable
 
-      - name: Run Tests/CI
-        env:
-          NODE_OPTIONS: "--max_old_space_size=4096"
-        run: yarn test:ci
+            - name: Run Tests/CI
+              env:
+                  NODE_OPTIONS: '--max_old_space_size=8192'
+              run: yarn test:ci

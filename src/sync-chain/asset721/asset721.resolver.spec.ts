@@ -1,65 +1,34 @@
 import * as request from 'supertest';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../../lib/configs/db.config';
-import { Asset721Module } from './asset721.module';
 import { Asset721Service } from './asset721.service';
-import { Asset721 } from './asset721.entity';
 import { INestApplication } from '@nestjs/common';
-import { ApolloDriver } from '@nestjs/apollo';
-import { GraphQLModule } from '@nestjs/graphql';
 
 export const gql = String.raw;
 
 describe('Asset721Resolver', () => {
     let service: Asset721Service;
     let app: INestApplication;
-    let asset721: Asset721;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                Asset721Module,
-                GraphQLModule.forRoot({
-                    driver: ApolloDriver,
-                    autoSchemaFile: true,
-                    include: [Asset721Module],
-                }),
-            ],
-        }).compile();
-
-        service = module.get<Asset721Service>(Asset721Service);
-        app = module.createNestApplication();
-
-        asset721 = await service.createAsset721({
-            height: parseInt(faker.random.numeric(5)),
-            txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
-            txTime: Math.floor(faker.date.recent().getTime() / 1000),
-            address: faker.finance.ethereumAddress(),
-            tokenId: faker.random.numeric(5),
-            owner: faker.finance.ethereumAddress(),
-        });
-
-        await app.init();
+        app = global.app;
+        service = global.asset721Service;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
-        await app.close();
     });
 
     describe('asset721', () => {
         it('should return an factory', async () => {
+            const asset721 = await service.createAsset721({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(5),
+                owner: faker.finance.ethereumAddress(),
+            });
             const query = gql`
                 query GetAsset721($id: String!) {
                     asset721(id: $id) {

@@ -1,17 +1,10 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { CollectionKind } from '../collection/collection.entity';
 import { PollerService } from './poller.service';
 import { CollectionService } from '../collection/collection.service';
 import { TierService } from '../tier/tier.service';
-import { CollectionModule } from '../collection/collection.module';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import { postgresConfig } from '../lib/configs/db.config';
-import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
-import { TierModule } from '../tier/tier.module';
 import { faker } from '@faker-js/faker';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { PollerModule } from './poller.module';
 import { Coin } from 'src/sync-chain/coin/coin.dto';
 
 describe('PollerService', () => {
@@ -23,42 +16,19 @@ describe('PollerService', () => {
     let coin: Coin;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                }),
-                PollerModule,
-                MintSaleTransactionModule,
-                CollectionModule,
-                TierModule,
-            ],
-        }).compile();
-
-        service = module.get<PollerService>(PollerService);
-        collectionService = module.get<CollectionService>(CollectionService);
-        tierService = module.get<TierService>(TierService);
-        mintSaleTransactionService = module.get<MintSaleTransactionService>(MintSaleTransactionService);
-        coinService = module.get<CoinService>(CoinService);
+        service = global.pollerService;
+        collectionService = global.collectionService;
+        tierService = global.tierService;
+        mintSaleTransactionService = global.mintSaleTransactionService;
+        coinService = global.coinService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
     });
 
-    describe('#getSaleRecord', () => {
+    describe('getSaleRecord', () => {
         beforeEach(async () => {
             coin = await coinService.createCoin({
                 address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
@@ -90,6 +60,23 @@ describe('PollerService', () => {
                 price: '100',
                 paymentTokenAddress: coin.address,
                 tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
             });
 
             await mintSaleTransactionService.createMintSaleTransaction({
@@ -130,12 +117,23 @@ describe('PollerService', () => {
                 price: '100',
                 paymentTokenAddress: coin.address,
                 tierId: 0,
-                attributes: [
-                    {
-                        trait_type: 'Powerup',
-                        value: '1000',
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
                     },
-                ],
+                },
             });
 
             await mintSaleTransactionService.createMintSaleTransaction({
@@ -156,11 +154,6 @@ describe('PollerService', () => {
             const result = await service.getSaleRecord();
             expect(result).toBeDefined();
             expect(result.length).toBeGreaterThanOrEqual(1);
-
-            const returnedRecord = result.find((r) => r.collection_id === collection.id);
-
-            expect(returnedRecord.attributes.length).toBeGreaterThanOrEqual(1);
-            expect(returnedRecord.attributes[0].trait_type).toBe('Powerup');
         });
 
         it('should return sale records for tier while removing empty display_type', async () => {
@@ -181,17 +174,23 @@ describe('PollerService', () => {
                 price: '100',
                 paymentTokenAddress: coin.address,
                 tierId: 0,
-                attributes: [
-                    {
-                        trait_type: 'Powerup',
-                        value: '1000',
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
                     },
-                    {
-                        display_type: '',
-                        trait_type: 'Sword',
-                        value: '20',
-                    },
-                ],
+                },
             });
 
             await mintSaleTransactionService.createMintSaleTransaction({
@@ -214,10 +213,8 @@ describe('PollerService', () => {
             expect(result.length).toBeGreaterThanOrEqual(1);
 
             const returnedRecord = result.find((r) => r.collection_id === collection.id);
-            expect(returnedRecord.attributes.find((a) => a.trait_type === 'Sword')).toBeDefined();
-            // we filter the info before we write it,
-            // so commented the test case
-            // expect(returnedRecord.attributes.find((a) => a.trait_type === 'Sword').display_type).not.toBeDefined();
+            expect(returnedRecord.properties.level).toBeDefined();
+            expect(returnedRecord.properties.level.value).toBeDefined();
         });
     });
 });

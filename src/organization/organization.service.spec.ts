@@ -1,52 +1,22 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
-import { Organization } from './organization.entity';
-import { OrganizationModule } from './organization.module';
 import { OrganizationService } from './organization.service';
-import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
 import { Membership } from '../membership/membership.entity';
 
 describe('OrganizationService', () => {
-    let repository: Repository<Organization>;
     let service: OrganizationService;
     let userService: UserService;
     let membershipRepository: Repository<Membership>;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                OrganizationModule,
-            ],
-        }).compile();
-
-        repository = module.get('OrganizationRepository');
-        service = module.get<OrganizationService>(OrganizationService);
-        userService = module.get<UserService>(UserService);
-        membershipRepository = module.get('MembershipRepository');
+        service = global.organizationService;
+        userService = global.userService;
+        membershipRepository = global.membershipRepository;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
     });
 
@@ -76,20 +46,12 @@ describe('OrganizationService', () => {
     });
 
     describe('createOrganization', () => {
-        let organization: Organization;
-        let owner: User;
-
-        beforeEach(async () => {
-            await repository.delete({});
-            await membershipRepository.delete({});
-        });
-
         it('should create an organization', async () => {
-            owner = await userService.createUser({
+            const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
-            organization = await service.createOrganization({
+            const organization = await service.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
@@ -118,7 +80,7 @@ describe('OrganizationService', () => {
         });
 
         it.skip('should create an organization and invite users', async () => {
-            owner = await userService.createUser({
+            const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
@@ -128,7 +90,7 @@ describe('OrganizationService', () => {
                 password: faker.internet.password(),
             });
 
-            organization = await service.createOrganization({
+            const organization = await service.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
@@ -147,8 +109,13 @@ describe('OrganizationService', () => {
         });
 
         it('should throw an error when create a organization with an existed name', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
             const name = faker.company.name();
-            service.createOrganization({
+            await service.createOrganization({
                 name,
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
@@ -160,8 +127,9 @@ describe('OrganizationService', () => {
                 discord: faker.internet.userName(),
                 owner: owner,
             });
-            await expect(() =>
-                service.createOrganization({
+
+            try {
+                await service.createOrganization({
                     name,
                     displayName: faker.company.name(),
                     about: faker.company.catchPhrase(),
@@ -172,8 +140,10 @@ describe('OrganizationService', () => {
                     instagram: faker.internet.userName(),
                     discord: faker.internet.userName(),
                     owner: owner,
-                })
-            ).rejects.toThrow();
+                });
+            } catch (error) {
+                expect((error as Error).message).toBe(`Organization with name ${name} already existed.`);
+            }
         });
     });
 
@@ -195,16 +165,13 @@ describe('OrganizationService', () => {
     });
 
     describe('updateOrganization', () => {
-        let organization: Organization;
-        let owner: User;
-
         it('should update an organization', async () => {
-            owner = await userService.createUser({
+            const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: faker.internet.password(),
             });
 
-            organization = await service.createOrganization({
+            const organization = await service.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
@@ -227,6 +194,24 @@ describe('OrganizationService', () => {
         });
 
         it('should throw an error when update an organization with an existed name', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const organization = await service.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
             const anotherOrganization = await service.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
@@ -240,11 +225,13 @@ describe('OrganizationService', () => {
                 owner: owner,
             });
 
-            await expect(() =>
-                service.updateOrganization(anotherOrganization.id, {
+            try {
+                await service.updateOrganization(anotherOrganization.id, {
                     name: organization.name,
-                })
-            ).rejects.toThrow();
+                });
+            } catch (error) {
+                expect((error as Error).message).toBe(`Organization with name ${organization.name} already existed.`);
+            }
         });
     });
 
@@ -321,9 +308,13 @@ describe('OrganizationService', () => {
                 owner: owner,
             });
 
-            expect(() => service.transferOrganization(organization.id, faker.datatype.uuid())).rejects.toThrow(
-                "doesn't exist"
-            );
+            const randomUUID = faker.datatype.uuid();
+
+            try {
+                await service.transferOrganization(organization.id, randomUUID);
+            } catch (error) {
+                expect((error as Error).message).toBe(`User with id ${randomUUID} doesn't exist.`);
+            }
         });
     });
 

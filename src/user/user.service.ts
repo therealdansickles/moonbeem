@@ -1,14 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import { GraphQLError } from 'graphql';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from './user.entity';
-import { captureException } from '@sentry/node';
-import { OrganizationService } from '../organization/organization.service';
-import { isEmpty, isNil, omitBy } from 'lodash';
 import { compareSync as verifyPassword } from 'bcryptjs';
 import { google } from 'googleapis';
+import { GraphQLError } from 'graphql';
+import { isEmpty, isNil, omitBy } from 'lodash';
+import { Repository } from 'typeorm';
+
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { captureException } from '@sentry/node';
+
 import { googleConfig } from '../lib/configs/app.config';
+import { MailService } from '../mail/mail.service';
+import { OrganizationService } from '../organization/organization.service';
+import { User } from './user.entity';
 
 interface GetUserInput {
     id?: string;
@@ -21,6 +24,7 @@ type IUserQuery = Partial<Pick<User, 'id' | 'username'>>;
 export class UserService {
     constructor(
         private organizationService: OrganizationService,
+        private mailService: MailService,
         @InjectRepository(User) private userRepository: Repository<User>
     ) {}
 
@@ -58,22 +62,10 @@ export class UserService {
      * @returns The newly created user.
      */
     async createUserWithOrganization(payload: Partial<User>): Promise<User> {
-        try {
-            const user = await this.createUser(payload);
-            await this.organizationService.createPersonalOrganization(user);
-            return user;
-        } catch (e) {
-            captureException(e);
-            if (e.routine === '_bt_check_unique') {
-                throw new GraphQLError('User already exists.', {
-                    extensions: { code: 'BAD_REQUEST' },
-                });
-            }
-
-            throw new GraphQLError(`Failed to create user ${payload.name} with organization`, {
-                extensions: { code: 'INTERNAL_SERVER_ERROR' },
-            });
-        }
+        const user = await this.createUser(payload);
+        await this.organizationService.createPersonalOrganization(user);
+        await this.mailService.sendWelcomeEmail(user.email, {});
+        return user;
     }
 
     /**
@@ -83,6 +75,9 @@ export class UserService {
      * @returns The newly created user.
      */
     async createUser(payload: Partial<User>): Promise<User> {
+        // only email is unique, so just need to check by email
+        const existedUser = await this.userRepository.findOneBy({ email: payload.email });
+        if (existedUser) throw new GraphQLError(`This email ${payload.email} is already taken.`);
         await this.userRepository.insert(payload);
         return await this.userRepository.findOneBy({ email: payload.email });
     }

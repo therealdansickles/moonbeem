@@ -1,12 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
-import { UserModule } from './user.module';
-import { UserService } from './user.service';
-import { User } from './user.entity';
 import { OrganizationService } from '../organization/organization.service';
+import { User } from './user.entity';
+import { UserService } from './user.service';
 import { hashSync as hashPassword } from 'bcryptjs';
 
 describe('UserService', () => {
@@ -15,35 +11,15 @@ describe('UserService', () => {
     let organizationService: OrganizationService;
 
     beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                UserModule,
-            ],
-        }).compile();
-
-        service = module.get<UserService>(UserService);
-        repository = module.get('UserRepository');
-        organizationService = module.get<OrganizationService>(OrganizationService);
+        service = global.userService;
+        repository = global.userRepository;
+        organizationService = global.organizationService;
+        jest.spyOn(global.mailService, 'sendWelcomeEmail').mockImplementation(async () => {});
+        jest.spyOn(global.mailService, 'sendInviteEmail').mockImplementation(async () => {});
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
     });
 
@@ -115,6 +91,24 @@ describe('UserService', () => {
             expect(user.username).toBeDefined();
             expect(user.email).toBeDefined();
             expect(user.password).toBeDefined();
+        });
+
+        it('should throw error if email has been take', async () => {
+            const user = await service.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            try {
+                await service.createUser({
+                    username: faker.internet.userName(),
+                    email: user.email,
+                    password: faker.internet.password(),
+                });
+            } catch (error) {
+                expect((error as Error).message).toBe(`This email ${user.email} is already taken.`);
+            }
         });
     });
 

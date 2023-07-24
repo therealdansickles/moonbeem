@@ -1,80 +1,42 @@
+import { hashSync as hashPassword } from 'bcryptjs';
 import * as request from 'supertest';
-import { Test, TestingModule } from '@nestjs/testing';
-import { GraphQLModule } from '@nestjs/graphql';
-import { INestApplication } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ApolloDriver } from '@nestjs/apollo';
-import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
 
-import { Collaboration } from './collaboration.entity';
-import { CollaborationModule } from './collaboration.module';
-import { CollaborationService } from './collaboration.service';
-import { CollectionModule } from '../collection/collection.module';
+import { faker } from '@faker-js/faker';
+import { INestApplication } from '@nestjs/common';
+
 import { CollectionService } from '../collection/collection.service';
 import { Organization } from '../organization/organization.entity';
 import { OrganizationService } from '../organization/organization.service';
 import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
-import { Wallet } from '../wallet/wallet.entity';
-import { WalletModule } from '../wallet/wallet.module';
 import { WalletService } from '../wallet/wallet.service';
+import { Collaboration } from './collaboration.entity';
+import { CollaborationService } from './collaboration.service';
 
 export const gql = String.raw;
 
 describe('CollaborationResolver', () => {
     let app: INestApplication;
-    let service: CollaborationService;
+    let userService: UserService;
     let collaboration: Collaboration;
+    let service: CollaborationService;
     let collectionService: CollectionService;
     let organizationService: OrganizationService;
-    let userService: UserService;
-    let wallet: Wallet;
     let walletService: WalletService;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                CollaborationModule,
-                GraphQLModule.forRoot({
-                    driver: ApolloDriver,
-                    autoSchemaFile: true,
-                    include: [CollaborationModule, CollectionModule, WalletModule],
-                }),
-            ],
-        }).compile();
+        app = global.app;
 
-        service = module.get<CollaborationService>(CollaborationService);
-        walletService = module.get<WalletService>(WalletService);
-        collectionService = module.get<CollectionService>(CollectionService);
-        organizationService = module.get<OrganizationService>(OrganizationService);
-        userService = module.get<UserService>(UserService);
-
-        wallet = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
-        app = module.createNestApplication();
-        await app.init();
+        userService = global.userService;
+        walletService = global.walletService;
+        service = global.collaborationService;
+        collectionService = global.collectionService;
+        organizationService = global.organizationService;
     });
 
-    afterAll(async () => {
+    beforeEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
-        await app.close();
     });
 
     describe('createCollaboration', () => {
@@ -101,7 +63,9 @@ describe('CollaborationResolver', () => {
             });
         });
 
-        it('should create a collaboration', async () => {
+        it('should forbid is not signed in', async () => {
+            const wallet = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
+
             const query = gql`
                 mutation CreateCollaboration($input: CreateCollaborationInput!) {
                     createCollaboration(input: $input) {
@@ -149,6 +113,86 @@ describe('CollaborationResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
+                    expect(body.errors[0].extensions.code).toEqual('FORBIDDEN');
+                    expect(body.data).toBeNull();
+                });
+        });
+
+        it('should create a collaboration', async () => {
+            const wallet = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: user.email,
+                    password: await hashPassword(user.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
+
+            const query = gql`
+                mutation CreateCollaboration($input: CreateCollaborationInput!) {
+                    createCollaboration(input: $input) {
+                        id
+                        name
+                        royaltyRate
+                        collaborators {
+                            name
+                            role
+                        }
+
+                        organization {
+                            id
+                            name
+                        }
+
+                        user {
+                            id
+                            username
+                        }
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    name: faker.hacker.noun(),
+                    walletId: wallet.id,
+                    organizationId: organization.id,
+                    userId: user.id,
+                    royaltyRate: 9,
+                    collaborators: [
+                        {
+                            address: faker.finance.ethereumAddress(),
+                            role: faker.finance.accountName(),
+                            name: faker.finance.accountName(),
+                            rate: parseInt(faker.random.numeric(2)),
+                        },
+                    ],
+                },
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
                     expect(body.data.createCollaboration.royaltyRate).toEqual(variables.input.royaltyRate);
                     expect(body.data.createCollaboration.name).toEqual(variables.input.name);
                     expect(body.data.createCollaboration.organization.id).toEqual(variables.input.organizationId);
@@ -163,7 +207,7 @@ describe('CollaborationResolver', () => {
 
     describe('getCollaboration', () => {
         it('should get a collaboration if we had right id', async () => {
-            wallet = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
+            const wallet = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
             collaboration = await service.createCollaboration({
                 walletId: wallet.id,
                 royaltyRate: 12,

@@ -1,9 +1,22 @@
-import { Public } from '../session/session.decorator';
-import { Resolver, Query, Args, Mutation, ResolveField, Parent, Int } from '@nestjs/graphql';
+import { GraphQLJSONObject } from 'graphql-type-json';
 
-import { Tier, CreateTierInput, UpdateTierInput, DeleteTierInput, Profit } from './tier.dto';
-import { TierService } from './tier.service';
+import { UseGuards } from '@nestjs/common';
+import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+
+import { Public } from '../session/session.decorator';
+import { SigninByEmailGuard } from '../session/session.guard';
 import { TierHolders } from '../wallet/wallet.dto';
+import {
+    CreateTierInput,
+    DeleteTierInput,
+    IOverview,
+    Profit,
+    Tier,
+    TierSearchInput,
+    TierSearchPaginated,
+    UpdateTierInput,
+} from './tier.dto';
+import { ITierQuery, TierService } from './tier.service';
 
 @Resolver(() => Tier)
 export class TierResolver {
@@ -17,10 +30,13 @@ export class TierResolver {
 
     @Public()
     @Query(() => [Tier], { description: 'Get tiers by collection id', nullable: true })
-    async tiers(@Args('collectionId') collectionId: string): Promise<Tier[]> {
-        return await this.tierService.getTiersByCollection(collectionId);
+    async tiers(@Args('collectionId') collectionId: string, @Args('name') name: string): Promise<Tier[]> {
+        const query: ITierQuery = { name };
+        if (collectionId) query.collection = { id: collectionId };
+        return await this.tierService.getTiersByQuery(query);
     }
 
+    @UseGuards(SigninByEmailGuard)
     @Mutation(() => Tier, { description: 'Create a new tier.' })
     async createTier(@Args('input') input: CreateTierInput): Promise<Tier> {
         return await this.tierService.createTier(input);
@@ -54,9 +70,34 @@ export class TierResolver {
     @ResolveField(() => TierHolders, { description: 'Returns the holder for a tier.' })
     async holders(
         @Parent() tier: Tier,
-        @Args('offset', { type: () => Int, nullable: true, defaultValue: 0 }) offset?: number,
-        @Args('limit', { type: () => Int, nullable: true, defaultValue: 10 }) limit?: number
+            @Args('offset', { type: () => Int, nullable: true, defaultValue: 0 }) offset?: number,
+            @Args('limit', { type: () => Int, nullable: true, defaultValue: 10 }) limit?: number
     ): Promise<TierHolders> {
         return await this.tierService.getHolders(tier.id, offset, limit);
+    }
+
+    @Public()
+    @Query(() => TierSearchPaginated, { description: 'Returns the search result for tier', nullable: true })
+    async searchTierFromCollection(
+        @Args('input') input: TierSearchInput,
+            @Args('before', { nullable: true }) before?: string,
+            @Args('after', { nullable: true }) after?: string,
+            @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+    ): Promise<TierSearchPaginated> {
+        const { collectionId, collectionAddress, keyword, properties, plugins, upgrades } = input;
+        return this.tierService.searchTier(
+            { collectionId, collectionAddress, keyword, properties, plugins, upgrades },
+            before,
+            after,
+            first,
+            last
+        );
+    }
+
+    @Public()
+    @Query(() => GraphQLJSONObject, { description: 'Returns attributes overview for collection/tier' })
+    async attributeOverview(@Args('collectionAddress') collectionAddress: string): Promise<IOverview> {
+        return this.tierService.getArrtibutesOverview(collectionAddress);
     }
 }

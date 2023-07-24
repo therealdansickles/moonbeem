@@ -1,18 +1,7 @@
 import * as request from 'supertest';
-import { APP_GUARD } from '@nestjs/core';
-import { ApolloDriver } from '@nestjs/apollo';
-import { GraphQLModule } from '@nestjs/graphql';
 import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ethers } from 'ethers';
-import { postgresConfig } from '../lib/configs/db.config';
-
-import { JwtService } from '@nestjs/jwt';
 import { Resolver, Query } from '@nestjs/graphql';
-import { SessionGuard } from './session.guard';
-import { SessionModule } from './session.module';
-import { WalletModule } from '../wallet/wallet.module';
 import { CurrentWallet } from './session.decorator';
 import { Wallet } from '../wallet/wallet.dto';
 
@@ -29,48 +18,12 @@ export class TestResolver {
 describe('SessionGuard', () => {
     let app: INestApplication;
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                WalletModule,
-                SessionModule,
-                GraphQLModule.forRoot({
-                    driver: ApolloDriver,
-                    autoSchemaFile: true,
-                }),
-            ],
-            providers: [
-                {
-                    provide: APP_GUARD,
-                    useClass: SessionGuard,
-                },
-                JwtService,
-                TestResolver,
-            ],
-        }).compile();
-
-        app = module.createNestApplication();
-        await app.init();
+        app = global.app;
     });
 
-    afterAll(async () => {
-        await app.close();
+    afterEach(async () => {
+        await global.clearDatabase();
+        global.gc && global.gc();
     });
 
     it('should not authenticate a wallet with an invalid token', async () => {

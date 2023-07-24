@@ -1,30 +1,34 @@
-import { Resolver, Query, Args, Mutation, ResolveField, Parent } from '@nestjs/graphql';
 import { GraphQLError } from 'graphql';
-import {
-    Wallet,
-    BindWalletInput,
-    UnbindWalletInput,
-    CreateWalletInput,
-    Minted,
-    UpdateWalletInput,
-    Activity,
-    EstimatedValue,
-} from './wallet.dto';
-import { CurrentWallet, Public } from '../session/session.decorator';
-import { WalletService } from './wallet.service';
+
+import { UseGuards } from '@nestjs/common';
+import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+
 import { Collection } from '../collection/collection.dto';
 import { CollectionService } from '../collection/collection.service';
 import { RelationshipService } from '../relationship/relationship.service';
-import { AuthorizedWalletGuard, AuthorizedWallet } from '../authorization/authorization.decorator';
-import { UseGuards } from '@nestjs/common';
+import { AuthorizedWallet, CurrentWallet, Public } from '../session/session.decorator';
+import { SigninByEmailGuard } from '../session/session.guard';
+import {
+    Activity,
+    BindWalletInput,
+    CreateWalletInput,
+    EstimatedValue,
+    MintPaginated,
+    UnbindWalletInput,
+    UpdateWalletInput,
+    Wallet,
+    WalletSoldPaginated,
+} from './wallet.dto';
+import { WalletService } from './wallet.service';
+import { Profit } from '../tier/tier.dto';
 
 @Resolver(() => Wallet)
 export class WalletResolver {
     constructor(
         private readonly walletService: WalletService,
         private readonly collectionService: CollectionService,
-        private readonly relationshipService: RelationshipService,
-    ) { }
+        private readonly relationshipService: RelationshipService
+    ) {}
 
     @Public()
     @Query(() => Wallet, {
@@ -33,7 +37,7 @@ export class WalletResolver {
     })
     async wallet(
         @Args('address', { description: 'an ethereum or EIP-3770 address.', nullable: true }) address: string,
-        @Args('name', { description: 'a name of the wallet.', nullable: true }) name: string
+            @Args('name', { description: 'a name of the wallet.', nullable: true }) name: string
     ): Promise<Wallet> {
         return this.walletService.getWalletByQuery({ name, address });
     }
@@ -44,6 +48,7 @@ export class WalletResolver {
         return this.walletService.createWallet(input);
     }
 
+    @UseGuards(SigninByEmailGuard)
     @Mutation(() => Wallet, { description: 'Binds a wallet to the current user.' })
     async bindWallet(@Args('input') input: BindWalletInput): Promise<Wallet> {
         return await this.walletService.bindWallet(input);
@@ -51,7 +56,7 @@ export class WalletResolver {
 
     @Mutation(() => Wallet, { description: 'Unbinds a wallet from the current user.' })
     async unbindWallet(@CurrentWallet() wallet, @Args('input') input: UnbindWalletInput): Promise<Wallet> {
-        const walletInfo = await this.walletService.getWalletByQuery({ address: input.address });
+        await this.walletService.getWalletByQuery({ address: input.address });
         return await this.walletService.unbindWallet(input);
     }
 
@@ -70,9 +75,18 @@ export class WalletResolver {
     }
 
     @Public()
-    @ResolveField(() => [Minted], { description: 'Retrieves the minted NFTs for the given wallet.', nullable: true })
-    async minted(@Parent() wallet: Wallet): Promise<Minted[]> {
-        const minted = await this.walletService.getMintedByAddress(wallet.address);
+    @ResolveField(() => MintPaginated, {
+        description: 'Retrieves the minted NFTs for the given wallet.',
+        nullable: true,
+    })
+    async minted(
+        @Parent() wallet: Wallet,
+            @Args('before', { nullable: true }) before?: string,
+            @Args('after', { nullable: true }) after?: string,
+            @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+    ): Promise<MintPaginated> {
+        const minted = await this.walletService.getMintedByAddress(wallet.address, before, after, first, last);
         return minted;
     }
 
@@ -103,5 +117,41 @@ export class WalletResolver {
     @ResolveField(() => [Collection], { description: 'Retrieve the owned collections by the wallet address.' })
     async createdCollections(@Parent() wallet: Wallet): Promise<Collection[]> {
         return await this.collectionService.getCreatedCollectionsByWalletId(wallet.id);
+    }
+
+    @Public()
+    @ResolveField(() => WalletSoldPaginated)
+    async sold(
+        @Parent() wallet: Wallet,
+            @Args('before', { nullable: true }) before?: string,
+            @Args('after', { nullable: true }) after?: string,
+            @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+    ): Promise<WalletSoldPaginated> {
+        return await this.walletService.getSold(wallet.address, before, after, first, last);
+    }
+
+    @Public()
+    @ResolveField(() => [Profit], { description: 'Returns the total raised for the given wallet' })
+    async profit(@Parent() wallet: Wallet): Promise<Profit[]> {
+        return await this.walletService.getWalletProfit(wallet.address);
+    }
+
+    @Public()
+    @ResolveField(() => Int, { description: 'Returns the monthly buyers for the given wallet' })
+    async monthlyBuyers(@Parent() wallet: Wallet): Promise<number> {
+        return await this.walletService.getMonthlyBuyers(wallet.address);
+    }
+
+    @Public()
+    @ResolveField(() => Int, { description: 'Returns the monthly collections for given wallet' })
+    async monthlyCollections(@Parent() wallet: Wallet): Promise<number> {
+        return await this.walletService.getMonthlyCollections(wallet.address);
+    }
+
+    @Public()
+    @ResolveField(() => Number, { description: 'Returns the monthly collections for given wallet' })
+    async monthlyEarnings(@Parent() wallet: Wallet): Promise<number> {
+        return await this.walletService.getMonthlyEarnings(wallet.address);
     }
 }

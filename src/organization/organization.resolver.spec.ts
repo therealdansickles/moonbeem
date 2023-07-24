@@ -1,16 +1,9 @@
+import { hashSync as hashPassword } from 'bcryptjs';
 import * as request from 'supertest';
-import { Test, TestingModule } from '@nestjs/testing';
-import { GraphQLModule } from '@nestjs/graphql';
-import { INestApplication } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ApolloDriver } from '@nestjs/apollo';
 import { faker } from '@faker-js/faker';
-import { postgresConfig } from '../lib/configs/db.config';
-
-import { OrganizationModule } from './organization.module';
-import { OrganizationService } from './organization.service';
-
+import { INestApplication } from '@nestjs/common';
 import { UserService } from '../user/user.service';
+import { OrganizationService } from './organization.service';
 
 export const gql = String.raw;
 
@@ -20,44 +13,14 @@ describe('OrganizationResolver', () => {
     let app: INestApplication;
 
     beforeAll(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [
-                TypeOrmModule.forRoot({
-                    type: 'postgres',
-                    url: postgresConfig.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                TypeOrmModule.forRoot({
-                    name: 'sync_chain',
-                    type: 'postgres',
-                    url: postgresConfig.syncChain.url,
-                    autoLoadEntities: true,
-                    synchronize: true,
-                    logging: false,
-                    dropSchema: true,
-                }),
-                OrganizationModule,
-                GraphQLModule.forRoot({
-                    driver: ApolloDriver,
-                    autoSchemaFile: true,
-                    include: [OrganizationModule],
-                }),
-            ],
-        }).compile();
-
-        service = module.get<OrganizationService>(OrganizationService);
-        userService = module.get<UserService>(UserService);
-        app = module.createNestApplication();
-
-        await app.init();
+        app = global.app;
+        service = global.organizationService;
+        userService = global.userService;
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
+        await global.clearDatabase();
         global.gc && global.gc();
-        await app.close();
     });
 
     describe('organization', () => {
@@ -118,7 +81,7 @@ describe('OrganizationResolver', () => {
     });
 
     describe('createOrganization', () => {
-        it('should allow authenticated users to create an organization', async () => {
+        it('should forbid if not signed in', async () => {
             const query = gql`
                 mutation CreateOrganization($input: CreateOrganizationInput!) {
                     createOrganization(input: $input) {
@@ -155,6 +118,74 @@ describe('OrganizationResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
+                    expect(body.errors[0].extensions.code).toEqual('FORBIDDEN');
+                    expect(body.data).toBeNull();
+                });
+        });
+
+        it('should allow authenticated users to create an organization', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: owner.email,
+                    password: await hashPassword(owner.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
+
+            const query = gql`
+                mutation CreateOrganization($input: CreateOrganizationInput!) {
+                    createOrganization(input: $input) {
+                        id
+                        name
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    name: faker.company.name(),
+                    displayName: faker.company.name(),
+                    about: faker.company.catchPhrase(),
+                    avatarUrl: faker.image.imageUrl(),
+                    backgroundUrl: faker.image.imageUrl(),
+                    websiteUrl: faker.internet.url(),
+                    twitter: faker.internet.userName(),
+                    instagram: faker.internet.userName(),
+                    discord: faker.internet.userName(),
+                    owner: {
+                        id: owner.id,
+                    },
+                },
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
                     expect(body.data.createOrganization.name).toEqual(variables.input.name);
                 });
         });
@@ -180,6 +211,31 @@ describe('OrganizationResolver', () => {
                 owner: newOwner,
             });
 
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: newOwner.email,
+                    password: await hashPassword(newOwner.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
+
             const query = gql`
                 mutation updateOrganization($input: UpdateOrganizationInput!) {
                     updateOrganization(input: $input) {
@@ -197,6 +253,7 @@ describe('OrganizationResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -225,6 +282,31 @@ describe('OrganizationResolver', () => {
                 owner: newOwner,
             });
 
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: newOwner.email,
+                    password: await hashPassword(newOwner.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
+
             const query = gql`
                 mutation deleteOrganization($input: OrganizationInput!) {
                     deleteOrganization(input: $input)
@@ -239,6 +321,7 @@ describe('OrganizationResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -274,6 +357,30 @@ describe('OrganizationResolver', () => {
                 },
             });
 
+            const tokenQuery = gql`
+                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                    createSessionFromEmail(input: $input) {
+                        token
+                        user {
+                            id
+                            email
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    email: oldOwner.email,
+                    password: await hashPassword(oldOwner.password, 10),
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: tokenQuery, variables: tokenVariables });
+
+            const { token } = tokenRs.body.data.createSessionFromEmail;
             const query = gql`
                 mutation transferOrganization($input: TransferOrganizationInput!) {
                     transferOrganization(input: $input) {
@@ -293,6 +400,7 @@ describe('OrganizationResolver', () => {
 
             return request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {

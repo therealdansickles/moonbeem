@@ -9,7 +9,7 @@ import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/m
 import { Tier } from '../tier/tier.entity';
 import { TierModule } from '../tier/tier.module';
 import { PollerService } from './poller.service';
-import { SharedModule } from '../modules/share.module';
+import { SharedModule } from '../share/share.module';
 
 @Module({
     imports: [
