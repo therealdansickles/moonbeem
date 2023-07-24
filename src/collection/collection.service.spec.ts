@@ -1536,6 +1536,7 @@ describe('CollectionService', () => {
     describe('getCollectionEarningsByTokenAddress', () => {
         it('should return correct sum of earnings for the given token address', async () => {
             const price = faker.random.numeric(19);
+            const paymentToken = faker.finance.ethereumAddress();
 
             const collection = await repository.save({
                 name: faker.company.name(),
@@ -1559,12 +1560,15 @@ describe('CollectionService', () => {
                 tokenId: faker.random.numeric(3),
                 price,
                 collectionId: collection.id,
-                paymentToken: faker.finance.ethereumAddress(),
+                paymentToken,
             });
 
             const earnings = await service.getCollectionEarningsByCollectionAddress(collection.address);
 
-            expect(earnings).toEqual(BigInt(price));
+            expect(earnings).toEqual({
+                paymentToken,
+                sum: price,
+            });
         });
     });
 

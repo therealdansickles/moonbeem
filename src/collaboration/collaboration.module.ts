@@ -2,6 +2,7 @@ import { forwardRef, Module } from '@nestjs/common';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { CoinModule } from '../sync-chain/coin/coin.module';
 import { Collection } from '../collection/collection.entity';
 import { CollectionModule } from '../collection/collection.module';
 import { Organization } from '../organization/organization.entity';
@@ -21,6 +22,7 @@ import { CollaborationService } from './collaboration.service';
         forwardRef(() => OrganizationModule),
         forwardRef(() => UserModule),
         forwardRef(() => WalletModule),
+        forwardRef(() => CoinModule),
         JwtModule
     ],
     providers: [JwtService, CollaborationService, CollaborationResolver],

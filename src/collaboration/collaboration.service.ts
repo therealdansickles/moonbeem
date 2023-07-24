@@ -2,13 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GraphQLError } from 'graphql';
-import { ethers } from 'ethers';
 import { CreateCollaborationInput, CollaborationWithEarnings } from './collaboration.dto';
 import { Collaboration } from './collaboration.entity';
 import { Wallet } from '../wallet/wallet.entity';
 import { User } from '../user/user.entity';
 import { Organization } from '../organization/organization.entity';
 import { CollectionService } from '../collection/collection.service';
+import { CoinService } from '../sync-chain/coin/coin.service';
 
 @Injectable()
 export class CollaborationService {
@@ -16,6 +16,7 @@ export class CollaborationService {
         @InjectRepository(Collaboration)
         private readonly collaborationRepository: Repository<Collaboration>,
         private readonly collectionService: CollectionService,
+        private readonly coinService: CoinService,
     ) { }
 
     /**
@@ -29,6 +30,27 @@ export class CollaborationService {
             where: { id },
             relations: ['wallet', 'user', 'organization'],
         });
+    }
+
+    private async calculateEarningsUsd(
+        { sum, paymentToken }: { sum: string | null, paymentToken: string | null }
+    ): Promise<bigint> {
+        const token = await this.coinService.getCoinByAddress(paymentToken);
+        if (!token) {
+            throw new Error(`Failed to get token ${paymentToken}`);
+        }
+
+        const priceUsd = await this.coinService.getQuote(token.symbol);
+        if (!priceUsd) {
+            throw new Error(`Failed to get price for token ${token.symbol}`);
+        }
+
+        const tokenDecimals = token?.decimals || 18;
+        const base = BigInt(10);
+        const earningsToken = BigInt(sum) / (base ** BigInt(tokenDecimals));
+        const earningsUsd = earningsToken * BigInt(priceUsd.price as any);
+
+        return earningsUsd;
     }
 
     /**
@@ -49,32 +71,28 @@ export class CollaborationService {
             });
         }
 
-        // Get the earnings for each collection
-        // getCollectionEarningsByTokenAddress returns earnings in wei 
         const earningsByCollection = await Promise.all(
-            collaboration.collections.map(
-                ({ address }) => this.collectionService.getCollectionEarningsByCollectionAddress(address)
-                    .catch(err => {
-                        throw new Error(`Failed to get collection earnings for address ${address}: ${err.message}`);
-                    })
-            )
+            collaboration.collections.map(({ address }) => this.collectionService.getCollectionEarningsByCollectionAddress(address))
         );
 
-        const totalEarningsWei = earningsByCollection.reduce((total, earnings) => total + earnings, BigInt(0));
-        // earnings in ETH are rounded to the nearest integer
-        // if precision is needed it's probably better to store earnings in wei and do conversion on the UI
-        const totalEarningsEth = Math.round(parseInt(ethers.formatEther(totalEarningsWei), 10));
+        const collectionEarningsInUsd = await Promise.all(
+            earningsByCollection.map(this.calculateEarningsUsd.bind(this))
+        );
 
-        const collaborators = collaboration.collaborators?.map(collaborator => ({
-            ...collaborator,
-            earnings: Math.round(totalEarningsEth * (collaborator.rate / 100) * (collaboration.royaltyRate / 100)),
-        })) || [];
+        const totalEarnings = Number(collectionEarningsInUsd.reduce((total: bigint, earnings: bigint) => total + earnings, BigInt(0)));
 
-        // Create a new CollaborationWithEarnings object
+        const collaborators = collaboration.collaborators?.map(collaborator => {
+            const earnings = Math.round(totalEarnings * (collaborator.rate / 100) * (collaboration.royaltyRate / 100));
+            return {
+                ...collaborator,
+                earnings,
+            };
+        }) || [];
+
         const collaborationWithEarnings: CollaborationWithEarnings = {
             ...collaboration,
             collaborators,
-            totalEarnings: totalEarningsEth,
+            totalEarnings,
         };
 
         return collaborationWithEarnings;

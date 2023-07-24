@@ -116,7 +116,7 @@ export class CollaborationInput extends PickType(Collaboration, ['id'], InputTyp
 @ObjectType()
 export class CollaboratorEarningsOutput extends CollaboratorOutput {
     @IsNumber()
-    @Field(() => Float, { description: 'The earnings of the collaborator.' })
+    @Field(() => Float, { description: 'The earnings of the collaborator in USD.' })
     readonly earnings: number;
 }
 
@@ -128,6 +128,6 @@ export class CollaborationWithEarnings extends OmitType(Collaboration, ['collabo
     @Field(() => [CollaboratorEarningsOutput], { description: 'All collaborators of this collaboration.', nullable: true })
     readonly collaborators?: CollaboratorEarningsOutput[];
     @IsNumber()
-    @Field(() => Float, { description: 'Collaboration total earnings.' })
+    @Field(() => Float, { description: 'Collaboration total earnings in USD.' })
     readonly totalEarnings: number;
 }

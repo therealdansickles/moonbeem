@@ -49,7 +49,7 @@ export class CollectionService {
         private tierService: TierService,
         private openseaService: OpenseaService,
         private coinService: CoinService
-    ) {}
+    ) { }
 
     /**
      * Retrieves the collection associated with the given id.
@@ -597,16 +597,24 @@ export class CollectionService {
      *
      * @param address The address of the collection
      *
-     * @returns {bigint} collection earnings in wei
+     * @returns The earnings and payment token of the collection
      */
-    public async getCollectionEarningsByCollectionAddress(address: string): Promise<bigint> {
-        const earnings = await this.mintSaleTransactionRepository
+    public async getCollectionEarningsByCollectionAddress(address: string): Promise<{
+        sum: string;
+        paymentToken: string;
+    } | null> {
+        const result = await this.mintSaleTransactionRepository
             .createQueryBuilder('MintSaleTransaction')
             .select('SUM(CAST("MintSaleTransaction"."price" as NUMERIC))', 'sum')
+            .addSelect('MAX("MintSaleTransaction"."paymentToken")', 'paymentToken')
             .where('"MintSaleTransaction"."address" = :address', { address })
             .getRawOne();
+        
+        if (!result.sum || !result.paymentToken) {
+            throw new Error(`Failed to get earnings and/or payment token for collection address ${address}`);
+        }
 
-        return BigInt(earnings?.sum || 0);
+        return result;
     }
 
     public async getCollectionSold(
@@ -616,7 +624,6 @@ export class CollectionService {
         first: number,
         last: number
     ): Promise<CollectionSoldPaginated> {
-        console.log(address);
         if (!address) return PaginatedImp([], 0);
 
         const builder = this.mintSaleTransactionRepository

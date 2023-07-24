@@ -5,6 +5,8 @@ import { CollectionService } from '../collection/collection.service';
 import { WalletService } from '../wallet/wallet.service';
 import { OrganizationService } from '../organization/organization.service';
 import { UserService } from '../user/user.service';
+import { Coin } from '../sync-chain/coin/coin.entity';
+import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 
 describe('CollaborationService', () => {
     let service: CollaborationService;
@@ -293,8 +295,29 @@ describe('CollaborationService', () => {
     });
 
     describe('getCollaborationWithEarnings', () => {
-        const totalEarningsEth = faker.datatype.number({ max: 1000 });
-        const totalEarningsWei = BigInt(totalEarningsEth * 10 ** 18);
+        const totalEarnings = faker.datatype.number({ max: 1000 });
+        const tokenPriceUSD = faker.datatype.number({ max: 1000 });
+        const tokenDecimals = faker.datatype.number({ max: 18, min: 1 });
+        const totalEarningsUsd = totalEarnings * tokenPriceUSD;
+
+        const mockCoin: Coin = Object.assign(new Coin(), {
+            id: faker.datatype.uuid(),
+            address: faker.finance.ethereumAddress(),
+            name: faker.finance.currencyName(),
+            symbol: faker.finance.currencySymbol(),
+            decimals: tokenDecimals,
+            derivedETH: faker.finance.amount(),
+            derivedUSDC: faker.finance.amount(),
+            native: false,
+            enable: true,
+            chainId: 1,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        });
+
+        const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+            price: tokenPriceUSD,
+        });
 
         const collaborators = [
             {
@@ -357,7 +380,14 @@ describe('CollaborationService', () => {
                 tiers: [],
             });
 
-            jest.spyOn(service['collectionService'], 'getCollectionEarningsByCollectionAddress').mockResolvedValue(totalEarningsWei);
+            jest.spyOn(service['collectionService'], 'getCollectionEarningsByCollectionAddress').mockResolvedValue({
+                sum: (BigInt(totalEarnings) * BigInt(10) ** BigInt(tokenDecimals)).toString(),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
+            jest.spyOn(service['coinService'], 'getCoinByAddress').mockResolvedValue(mockCoin);
+
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
         });
 
         afterAll(async () => {
@@ -369,18 +399,18 @@ describe('CollaborationService', () => {
 
             expect(result).toBeDefined();
             expect(result.id).toEqual(collaboration.id);
-            expect(result.totalEarnings).toEqual(totalEarningsEth);
+            expect(result.totalEarnings).toEqual(totalEarningsUsd);
         });
 
         it('should return a collaboration with individual collaborator earnings', async () => {
             const result = await service.getCollaborationWithEarnings(collaboration.id);
 
             // check first collaborator earnings
-            const expectedEarningsFirst = Math.round(totalEarningsEth * (collaborators[0].rate / 100) * (collaboration.royaltyRate / 100));
+            const expectedEarningsFirst = Math.round(totalEarningsUsd * (collaborators[0].rate / 100) * (collaboration.royaltyRate / 100));
             expect(result.collaborators[0].earnings).toEqual(expectedEarningsFirst);
 
             // check second collaborator earnings
-            const expectedEarningsSecond = Math.round(totalEarningsEth * (collaborators[1].rate / 100) * (collaboration.royaltyRate / 100));
+            const expectedEarningsSecond = Math.round(totalEarningsUsd * (collaborators[1].rate / 100) * (collaboration.royaltyRate / 100));
             expect(result.collaborators[1].earnings).toEqual(expectedEarningsSecond);
         });
 
@@ -391,5 +421,25 @@ describe('CollaborationService', () => {
                 expect(error.message).toMatch(/Collaboration with id .* doesn't exist\./);
             }
         });
+
+        it('should throw an error if coinService.getCoinByAddress returns no token', async () => {
+            jest.spyOn(service['coinService'], 'getCoinByAddress').mockResolvedValue(null);
+        
+            try {
+                await service.getCollaborationWithEarnings(collaboration.id);
+            } catch (error) {
+                expect(error.message).toMatch(/Failed to get token/);
+            }
+        });
+
+        it('should throw an error if coinService.getQuote returns no quote', async () => {
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(null);
+        
+            try {
+                await service.getCollaborationWithEarnings(collaboration.id);
+            } catch (error) {
+                expect(error.message).toMatch(/Failed to get price for token/);
+            }
+        }); 
     });
 });
