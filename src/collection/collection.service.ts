@@ -351,22 +351,21 @@ export class CollectionService {
     ): Promise<CollectionHoldersPaginated> {
         const contract = await this.mintSaleContractRepository.findOneBy({ address });
 
-        const builder = this.asset721Repository
-            .createQueryBuilder('asset')
-            .leftJoinAndSelect(MintSaleTransaction, 'transaction', 'asset.tokenId = transaction.tokenId')
-            .select('asset.owner', 'owner')
-            .addSelect('asset.tokenId', 'tokenId')
-            .addSelect('COUNT(asset.tokenId)', 'quantity')
-            .addSelect('transaction.tierId', 'tierId')
-            .addSelect('asset.txTime', 'txTime')
-            .where('asset.address = :address AND transaction.tokenAddress = :address', {
+        const builder = this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .leftJoinAndSelect(Asset721, 'asset', 'asset.tokenId = txn.tokenId')
+            .select('txn.tierId', 'tierId')
+            .addSelect('asset.owner', 'owner')
+            .addSelect('COUNT(*)', 'quantity')
+            .addSelect('MIN(asset.txTime)', 'txTime')
+            .addSelect('txn.price', 'price')
+            .addSelect('SUM(txn.price::numeric(20,0))', 'totalPrice')
+            .where('asset.address = :address AND txn.tokenAddress = :address', {
                 address: contract.tokenAddress,
             })
             .groupBy('asset.owner')
-            .addGroupBy('asset.tokenId')
-            .addGroupBy('transaction.tierId')
-            .addGroupBy('asset.txTime');
-
+            .addGroupBy('txn.tierId')
+            .addGroupBy('txn.price');
         if (after) {
             builder.andWhere('asset.txTime > :cursor', { cursor: new Date(fromCursor(after)).valueOf() / 1000 });
             builder.limit(first);
@@ -382,7 +381,7 @@ export class CollectionService {
             builder.getRawMany(),
             this.asset721Repository
                 .createQueryBuilder('asset')
-                .select('COUNT(asset.owner) AS count')
+                .select('COUNT(DISTINCT(asset.owner)) AS count')
                 .where('asset.address = :address', { address: contract.tokenAddress })
                 .getRawOne(),
         ]);
@@ -400,6 +399,8 @@ export class CollectionService {
                 const createdAt = new Date(holder.txTime * 1000);
                 return {
                     ...wallet,
+                    price: holder.price,
+                    totalPrice: holder.totalPrice,
                     quantity: holder.quantity ? parseInt(holder.quantity) : 0,
                     tier,
                     createdAt: new Date(createdAt.getTime() + createdAt.getTimezoneOffset() * 60 * 1000), // timestamp to iso time

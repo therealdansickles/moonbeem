@@ -18,6 +18,7 @@ import {
     IsNumber,
     IsArray,
     IsDateString,
+    IsNumberString,
 } from 'class-validator';
 import { User, UserInput } from '../user/user.dto';
 import { Tier } from '../tier/tier.dto';
@@ -225,6 +226,14 @@ export class SearchWallet {
 
 @ObjectType('CollectionHolderData')
 export class CollectionHolderData extends PartialType(OmitType(Wallet, ['owner'], ObjectType)) {
+    @Field({ description: 'Price of tier' })
+    @IsNumberString()
+    readonly price: string;
+
+    @Field({ description: 'Total price of tier purchased' })
+    @IsNumberString()
+    readonly totalPrice: string;
+
     @Field(() => Int)
     @IsNumber()
     readonly quantity: number;

@@ -1246,9 +1246,14 @@ describe('CollectionService', () => {
 
     describe('getHolders', () => {
         const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
+        const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
+        const owner1 = faker.finance.ethereumAddress().toLowerCase();
+        const tokenId1 = faker.random.numeric(5);
+
+        const owner2 = faker.finance.ethereumAddress().toLowerCase();
+        const tokenId2 = faker.random.numeric(5);
 
         beforeEach(async () => {
-            const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
             const beginTime = Math.floor(faker.date.recent().getTime() / 1000);
 
             const coin = await coinService.createCoin({
@@ -1337,12 +1342,6 @@ describe('CollectionService', () => {
                 collectionId: collection.id,
             });
 
-            const owner1 = faker.finance.ethereumAddress().toLowerCase();
-            const tokenId1 = faker.random.numeric(5);
-
-            const owner2 = faker.finance.ethereumAddress().toLowerCase();
-            const tokenId2 = faker.random.numeric(5);
-
             await asset721Service.createAsset721({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
@@ -1370,7 +1369,7 @@ describe('CollectionService', () => {
                 tierId: 0,
                 tokenAddress: tokenAddress,
                 tokenId: tokenId1,
-                price: faker.random.numeric(19),
+                price: '100',
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
@@ -1381,21 +1380,51 @@ describe('CollectionService', () => {
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: faker.finance.ethereumAddress(),
-                tierId: 0,
+                tierId: 1,
                 tokenAddress: tokenAddress,
                 tokenId: tokenId2,
-                price: faker.random.numeric(19),
+                price: '100',
                 paymentToken: faker.finance.ethereumAddress(),
             });
         });
 
         it('should get holders', async () => {
+            const tokenId3 = faker.random.numeric(5);
+            await asset721Service.createAsset721({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address: tokenAddress,
+                tokenId: tokenId3,
+                owner: owner2,
+            });
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: faker.finance.ethereumAddress(),
+                tierId: 1,
+                tokenAddress: tokenAddress,
+                tokenId: tokenId3,
+                price: '100',
+                paymentToken: faker.finance.ethereumAddress(),
+            });
             const result = await service.getHolders(collectionAddress, '', '', 10, 0);
             expect(result).toBeDefined();
             expect(result.totalCount).toEqual(2);
             expect(result.edges.length).toEqual(2);
             expect(result.edges[0].node.tier).toBeDefined();
-            expect(result.edges[0].node.tier.price).toEqual('200');
+            const edges = result.edges;
+            edges.sort((a, b) => a.node.quantity - b.node.quantity);
+            expect(edges[0].node.quantity).toBe(1);
+            expect(edges[0].node.price).toBe('100');
+            expect(edges[0].node.totalPrice).toBe('100');
+
+            expect(edges[1].node.quantity).toBe(2);
+            expect(edges[1].node.price).toBe('100');
+            expect(edges[1].node.totalPrice).toBe('200');
         });
 
         it('should get unique holders', async () => {
