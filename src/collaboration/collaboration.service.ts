@@ -16,8 +16,8 @@ export class CollaborationService {
         @InjectRepository(Collaboration)
         private readonly collaborationRepository: Repository<Collaboration>,
         private readonly collectionService: CollectionService,
-        private readonly coinService: CoinService,
-    ) { }
+        private readonly coinService: CoinService
+    ) {}
 
     /**
      * Retrieves the collaboration associated with the given id.
@@ -32,9 +32,7 @@ export class CollaborationService {
         });
     }
 
-    private async calculateEarningsUsd(
-        earningObject: { sum: string, paymentToken: string }
-    ): Promise<bigint> {
+    private async calculateEarningsUsd(earningObject: { sum: string; paymentToken: string }): Promise<bigint> {
         if (!earningObject) {
             return BigInt(0);
         }
@@ -47,21 +45,21 @@ export class CollaborationService {
         }
 
         const priceUsd = await this.coinService.getQuote(token.symbol);
-        if (!priceUsd) {
+        if (!priceUsd || !priceUsd['USD']) {
             throw new Error(`Failed to get price for token ${token.symbol}`);
         }
 
         const tokenDecimals = token?.decimals || 18;
         const base = BigInt(10);
-        const earningsToken = BigInt(sum) / (base ** BigInt(tokenDecimals));
-        const earningsUsd = earningsToken * BigInt(priceUsd.price as any);
+        const earningsToken = BigInt(sum) / base ** BigInt(tokenDecimals);
+        const earningsUsd = earningsToken * BigInt(priceUsd['USD'].price);
 
         return earningsUsd;
     }
 
     /**
      * Retrieves the collaboration associated with the given id and calculates the earnings for each collaborator.
-     * 
+     *
      * @param id The id of the collaboration to retrieve.
      * @returns The collaboration associated with the given id including total earnings and earnings for each collaborator .
      */
@@ -78,22 +76,29 @@ export class CollaborationService {
         }
 
         const earningsByCollection = await Promise.all(
-            collaboration.collections.map(({ address }) => this.collectionService.getCollectionEarningsByCollectionAddress(address))
+            collaboration.collections.map(({ address }) =>
+                this.collectionService.getCollectionEarningsByCollectionAddress(address)
+            )
         );
 
         const collectionEarningsInUsd: bigint[] = await Promise.all(
             earningsByCollection.map(this.calculateEarningsUsd.bind(this))
         );
 
-        const totalEarnings = Number(collectionEarningsInUsd.reduce((total: bigint, earnings: bigint) => total + earnings, BigInt(0)));
+        const totalEarnings = Number(
+            collectionEarningsInUsd.reduce((total: bigint, earnings: bigint) => total + earnings, BigInt(0))
+        );
 
-        const collaborators = collaboration.collaborators?.map(collaborator => {
-            const earnings = Math.round(totalEarnings * (collaborator.rate / 100) * (collaboration.royaltyRate / 100));
-            return {
-                ...collaborator,
-                earnings,
-            };
-        }) || [];
+        const collaborators =
+            collaboration.collaborators?.map((collaborator) => {
+                const earnings = Math.round(
+                    totalEarnings * (collaborator.rate / 100) * (collaboration.royaltyRate / 100)
+                );
+                return {
+                    ...collaborator,
+                    earnings,
+                };
+            }) || [];
 
         const collaborationWithEarnings: CollaborationWithEarnings = {
             ...collaboration,
