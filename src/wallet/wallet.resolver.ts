@@ -8,19 +8,12 @@ import { CollectionService } from '../collection/collection.service';
 import { RelationshipService } from '../relationship/relationship.service';
 import { AuthorizedWallet, CurrentWallet, Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
+import { Profit } from '../tier/tier.dto';
 import {
-    Activity,
-    BindWalletInput,
-    CreateWalletInput,
-    EstimatedValue,
-    MintPaginated,
-    UnbindWalletInput,
-    UpdateWalletInput,
-    Wallet,
-    WalletSoldPaginated,
+    Activity, BindWalletInput, CreateWalletInput, EstimatedValue, MintPaginated, UnbindWalletInput,
+    UpdateWalletInput, Wallet, WalletSoldPaginated
 } from './wallet.dto';
 import { WalletService } from './wallet.service';
-import { Profit } from '../tier/tier.dto';
 
 @Resolver(() => Wallet)
 export class WalletResolver {
@@ -51,7 +44,11 @@ export class WalletResolver {
     @UseGuards(SigninByEmailGuard)
     @Mutation(() => Wallet, { description: 'Binds a wallet to the current user.' })
     async bindWallet(@Args('input') input: BindWalletInput): Promise<Wallet> {
-        return await this.walletService.bindWallet(input);
+        try {
+            return await this.walletService.bindWallet(input);
+        } catch (err) {
+            throw new GraphQLError(err.message, { extensions: { code: 'INTERNAL_SERVER_ERROR' } });
+        }
     }
 
     @Mutation(() => Wallet, { description: 'Unbinds a wallet from the current user.' })

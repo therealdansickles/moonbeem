@@ -176,17 +176,19 @@ describe('WalletService', () => {
         it('should throw an error if the wallet is already bound', async () => {
             const data = { address: eipAddress, owner: { id: ownerId }, message, signature };
             await service.bindWallet(data);
-            try {
-                const anotherOwner = await userService.createUser({
-                    email: faker.internet.email(),
-                    password: faker.internet.password(),
-                });
-                message = 'Hi from tests!';
-                signature = await wallet.signMessage(message);
-                await service.bindWallet({ address: eipAddress, owner: { id: anotherOwner.id }, message, signature });
-            } catch (error) {
-                expect((error as Error).message).toBe(`Wallet ${eipAddress} is already bound.`);
-            }
+            const anotherOwner = await userService.createUser({
+                email: faker.internet.email(),
+                password: faker.internet.password(),
+            });
+            message = 'Hi from tests!';
+            signature = await wallet.signMessage(message);
+            await expect(
+                async () => await service.bindWallet({
+                    address: eipAddress,
+                    owner: { id: anotherOwner.id },
+                    message, signature
+                })
+            ).rejects.toThrow(`Wallet ${eipAddress} is already bound.`);
         });
     });
 

@@ -933,13 +933,29 @@ describe('TierResolver', () => {
                             id
                             name
                             holders {
-                                total
-                                data {
-                                    id
-                                    transaction {
+                                edges {
+                                    cursor
+                                    node {
                                         id
+                                        address
+                                        name
+                                        avatarUrl
+                                        about
+                                        websiteUrl
+                                        twitter
+                                        instagram
+                                        discord
+                                        spotify
+                                        quantity
                                     }
                                 }
+                                pageInfo {
+                                    hasNextPage
+                                    hasPreviousPage
+                                    startCursor
+                                    endCursor
+                                }
+                                totalCount
                             }
                         }
                     }
@@ -954,8 +970,8 @@ describe('TierResolver', () => {
                 .expect(({ body }) => {
                     expect(body.data.collection.tiers).toBeDefined();
                     expect(body.data.collection.tiers.length).toEqual(1);
-                    expect(body.data.collection.tiers[0].holders.total).toEqual(2);
-                    expect(body.data.collection.tiers[0].holders.data.length).toEqual(2);
+                    expect(body.data.collection.tiers[0].holders.totalCount).toEqual(2);
+                    expect(body.data.collection.tiers[0].holders.edges.length).toEqual(2);
                 });
         });
 

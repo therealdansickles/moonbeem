@@ -1,13 +1,15 @@
 import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
-dotenv.config();
-
-import { NestFactory } from '@nestjs/core';
-import { RequestMethod, ValidationPipe } from '@nestjs/common';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { json, urlencoded } from 'express';
+
+import { RequestMethod, ValidationPipe } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as Sentry from '@sentry/node';
+
 import { AppModule } from './app.module';
 import { appConfig } from './lib/configs/app.config';
-import * as Sentry from '@sentry/node';
+
+dotenv.config();
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
@@ -26,10 +28,10 @@ async function bootstrap() {
         environment: process.env.NODE_ENV,
         dsn: process.env.SENTRY_DSN,
         ignoreErrors: [
-            'GraphQLError',
-            'TokenExpiredError',
             'BAD_REQUEST',
-            'is already taken', // FIXME: https://vibe-labs.sentry.io/issues/4310575638/?project=4504674738044928&query=is%3Aunresolved&referrer=issue-stream&stream_index=0
+            'GraphQLError',
+            'JsonWebTokenError',
+            'TokenExpiredError',
         ]
     });
 

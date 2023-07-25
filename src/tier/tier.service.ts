@@ -15,7 +15,7 @@ import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import { TierHolderData, TierHolders } from '../wallet/wallet.dto';
+import { TierHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
     BasicPriceInfo,
@@ -256,9 +256,38 @@ export class TierService {
         }
     }
 
-    async getHolders(id: string, offset: number, limit: number): Promise<TierHolders> {
+    async getTotalHolders(id: string): Promise<number> {
+        try {
+            const tier = await this.tierRepository.findOne({ where: { id: id }, relations: ['collection'] });
+
+            const { count } = await this.transactionRepository
+                .createQueryBuilder('txn')
+                .select('COUNT(DISTINCT(recipient))', 'count')
+                .where('txn.address = :address AND txn.tierId = :tierId', {
+                    address: tier.collection.address,
+                    tierId: tier.tierId,
+                })
+                .getRawOne();
+
+            // The count is a number string due to the javascript number limit
+            return parseInt(count, 10);
+        } catch (error) {
+            captureException(error);
+            return 0;
+        }
+    }
+
+
+    async getHolders(id: string,
+        before: string,
+        after: string,
+        first: number,
+        last: number): Promise<TierHoldersPaginated>{
         // get tier by tier's id, relate to collection
         const tier = await this.tierRepository.findOne({ where: { id: id }, relations: ['collection'] });
+        if (!tier?.collection?.address) {
+            return PaginatedImp([], 0);
+        }
 
         // get contract info from sync_chain
         const contract = await this.contractRepository.findOneBy({
@@ -266,50 +295,47 @@ export class TierService {
             tierId: tier.tierId,
         });
 
-        const [txns, total] = await this.transactionRepository
+        const builder = this.transactionRepository
             .createQueryBuilder('txn')
-            .where('txn.address = :address AND txn.tierId = :tierId', {
-                address: tier.collection.address,
-                tierId: tier.tierId,
+            .leftJoinAndSelect(Asset721, 'asset', 'asset.tokenId = txn.tokenId')
+            .select('txn.tierId', 'tierId')
+            .addSelect('asset.owner', 'owner')
+            .addSelect('MIN(asset.txTime)', 'txTime')
+            .addSelect('COUNT(*)', 'quantity')
+            .where('asset.address = :address AND txn.tokenAddress = :address', {
+                address: contract.tokenAddress,
             })
-            .offset(offset)
-            .limit(limit)
-            .getManyAndCount();
+            .groupBy('asset.owner')
+            .addGroupBy('txn.tierId');
 
-        const assets = await this.asset721Repository.findBy({
-            address: contract.tokenAddress,
-            tokenId: In(
-                txns.map((txn) => {
-                    return txn.tokenId;
-                })
-            ),
-        });
+        if (after) {
+            builder.andWhere('asset.txTime > :cursor', { cursor: new Date(fromCursor(after)).valueOf() / 1000 });
+            builder.limit(first);
+        } else if (before) {
+            builder.andWhere('asset.txTime < :cursor', { cursor: fromCursor(before) });
+            builder.limit(last);
+        } else {
+            const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
+            builder.limit(limit);
+        }
 
+        const holders = await builder.getRawMany();
         const wallets = await this.walletRepository.findBy({
             address: In(
-                assets.map((asset) => {
-                    return asset.owner;
-                })
-            ),
+                holders.map(holder => holder.owner))
         });
 
-        const data: TierHolderData[] = txns.map((txn) => {
-            const asset = assets.find((a) => {
-                return a.tokenId == txn.tokenId && a.address == txn.tokenAddress;
-            });
-
-            const wallet = wallets.find((w) => {
-                return w.address == asset.owner;
-            });
-
+        // ignore the transactions and assets until we are clear about the usage
+        const data = wallets.map(wallet => {
+            const holder = holders.find(holder => holder.owner === wallet.address);
             return {
                 ...wallet,
-                transaction: txn,
-                asset: asset,
+                quantity: holder?.quantity ? parseInt(holder?.quantity) : 0,
             };
         });
 
-        return { total: total, data: data };
+        const total = await this.getTotalHolders(id);
+        return PaginatedImp(data, total);
     }
 
     async searchTier(

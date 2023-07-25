@@ -5,7 +5,7 @@ import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nes
 
 import { Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
-import { TierHolders } from '../wallet/wallet.dto';
+import { TierHoldersPaginated } from '../wallet/wallet.dto';
 import {
     CreateTierInput,
     DeleteTierInput,
@@ -67,13 +67,15 @@ export class TierResolver {
     }
 
     @Public()
-    @ResolveField(() => TierHolders, { description: 'Returns the holder for a tier.' })
+    @ResolveField(() => TierHoldersPaginated, { description: 'Returns the holder data for a tier.' })
     async holders(
         @Parent() tier: Tier,
-            @Args('offset', { type: () => Int, nullable: true, defaultValue: 0 }) offset?: number,
-            @Args('limit', { type: () => Int, nullable: true, defaultValue: 10 }) limit?: number
-    ): Promise<TierHolders> {
-        return await this.tierService.getHolders(tier.id, offset, limit);
+            @Args('before', { nullable: true }) before?: string,
+            @Args('after', { nullable: true }) after?: string,
+            @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+    ): Promise<TierHoldersPaginated> {
+        return this.tierService.getHolders(tier.id, before, after, first, last);
     }
 
     @Public()

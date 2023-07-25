@@ -181,24 +181,13 @@ export class WalletService {
         const address = rawAddress.toLowerCase();
         const wallet = await this.verifyWallet(address, data.message, data.signature);
 
-        if (wallet.owner && wallet.owner.id) {
-            throw new GraphQLError(`Wallet ${address} is already bound.`, {
-                extensions: { code: 'BAD_REQUEST' },
-            });
-        }
+        if (wallet.owner?.id) throw new Error(`Wallet ${address} is already bound.`);
 
-        try {
-            await this.updateWallet(wallet.id, { ...omit(wallet, 'owner'), ownerId: owner.id });
-            return this.walletRespository.findOne({
-                where: { address },
-                relations: ['owner'],
-            });
-        } catch (e) {
-            captureException(e);
-            throw new GraphQLError(`Failed to bind wallet ${address}`, {
-                extensions: { code: 'INTERNAL_SERVER_ERROR' },
-            });
-        }
+        await this.updateWallet(wallet.id, { ...omit(wallet, 'owner'), ownerId: owner.id });
+        return this.walletRespository.findOne({
+            where: { address },
+            relations: ['owner'],
+        });
     }
 
     /**
@@ -249,7 +238,10 @@ export class WalletService {
     async verifyWallet(walletAddress: string, message: string, signature: string): Promise<Wallet | null> {
         const address = walletAddress.toLowerCase();
         if (ethers.verifyMessage(message, signature).toLowerCase() === address) {
-            const existedWallet = await this.walletRespository.findOneBy({ address });
+            const existedWallet = await this.walletRespository.findOne({
+                where: { address },
+                relations: ['owner']
+            });
             if (existedWallet) return existedWallet;
             else {
                 await this.walletRespository.insert({ address, name: address });

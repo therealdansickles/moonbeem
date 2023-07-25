@@ -1,21 +1,15 @@
+import { AxiosError } from 'axios';
 import { get } from 'lodash';
 import { join } from 'path';
-import { RateLimiterMemory } from 'rate-limiter-flexible';
 import { catchError, firstValueFrom } from 'rxjs';
 import { URL } from 'url';
 
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
-import * as Sentry from '@sentry/node';
 
 import { CollectionStatData } from '../collection/collection.dto';
 import { openseaConfig } from '../lib/configs/opensea.config';
 import { SaleHistory } from '../saleHistory/saleHistory.dto';
-
-const opts = {
-    points: 4, // 4 points
-    duration: 1, // Per second
-};
 
 interface ICollection {
     paymentToken: {
@@ -47,37 +41,44 @@ interface ICollection {
     netGrossEarning: number
 }
 
-const rateLimiter = new RateLimiterMemory(opts);
-
 @Injectable()
 export class OpenseaService {
     constructor(private readonly httpRequest: HttpService) {}
-    callOpenSea<T>(url, params): Promise<T> {
-        return new Promise((resolve, reject) => {
-            const call = () => {
-                rateLimiter
-                    .consume(openseaConfig.url, 1) // consume 2 points
-                    .then(async () => {
-                        try {
-                            const { data } = await firstValueFrom(
-                                this.httpRequest.get(url, params).pipe(
-                                    catchError((error) => {
-                                        Sentry.captureException(error);
-                                        throw 'Bad response from opensea';
-                                    })
-                                )
-                            );
-                            resolve(data);
-                        } catch (error) {
-                            reject(error);
-                        }
-                    })
-                    .catch((rateLimiterRes) => {
-                        setTimeout(call, rateLimiterRes.msBeforeNext);
-                    });
-            };
-            call();
-        });
+
+    async callOpenSea<T>(url, params): Promise<T> {
+        // return new Promise((resolve, reject) => {
+        //     const call = () => {
+        //         rateLimiter
+        //             .consume(openseaConfig.url, 1) // consume 2 points
+        //             .then(async () => {
+        //                 try {
+        //                     const { data } = await firstValueFrom(
+        //                         this.httpRequest.get(url, params).pipe(
+        //                             catchError((error) => {
+        //                                 Sentry.captureException(error);
+        //                                 throw 'Bad response from opensea';
+        //                             })
+        //                         )
+        //                     );
+        //                     resolve(data);
+        //                 } catch (error) {
+        //                     reject(error);
+        //                 }
+        //             })
+        //             .catch((rateLimiterRes) => {
+        //                 setTimeout(call, rateLimiterRes.msBeforeNext);
+        //             });
+        //     };
+        //     call();
+        // });
+        const { data } = await firstValueFrom(
+            this.httpRequest.get(url, params).pipe(
+                catchError((error: AxiosError) => {
+                    throw new Error(`Bad response from opensea: ${error.response.status}/${error.response.statusText}/${JSON.stringify(params)}`);
+                })
+            )
+        );
+        return data;
     }
 
     async getCollection(slug: string): Promise<ICollection> {
@@ -93,33 +94,34 @@ export class OpenseaService {
 
         return {
             paymentToken: {
-                symbol: get(data, 'payment_tokens.0.symbol'),
-                priceInUSD: get(data, 'payment_tokens.0.usd_price'),
+                symbol: get(data, 'collection.payment_tokens.0.symbol'),
+                priceInUSD: get(data, 'collection.payment_tokens.0.usd_price'),
             },
             volume: {
-                total: data.stats?.total_volume,
-                hourly: data.stats?.one_hour_volume,
-                daily: data.stats?.one_day_volume,
-                weekly: data.stats?.seven_day_volume,
-                monthly: data.stats?.thirty_day_volume,
+                total: get(data, 'collection.stats.total_volume'),
+                hourly: get(data, 'collection.stats.one_hour_volume'),
+                daily: get(data, 'collection.stats.one_day_volume'),
+                weekly: get(data, 'collection.stats.seven_day_volume'),
+                monthly: get(data, 'collection.stats.thirty_day_volume'),
             },
             sales: {
-                total: data.stats?.total_sales,
-                hourly: data.stats?.one_hour_sales,
-                daily: data.stats?.one_day_sales,
-                weekly: data.stats?.seven_day_sales,
-                monthly: data.stats?.thirty_day_sales,
+                total: get(data, 'collection.stats.total_sales'),
+                hourly: get(data, 'collection.stats.one_hour_sales'),
+                daily: get(data, 'collection.stats.one_day_sales'),
+                weekly: get(data, 'collection.stats.seven_day_sales'),
+                monthly: get(data, 'collection.stats.thirty_day_sales'),
             },
             price: {
-                hourly: data.stats?.one_hour_average_price,
-                daily: data.stats?.one_day_average_price,
-                weekly: data.stats?.seven_day_average_price,
-                monthly: data.stats?.thirty_day_average_price,
+                hourly: get(data, 'collection.stats.one_hour_average_price'),
+                daily: get(data, 'collection.stats.one_day_average_price'),
+                weekly: get(data, 'collection.stats.seven_day_average_price'),
+                monthly: get(data, 'collection.stats.thirty_day_average_price'),
             },
-            supply: data.stats?.total_supply,
-            floorPrice: data.stats?.floor_price,
-            netGrossEarning: data.stats?.total_volume,
+            supply: get(data, 'collection.stats.total_supply'),
+            floorPrice: get(data, 'collection.stats.floor_price'),
+            netGrossEarning: get(data, 'collection.stats.total_volume'),
         };
+
     }
 
     // as very similar to `/api/v1/collection/${slug}`,

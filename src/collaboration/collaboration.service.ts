@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GraphQLError } from 'graphql';
+import BigNumber from 'bignumber.js';
 import { CreateCollaborationInput, CollaborationWithEarnings } from './collaboration.dto';
 import { Collaboration } from './collaboration.entity';
 import { Wallet } from '../wallet/wallet.entity';
@@ -52,9 +53,11 @@ export class CollaborationService {
         const tokenDecimals = token?.decimals || 18;
         const base = BigInt(10);
         const earningsToken = BigInt(sum) / base ** BigInt(tokenDecimals);
-        const earningsUsd = earningsToken * BigInt(priceUsd['USD'].price);
-
-        return earningsUsd;
+        // using BigNumber to convert both numbers to a common format that can handle the precision and range 
+        // and convert back to BigInt as a final result
+        const earningsUsd = new BigNumber(earningsToken.toString()).multipliedBy(priceUsd['USD'].price).toString();
+        const resultAsBigInt = BigInt(Math.floor(new BigNumber(earningsUsd).toNumber()));
+        return resultAsBigInt;
     }
 
     /**
