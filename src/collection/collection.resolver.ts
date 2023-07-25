@@ -159,13 +159,13 @@ export class CollectionResolver {
     }
 
     @Public()
-    @ResolveField(() => SevenDayVolume, {description: 'Returns 7 days of volume for given collection.'})
+    @ResolveField(() => SevenDayVolume, {description: 'Returns 7 days of volume for given collection.', nullable: true })
     async sevenDayVolume(@Parent() collection: Collection): Promise<SevenDayVolume> { 
         return this.collectionService.getSevenDayVolume(collection.address);
     }
 
     @Public()
-    @ResolveField(() => GrossEarnings, { description: 'Returns gross earnings for given collection.'})
+    @ResolveField(() => GrossEarnings, { description: 'Returns gross earnings for given collection.', nullable: true })
     async grossEarnings(@Parent() collection: Collection): Promise<GrossEarnings> { 
         return this.collectionService.getGrossEarnings(collection.address);
     }
