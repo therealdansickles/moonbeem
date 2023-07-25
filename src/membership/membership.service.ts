@@ -83,7 +83,11 @@ export class MembershipService {
         membership.organization = await this.organizationRepository.findOneBy({ id: organizationId });
         membership.user = await this.userRepository.findOneBy({ email });
         await this.membershipRepository.insert(membership);
-        return await this.membershipRepository.findOneBy({ id: membership.id });
+
+        const result = await this.membershipRepository.findOneBy({ id: membership.id });
+        await this.mailService.sendInviteEmail(email, result.inviteCode); // FIXME: Move to a queue
+
+        return result;
     }
 
     /**
