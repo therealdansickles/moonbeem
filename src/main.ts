@@ -26,10 +26,10 @@ async function bootstrap() {
         environment: process.env.NODE_ENV,
         dsn: process.env.SENTRY_DSN,
         ignoreErrors: [
-            'GraphQLError',
-            'TokenExpiredError',
             'BAD_REQUEST',
-            'is already taken', // FIXME: https://vibe-labs.sentry.io/issues/4310575638/?project=4504674738044928&query=is%3Aunresolved&referrer=issue-stream&stream_index=0
+            'GraphQLError',
+            'JsonWebTokenError',
+            'TokenExpiredError',
         ]
     });
 
