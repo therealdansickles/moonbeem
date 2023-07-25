@@ -83,7 +83,6 @@ export class MembershipService {
         membership.organization = await this.organizationRepository.findOneBy({ id: organizationId });
         membership.user = await this.userRepository.findOneBy({ email });
         await this.membershipRepository.insert(membership);
-        await this.mailService.sendInviteEmail(membership.user.email, { token: membership.inviteCode});
         return await this.membershipRepository.findOneBy({ id: membership.id });
     }
 
