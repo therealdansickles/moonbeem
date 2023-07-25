@@ -12,6 +12,7 @@ import { googleConfig } from '../lib/configs/app.config';
 import { MailService } from '../mail/mail.service';
 import { OrganizationService } from '../organization/organization.service';
 import { User } from './user.entity';
+import { CreateUserInput } from './user.dto';
 
 type IUserQuery = Partial<Pick<User, 'id' | 'username'>>;
 
@@ -21,7 +22,7 @@ export class UserService {
         private organizationService: OrganizationService,
         private mailService: MailService,
         @InjectRepository(User) private userRepository: Repository<User>
-    ) {}
+    ) { }
 
     /**
      * Retrieves the user satisfied the given query.
@@ -40,10 +41,18 @@ export class UserService {
      * the original `createUser` would be atomic service function
      *
      * @param payload
+     * @param password
      * @returns The newly created user.
      */
-    async createUserWithOrganization(payload: Partial<User>): Promise<User> {
-        const user = await this.createUser(payload);
+    async createUserWithOrganization(input: CreateUserInput): Promise<User> {
+        // check password for non Google-authenticated users
+        if (input.provider === 'local' && !input.password) {
+            throw new GraphQLError('Password must be provided for local users', {
+                extensions: { code: 'BAD_USER_INPUT' },
+            });
+        }
+        
+        const user = await this.createUser(input);
         await this.organizationService.createPersonalOrganization(user);
         await this.mailService.sendWelcomeEmail(user.email, {});
         return user;
@@ -58,7 +67,14 @@ export class UserService {
     async createUser(payload: Partial<User>): Promise<User> {
         // only email is unique, so just need to check by email
         const existedUser = await this.userRepository.findOneBy({ email: payload.email });
-        if (existedUser) throw new GraphQLError(`This email ${payload.email} is already taken.`);
+
+        if (existedUser) {
+            if (existedUser.provider !== payload.provider) {
+                throw new GraphQLError(`An account with this email already exists. Please log in with ${existedUser.provider}.`);
+            } else {
+                throw new GraphQLError(`This email ${payload.email} is already taken.`);
+            }
+        }
 
         const user = this.userRepository.create(payload);
         await this.userRepository.insert(user);
@@ -155,6 +171,7 @@ export class UserService {
                     email: userInfo.data.email,
                     name: userInfo.data.name,
                     avatarUrl: userInfo.data.picture,
+                    provider: 'google',
                 };
                 await this.createUserWithOrganization(userData);
                 return this.userRepository.findOneBy({ email: userInfo.data.email });

@@ -27,7 +27,6 @@ export class User {
     @IsOptional()
     readonly verificationToken?: string;
 
-    @Field({ description: 'The password of the user.', nullable: true })
     @IsString()
     @IsOptional()
     readonly password?: string;
@@ -72,23 +71,36 @@ export class User {
 }
 
 @InputType()
-export class CreateUserInput extends OmitType(User, ['id', 'wallets'] as const, InputType) {}
+export class CreateUserInput extends OmitType(User, ['id', 'wallets'] as const, InputType) {
+    @Field({ description: 'The password for the user.', nullable: true })
+    @IsString()
+    @IsOptional()
+    @IsString()
+        password?: string;
+
+    @Field({ description: 'User provider: \'google\' or \'local\')', nullable: true })
+    @IsString()
+    @IsOptional()
+    @IsString()
+        provider?: string;
+}
+
 
 @InputType()
-export class UserInput extends PickType(User, ['id'] as const, InputType) {}
+export class UserInput extends PickType(User, ['id'] as const, InputType) { }
 
 @InputType()
-export class VerifyUserInput extends PickType(User, ['email', 'verificationToken'] as const, InputType) {}
+export class VerifyUserInput extends PickType(User, ['email', 'verificationToken'] as const, InputType) { }
 
 @InputType()
-export class UpdateUserInput extends PartialType(OmitType(User, ['password', 'wallets'] as const), InputType) {}
+export class UpdateUserInput extends PartialType(OmitType(User, ['password', 'wallets'] as const), InputType) { }
 
 @ObjectType()
 export class UserOutput extends OmitType(
     User,
     ['password', 'websiteUrl', 'twitter', 'instagram', 'discord', 'wallets'],
     ObjectType
-) {}
+) { }
 
 @ObjectType()
 export class SearchUser {

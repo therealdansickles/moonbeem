@@ -1,5 +1,6 @@
 import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
+import { GraphQLError } from 'graphql';
 import { OrganizationService } from '../organization/organization.service';
 import { User } from './user.entity';
 import { UserService } from './user.service';
@@ -14,8 +15,8 @@ describe('UserService', () => {
         service = global.userService;
         repository = global.userRepository;
         organizationService = global.organizationService;
-        jest.spyOn(global.mailService, 'sendWelcomeEmail').mockImplementation(async () => {});
-        jest.spyOn(global.mailService, 'sendInviteEmail').mockImplementation(async () => {});
+        jest.spyOn(global.mailService, 'sendWelcomeEmail').mockImplementation(async () => { });
+        jest.spyOn(global.mailService, 'sendInviteEmail').mockImplementation(async () => { });
 
         basicUser = await service.createUser({
             username: faker.internet.userName(),
@@ -55,11 +56,12 @@ describe('UserService', () => {
             expect(basicUser.password).toBeDefined();
         });
 
-        it('should throw error if email has been take', async () => {
+        it('should throw error if email has been taken', async () => {
             const user = await service.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
                 password: 'password',
+                provider: 'local', // Specify a provider here
             });
 
             try {
@@ -67,9 +69,21 @@ describe('UserService', () => {
                     username: faker.internet.userName(),
                     email: user.email,
                     password: 'password',
+                    provider: 'local', // Same provider as the initial user
                 });
             } catch (error) {
-                expect((error as Error).message).toBe(`This email ${user.email} is already taken.`);
+                expect((error as GraphQLError).message).toBe(`This email ${user.email} is already taken.`);
+            }
+
+            try {
+                await service.createUser({
+                    username: faker.internet.userName(),
+                    email: user.email,
+                    password: 'password',
+                    provider: 'another-provider', // Different provider than the initial user
+                });
+            } catch (error) {
+                expect((error as GraphQLError).message).toBe(`An account with this email already exists. Please log in with ${user.provider}.`);
             }
         });
     });
@@ -88,6 +102,36 @@ describe('UserService', () => {
             const orgs = await organizationService.getOrganizationsByOwnerId(user.id);
             expect(orgs.length).toEqual(1);
             expect(orgs[0].owner.id).toEqual(user.id);
+        });
+
+        it('should throw error if no password is provided for local users', async () => {
+            const userData = {
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                provider: 'local',
+            };
+
+            try {
+                await service.createUserWithOrganization(userData);
+            } catch (error) {
+                expect((error as GraphQLError).message).toBe('Password must be provided for local users');
+                expect((error as GraphQLError).extensions.code).toBe('BAD_USER_INPUT');
+            }
+        });
+
+        it('should send a welcome email to the new user', async () => {
+            const userData = {
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                provider: 'local',
+                password: 'password',
+            };
+
+            const sendWelcomeEmailSpy = jest.spyOn(global.mailService, 'sendWelcomeEmail');
+
+            await service.createUserWithOrganization(userData);
+
+            expect(sendWelcomeEmailSpy).toHaveBeenCalledWith(userData.email.toLocaleLowerCase(), {});
         });
     });
 

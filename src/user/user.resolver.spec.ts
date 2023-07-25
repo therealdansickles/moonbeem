@@ -97,8 +97,8 @@ describe('UserResolver', () => {
                 input: {
                     username: faker.internet.userName(),
                     email: faker.internet.email(),
-                    password: 'password',
                     avatarUrl: faker.internet.avatar(),
+                    password: 'password',
                 },
             };
 
