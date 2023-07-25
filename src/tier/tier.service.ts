@@ -285,6 +285,9 @@ export class TierService {
         last: number): Promise<TierHoldersPaginated>{
         // get tier by tier's id, relate to collection
         const tier = await this.tierRepository.findOne({ where: { id: id }, relations: ['collection'] });
+        if (!tier?.collection?.address) {
+            return PaginatedImp([], 0);
+        }
 
         // get contract info from sync_chain
         const contract = await this.contractRepository.findOneBy({

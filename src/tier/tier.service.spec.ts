@@ -551,7 +551,9 @@ describe('TierService', () => {
         const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
         const tierName = 'Test Tier';
         let tier: Tier;
+        let draftTier: Tier;
         let innerCollection: Collection;
+        let draftCollection: Collection;
 
         beforeEach(async () => {
             const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
@@ -574,6 +576,16 @@ describe('TierService', () => {
                 tags: [],
                 kind: CollectionKind.edition,
                 address: collectionAddress,
+            });
+
+            draftCollection =  await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The draft collection',
+                about: 'The draft collection',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: null,
             });
 
             tier = await service.createTier({
@@ -648,6 +660,26 @@ describe('TierService', () => {
                     },
                 },
             });
+
+            draftTier = await service.createTier({
+                name: faker.finance.accountName(),
+                totalMints: 100,
+                collection: { id: draftCollection.id },
+                paymentTokenAddress: coin.address,
+                tierId: 100,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        color: {
+                            name: 'color',
+                            type: 'string',
+                            value: 'red',
+                            display_value: 'Red',
+                        },
+                    },
+                },
+            });
+
 
             await mintSaleContractService.createMintSaleContract({
                 height: parseInt(faker.random.numeric(5)),
@@ -745,6 +777,11 @@ describe('TierService', () => {
                 price: faker.random.numeric(19),
                 paymentToken: faker.finance.ethereumAddress(),
             });
+        });
+
+        it('should get 0 holders of draft collection tier', async () => {
+            const tierHolders = await service.getHolders(draftTier.id, '', '',10, 10);
+            expect(tierHolders.totalCount).toEqual(0);
         });
 
         it('should get aggregated holders of tier', async () => {
