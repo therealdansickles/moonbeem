@@ -54,7 +54,7 @@ describe('MintSaleContractService', () => {
         it('should return a contract, if one exists', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -110,7 +110,7 @@ describe('MintSaleContractService', () => {
         it('should return null for contract, if no contract exists', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({

@@ -1,4 +1,3 @@
-import { hashSync as hashPassword } from 'bcryptjs';
 import * as request from 'supertest';
 import { faker } from '@faker-js/faker';
 import { INestApplication } from '@nestjs/common';
@@ -27,7 +26,7 @@ describe('OrganizationResolver', () => {
         it('should return an organization', async () => {
             const newOwner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const newOrganization = await service.createOrganization({
@@ -93,7 +92,7 @@ describe('OrganizationResolver', () => {
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const variables = {
@@ -126,7 +125,7 @@ describe('OrganizationResolver', () => {
         it('should allow authenticated users to create an organization', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const tokenQuery = gql`
@@ -144,7 +143,7 @@ describe('OrganizationResolver', () => {
             const tokenVariables = {
                 input: {
                     email: owner.email,
-                    password: await hashPassword(owner.password, 10),
+                    password: 'password',
                 },
             };
 
@@ -195,7 +194,7 @@ describe('OrganizationResolver', () => {
         it('should update an organization', async () => {
             const newOwner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const newOrganization = await service.createOrganization({
@@ -226,7 +225,7 @@ describe('OrganizationResolver', () => {
             const tokenVariables = {
                 input: {
                     email: newOwner.email,
-                    password: await hashPassword(newOwner.password, 10),
+                    password: 'password',
                 },
             };
 
@@ -266,7 +265,7 @@ describe('OrganizationResolver', () => {
         it('should delete an organization', async () => {
             const newOwner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const newOrganization = await service.createOrganization({
@@ -297,7 +296,7 @@ describe('OrganizationResolver', () => {
             const tokenVariables = {
                 input: {
                     email: newOwner.email,
-                    password: await hashPassword(newOwner.password, 10),
+                    password: 'password',
                 },
             };
 
@@ -334,12 +333,12 @@ describe('OrganizationResolver', () => {
         it('should transfer an organization', async () => {
             const oldOwner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const newOwner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const transferedOrganization = await service.createOrganization({
@@ -372,7 +371,7 @@ describe('OrganizationResolver', () => {
             const tokenVariables = {
                 input: {
                     email: oldOwner.email,
-                    password: await hashPassword(oldOwner.password, 10),
+                    password: 'password',
                 },
             };
 

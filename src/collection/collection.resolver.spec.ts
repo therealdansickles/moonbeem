@@ -1,4 +1,3 @@
-import { hashSync as hashPassword } from 'bcryptjs';
 import * as request from 'supertest';
 
 import { faker } from '@faker-js/faker';
@@ -60,7 +59,7 @@ describe('CollectionResolver', () => {
         it('should get a collection by id', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -121,7 +120,7 @@ describe('CollectionResolver', () => {
         it('should get a collection by id with contract details', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -210,7 +209,7 @@ describe('CollectionResolver', () => {
         it('should get a collection by id with no contract details, if contract doesnt exist', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -272,7 +271,7 @@ describe('CollectionResolver', () => {
         it('should get a collection by address', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -328,7 +327,7 @@ describe('CollectionResolver', () => {
         it('should get a collection by id with tiers', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -460,7 +459,7 @@ describe('CollectionResolver', () => {
         it('should not allow unauthenticated users to create a collection', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const wallet1 = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
@@ -531,7 +530,7 @@ describe('CollectionResolver', () => {
         it('should not allow pass a organization which not user belongs to', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const wallet1 = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
@@ -564,7 +563,7 @@ describe('CollectionResolver', () => {
 
             const anotherOwner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const anotherOrganization = await organizationService.createOrganization({
@@ -621,7 +620,7 @@ describe('CollectionResolver', () => {
         it('should throw an error if collection name already exist', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const wallet1 = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
@@ -667,7 +666,7 @@ describe('CollectionResolver', () => {
             const tokenVariables = {
                 input: {
                     email: owner.email,
-                    password: await hashPassword(owner.password, 10),
+                    password: 'password',
                 },
             };
 
@@ -728,7 +727,7 @@ describe('CollectionResolver', () => {
         it('should allow authenticated users to create a collection', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const wallet1 = await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
@@ -774,7 +773,7 @@ describe('CollectionResolver', () => {
             const tokenVariables = {
                 input: {
                     email: owner.email,
-                    password: await hashPassword(owner.password, 10),
+                    password: 'password',
                 },
             };
 
@@ -827,7 +826,7 @@ describe('CollectionResolver', () => {
         it('should update a collection', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const collection = await service.createCollection({
@@ -855,7 +854,7 @@ describe('CollectionResolver', () => {
             const tokenVariables = {
                 input: {
                     email: owner.email,
-                    password: await hashPassword(owner.password, 10),
+                    password: 'password',
                 },
             };
 
@@ -893,7 +892,7 @@ describe('CollectionResolver', () => {
         it('should update beginSaleAt', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const beginSaleAt = Math.round(new Date().valueOf() / 1000);
@@ -925,7 +924,7 @@ describe('CollectionResolver', () => {
             const tokenVariables = {
                 input: {
                     email: owner.email,
-                    password: await hashPassword(owner.password, 10),
+                    password: 'password',
                 },
             };
 
@@ -967,7 +966,7 @@ describe('CollectionResolver', () => {
         it('should delete a collection', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const collection = await service.createCollection({
@@ -995,7 +994,7 @@ describe('CollectionResolver', () => {
             const tokenVariables = {
                 input: {
                     email: owner.email,
-                    password: await hashPassword(owner.password, 10),
+                    password: 'password',
                 },
             };
 
@@ -1077,7 +1076,7 @@ describe('CollectionResolver', () => {
         it('should return tier info and the coin info contained in the tier', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -1171,7 +1170,7 @@ describe('CollectionResolver', () => {
         beforeEach(async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -1238,7 +1237,7 @@ describe('CollectionResolver', () => {
         it.skip('should get stat data', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -1379,7 +1378,7 @@ describe('CollectionResolver', () => {
 
             const user = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({

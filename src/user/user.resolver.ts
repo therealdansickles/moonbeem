@@ -1,7 +1,7 @@
 import { Resolver, Args, Query, Mutation, ResolveField, Parent } from '@nestjs/graphql';
 import { Public } from '../session/session.decorator';
 import { UserService } from './user.service';
-import { User, CreateUserInput, UpdateUserInput } from './user.dto';
+import { User, CreateUserInput, UpdateUserInput, VerifyUserInput } from './user.dto';
 import { Membership } from '../membership/membership.dto';
 import { MembershipService } from '../membership/membership.service';
 import { Organization } from '../organization/organization.dto';
@@ -36,6 +36,12 @@ export class UserResolver {
     async updateUser(@Args('input') input: UpdateUserInput): Promise<User> {
         const { id } = input;
         return this.userService.updateUser(id, input);
+    }
+
+    @Public()
+    @Mutation(() => User, { description: 'verify the given user.' })
+    async verifyUser(@Args('input') input: VerifyUserInput): Promise<User> {
+        return this.userService.verifyUser(input.email, input.verificationToken);
     }
 
     @Public()

@@ -24,7 +24,7 @@ describe('OrganizationService', () => {
         it('should get an organization', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await service.createOrganization({
@@ -49,7 +49,7 @@ describe('OrganizationService', () => {
         it('should create an organization', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
             const organization = await service.createOrganization({
                 name: faker.company.name(),
@@ -82,12 +82,12 @@ describe('OrganizationService', () => {
         it.skip('should create an organization and invite users', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await service.createOrganization({
@@ -111,7 +111,7 @@ describe('OrganizationService', () => {
         it('should throw an error when create a organization with an existed name', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const name = faker.company.name();
@@ -151,7 +151,7 @@ describe('OrganizationService', () => {
         it('should create a personal organization', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await service.createPersonalOrganization(owner);
@@ -168,7 +168,7 @@ describe('OrganizationService', () => {
         it('should update an organization', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await service.createOrganization({
@@ -196,7 +196,7 @@ describe('OrganizationService', () => {
         it('should throw an error when update an organization with an existed name', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await service.createOrganization({
@@ -239,7 +239,7 @@ describe('OrganizationService', () => {
         it('should delete an organization', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await service.createOrganization({
@@ -330,12 +330,12 @@ describe('OrganizationService', () => {
         it('should transfer an organization', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const user = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await service.createOrganization({
@@ -358,7 +358,7 @@ describe('OrganizationService', () => {
         it('should throw an error if the user does not exist', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await service.createOrganization({
@@ -388,12 +388,12 @@ describe('OrganizationService', () => {
         it('should return all the organizations a user is owner on', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const differentOwner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             await service.createOrganization({

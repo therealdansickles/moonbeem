@@ -1,4 +1,3 @@
-import { hashSync as hashPassword } from 'bcryptjs';
 import BigNumber from 'bignumber.js';
 import * as request from 'supertest';
 import { faker } from '@faker-js/faker';
@@ -469,7 +468,7 @@ describe('TierResolver', () => {
             const user = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const coin = await coinService.createCoin({
@@ -498,7 +497,7 @@ describe('TierResolver', () => {
             const tokenVariables = {
                 input: {
                     email: user.email,
-                    password: await hashPassword(user.password, 10),
+                    password: 'password',
                 },
             };
 
@@ -559,7 +558,7 @@ describe('TierResolver', () => {
             const user = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const coin = await coinService.createCoin({
@@ -622,7 +621,7 @@ describe('TierResolver', () => {
             const tokenVariables = {
                 input: {
                     email: user.email,
-                    password: await hashPassword(user.password, 10),
+                    password: 'password',
                 },
             };
 
@@ -662,7 +661,7 @@ describe('TierResolver', () => {
             const user = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const coin = await coinService.createCoin({
@@ -725,7 +724,7 @@ describe('TierResolver', () => {
             const tokenVariables = {
                 input: {
                     email: user.email,
-                    password: await hashPassword(user.password, 10),
+                    password: 'password',
                 },
             };
 

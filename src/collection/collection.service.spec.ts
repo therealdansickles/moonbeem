@@ -51,7 +51,7 @@ describe('CollectionService', () => {
         it('should get a collection by id', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -102,7 +102,7 @@ describe('CollectionService', () => {
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -189,7 +189,7 @@ describe('CollectionService', () => {
         it('should return null if no parameter provided', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -221,7 +221,7 @@ describe('CollectionService', () => {
         it('should get collections by id', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -255,7 +255,7 @@ describe('CollectionService', () => {
         it('should get collections by address', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -289,7 +289,7 @@ describe('CollectionService', () => {
         it('should get collections by name', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -323,7 +323,7 @@ describe('CollectionService', () => {
         it('should get nothing by an invalid name', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -357,7 +357,7 @@ describe('CollectionService', () => {
         it('should get collections by organization', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -392,7 +392,7 @@ describe('CollectionService', () => {
         it('should get collections by organization', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -436,7 +436,7 @@ describe('CollectionService', () => {
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -526,7 +526,7 @@ describe('CollectionService', () => {
         it('should get collections by wallet', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -571,7 +571,7 @@ describe('CollectionService', () => {
         it('should validate startDate and endDate', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -664,7 +664,7 @@ describe('CollectionService', () => {
         it('should pass if startDate or endDate is not provided', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -755,7 +755,7 @@ describe('CollectionService', () => {
         it('should create a collection', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -821,7 +821,7 @@ describe('CollectionService', () => {
         it('should update a collaboration in a collection', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -1077,7 +1077,7 @@ describe('CollectionService', () => {
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -1155,7 +1155,7 @@ describe('CollectionService', () => {
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -1265,7 +1265,7 @@ describe('CollectionService', () => {
 
             const user = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -1455,7 +1455,7 @@ describe('CollectionService', () => {
         beforeEach(async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({

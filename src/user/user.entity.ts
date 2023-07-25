@@ -27,6 +27,9 @@ export class User extends BaseEntity {
     @Column({ unique: true, comment: 'The email of the user.', transformer: lowercaseTransformer })
     public email: string;
 
+    @Column({ nullable: true, comment: 'The verification token of the user.' })
+    public verificationToken?: string;
+
     @Column({ nullable: true, comment: 'The hashed password of the user.' })
     public password?: string;
 
@@ -72,6 +75,9 @@ export class User extends BaseEntity {
     @UpdateDateColumn()
     readonly updatedAt: Date;
 
+    @Column({ nullable: true, comment: 'The verified at time.' })
+    readonly verifiedAt: Date;
+
     /**
      * Hashes the password before inserting it into the database.
      */
@@ -80,5 +86,15 @@ export class User extends BaseEntity {
         if (this.password) {
             this.password = await hashPassword(this.password, 10);
         }
+
+        this.verificationToken = await Math.random().toString(36).substring(2);
+    }
+
+    /**
+     * Generate verification token for the user.
+     */
+    @BeforeInsert()
+    generateVerificationToken() {
+        this.verificationToken = Math.random().toString(36).substring(2);
     }
 }

@@ -1,5 +1,4 @@
 import { ethers } from 'ethers';
-import { hashSync as hashPassword } from 'bcryptjs';
 
 import { SessionService } from './session.service';
 import { UserService } from '../user/user.service';
@@ -14,7 +13,7 @@ describe('SessionService', () => {
         userService = global.userService;
     });
 
-    afterEach(async () => {
+    afterAll(async () => {
         await global.clearDatabase();
         global.gc && global.gc();
     });
@@ -44,8 +43,7 @@ describe('SessionService', () => {
             const email = 'engineering+sessionfromemail@vibe.xyz';
             const password = 'password';
             await userService.createUser({ email, password });
-            const hashed = await hashPassword(password, 10);
-            const result = await service.createSessionFromEmail(email, hashed);
+            const result = await service.createSessionFromEmail(email, password);
 
             expect(result.user.email).toEqual(email);
         });
@@ -54,8 +52,7 @@ describe('SessionService', () => {
             const email = 'engineering+sessionfromemail+2@vibe.xyz';
             const password = 'password';
             await userService.createUser({ email, password });
-            const hashed = await hashPassword('wrong password');
-            const result = await service.createSessionFromEmail(email, hashed);
+            const result = await service.createSessionFromEmail(email, 'notpassword');
 
             expect(result).toBeNull();
         });

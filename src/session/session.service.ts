@@ -39,7 +39,7 @@ export class SessionService {
      * @returns The session.
      */
     async createSessionFromEmail(email: string, password: string): Promise<Session | null> {
-        const user = await this.userService.verifyUser(email, password);
+        const user = await this.userService.authenticateUser(email, password);
 
         if (user) {
             const token = await this.jwtService.signAsync({ userId: user.id });
@@ -56,7 +56,7 @@ export class SessionService {
      * @returns The session.
      */
     async createSessionFromGoogle(accessToken: string): Promise<Session | null> {
-        const user = await this.userService.verifyUserFromGoogle(accessToken);
+        const user = await this.userService.authenticateUserFromGoogle(accessToken);
 
         if (user) {
             const token = await this.jwtService.signAsync({ userId: user.id });

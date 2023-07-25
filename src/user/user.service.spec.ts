@@ -3,108 +3,70 @@ import { faker } from '@faker-js/faker';
 import { OrganizationService } from '../organization/organization.service';
 import { User } from './user.entity';
 import { UserService } from './user.service';
-import { hashSync as hashPassword } from 'bcryptjs';
 
 describe('UserService', () => {
     let service: UserService;
     let repository: Repository<User>;
     let organizationService: OrganizationService;
+    let basicUser: User;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
         service = global.userService;
         repository = global.userRepository;
         organizationService = global.organizationService;
         jest.spyOn(global.mailService, 'sendWelcomeEmail').mockImplementation(async () => {});
         jest.spyOn(global.mailService, 'sendInviteEmail').mockImplementation(async () => {});
+
+        basicUser = await service.createUser({
+            username: faker.internet.userName(),
+            email: faker.internet.email(),
+            password: 'password',
+        });
     });
 
-    afterEach(async () => {
+    afterAll(async () => {
         await global.clearDatabase();
         global.gc && global.gc();
     });
 
-    describe('getUser', () => {
-        it('should return user info by id', async () => {
-            const user = await repository.save({
-                username: faker.internet.userName(),
-                email: faker.internet.email(),
-                password: faker.internet.password(),
-            });
-            const result = await service.getUser({ id: user.id });
-            expect(result.username).toEqual(user.username);
-            expect(result.email).toEqual(user.email.toLowerCase());
-        });
-
-        it('should return user info by username', async () => {
-            const user = await repository.save({
-                username: faker.internet.userName(),
-                email: faker.internet.email(),
-                password: faker.internet.password(),
-            });
-            const result = await service.getUser({ username: user.username });
-            expect(result.username).toEqual(user.username);
-            expect(result.email).toEqual(user.email.toLowerCase());
-        });
-    });
-
     describe('getUserByQuery', () => {
         it('should return null if no parameter provided', async () => {
-            await repository.save({
-                username: faker.internet.userName(),
-                email: faker.internet.email(),
-                password: faker.internet.password(),
-            });
             const result = await service.getUserByQuery({});
             expect(result).toBeNull();
         });
 
         it('should return user info by id', async () => {
-            const user = await repository.save({
-                username: faker.internet.userName(),
-                email: faker.internet.email(),
-                password: faker.internet.password(),
-            });
-            const result = await service.getUserByQuery({ id: user.id });
-            expect(result.username).toEqual(user.username);
-            expect(result.email).toEqual(user.email.toLowerCase());
+            const result = await service.getUserByQuery({ id: basicUser.id });
+            expect(result.username).toEqual(basicUser.username);
+            expect(result.email).toEqual(basicUser.email.toLowerCase());
         });
 
         it('should return user info by username', async () => {
-            const user = await repository.save({
-                username: faker.internet.userName(),
-                email: faker.internet.email(),
-                password: faker.internet.password(),
-            });
-            const result = await service.getUserByQuery({ username: user.username });
-            expect(result.username).toEqual(user.username);
-            expect(result.email).toEqual(user.email.toLowerCase());
+            const result = await service.getUserByQuery({ username: basicUser.username });
+            expect(result.username).toEqual(basicUser.username);
+            expect(result.email).toEqual(basicUser.email.toLowerCase());
         });
     });
 
     describe('createUser', () => {
         it('should create user', async () => {
-            const user = await service.createUser({
-                username: faker.internet.userName(),
-                email: faker.internet.email(),
-                password: faker.internet.password(),
-            });
-            expect(user.username).toBeDefined();
-            expect(user.email).toBeDefined();
-            expect(user.password).toBeDefined();
+            expect(basicUser.username).toBeDefined();
+            expect(basicUser.email).toBeDefined();
+            expect(basicUser.password).toBeDefined();
         });
 
         it('should throw error if email has been take', async () => {
             const user = await service.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             try {
                 await service.createUser({
                     username: faker.internet.userName(),
                     email: user.email,
-                    password: faker.internet.password(),
+                    password: 'password',
                 });
             } catch (error) {
                 expect((error as Error).message).toBe(`This email ${user.email} is already taken.`);
@@ -117,7 +79,7 @@ describe('UserService', () => {
             const user = await service.createUserWithOrganization({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
             expect(user.username).toBeDefined();
             expect(user.email).toBeDefined();
@@ -134,7 +96,7 @@ describe('UserService', () => {
             const user = await repository.save({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
             const updatedUsername = faker.internet.userName();
             const updatedAvatarUrl = faker.internet.avatar();
@@ -145,27 +107,25 @@ describe('UserService', () => {
         });
     });
 
-    describe('verifyUser', () => {
-        it('should verify user', async () => {
-            const email = faker.internet.email();
-            const password = faker.internet.password();
-            await repository.insert({ email, password });
-
-            const hashed = await hashPassword(password, 10);
-
-            const result = await service.verifyUser(email, hashed);
-            expect(result.email).toEqual(email.toLowerCase());
+    describe('authenticateUser', () => {
+        it('should authenticate the user', async () => {
+            const result = await service.authenticateUser(basicUser.email, 'password');
+            expect(result.email).toEqual(basicUser.email.toLowerCase());
         });
 
         it('should return null on invalid credentials', async () => {
-            const email = faker.internet.email();
-            const password = faker.internet.password();
-            await repository.insert({ email, password });
-
-            const hashed = await hashPassword('invalid password');
-
-            const result = await service.verifyUser(email, hashed);
+            const result = await service.authenticateUser(basicUser.email, 'invalidpassword');
             expect(result).toBeNull();
+        });
+    });
+
+    describe('verifyUser', () => {
+        it('should verify the user', async () => {
+            basicUser = await repository.findOneBy({ id: basicUser.id }); // reload it
+            const result = await service.verifyUser(basicUser.email, basicUser.verificationToken);
+            expect(result.email).toEqual(basicUser.email.toLowerCase());
+            expect(result.verificationToken).toBeNull();
+            expect(result.verifiedAt).toBeDefined();
         });
     });
 });

@@ -140,7 +140,7 @@ describe('WalletService', () => {
         beforeEach(async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             wallet = ethers.Wallet.createRandom();
@@ -200,7 +200,7 @@ describe('WalletService', () => {
         beforeAll(async () => {
             owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             wallet = ethers.Wallet.createRandom();
@@ -231,11 +231,11 @@ describe('WalletService', () => {
         it('should throw an error if the wallet is not bound to the user', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
             const nonOwner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
             const newWallet = ethers.Wallet.createRandom();
             const newSignature = await newWallet.signMessage(message);

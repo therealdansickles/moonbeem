@@ -35,12 +35,12 @@ describe('SearchResolver', () => {
             const user = await userService.createUser({
                 name,
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
             await userService.createUser({
                 name: faker.company.name(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             // create collection

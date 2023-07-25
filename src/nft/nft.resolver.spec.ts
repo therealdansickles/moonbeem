@@ -1,7 +1,6 @@
 import * as request from 'supertest';
 import { faker } from '@faker-js/faker';
 import { INestApplication } from '@nestjs/common';
-import { hashSync as hashPassword } from 'bcryptjs';
 import { CollectionService } from '../collection/collection.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
@@ -37,7 +36,7 @@ describe('NftResolver', () => {
         it('query by id should work', async () => {
             await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const wallet = await walletService.createWallet({
@@ -118,7 +117,7 @@ describe('NftResolver', () => {
         it('query by criteria should work', async () => {
             await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const wallet = await walletService.createWallet({
@@ -203,7 +202,7 @@ describe('NftResolver', () => {
         it('query by id should work', async () => {
             await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const wallet = await walletService.createWallet({
@@ -312,7 +311,7 @@ describe('NftResolver', () => {
         it('should work', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password:'password',
             });
 
             const wallet = await walletService.createWallet({
@@ -368,7 +367,7 @@ describe('NftResolver', () => {
             const tokenVariables = {
                 input: {
                     email: owner.email,
-                    password: await hashPassword(owner.password, 10),
+                    password: 'password',
                 },
             };
 

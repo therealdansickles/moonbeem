@@ -147,7 +147,7 @@ export class MailService {
      * @returns The dashboard URL object
      */
     private generateDashboardUrl(email: string): URL {
-        const dashboardUrl = new URL(process.env.DASHBOARD_BASE_URL || 'https://dashboard.vibe.xyz');
+        const dashboardUrl = new URL(process.env.DASHBOARD_URL || 'https://dashboard.vibe.xyz');
         dashboardUrl.searchParams.append('identity', Buffer.from(email, 'utf8').toString('base64'));
         return dashboardUrl;
     }

@@ -33,7 +33,7 @@ describe('CollaborationService', () => {
             const user = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -192,7 +192,7 @@ describe('CollaborationService', () => {
             const user = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -210,7 +210,7 @@ describe('CollaborationService', () => {
             const newUser = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const newWallet = await walletService.createWallet({
@@ -244,7 +244,7 @@ describe('CollaborationService', () => {
             const user = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -263,7 +263,7 @@ describe('CollaborationService', () => {
             const newUser = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const newWallet = await walletService.createWallet({
@@ -340,7 +340,7 @@ describe('CollaborationService', () => {
             const user = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const wallet = await walletService.createWallet({
