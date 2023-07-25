@@ -13,11 +13,6 @@ import { MailService } from '../mail/mail.service';
 import { OrganizationService } from '../organization/organization.service';
 import { User } from './user.entity';
 
-interface GetUserInput {
-    id?: string;
-    username?: string;
-}
-
 type IUserQuery = Partial<Pick<User, 'id' | 'username'>>;
 
 @Injectable()
@@ -27,20 +22,6 @@ export class UserService {
         private mailService: MailService,
         @InjectRepository(User) private userRepository: Repository<User>
     ) {}
-
-    /**
-     * Retrieve an user by id.
-     * @param id
-     * @returns
-     */
-    async getUser(input: GetUserInput): Promise<User> {
-        if (!input.id && !input.username) {
-            throw new GraphQLError("Either 'id' or 'username' have to be provided.", {
-                extensions: { code: 'BAD_REQUEST' },
-            });
-        }
-        return await this.userRepository.findOneBy(input);
-    }
 
     /**
      * Retrieves the user satisfied the given query.
@@ -78,8 +59,26 @@ export class UserService {
         // only email is unique, so just need to check by email
         const existedUser = await this.userRepository.findOneBy({ email: payload.email });
         if (existedUser) throw new GraphQLError(`This email ${payload.email} is already taken.`);
-        await this.userRepository.insert(payload);
-        return await this.userRepository.findOneBy({ email: payload.email });
+
+        const user = this.userRepository.create(payload);
+        await this.userRepository.insert(user);
+        return await this.userRepository.findOneBy({ email: user.email });
+    }
+
+    /**
+     * Verifies the given user and email.
+     *
+     * @param email The email of the user to verify.
+     * @param token The verification token of the user to verify.
+     * @returns The verified user.
+     */
+    async verifyUser(email: string, token: string): Promise<User> {
+        const user = await this.userRepository.findOneBy({ email, verificationToken: token });
+        if (!user) throw new GraphQLError(`Invalid verification token.`);
+
+
+        await this.userRepository.save({ ...user, verifiedAt: new Date(), verificationToken: null });
+        return await this.userRepository.findOneBy({ email: user.email });
     }
 
     /**
@@ -114,10 +113,10 @@ export class UserService {
      *
      * @returns The user if credentials are valid.
      */
-    async verifyUser(email: string, password: string): Promise<User | null> {
+    async authenticateUser(email: string, password: string): Promise<User | null> {
         const user = await this.userRepository.findOneBy({ email });
 
-        if (user && (await verifyPassword(user.password, password))) {
+        if (user && (await verifyPassword(password, user.password))) {
             return user;
         }
 
@@ -132,7 +131,7 @@ export class UserService {
      *
      * @returns The user if credentials are valid.
      */
-    async verifyUserFromGoogle(accessToken: string): Promise<User | null> {
+    async authenticateUserFromGoogle(accessToken: string): Promise<User | null> {
         try {
             const googleClient = new google.auth.OAuth2({ clientId: googleConfig.clientId });
             const tokenInfo = await googleClient.getTokenInfo(accessToken);

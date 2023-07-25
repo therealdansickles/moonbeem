@@ -29,7 +29,7 @@ describe('NftService', () => {
         it("should create a nft record if didn't exist", async () => {
             await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const wallet = await walletService.createWallet({
@@ -87,7 +87,7 @@ describe('NftService', () => {
         it('should update a nft record if already exist', async () => {
             await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const wallet = await walletService.createWallet({
@@ -158,7 +158,7 @@ describe('NftService', () => {
         it('should work', async () => {
             await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const wallet = await walletService.createWallet({
@@ -224,7 +224,7 @@ describe('NftService', () => {
         it('should work', async () => {
             await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const wallet = await walletService.createWallet({

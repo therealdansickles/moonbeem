@@ -1,4 +1,3 @@
-import { hashSync as hashPassword } from 'bcryptjs';
 import * as request from 'supertest';
 
 import { faker } from '@faker-js/faker';
@@ -47,7 +46,7 @@ describe('CollaborationResolver', () => {
             user = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
             organization = await organizationService.createOrganization({
                 name: faker.company.name(),
@@ -135,7 +134,7 @@ describe('CollaborationResolver', () => {
             const tokenVariables = {
                 input: {
                     email: user.email,
-                    password: await hashPassword(user.password, 10),
+                    password: 'password',
                 },
             };
 
@@ -255,7 +254,7 @@ describe('CollaborationResolver', () => {
             const user = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({

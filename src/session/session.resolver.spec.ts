@@ -2,7 +2,6 @@ import * as request from 'supertest';
 import { INestApplication } from '@nestjs/common';
 import { faker } from '@faker-js/faker';
 import { ethers } from 'ethers';
-import { hashSync as hashPassword } from 'bcryptjs';
 import { UserService } from '../user/user.service';
 
 const gql = String.raw;
@@ -117,7 +116,7 @@ describe('SessionResolver', () => {
             const variables = {
                 input: {
                     email: user.email,
-                    password: await hashPassword('password', 10),
+                    password: 'password',
                 },
             };
 

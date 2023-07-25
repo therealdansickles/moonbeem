@@ -40,7 +40,7 @@ describe('RedeemResolver', () => {
         it('should get a redeem', async () => {
             const ownerUser = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -147,7 +147,7 @@ describe('RedeemResolver', () => {
         it('should forbid if signature not matched', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -217,7 +217,7 @@ describe('RedeemResolver', () => {
         it("should forbid if owner of the asset721 doesn't match the signed wallet", async () => {
             const ownerUser = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -320,7 +320,7 @@ describe('RedeemResolver', () => {
         it('should create a redeem', async () => {
             const ownerUser = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({

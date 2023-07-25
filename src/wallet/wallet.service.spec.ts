@@ -1,15 +1,21 @@
+import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
+
 import { faker } from '@faker-js/faker';
+
 import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { Wallet } from './wallet.entity';
 import { WalletService } from './wallet.service';
-import { CoinService } from '../sync-chain/coin/coin.service';
-import BigNumber from 'bignumber.js';
 
 describe('WalletService', () => {
     let address: string;
@@ -134,7 +140,7 @@ describe('WalletService', () => {
         beforeEach(async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             wallet = ethers.Wallet.createRandom();
@@ -171,7 +177,13 @@ describe('WalletService', () => {
             const data = { address: eipAddress, owner: { id: ownerId }, message, signature };
             await service.bindWallet(data);
             try {
-                await service.bindWallet(data);
+                const anotherOwner = await userService.createUser({
+                    email: faker.internet.email(),
+                    password: faker.internet.password(),
+                });
+                message = 'Hi from tests!';
+                signature = await wallet.signMessage(message);
+                await service.bindWallet({ address: eipAddress, owner: { id: anotherOwner.id }, message, signature });
             } catch (error) {
                 expect((error as Error).message).toBe(`Wallet ${eipAddress} is already bound.`);
             }
@@ -188,7 +200,7 @@ describe('WalletService', () => {
         beforeAll(async () => {
             owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             wallet = ethers.Wallet.createRandom();
@@ -219,11 +231,11 @@ describe('WalletService', () => {
         it('should throw an error if the wallet is not bound to the user', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
             const nonOwner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
             const newWallet = ethers.Wallet.createRandom();
             const newSignature = await newWallet.signMessage(message);
@@ -416,7 +428,7 @@ describe('WalletService', () => {
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
-            await await mintSaleContractService.createMintSaleContract({
+            await mintSaleContractService.createMintSaleContract({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
                 txTime: txTime + 1,
@@ -438,7 +450,7 @@ describe('WalletService', () => {
             });
 
             const list = await service.getActivitiesByAddress(wallet.address);
-            const [deployItem, mintItem] = list;
+            const [mintItem, deployItem] = list;
             expect(list.length).toEqual(2);
             expect(deployItem.type).toEqual('Deploy');
             expect(mintItem.type).toEqual('Mint');

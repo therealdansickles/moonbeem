@@ -14,18 +14,28 @@ import { getCurrentPrice } from '../saleHistory/saleHistory.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import {
-    MintSaleTransaction
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Tier as TierDto } from '../tier/tier.dto';
 import { Tier } from '../tier/tier.entity';
 import { TierService } from '../tier/tier.service';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    Collection, CollectionActivities, CollectionActivityType, CollectionPaginated, CollectionSold,
-    CollectionSoldPaginated, CollectionStat, CollectionStatus, CreateCollectionInput, GrossEarnings,
-    LandingPageCollection, SecondarySale, SevenDayVolume, UpdateCollectionInput, ZeroAccount
+    Collection,
+    CollectionActivities,
+    CollectionActivityType,
+    CollectionPaginated,
+    CollectionSold,
+    CollectionSoldPaginated,
+    CollectionStat,
+    CollectionStatus,
+    CreateCollectionInput,
+    GrossEarnings,
+    LandingPageCollection,
+    SecondarySale,
+    SevenDayVolume,
+    UpdateCollectionInput,
+    ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
 
@@ -49,7 +59,7 @@ export class CollectionService {
         private tierService: TierService,
         private openseaService: OpenseaService,
         private coinService: CoinService
-    ) { }
+    ) {}
 
     /**
      * Retrieves the collection associated with the given id.
@@ -609,7 +619,7 @@ export class CollectionService {
             .addSelect('MAX("MintSaleTransaction"."paymentToken")', 'paymentToken')
             .where('"MintSaleTransaction"."address" = :address', { address })
             .getRawOne();
-        
+
         // Return null if collection does not have any mint sale transactions
         if (!result.sum || !result.paymentToken) {
             return null;
@@ -708,11 +718,12 @@ export class CollectionService {
     }
 
     private async getTotalPrice(address: string, between?: number[]): Promise<GrossEarnings> {
-        const builder = await this.mintSaleTransactionRepository
+        const builder = this.mintSaleTransactionRepository
             .createQueryBuilder('txn')
             .select('txn.paymentToken', 'token')
             .addSelect('SUM(txn.price::numeric(20,0))', 'total_price')
             .andWhere('txn.address = :address', { address });
+
         if (between && between.length == 2) {
             builder.andWhere('txn.txTime BETWEEN :startDate AND :endDate', {
                 startDate: between[0],
@@ -722,7 +733,6 @@ export class CollectionService {
 
         builder.groupBy('txn.paymentToken');
         const result = await builder.getRawOne();
-
         if (result) {
             const coin = await this.coinService.getCoinByAddress(result.token);
             const quote = await this.coinService.getQuote(coin.symbol);
@@ -736,6 +746,7 @@ export class CollectionService {
                 inUSDC: volume.toString(),
             };
         }
+        return { inPaymentToken: '0', inUSDC: '0' };
     }
 
     async getGrossEarnings(address: string): Promise<GrossEarnings> {

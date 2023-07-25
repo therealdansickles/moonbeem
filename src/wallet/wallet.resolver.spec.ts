@@ -2,7 +2,6 @@ import * as request from 'supertest';
 import { INestApplication } from '@nestjs/common';
 import { faker } from '@faker-js/faker';
 import { ethers } from 'ethers';
-import { hashSync as hashPassword } from 'bcryptjs';
 import { WalletService } from './wallet.service';
 import { UserService } from '../user/user.service';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
@@ -92,7 +91,7 @@ describe('WalletResolver', () => {
             address = faker.finance.ethereumAddress();
             const user = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const query = gql`
@@ -337,7 +336,7 @@ describe('WalletResolver', () => {
             const tokenVariables = {
                 input: {
                     email: owner.email,
-                    password: await hashPassword(owner.password, 10),
+                    password
                 },
             };
 
@@ -406,7 +405,7 @@ describe('WalletResolver', () => {
             const tokenVariables = {
                 input: {
                     email: owner.email,
-                    password: await hashPassword(owner.password, 10),
+                    password,
                 },
             };
 
@@ -457,7 +456,7 @@ describe('WalletResolver', () => {
             const owner = await userService.createUser({
                 name: faker.internet.userName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
             const wallet = await service.createWallet({ address: randomWallet.address });
             await service.bindWallet({

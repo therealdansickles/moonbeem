@@ -136,7 +136,7 @@ export class SigninByEmailGuard implements CanActivate {
      */
     private async getUserFromToken(token: string): Promise<any> {
         const payload = this.jwtService.verify(token, { secret: process.env.SESSION_SECRET });
-        const user = await this.userService.getUser({ id: payload.userId });
+        const user = await this.userService.getUserByQuery({ id: payload.userId });
         return [payload['userId'], user];
     }
 }

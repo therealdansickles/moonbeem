@@ -31,7 +31,7 @@ describe('SearchService', () => {
             const user = await userService.createUser({
                 name,
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const wallet = await walletService.createWallet({

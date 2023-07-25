@@ -27,7 +27,7 @@ describe('RedeemService', () => {
         it('should get redeem', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -112,7 +112,7 @@ describe('RedeemService', () => {
         it('should create redeem', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({

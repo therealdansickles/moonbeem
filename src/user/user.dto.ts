@@ -22,6 +22,11 @@ export class User {
     @IsString()
     readonly email: string;
 
+    @Field({ description: 'The verification token for the user.', nullable: true })
+    @IsString()
+    @IsOptional()
+    readonly verificationToken?: string;
+
     @Field({ description: 'The password of the user.', nullable: true })
     @IsString()
     @IsOptional()
@@ -71,6 +76,9 @@ export class CreateUserInput extends OmitType(User, ['id', 'wallets'] as const, 
 
 @InputType()
 export class UserInput extends PickType(User, ['id'] as const, InputType) {}
+
+@InputType()
+export class VerifyUserInput extends PickType(User, ['email', 'verificationToken'] as const, InputType) {}
 
 @InputType()
 export class UpdateUserInput extends PartialType(OmitType(User, ['password', 'wallets'] as const), InputType) {}

@@ -31,13 +31,13 @@ describe('MembershipService', () => {
             const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -69,7 +69,7 @@ describe('MembershipService', () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -92,13 +92,13 @@ describe('MembershipService', () => {
             const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -122,13 +122,13 @@ describe('MembershipService', () => {
             const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -154,13 +154,13 @@ describe('MembershipService', () => {
             const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -189,13 +189,13 @@ describe('MembershipService', () => {
             const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -230,13 +230,13 @@ describe('MembershipService', () => {
             const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -262,13 +262,13 @@ describe('MembershipService', () => {
             const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -297,13 +297,13 @@ describe('MembershipService', () => {
             const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -334,13 +334,13 @@ describe('MembershipService', () => {
             const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -369,13 +369,13 @@ describe('MembershipService', () => {
             const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -401,13 +401,13 @@ describe('MembershipService', () => {
             const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({

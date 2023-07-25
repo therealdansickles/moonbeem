@@ -1,34 +1,35 @@
 import * as request from 'supertest';
 import { INestApplication } from '@nestjs/common';
 import { faker } from '@faker-js/faker';
-import { hashSync as hashPassword } from 'bcryptjs';
 import { UserService } from '../user/user.service';
+import { User } from '../user/user.dto';
 
 export const gql = String.raw;
 
 describe('UserResolver', () => {
     let service: UserService;
     let app: INestApplication;
+    let basicUser: User;
 
     beforeAll(async () => {
         app = global.app;
         service = global.userService;
         jest.spyOn(global.mailService, 'sendWelcomeEmail').mockImplementation(async () => {});
         jest.spyOn(global.mailService, 'sendInviteEmail').mockImplementation(async () => {});
+
+        basicUser = await service.createUser({
+            email: faker.internet.email(),
+            password: 'password',
+        });
     });
 
-    afterEach(async () => {
+    afterAll(async () => {
         await global.clearDatabase();
         global.gc && global.gc();
     });
 
     describe('getUser', () => {
         it('should get an user', async () => {
-            const user = await service.createUser({
-                email: faker.internet.email(),
-                password: faker.internet.password(),
-            });
-
             const query = gql`
                 query GetUser($id: String!) {
                     user(id: $id) {
@@ -56,15 +57,15 @@ describe('UserResolver', () => {
                 }
             `;
 
-            const variables = { id: user.id };
+            const variables = { id: basicUser.id };
 
             return await request(app.getHttpServer())
                 .post('/graphql')
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.data.user.id).toEqual(user.id);
-                    expect(body.data.user.email).toEqual(user.email);
+                    expect(body.data.user.id).toEqual(basicUser.id);
+                    expect(body.data.user.email).toEqual(basicUser.email);
                     expect(body.data.user.avatarUrl).toBeDefined();
                     expect(body.data.user.avatarUrl).toBeDefined();
                     expect(body.data.user.backgroundUrl).toBeDefined();
@@ -96,7 +97,7 @@ describe('UserResolver', () => {
                 input: {
                     username: faker.internet.userName(),
                     email: faker.internet.email(),
-                    password: faker.internet.password(),
+                    password: 'password',
                     avatarUrl: faker.internet.avatar(),
                 },
             };
@@ -118,7 +119,7 @@ describe('UserResolver', () => {
         it('should update an user', async () => {
             const user = await service.createUser({
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const tokenQuery = gql`
@@ -136,7 +137,7 @@ describe('UserResolver', () => {
             const tokenVariables = {
                 input: {
                     email: user.email,
-                    password: await hashPassword(user.password, 10),
+                    password: 'password',
                 },
             };
 
@@ -175,6 +176,42 @@ describe('UserResolver', () => {
                     expect(body.data.updateUser.email).toEqual(variables.input.email);
                     expect(body.data.updateUser.username).toEqual(variables.input.username);
                     expect(body.data.updateUser.avatarUrl).toEqual(variables.input.avatarUrl);
+                });
+        });
+    });
+
+    describe('verifyUser', () => {
+        it('should verify an user', async () => {
+            basicUser = await service.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const query = gql`
+                mutation verifyUser($input: VerifyUserInput!) {
+                    verifyUser(input: $input) {
+                        id
+                        email
+                        username
+                        avatarUrl
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    email: basicUser.email,
+                    verificationToken: basicUser.verificationToken,
+                },
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.verifyUser.id).toEqual(basicUser.id);
+                    expect(body.data.verifyUser.email).toEqual(variables.input.email);
                 });
         });
     });

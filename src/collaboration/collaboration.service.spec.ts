@@ -1,12 +1,12 @@
 import { faker } from '@faker-js/faker';
 
-import { CollaborationService } from './collaboration.service';
 import { CollectionService } from '../collection/collection.service';
-import { WalletService } from '../wallet/wallet.service';
 import { OrganizationService } from '../organization/organization.service';
-import { UserService } from '../user/user.service';
-import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinQuotes } from '../sync-chain/coin/coin.dto';
+import { Coin } from '../sync-chain/coin/coin.entity';
+import { UserService } from '../user/user.service';
+import { WalletService } from '../wallet/wallet.service';
+import { CollaborationService } from './collaboration.service';
 
 describe('CollaborationService', () => {
     let service: CollaborationService;
@@ -33,7 +33,7 @@ describe('CollaborationService', () => {
             const user = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -192,7 +192,7 @@ describe('CollaborationService', () => {
             const user = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -210,7 +210,7 @@ describe('CollaborationService', () => {
             const newUser = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const newWallet = await walletService.createWallet({
@@ -244,7 +244,7 @@ describe('CollaborationService', () => {
             const user = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -263,7 +263,7 @@ describe('CollaborationService', () => {
             const newUser = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const newWallet = await walletService.createWallet({
@@ -316,7 +316,7 @@ describe('CollaborationService', () => {
         });
 
         const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
-            price: tokenPriceUSD,
+            USD: { price: tokenPriceUSD },
         });
 
         const collaborators = [
@@ -340,7 +340,7 @@ describe('CollaborationService', () => {
             const user = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const wallet = await walletService.createWallet({

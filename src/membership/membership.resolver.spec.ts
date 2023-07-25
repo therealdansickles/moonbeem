@@ -1,7 +1,6 @@
 import * as request from 'supertest';
 import { INestApplication } from '@nestjs/common';
 import { faker } from '@faker-js/faker';
-import { hashSync as hashPassword } from 'bcryptjs';
 import { MembershipService } from './membership.service';
 import { OrganizationService } from '../organization/organization.service';
 import { UserService } from '../user/user.service';
@@ -32,13 +31,13 @@ describe('MembershipResolver', () => {
             const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -98,13 +97,13 @@ describe('MembershipResolver', () => {
             const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -130,7 +129,7 @@ describe('MembershipResolver', () => {
             const tokenVariables = {
                 input: {
                     email: owner.email,
-                    password: await hashPassword(owner.password, 10),
+                    password: 'password',
                 },
             };
 
@@ -174,13 +173,13 @@ describe('MembershipResolver', () => {
             const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -211,7 +210,7 @@ describe('MembershipResolver', () => {
             const tokenVariables = {
                 input: {
                     email: owner.email,
-                    password: await hashPassword(owner.password, 10),
+                    password: 'password',
                 },
             };
 
@@ -256,13 +255,13 @@ describe('MembershipResolver', () => {
             const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -306,13 +305,13 @@ describe('MembershipResolver', () => {
             const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -343,7 +342,7 @@ describe('MembershipResolver', () => {
             const tokenVariables = {
                 input: {
                     email: user.email,
-                    password: await hashPassword(user.password, 10),
+                    password: 'password',
                 },
             };
 
@@ -383,13 +382,13 @@ describe('MembershipResolver', () => {
             const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -420,7 +419,7 @@ describe('MembershipResolver', () => {
             const tokenVariables = {
                 input: {
                     email: owner.email,
-                    password: await hashPassword(owner.password, 10),
+                    password: 'password',
                 },
             };
 
@@ -459,13 +458,13 @@ describe('MembershipResolver', () => {
             const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization = await organizationService.createOrganization({
@@ -496,7 +495,7 @@ describe('MembershipResolver', () => {
             const tokenVariables = {
                 input: {
                     email: owner.email,
-                    password: await hashPassword(owner.password, 10),
+                    password: 'password',
                 },
             };
 
@@ -534,13 +533,13 @@ describe('MembershipResolver', () => {
             const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const anotherUser = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
-                password: faker.internet.password(),
+                password: 'password',
             });
 
             const organization1 = await organizationService.createOrganization({
