@@ -416,6 +416,8 @@ export class CollectionSold extends PickType(
         'txHash',
         'chainId',
         'createdAt',
+        'sender',
+        'recipient',
     ] as const,
     ObjectType
 ) {
