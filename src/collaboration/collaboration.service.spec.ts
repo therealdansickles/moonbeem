@@ -1,12 +1,12 @@
 import { faker } from '@faker-js/faker';
 
-import { CollaborationService } from './collaboration.service';
 import { CollectionService } from '../collection/collection.service';
-import { WalletService } from '../wallet/wallet.service';
 import { OrganizationService } from '../organization/organization.service';
-import { UserService } from '../user/user.service';
-import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinQuotes } from '../sync-chain/coin/coin.dto';
+import { Coin } from '../sync-chain/coin/coin.entity';
+import { UserService } from '../user/user.service';
+import { WalletService } from '../wallet/wallet.service';
+import { CollaborationService } from './collaboration.service';
 
 describe('CollaborationService', () => {
     let service: CollaborationService;
@@ -316,7 +316,7 @@ describe('CollaborationService', () => {
         });
 
         const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
-            price: tokenPriceUSD,
+            USD: { price: tokenPriceUSD },
         });
 
         const collaborators = [
