@@ -252,25 +252,21 @@ export class CollectionHoldersPaginated extends Paginated(CollectionHolderData) 
 
 @ObjectType('TierHolderData')
 export class TierHolderData extends PartialType(OmitType(Wallet, ['owner'], ObjectType)) {
-    @Field(() => MintSaleTransaction, { description: 'The Tier Transaction', nullable: true })
+    @Field(() => MintSaleTransaction, { description: 'The tier transaction', nullable: true })
     @IsObject()
     readonly transaction?: MintSaleTransaction;
 
-    @Field(() => Asset721, { description: 'The NFT Asset Owner', nullable: true })
+    @Field(() => Asset721, { description: 'The NFT asset owner', nullable: true })
     @IsObject()
     readonly asset?: Asset721;
-}
 
-@ObjectType('TierHolders')
-export class TierHolders {
-    @Field(() => Int)
+    @Field(() => Int, { description: 'The NFT balance of the holder'})
     @IsNumber()
-    readonly total: number;
-
-    @Field(() => [TierHolderData])
-    @IsArray()
-    readonly data: TierHolderData[];
+    readonly quantity: number;
 }
+
+@ObjectType('TierHoldersPaginated')
+export class TierHoldersPaginated extends Paginated(TierHolderData) {}
 
 @ObjectType('WalletSold')
 export class WalletSold extends PickType(
