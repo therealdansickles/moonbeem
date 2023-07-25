@@ -50,7 +50,7 @@ describe('MembershipService', () => {
 
             await service.createMembership({
                 organizationId: organization.id,
-                userId: user.id,
+                email: user.email,
             });
 
             const membership = await repository.findOneBy({
@@ -111,7 +111,7 @@ describe('MembershipService', () => {
 
             await service.createMembership({
                 organizationId: organization.id,
-                userId: user.id,
+                email: user.email,
             });
 
             const rs = await service.checkMembershipByOrganizationIdAndUserId(organization.id, user.id);
@@ -141,7 +141,7 @@ describe('MembershipService', () => {
 
             await service.createMembership({
                 organizationId: organization.id,
-                userId: user.id,
+                email: user.email,
             });
 
             const rs = await service.checkMembershipByOrganizationIdAndUserId(organization.id, faker.datatype.uuid());
@@ -173,7 +173,7 @@ describe('MembershipService', () => {
 
             const result = await service.createMembership({
                 organizationId: organization.id,
-                userId: user.id,
+                email: user.email,
                 canDeploy: true,
             });
 
@@ -208,7 +208,7 @@ describe('MembershipService', () => {
 
             await service.createMembership({
                 organizationId: organization.id,
-                userId: user.id,
+                email: user.email,
             });
 
             const newOrganization = await organizationService.createOrganization({
@@ -220,7 +220,7 @@ describe('MembershipService', () => {
             });
 
             await expect(async () => {
-                await service.createMembership({ organizationId: newOrganization.id, userId: owner.id });
+                await service.createMembership({ organizationId: newOrganization.id, email: owner.email });
             }).rejects.toThrow();
         });
     });
@@ -249,7 +249,7 @@ describe('MembershipService', () => {
 
             const membership = await service.createMembership({
                 organizationId: organization.id,
-                userId: user.id,
+                email: user.email,
             });
 
             const result = await service.updateMembership(membership.id, { canEdit: true });
@@ -281,11 +281,11 @@ describe('MembershipService', () => {
 
             const membership = await service.createMembership({
                 organizationId: organization.id,
-                userId: user.id,
+                email: user.email,
             });
 
             const result = await service.acceptMembership({
-                userId: user.id,
+                email: user.email,
                 organizationId: organization.id,
                 inviteCode: membership.inviteCode,
             });
@@ -316,14 +316,14 @@ describe('MembershipService', () => {
 
             await service.createMembership({
                 organizationId: organization.id,
-                userId: user.id,
+                email: user.email,
             });
 
             try {
-                await service.acceptMembership({ userId: user.id, organizationId: organization.id, inviteCode: '' });
+                await service.acceptMembership({ email: user.email, organizationId: organization.id, inviteCode: '' });
             } catch (error) {
                 expect((error as Error).message).toBe(
-                    `Accept membership request for user ${user.id} to organization ${organization.id} doesn't exist.`
+                    `We couldn't find a membership request for ${user.email} to organization ${organization.id}.`
                 );
             }
         });
@@ -353,11 +353,11 @@ describe('MembershipService', () => {
 
             const membership = await service.createMembership({
                 organizationId: organization.id,
-                userId: user.id,
+                email: user.email,
             });
 
             const result = await service.declineMembership({
-                userId: user.id,
+                email: user.email,
                 organizationId: organization.id,
                 inviteCode: membership.inviteCode,
             });
@@ -387,10 +387,10 @@ describe('MembershipService', () => {
             });
 
             try {
-                await service.declineMembership({ userId: user.id, organizationId: organization.id, inviteCode: '' });
+                await service.declineMembership({ email: user.email, organizationId: organization.id, inviteCode: '' });
             } catch (error) {
                 expect((error as Error).message).toBe(
-                    `Decline membership request for user ${user.id} to organization ${organization.id} doesn't exist.`
+                    `We couldn't find a membership request for ${user.email} to organization ${organization.id}.`,
                 );
             }
         });
@@ -420,7 +420,7 @@ describe('MembershipService', () => {
 
             const membership = await service.createMembership({
                 organizationId: organization.id,
-                userId: user.id,
+                email: user.email,
             });
 
             const result = await service.deleteMembership(membership.id);

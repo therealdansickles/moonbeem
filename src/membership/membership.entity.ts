@@ -16,7 +16,6 @@ import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
 
 @Entity({ name: 'Membership' })
 @Index(['user.id', 'organization.id'], { unique: true })
-@Index(['email', 'organization.id'], { unique: true })
 export class Membership extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     readonly id: string;

@@ -50,7 +50,7 @@ describe('MembershipResolver', () => {
 
             const membership = await service.createMembership({
                 organizationId: organization.id,
-                userId: user.id,
+                email: user.email,
             });
 
             const query = gql`
@@ -151,7 +151,7 @@ describe('MembershipResolver', () => {
             const variables = {
                 input: {
                     organizationId: organization.id,
-                    userId: user.id,
+                    email: user.email,
                     canEdit: true,
                 },
             };
@@ -192,7 +192,7 @@ describe('MembershipResolver', () => {
 
             const membership = await service.createMembership({
                 organizationId: organization.id,
-                userId: user.id,
+                email: user.email,
             });
 
             const tokenQuery = gql`
@@ -274,7 +274,7 @@ describe('MembershipResolver', () => {
 
             const membership = await service.createMembership({
                 organizationId: organization.id,
-                userId: user.id,
+                email: user.email,
             });
 
             const query = gql`
@@ -285,7 +285,7 @@ describe('MembershipResolver', () => {
 
             const variables = {
                 input: {
-                    userId: user.id,
+                    email: user.email,
                     organizationId: organization.id,
                     inviteCode: membership.inviteCode,
                 },
@@ -324,7 +324,7 @@ describe('MembershipResolver', () => {
 
             const membership = await service.createMembership({
                 organizationId: organization.id,
-                userId: user.id,
+                email: user.email,
             });
 
             const tokenQuery = gql`
@@ -360,7 +360,7 @@ describe('MembershipResolver', () => {
 
             const variables = {
                 input: {
-                    userId: user.id,
+                    email: user.email,
                     organizationId: organization.id,
                     inviteCode: membership.inviteCode,
                 },
@@ -401,7 +401,7 @@ describe('MembershipResolver', () => {
 
             const membership = await service.createMembership({
                 organizationId: organization.id,
-                userId: user.id,
+                email: user.email,
             });
 
             const tokenQuery = gql`
@@ -436,7 +436,7 @@ describe('MembershipResolver', () => {
             `;
             const variables = {
                 input: {
-                    userId: user.id,
+                    email: user.email,
                     organizationId: organization.id,
                     inviteCode: membership.inviteCode,
                 },
@@ -477,7 +477,7 @@ describe('MembershipResolver', () => {
 
             const membership = await service.createMembership({
                 organizationId: organization.id,
-                userId: user.id,
+                email: user.email,
             });
 
             const tokenQuery = gql`
@@ -552,7 +552,7 @@ describe('MembershipResolver', () => {
 
             const membership1 = await service.createMembership({
                 organizationId: organization1.id,
-                userId: user.id,
+                email: user.email,
                 canDeploy: true,
                 canManage: true,
             });
@@ -567,7 +567,7 @@ describe('MembershipResolver', () => {
 
             const membership2 = await service.createMembership({
                 organizationId: organization2.id,
-                userId: user.id,
+                email: user.email,
                 canDeploy: true,
                 canManage: false,
             });

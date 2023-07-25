@@ -78,10 +78,10 @@ export class MembershipService {
      * @returns The created membership.
      */
     async createMembership(data: CreateMembershipInput): Promise<Membership> {
-        const { userId, organizationId, ...rest } = data;
+        const { organizationId, email, ...rest } = data;
         const membership = await this.membershipRepository.create(rest);
         membership.organization = await this.organizationRepository.findOneBy({ id: organizationId });
-        membership.user = await this.userRepository.findOneBy({ id: userId });
+        membership.user = await this.userRepository.findOneBy({ email });
         await this.membershipRepository.insert(membership);
         await this.mailService.sendInviteEmail(membership.user.email, { token: membership.inviteCode});
         return await this.membershipRepository.findOneBy({ id: membership.id });
@@ -124,7 +124,7 @@ export class MembershipService {
     async acceptMembership(input: MembershipRequestInput): Promise<boolean> {
         const membership = await this.membershipRepository.findOne({
             where: {
-                user: { id: input.userId },
+                user: { email: input.email },
                 organization: { id: input.organizationId },
                 acceptedAt: IsNull(),
                 declinedAt: IsNull(),
@@ -133,7 +133,7 @@ export class MembershipService {
         });
         if (!membership) {
             throw new GraphQLError(
-                `Accept membership request for user ${input.userId} to organization ${input.organizationId} doesn't exist.`,
+                `We couldn't find a membership request for ${input.email} to organization ${input.organizationId}.`,
                 {
                     extensions: { code: 'BAD_REQUEST' },
                 }
@@ -155,7 +155,7 @@ export class MembershipService {
     async declineMembership(input: MembershipRequestInput): Promise<boolean> {
         const membership = await this.membershipRepository.findOne({
             where: {
-                user: { id: input.userId },
+                user: { email: input.email },
                 organization: { id: input.organizationId },
                 declinedAt: IsNull(),
                 acceptedAt: IsNull(),
@@ -165,7 +165,7 @@ export class MembershipService {
 
         if (!membership) {
             throw new GraphQLError(
-                `Decline membership request for user ${input.userId} to organization ${input.organizationId} doesn't exist.`,
+                `We couldn't find a membership request for ${input.email} to organization ${input.organizationId}.`,
                 {
                     extensions: { code: 'BAD_REQUEST' },
                 }

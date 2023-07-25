@@ -46,7 +46,7 @@ export class OrganizationService {
 
         const organization = await this.organizationRepository.save(data);
         await this.membershipService.createMembership({
-            userId: owner.id,
+            email: owner.email,
             organizationId: organization.id,
             canEdit: true,
             canDeploy: true,
