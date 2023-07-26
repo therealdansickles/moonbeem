@@ -342,7 +342,7 @@ export class CollectionStat {
     @IsString()
     readonly source: string;
 
-    @Field(() => CollectionStatData)
+    @Field(() => CollectionStatData, { nullable: true })
     @IsObject()
     readonly data: CollectionStatData;
 }
