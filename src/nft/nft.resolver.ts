@@ -18,7 +18,7 @@ export class NftResolver {
         @Args({ name: 'id', nullable: true }) id: string,
             @Args({ name: 'collectionId', nullable: true }) collectionId: string,
             @Args({ name: 'tierId', nullable: true }) tierId: string,
-            @Args({ name: 'tokenId', nullable: true, type: () => Int }) tokenId: number,
+            @Args({ name: 'tokenId', nullable: true, type: () => Int }) tokenId: string,
     ): Promise<Nft> {
         let query: INftQuery = { id, tokenId };
         query = omitBy(query, isNil);

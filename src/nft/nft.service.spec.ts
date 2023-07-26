@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+
 import { CollectionService } from '../collection/collection.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
@@ -201,7 +202,7 @@ describe('NftService', () => {
                 },
             });
 
-            const tokenId = +faker.random.numeric(1);
+            const tokenId = faker.random.numeric(1);
 
             const nft = await service.createOrUpdateNftByTokenId({
                 collectionId: collection.id,
@@ -302,7 +303,7 @@ describe('NftService', () => {
                 collection: { id: collection.id },
                 tokenIds: [tokenId1, tokenId3],
             });
-            result.sort((a, b) => a.tokenId - b.tokenId); // Sort first, otherwise there may be an order error
+            result.sort((a, b) => +a.tokenId - +b.tokenId); // Sort first, otherwise there may be an order error
             expect(result.length).toEqual(2);
             expect(result[0].id).toEqual(nft1.id);
             expect(result[1].id).toEqual(nft3.id);

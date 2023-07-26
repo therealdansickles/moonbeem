@@ -1,6 +1,8 @@
 import * as request from 'supertest';
+
 import { faker } from '@faker-js/faker';
 import { INestApplication } from '@nestjs/common';
+
 import { CollectionService } from '../collection/collection.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
@@ -393,7 +395,7 @@ describe('NftResolver', () => {
                 input: {
                     collectionId: collection.id,
                     tierId: tier.id,
-                    tokenId: +faker.random.numeric(2),
+                    tokenId: faker.random.numeric(2),
                     properties: {
                         foo: 'bar',
                     },

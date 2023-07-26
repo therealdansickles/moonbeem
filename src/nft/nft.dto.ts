@@ -1,4 +1,4 @@
-import { IsInt, IsObject, IsOptional, IsString } from 'class-validator';
+import { IsObject, IsOptional, IsString } from 'class-validator';
 import { GraphQLJSONObject } from 'graphql-type-json';
 
 import { Field, InputType, ObjectType, PickType } from '@nestjs/graphql';
@@ -22,9 +22,9 @@ export class Nft {
     @Field(() => Tier, { description: 'The tier of the NFT belongs to.' } )
     readonly tier?: Tier;
 
-    @IsInt()
+    @IsString()
     @Field({ description: 'The tokenId of the NFT belongs to.' })
-    readonly tokenId: number;
+    readonly tokenId: string;
 
     @IsObject()
     @Field(() => GraphQLJSONObject, { description:  'The properties of the NFT.' })
