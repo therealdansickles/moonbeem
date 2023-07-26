@@ -38,6 +38,7 @@ import {
     ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
+import { User } from '../user/user.entity';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name'>>;
 
@@ -753,5 +754,23 @@ export class CollectionService {
         if (!address) return { inPaymentToken: '0', inUSDC: '0' };
 
         return await this.getTotalPrice(address);
+    }
+
+    async getCreatedCollectionsByWalletAddress(walletAddress: string): Promise<Collection[]> {
+        return await this.collectionRepository
+            .createQueryBuilder('collection')
+            .leftJoinAndSelect('collection.creator', 'wallet')
+            .where('wallet.address = :address', { address: walletAddress })
+            .andWhere('collection.address IS NOT NULL')
+            .getMany();
+    }
+
+    async getCollectionsByUserId(userId: string): Promise<Collection[]> {
+        return await this.collectionRepository
+            .createQueryBuilder('collection')
+            .leftJoinAndSelect(Wallet, 'wallet', 'collection.creatorId = wallet.id')
+            .leftJoinAndSelect(User, 'user', 'wallet.ownerId = user.id')
+            .where('user.id = :id', { id: userId })
+            .getMany();
     }
 }

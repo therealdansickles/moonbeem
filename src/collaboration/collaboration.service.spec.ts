@@ -312,7 +312,7 @@ describe('CollaborationService', () => {
             enable: true,
             chainId: 1,
             createdAt: new Date(),
-            updatedAt: new Date()
+            updatedAt: new Date(),
         });
 
         const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
@@ -390,7 +390,7 @@ describe('CollaborationService', () => {
             jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
         });
 
-        afterAll(async () => {
+        beforeEach(async () => {
             jest.clearAllMocks();
         });
 
@@ -403,8 +403,10 @@ describe('CollaborationService', () => {
         });
 
         it('should return a collaboration with its zero earnings if no mint sales', async () => {
-            jest.spyOn(service['collectionService'], 'getCollectionEarningsByCollectionAddress').mockResolvedValue(null);
-            
+            jest.spyOn(service['collectionService'], 'getCollectionEarningsByCollectionAddress').mockResolvedValue(
+                null
+            );
+
             const result = await service.getCollaborationWithEarnings(collaboration.id);
 
             expect(result).toBeDefined();
@@ -416,11 +418,15 @@ describe('CollaborationService', () => {
             const result = await service.getCollaborationWithEarnings(collaboration.id);
 
             // check first collaborator earnings
-            const expectedEarningsFirst = Math.round(totalEarningsUsd * (collaborators[0].rate / 100) * (collaboration.royaltyRate / 100));
+            const expectedEarningsFirst = Math.round(
+                totalEarningsUsd * (collaborators[0].rate / 100) * (collaboration.royaltyRate / 100)
+            );
             expect(result.collaborators[0].earnings).toEqual(expectedEarningsFirst);
 
             // check second collaborator earnings
-            const expectedEarningsSecond = Math.round(totalEarningsUsd * (collaborators[1].rate / 100) * (collaboration.royaltyRate / 100));
+            const expectedEarningsSecond = Math.round(
+                totalEarningsUsd * (collaborators[1].rate / 100) * (collaboration.royaltyRate / 100)
+            );
             expect(result.collaborators[1].earnings).toEqual(expectedEarningsSecond);
         });
 
@@ -434,7 +440,7 @@ describe('CollaborationService', () => {
 
         it('should throw an error if coinService.getCoinByAddress returns no token', async () => {
             jest.spyOn(service['coinService'], 'getCoinByAddress').mockResolvedValue(null);
-        
+
             try {
                 await service.getCollaborationWithEarnings(collaboration.id);
             } catch (error) {
@@ -444,12 +450,12 @@ describe('CollaborationService', () => {
 
         it('should throw an error if coinService.getQuote returns no quote', async () => {
             jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(null);
-        
+
             try {
                 await service.getCollaborationWithEarnings(collaboration.id);
             } catch (error) {
                 expect(error.message).toMatch(/Failed to get price for token/);
             }
-        }); 
+        });
     });
 });

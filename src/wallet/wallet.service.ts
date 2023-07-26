@@ -12,17 +12,23 @@ import { Collection } from '../collection/collection.entity';
 import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import {
-    MintSaleTransaction
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { BasicPriceInfo, Profit } from '../tier/tier.dto';
 import { Tier } from '../tier/tier.entity';
 import { User } from '../user/user.entity';
 import {
-    BindWalletInput, CreateWalletInput, EstimatedValue, Minted, MintPaginated, UnbindWalletInput,
-    UpdateWalletInput, WalletSold, WalletSoldPaginated
+    BindWalletInput,
+    CreateWalletInput,
+    EstimatedValue,
+    Minted,
+    MintPaginated,
+    UnbindWalletInput,
+    UpdateWalletInput,
+    WalletSold,
+    WalletSoldPaginated,
 } from './wallet.dto';
 import { Wallet } from './wallet.entity';
+import { CollectionService } from '../collection/collection.service';
 
 interface ITokenPrice {
     token: string;
@@ -34,15 +40,16 @@ type IWalletQuery = Partial<Pick<Wallet, 'name' | 'address'>>;
 @Injectable()
 export class WalletService {
     constructor(
-        @InjectRepository(Wallet) private walletRespository: Repository<Wallet>,
-        @InjectRepository(Collection) private collectionRespository: Repository<Collection>,
+        @InjectRepository(Wallet) private walletRepository: Repository<Wallet>,
+        @InjectRepository(Collection) private collectionRepository: Repository<Collection>,
         @InjectRepository(User) private userRepository: Repository<User>,
         @InjectRepository(Tier) private tierRepository: Repository<Tier>,
         @InjectRepository(MintSaleTransaction, 'sync_chain')
         private mintSaleTransactionRepository: Repository<MintSaleTransaction>,
         @InjectRepository(MintSaleContract, 'sync_chain')
         private mintSaleContractRepository: Repository<MintSaleContract>,
-        private coinService: CoinService
+        private coinService: CoinService,
+        private collectionService: CollectionService
     ) {}
 
     /**
@@ -72,7 +79,7 @@ export class WalletService {
      * @returns The wallet associated with the given uuid.
      */
     async getWallet(id: string): Promise<Wallet> {
-        return this.walletRespository.findOneBy({ id });
+        return this.walletRepository.findOneBy({ id });
     }
 
     /**
@@ -85,7 +92,7 @@ export class WalletService {
         query = omitBy(query, isNil);
         if (isEmpty(query)) return null;
         if (query.address) query.address = query.address.toLowerCase();
-        return this.walletRespository.findOneBy(query);
+        return this.walletRepository.findOneBy(query);
     }
 
     /**
@@ -122,9 +129,9 @@ export class WalletService {
             throw new GraphQLError(`Wallet name ${input.name} already existed.`, {
                 extensions: { code: 'BAD_REQUEST' },
             });
-        const wallet = await this.walletRespository.create({ owner: { id: ownerId }, ...walletData });
-        const result = await this.walletRespository.insert(wallet);
-        return await this.walletRespository.findOne({
+        const wallet = await this.walletRepository.create({ owner: { id: ownerId }, ...walletData });
+        const result = await this.walletRepository.insert(wallet);
+        return await this.walletRepository.findOne({
             where: { id: result.identifiers[0].id },
             relations: ['owner'],
         });
@@ -137,7 +144,7 @@ export class WalletService {
      * @returns
      */
     async updateWallet(id: string, payload: Partial<Omit<UpdateWalletInput, 'id'>>): Promise<Wallet> {
-        const wallet = await this.walletRespository.findOneBy({ id });
+        const wallet = await this.walletRepository.findOneBy({ id });
         const walletUpdate: Partial<Wallet> = { ...wallet, ...payload };
         if (!wallet) {
             throw new GraphQLError(`Wallet with id ${id} doesn't exist.`, {
@@ -160,7 +167,7 @@ export class WalletService {
         }
 
         try {
-            return this.walletRespository.save(walletUpdate);
+            return this.walletRepository.save(walletUpdate);
         } catch (e) {
             captureException(e);
             throw new GraphQLError(`Failed to update wallet ${id}`, {
@@ -184,7 +191,7 @@ export class WalletService {
         if (wallet.owner?.id) throw new Error(`Wallet ${address} is already bound.`);
 
         await this.updateWallet(wallet.id, { ...omit(wallet, 'owner'), ownerId: owner.id });
-        return this.walletRespository.findOne({
+        return this.walletRepository.findOne({
             where: { address },
             relations: ['owner'],
         });
@@ -199,7 +206,7 @@ export class WalletService {
      */
     async unbindWallet(data: UnbindWalletInput): Promise<Wallet> {
         const { address, owner } = data;
-        let wallet = await this.walletRespository.findOne({
+        let wallet = await this.walletRepository.findOne({
             where: { address: address.toLowerCase() },
             relations: ['owner'],
         });
@@ -215,7 +222,7 @@ export class WalletService {
 
         try {
             await this.updateWallet(wallet.id, { ...omit(wallet, 'owner'), ownerId: this.unOwnedId });
-            return this.walletRespository.findOne({
+            return this.walletRepository.findOne({
                 where: { address },
                 relations: ['owner'],
             });
@@ -238,14 +245,14 @@ export class WalletService {
     async verifyWallet(walletAddress: string, message: string, signature: string): Promise<Wallet | null> {
         const address = walletAddress.toLowerCase();
         if (ethers.verifyMessage(message, signature).toLowerCase() === address) {
-            const existedWallet = await this.walletRespository.findOne({
+            const existedWallet = await this.walletRepository.findOne({
                 where: { address },
-                relations: ['owner']
+                relations: ['owner'],
             });
             if (existedWallet) return existedWallet;
             else {
-                await this.walletRespository.insert({ address, name: address });
-                return this.walletRespository.findOne({
+                await this.walletRepository.insert({ address, name: address });
+                return this.walletRepository.findOne({
                     where: { address },
                     relations: ['owner'],
                 });
@@ -450,12 +457,7 @@ export class WalletService {
         first: number,
         last: number
     ): Promise<WalletSoldPaginated> {
-        const collections = await this.collectionRespository
-            .createQueryBuilder('collection')
-            .leftJoinAndSelect('collection.creator', 'wallet')
-            .where('wallet.address = :address', { address: address })
-            .andWhere('collection.address IS NOT NULL')
-            .getMany();
+        const collections = await this.collectionService.getCreatedCollectionsByWalletAddress(address);
 
         if (collections.length <= 0) return PaginatedImp([], 0);
 
@@ -493,12 +495,7 @@ export class WalletService {
     }
 
     public async getWalletProfit(address: string): Promise<Profit[]> {
-        const collections = await this.collectionRespository
-            .createQueryBuilder('collection')
-            .leftJoinAndSelect('collection.creator', 'wallet')
-            .where('wallet.address = :address', { address: address })
-            .andWhere('collection.address IS NOT NULL')
-            .getMany();
+        const collections = await this.collectionService.getCreatedCollectionsByWalletAddress(address);
 
         if (collections.length <= 0) return [];
 
@@ -532,12 +529,7 @@ export class WalletService {
     }
 
     async getMonthlyBuyers(address: string): Promise<number> {
-        const collections = await this.collectionRespository
-            .createQueryBuilder('collection')
-            .leftJoinAndSelect('collection.creator', 'wallet')
-            .where('wallet.address = :address', { address: address })
-            .andWhere('collection.address IS NOT NULL')
-            .getMany();
+        const collections = await this.collectionService.getCreatedCollectionsByWalletAddress(address);
 
         if (collections.length <= 0) return 0;
         const currentDate = new Date();
@@ -563,7 +555,7 @@ export class WalletService {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth() + 1;
 
-        const total = await this.collectionRespository
+        const total = await this.collectionRepository
             .createQueryBuilder('collection')
             .leftJoinAndSelect('collection.creator', 'wallet')
             .where('wallet.address = :address', { address })
@@ -574,12 +566,7 @@ export class WalletService {
     }
 
     public async getMonthlyEarnings(address: string): Promise<number> {
-        const collections = await this.collectionRespository
-            .createQueryBuilder('collection')
-            .leftJoinAndSelect('collection.creator', 'wallet')
-            .where('wallet.address = :address', { address: address })
-            .andWhere('collection.address IS NOT NULL')
-            .getMany();
+        const collections = await this.collectionService.getCreatedCollectionsByWalletAddress(address);
 
         if (collections.length <= 0) return 0;
         const currentDate = new Date();
