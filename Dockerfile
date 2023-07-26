@@ -7,11 +7,8 @@ COPY . .
 RUN yarn set version stable
 RUN yarn install --immutable
 
-
 RUN yarn run build
-
-RUN echo $' yarn run start' >./entrypoint.sh
 
 EXPOSE 3000
 
-ENTRYPOINT [ "sh", "./entrypoint.sh" ]
+CMD ["yarn", "start:prod"]

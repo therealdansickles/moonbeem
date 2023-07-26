@@ -12,10 +12,20 @@ services:
       - .env
     environment:
       V1_DATABASE_URL: postgresql://root:root@postgres:5432/platform_development?schema=public
-      SYNC_CHAIN_DATABASE_URL: postgresql://root:root@postgres-sync-chain:5442/sync_chain_development?schema=public
-      REDIS_URL: redis://default:redis@redis:6379
-      MONGO_URL: mongodb://root:root@mongo:27017
-      SESSION_SECRET: secretKey
+      SYNC_CHAIN_DATABASE_URL: postgresql://root:root@sync_chain:5432/sync_chain_development?schema=public
+      REDIS_URL: redis://default:redis@redis:6379       # Redis.
+      MONGO_URL: mongodb://root:root@mongo:27017       # MongoDB. Used by vibe-server.
+
+    depends_on:
+      - mongo
+      - postgres
+      - redis
+      - sync_chain
+    links:
+      - mongo
+      - postgres
+      - redis
+      - sync_chain
 
   postgres:
     image: postgres:latest
@@ -30,9 +40,9 @@ services:
       POSTGRES_DB: platform_development
       POSTGRES_HOST: localhost
       POSTGRES_PORT: 5432
-  postgres-sync-chain:
+  sync_chain:
     image: postgres:latest
-    container_name: postgres-sync-chain
+    container_name: sync_chain
     volumes:
       - /tmp/postgres-data-sync-chain:/var/lib/postgresql/data
     ports:
