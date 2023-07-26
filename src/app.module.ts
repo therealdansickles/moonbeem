@@ -78,7 +78,7 @@ dotenv.config();
             type: 'postgres',
             url: postgresConfig.url,
             autoLoadEntities: true,
-            synchronize: true,
+            synchronize: false,
             logging: true,
         }),
         JwtModule.register({
