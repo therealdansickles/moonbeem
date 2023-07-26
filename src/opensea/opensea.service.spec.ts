@@ -1,5 +1,4 @@
 import { faker } from '@faker-js/faker';
-import { HttpService } from '@nestjs/axios';
 
 import { SaleHistory } from '../saleHistory/saleHistory.dto';
 import { generateAssetEvent } from '../saleHistory/saleHistory.service.spec';
@@ -7,13 +6,11 @@ import { OpenseaService } from './opensea.service';
 
 describe('OpenseaService', () => {
     let service: OpenseaService;
+    beforeAll(async () => {
+        service = global.openseaService;
+    });
 
     describe('#getCollectionStat', () => {
-        beforeAll(async () => {
-            const httpRequest = new HttpService();
-            service = new OpenseaService(httpRequest);
-        });
-
         it('should return the right response', async () => {
             const mockResponse = {
                 supply: faker.datatype.float(),
@@ -41,11 +38,6 @@ describe('OpenseaService', () => {
     });
 
     describe('#getCollection', () => {
-        beforeAll(async () => {
-            const httpRequest = new HttpService();
-            service = new OpenseaService(httpRequest);
-        });
-
         it('should return the right response', async () => {
             const mockResponse = {
                 volume: {
@@ -84,11 +76,6 @@ describe('OpenseaService', () => {
     });
     
     describe('#getCollectionEvent', () => {
-        beforeAll(async () => {
-            const httpRequest = new HttpService();
-            service = new OpenseaService(httpRequest);
-        });
-
         it('should return the right response', async () => {
             const mockResponse = generateCustomEvent();
 
@@ -101,11 +88,6 @@ describe('OpenseaService', () => {
     });
 
     describe('#callOpenSea', () => {
-        beforeAll(async () => {
-            const httpRequest = new HttpService();
-            service = new OpenseaService(httpRequest);
-        });
-
         it('should ', async () => {
             const mockResponse = generateCustomEvent();
             for (let i = 0; i < 5; i++) {

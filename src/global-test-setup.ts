@@ -1,81 +1,86 @@
-import { Test } from '@nestjs/testing';
 import { ApolloDriver } from '@nestjs/apollo';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { HttpModule, HttpService } from '@nestjs/axios';
+import { CacheModule } from '@nestjs/cache-manager';
+import { APP_GUARD } from '@nestjs/core';
 import { GraphQLModule, Query, Resolver } from '@nestjs/graphql';
-import { postgresConfig } from './lib/configs/db.config';
+import { JwtService } from '@nestjs/jwt';
+import { Test } from '@nestjs/testing';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { CoinMarketCapModule } from './coinmarketcap/coinmarketcap.module';
 // platform modules
 import { CollaborationModule } from './collaboration/collaboration.module';
-import { CollectionModule } from './collection/collection.module';
-import { MailModule } from './mail/mail.module';
-import { MembershipModule } from './membership/membership.module';
-import { NftModule } from './nft/nft.module';
-import { OrganizationModule } from './organization/organization.module';
-import { RedeemModule } from './redeem/redeem.module';
-import { RelationshipModule } from './relationship/relationship.module';
-import { TierModule } from './tier/tier.module';
-import { UserModule } from './user/user.module';
-import { WalletModule } from './wallet/wallet.module';
-import { MoonpayModule } from './moonpay/moonpay.module';
-import { OpenseaModule } from './opensea/opensea.module';
-import { PollerModule } from './poller/poller.module';
-import { SaleHistoryModule } from './saleHistory/saleHistory.module';
-import { SearchModule } from './search/search.module';
-import { SessionModule } from './session/session.module';
-
-// sync chain modules
-import { Asset721Module } from './sync-chain/asset721/asset721.module';
-import { CoinModule } from './sync-chain/coin/coin.module';
-import { FactoryModule } from './sync-chain/factory/factory.module';
-import { History721Module } from './sync-chain/history721/history721.module';
-import { MintSaleContractModule } from './sync-chain/mint-sale-contract/mint-sale-contract.module';
-import { MintSaleTransactionModule } from './sync-chain/mint-sale-transaction/mint-sale-transaction.module';
-import { Record721Module } from './sync-chain/record721/record721.module';
-import { RoyaltyModule } from './sync-chain/royalty/royalty.module';
-import { SystemConfigModule } from './sync-chain/system-config/system-config.module';
-
 // platform services
 import { CollaborationService } from './collaboration/collaboration.service';
+import { CollectionModule } from './collection/collection.module';
 import { CollectionService } from './collection/collection.service';
-import { MailService } from './mail/mail.service';
-import { MembershipService } from './membership/membership.service';
-import { NftService } from './nft/nft.service';
-import { OrganizationService } from './organization/organization.service';
-import { RedeemService } from './redeem/redeem.service';
-import { RelationshipService } from './relationship/relationship.service';
-import { TierService } from './tier/tier.service';
-import { UserService } from './user/user.service';
-import { WalletService } from './wallet/wallet.service';
-import { SessionService } from './session/session.service';
-import { MoonpayService } from './moonpay/moonpay.service';
-import { PollerService } from './poller/poller.service';
-
-// sync chain services
-import { Asset721Service } from './sync-chain/asset721/asset721.service';
-import { CoinService } from './sync-chain/coin/coin.service';
-import { FactoryService } from './sync-chain/factory/factory.service';
-import { History721Service } from './sync-chain/history721/history721.service';
-import { MintSaleContractService } from './sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { MintSaleTransactionService } from './sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import { Record721Service } from './sync-chain/record721/record721.service';
-import { RoyaltyService } from './sync-chain/royalty/royalty.service';
-import { SystemConfigService } from './sync-chain/system-config/system-config.service';
-import { PluginService } from './plugin/plugin.service';
-import { PluginModule } from './plugin/plugin.module';
-import { SaleHistoryService } from './saleHistory/saleHistory.service';
-import { SearchService } from './search/search.service';
-import { WaitlistService } from './waitlist/waitlist.service';
-import { WaitlistModule } from './waitlist/waitlist.module';
 import { AWSAdapter } from './lib/adapters/aws.adapter';
-import { HttpModule, HttpService } from '@nestjs/axios';
-import { CurrentWallet } from './session/session.decorator';
-import { Wallet } from './wallet/wallet.dto';
-import { APP_GUARD } from '@nestjs/core';
-import { SessionGuard } from './session/session.guard';
-import { JwtService } from '@nestjs/jwt';
-import { CoinMarketCapModule } from './coinmarketcap/coinmarketcap.module';
+import { postgresConfig } from './lib/configs/db.config';
+import { MailModule } from './mail/mail.module';
+import { MailService } from './mail/mail.service';
+import { MembershipModule } from './membership/membership.module';
+import { MembershipService } from './membership/membership.service';
 import { MerkleTreeModule } from './merkleTree/merkleTree.module';
 import { MerkleTreeService } from './merkleTree/merkleTree.service';
+import { MoonpayModule } from './moonpay/moonpay.module';
+import { MoonpayService } from './moonpay/moonpay.service';
+import { NftModule } from './nft/nft.module';
+import { NftService } from './nft/nft.service';
+import { OpenseaModule } from './opensea/opensea.module';
+import { OpenseaService } from './opensea/opensea.service';
+import { OrganizationModule } from './organization/organization.module';
+import { OrganizationService } from './organization/organization.service';
+import { PluginModule } from './plugin/plugin.module';
+import { PluginService } from './plugin/plugin.service';
+import { PollerModule } from './poller/poller.module';
+import { PollerService } from './poller/poller.service';
+import { RedeemModule } from './redeem/redeem.module';
+import { RedeemService } from './redeem/redeem.service';
+import { RelationshipModule } from './relationship/relationship.module';
+import { RelationshipService } from './relationship/relationship.service';
+import { SaleHistoryModule } from './saleHistory/saleHistory.module';
+import { SaleHistoryService } from './saleHistory/saleHistory.service';
+import { SearchModule } from './search/search.module';
+import { SearchService } from './search/search.service';
+import { CurrentWallet } from './session/session.decorator';
+import { SessionGuard } from './session/session.guard';
+import { SessionModule } from './session/session.module';
+import { SessionService } from './session/session.service';
+// sync chain modules
+import { Asset721Module } from './sync-chain/asset721/asset721.module';
+// sync chain services
+import { Asset721Service } from './sync-chain/asset721/asset721.service';
+import { CoinModule } from './sync-chain/coin/coin.module';
+import { CoinService } from './sync-chain/coin/coin.service';
+import { FactoryModule } from './sync-chain/factory/factory.module';
+import { FactoryService } from './sync-chain/factory/factory.service';
+import { History721Module } from './sync-chain/history721/history721.module';
+import { History721Service } from './sync-chain/history721/history721.service';
+import { MintSaleContractModule } from './sync-chain/mint-sale-contract/mint-sale-contract.module';
+import {
+    MintSaleContractService
+} from './sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleTransactionModule
+} from './sync-chain/mint-sale-transaction/mint-sale-transaction.module';
+import {
+    MintSaleTransactionService
+} from './sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { Record721Module } from './sync-chain/record721/record721.module';
+import { Record721Service } from './sync-chain/record721/record721.service';
+import { RoyaltyModule } from './sync-chain/royalty/royalty.module';
+import { RoyaltyService } from './sync-chain/royalty/royalty.service';
+import { SystemConfigModule } from './sync-chain/system-config/system-config.module';
+import { SystemConfigService } from './sync-chain/system-config/system-config.service';
+import { TierModule } from './tier/tier.module';
+import { TierService } from './tier/tier.service';
+import { UserModule } from './user/user.module';
+import { UserService } from './user/user.service';
+import { WaitlistModule } from './waitlist/waitlist.module';
+import { WaitlistService } from './waitlist/waitlist.service';
+import { Wallet } from './wallet/wallet.dto';
+import { WalletModule } from './wallet/wallet.module';
+import { WalletService } from './wallet/wallet.service';
 
 @Resolver()
 export class TestResolver {
@@ -143,6 +148,9 @@ export default async () => {
                 driver: ApolloDriver,
                 autoSchemaFile: true,
             }),
+            CacheModule.register({
+                isGlobal: true
+            })
         ],
         providers: [
             AWSAdapter,
@@ -174,6 +182,7 @@ export default async () => {
     global.waitlistService = module.get<WaitlistService>(WaitlistService);
     global.walletService = module.get<WalletService>(WalletService);
     global.merkleTreeService = module.get<MerkleTreeService>(MerkleTreeService);
+    global.openseaService = module.get<OpenseaService>(OpenseaService);
 
     // sync chain services
     global.asset721Service = module.get<Asset721Service>(Asset721Service);

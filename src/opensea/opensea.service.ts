@@ -1,11 +1,13 @@
 import { AxiosError } from 'axios';
+import { Cache } from 'cache-manager';
 import { get } from 'lodash';
 import { join } from 'path';
 import { catchError, firstValueFrom } from 'rxjs';
 import { URL } from 'url';
 
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable } from '@nestjs/common';
 
 import { CollectionStatData } from '../collection/collection.dto';
 import { openseaConfig } from '../lib/configs/opensea.config';
@@ -43,34 +45,12 @@ interface ICollection {
 
 @Injectable()
 export class OpenseaService {
-    constructor(private readonly httpRequest: HttpService) {}
+    constructor(
+        private readonly httpRequest: HttpService,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache
+    ) {}
 
     async callOpenSea<T>(url, params): Promise<T> {
-        // return new Promise((resolve, reject) => {
-        //     const call = () => {
-        //         rateLimiter
-        //             .consume(openseaConfig.url, 1) // consume 2 points
-        //             .then(async () => {
-        //                 try {
-        //                     const { data } = await firstValueFrom(
-        //                         this.httpRequest.get(url, params).pipe(
-        //                             catchError((error) => {
-        //                                 Sentry.captureException(error);
-        //                                 throw 'Bad response from opensea';
-        //                             })
-        //                         )
-        //                     );
-        //                     resolve(data);
-        //                 } catch (error) {
-        //                     reject(error);
-        //                 }
-        //             })
-        //             .catch((rateLimiterRes) => {
-        //                 setTimeout(call, rateLimiterRes.msBeforeNext);
-        //             });
-        //     };
-        //     call();
-        // });
         const { data } = await firstValueFrom(
             this.httpRequest.get(url, params).pipe(
                 catchError((error: AxiosError) => {
@@ -84,6 +64,16 @@ export class OpenseaService {
     async getCollection(slug: string): Promise<ICollection> {
         const endpoint = join('/api/v1/collection', slug);
         const url = new URL(endpoint, openseaConfig.url).toString();
+        const cache = await this.cacheManager.get(url) as string;
+        if (cache) {
+            try {
+                // it should be a recoverable JSON string
+                // but need to check if the string had been hacked
+                return JSON.parse(cache);
+            } catch (err) {
+                throw new Error('invalid cache data');
+            }
+        }
         const headers = {
             'X-API-KEY': openseaConfig.apiKey,
             'Content-Type': 'application/json',
@@ -92,7 +82,7 @@ export class OpenseaService {
 
         const data = await this.callOpenSea<any>(url, { headers });
 
-        return {
+        const rs = {
             paymentToken: {
                 symbol: get(data, 'collection.payment_tokens.0.symbol'),
                 priceInUSD: get(data, 'collection.payment_tokens.0.usd_price'),
@@ -121,7 +111,9 @@ export class OpenseaService {
             floorPrice: get(data, 'collection.stats.floor_price'),
             netGrossEarning: get(data, 'collection.stats.total_volume'),
         };
-
+        // ttl is in milliseconds
+        await this.cacheManager.set(url, JSON.stringify(rs), 60 * 1000);
+        return rs;
     }
 
     // as very similar to `/api/v1/collection/${slug}`,
