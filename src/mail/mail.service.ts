@@ -76,11 +76,11 @@ export class MailService {
      * Send an invite email to a user
      *
      * @param emailAddress - The email address to send the email to
-     * @param data - The data to render the template with
+     * @param token - The token to use for invite
      * @returns
      */
-    async sendInviteEmail(emailAddress: string, data: any): Promise<void> {
-        const content = await this.renderTemplate('invite.mjml', {ctaUrl: this.generateInviteUrl(emailAddress, data.token)});
+    async sendInviteEmail(emailAddress: string, token: string): Promise<void> {
+        const content = await this.renderTemplate('invite.mjml', {ctaUrl: this.generateInviteUrl(emailAddress, token)});
         await this.sendEmail(emailAddress, 'Your Signup Verification Code on Vibe', content);
     }
 

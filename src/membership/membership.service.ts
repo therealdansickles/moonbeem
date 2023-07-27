@@ -58,8 +58,8 @@ export class MembershipService {
     }
 
     /**
-     * Check 
-     * 
+     * Check
+     *
      * @param organizationId
      * @param userId
      */
@@ -85,7 +85,7 @@ export class MembershipService {
         await this.membershipRepository.insert(membership);
 
         const result = await this.membershipRepository.findOneBy({ id: membership.id });
-        //await this.mailService.sendInviteEmail(email, result.inviteCode); // FIXME: Move to a queue, and fix this shit
+        await this.mailService.sendInviteEmail(email, 'inviteCode');
 
         return result;
     }
