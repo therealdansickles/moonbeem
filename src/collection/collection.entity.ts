@@ -41,10 +41,10 @@ export class Collection extends BaseEntity {
 
     @Column({
         nullable: true,
-        comment: 'The contract address for the payment token associated with purchase of the collection.',
+        comment: 'The token contract address of the collection.',
         transformer: lowercaseTransformer,
     })
-    readonly paymentTokenAddress?: string;
+    readonly tokenAddress?: string;
 
     @ManyToOne(() => Organization, (organization) => organization.collections, {
         eager: true,
