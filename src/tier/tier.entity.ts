@@ -54,6 +54,7 @@ export class Tier extends BaseEntity {
     @Column({ nullable: true, comment: 'The price of NFTs in this tier.' })
     readonly price?: string;
 
+    // @deprecated
     @Column({
         nullable: true,
         comment: 'The contract address for the payment token associated with purchase of this tier.',
