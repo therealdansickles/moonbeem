@@ -81,11 +81,15 @@ export class MembershipService {
         const { organizationId, email, ...rest } = data;
         const membership = await this.membershipRepository.create(rest);
         membership.organization = await this.organizationRepository.findOneBy({ id: organizationId });
+        // We try to attach a user that we find in the database but it's possible
+        // that they may invite someone not in the system. therefore we should still set `email`
+        // and treat that as the source of truth.
         membership.user = await this.userRepository.findOneBy({ email });
+        membership.email = email;
         await this.membershipRepository.insert(membership);
 
         const result = await this.membershipRepository.findOneBy({ id: membership.id });
-        //await this.mailService.sendInviteEmail(email, result.inviteCode); // FIXME: Move to a queue, and fix this shit
+        await this.mailService.sendInviteEmail(email, result.inviteCode); // FIXME: Move to a queue
 
         return result;
     }

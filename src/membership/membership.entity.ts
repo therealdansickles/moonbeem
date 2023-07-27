@@ -65,14 +65,12 @@ export class Membership extends BaseEntity {
 
     @BeforeInsert()
     async setInviteCode(): Promise<void> {
-        if (!this.inviteCode) {
-            const payload = {
-                email: this.email,
-                organizationId: this.organization?.id,
-                displayName: this.organization?.displayName,
-                avatarUrl: this.organization?.avatarUrl,
-            };
-            this.inviteCode = jwt.encode(payload, process.env.INVITE_SECRET);
-        }
+        const payload = {
+            email: this.email,
+            organizationId: this.organization?.id,
+            displayName: this.organization?.displayName,
+            avatarUrl: this.organization?.avatarUrl,
+        };
+        this.inviteCode = jwt.encode(payload, process.env.INVITE_SECRET);
     }
 }

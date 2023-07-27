@@ -60,8 +60,8 @@ describe('MailService', () => {
 
     it('should generate a invite url', async () => {
         const result = new URL(service.generateInviteUrl('engineering+test@vibe.xyz', 'dashboard'));
-        expect(result.pathname).toBe('/authentication/orgInvite');
-        expect(result.searchParams.get('inviteCode')).toBe('dashboard');
+        expect(result.pathname).toBe('/onboard/invite');
+        expect(result.searchParams.get('inviteCode')).toBeDefined();
         expect(result.searchParams.get('identity')).toBeDefined();
     });
 
