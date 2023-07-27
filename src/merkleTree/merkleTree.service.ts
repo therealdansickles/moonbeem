@@ -1,14 +1,18 @@
+import { keccak256 } from 'ethers';
+import { GraphQLError } from 'graphql';
+import { MerkleTree as MerkleTreejs } from 'merkletreejs';
+import { Repository } from 'typeorm';
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { keccak256 } from 'ethers';
-import { Repository } from 'typeorm';
+
 import { encodeAddressAndAmount } from '../lib/utilities/merkle';
+import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { CreateMerkleRootInput, MerkleDataInput, MerkleProofOutput } from './merkleTree.dto';
 import { MerkleTree } from './merkleTree.entity';
-import { MerkleTree as MerkleTreejs } from 'merkletreejs';
-import { GraphQLError } from 'graphql';
-import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 
 @Injectable()
 export class MerkleTreeService {
@@ -21,6 +25,25 @@ export class MerkleTreeService {
     ) {}
 
     async createMerkleTree(input: CreateMerkleRootInput): Promise<MerkleTree> {
+        if (input.data.length == 0) {
+            throw new GraphQLError('The length of data cannot be 0.', { extensions: { code: 'BAD_REQUEST' } });
+        }
+        const tree = this.generateMerkleRoot(input.data);
+        const existedTree = await this.getMerkleTree(tree.getHexRoot());
+        if (existedTree) return existedTree;
+
+        const data = { merkleRoot: tree.getHexRoot(), data: input.data };
+        return this.repository.save(data);
+    }
+
+    /**
+     * create or update a merkle tree
+     * calculate the merkle root depends on the given input
+     * if the
+     * 
+     * @param input
+     */
+    async createOrUpdateMerkleTree(input: CreateMerkleRootInput): Promise<MerkleTree> {
         if (input.data.length == 0) {
             throw new GraphQLError('The length of data cannot be 0.', { extensions: { code: 'BAD_REQUEST' } });
         }
