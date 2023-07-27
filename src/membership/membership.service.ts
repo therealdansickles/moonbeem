@@ -85,7 +85,7 @@ export class MembershipService {
         await this.membershipRepository.insert(membership);
 
         const result = await this.membershipRepository.findOneBy({ id: membership.id });
-        await this.mailService.sendInviteEmail(email, 'inviteCode');
+        await this.mailService.sendInviteEmail(email, result.inviteCode);
 
         return result;
     }
