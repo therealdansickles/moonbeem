@@ -1,20 +1,14 @@
-import {
-    BaseEntity,
-    BeforeInsert,
-    Column,
-    CreateDateColumn,
-    Entity,
-    OneToMany,
-    PrimaryGeneratedColumn,
-    UpdateDateColumn,
-} from 'typeorm';
 import { hashSync as hashPassword } from 'bcryptjs';
+import {
+    BaseEntity, BeforeInsert, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn,
+    UpdateDateColumn
+} from 'typeorm';
 
-import { Wallet } from '../wallet/wallet.entity';
-import { Membership } from '../membership/membership.entity';
-import { Organization } from '../organization/organization.entity';
 import { Collaboration } from '../collaboration/collaboration.entity';
 import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
+import { Membership } from '../membership/membership.entity';
+import { Organization } from '../organization/organization.entity';
+import { Wallet } from '../wallet/wallet.entity';
 
 @Entity({ name: 'User' })
 export class User extends BaseEntity {
@@ -26,6 +20,9 @@ export class User extends BaseEntity {
 
     @Column({ unique: true, comment: 'The email of the user.', transformer: lowercaseTransformer })
     public email: string;
+
+    @Column({ nullable: true, comment: 'The google mail address of the user.', transformer: lowercaseTransformer })
+    public gmail?: string;
 
     @Column({ nullable: true, comment: 'The verification token of the user.' })
     public verificationToken?: string;

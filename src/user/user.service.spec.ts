@@ -1,17 +1,21 @@
-import { Repository } from 'typeorm';
-import { faker } from '@faker-js/faker';
 import { GraphQLError } from 'graphql';
+import { Repository } from 'typeorm';
+
+import { faker } from '@faker-js/faker';
+
+import { Collection } from '../collection/collection.dto';
+import { CollectionService } from '../collection/collection.service';
+import { Organization } from '../organization/organization.dto';
 import { OrganizationService } from '../organization/organization.service';
+import { Coin, CoinQuotes } from '../sync-chain/coin/coin.dto';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { Wallet } from '../wallet/wallet.dto';
+import { WalletService } from '../wallet/wallet.service';
 import { User } from './user.entity';
 import { UserService } from './user.service';
-import { CollectionService } from '../collection/collection.service';
-import { WalletService } from '../wallet/wallet.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import { Collection } from '../collection/collection.dto';
-import { CoinService } from '../sync-chain/coin/coin.service';
-import { Coin, CoinQuotes } from '../sync-chain/coin/coin.dto';
-import { Organization } from '../organization/organization.dto';
-import { Wallet } from '../wallet/wallet.dto';
 
 describe('UserService', () => {
     let service: UserService;
@@ -179,6 +183,30 @@ describe('UserService', () => {
         it('should return null on invalid credentials', async () => {
             const result = await service.authenticateUser(basicUser.email, 'invalidpassword');
             expect(result).toBeNull();
+        });
+
+        it('should return error if user used the email by Goole sign in', async () => {
+            const email = faker.internet.email();
+            const user = await service.createUser({
+                username: faker.internet.userName(),
+                email,
+                gmail: email,
+            });
+            await expect(
+                async () => await service.authenticateUser(user.gmail, 'password')
+            ).rejects.toThrow(`The email has been used for Google sign in, please sign in by Google.`);
+        });
+
+        it('should authenticate the user if gmail and password both existed', async () => {
+            const email = faker.internet.email();
+            const user = await service.createUser({
+                username: faker.internet.userName(),
+                email,
+                gmail: email,
+                password: 'password',
+            });
+            const result = await service.authenticateUser(user.gmail, 'password');
+            expect(result.email).toEqual(user.email.toLowerCase());
         });
     });
 

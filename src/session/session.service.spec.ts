@@ -1,8 +1,9 @@
 import { ethers } from 'ethers';
 
-import { SessionService } from './session.service';
-import { UserService } from '../user/user.service';
 import { faker } from '@faker-js/faker';
+
+import { UserService } from '../user/user.service';
+import { SessionService } from './session.service';
 
 describe('SessionService', () => {
     let service: SessionService;
@@ -61,15 +62,71 @@ describe('SessionService', () => {
     describe('createSessionFromGoogle', () => {
         it('should return a session', async () => {
             const mockResponse = {
-                token: 'jwt_token',
-                user: {
-                    id: faker.datatype.uuid(),
-                    email: faker.internet.email(),
-                },
+                name: faker.internet.userName(),
+                gmail: faker.internet.email(),
+                avatarUrl: faker.internet.avatar()
             };
-            jest.spyOn(service, 'createSessionFromGoogle').mockImplementation(async () => mockResponse);
+            jest.spyOn(userService as any, 'authenticateFromGoogle').mockImplementation(async () => mockResponse);
             const result = await service.createSessionFromGoogle('access_token');
             expect(result.token).toBeDefined();
+        });
+
+        it('should bind to an existed user', async () => {
+            const email = faker.internet.email().toLowerCase();
+            const mockResponse = {
+                name: faker.internet.userName(),
+                gmail: email,
+                avatarUrl: faker.internet.avatar()
+            };
+            jest.spyOn(userService as any, 'authenticateFromGoogle').mockImplementation(async () => mockResponse);
+            const user = await userService.createUser({
+                email,
+                password: 'password'
+            });
+            const result = await service.createSessionFromGoogle('access_token');
+            expect(result.token).toBeDefined();
+            const updatedUser = await userService.getUserByQuery({ id: user.id });
+            expect(updatedUser.email).toEqual(email);
+            expect(updatedUser.gmail).toEqual(email);
+        });
+
+        it('should forbid after bound but no password setup', async () => {
+            const email = faker.internet.email().toLowerCase();
+            const mockResponse = {
+                name: faker.internet.userName(),
+                gmail: email,
+                avatarUrl: faker.internet.avatar()
+            };
+            jest.spyOn(userService as any, 'authenticateFromGoogle').mockImplementation(async () => mockResponse);
+            await userService.createUser({
+                email,
+            });
+            const result = await service.createSessionFromGoogle('access_token');
+            expect(result.token).toBeDefined();
+            
+            await expect(
+                async () => await service.createSessionFromEmail(email, 'password')
+            ).rejects.toThrow(`The email has been used for Google sign in, please sign in by Google.`);
+        });
+
+        it('should work after bound and password setup', async () => {
+            const email = faker.internet.email().toLowerCase();
+            const mockResponse = {
+                name: faker.internet.userName(),
+                gmail: email,
+                avatarUrl: faker.internet.avatar()
+            };
+            jest.spyOn(userService as any, 'authenticateFromGoogle').mockImplementation(async () => mockResponse);
+            await userService.createUser({
+                email,
+                password: 'password'
+            });
+            const result = await service.createSessionFromGoogle('access_token');
+            expect(result.token).toBeDefined();
+            
+            const authenticateByEmail = await service.createSessionFromEmail(email, 'password');
+            expect(authenticateByEmail.token).toBeDefined();
+            expect(authenticateByEmail.user.email).toEqual(email);
         });
     });
 });

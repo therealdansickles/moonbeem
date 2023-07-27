@@ -1,27 +1,28 @@
 import { compareSync as verifyPassword } from 'bcryptjs';
+import BigNumber from 'bignumber.js';
 import { google } from 'googleapis';
 import { GraphQLError } from 'graphql';
 import { isEmpty, isNil, omitBy } from 'lodash';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { captureException } from '@sentry/node';
 
+import { Collection } from '../collection/collection.entity';
+import { CollectionService } from '../collection/collection.service';
 import { googleConfig } from '../lib/configs/app.config';
+import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
 import { MailService } from '../mail/mail.service';
 import { OrganizationService } from '../organization/organization.service';
-import { User } from './user.entity';
-import { Wallet } from '../wallet/wallet.entity';
-import { Collection } from '../collection/collection.entity';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import BigNumber from 'bignumber.js';
-import { LatestSalePaginated, PriceInfo, UserProfit } from './user.dto';
-import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Tier } from '../tier/tier.entity';
-import { CreateUserInput } from './user.dto';
-import { CollectionService } from '../collection/collection.service';
+import { Wallet } from '../wallet/wallet.entity';
+import { CreateUserInput, LatestSalePaginated, PriceInfo, UserProfit } from './user.dto';
+import { User } from './user.entity';
 
 type IUserQuery = Partial<Pick<User, 'id' | 'username'>>;
 
@@ -146,7 +147,11 @@ export class UserService {
      * @returns The user if credentials are valid.
      */
     async authenticateUser(email: string, password: string): Promise<User | null> {
-        const user = await this.userRepository.findOneBy({ email });
+        // checking the email has been used for `Sign in with Google`
+        const signedInByGmail = await this.userRepository.findOneBy({ gmail: email.toLowerCase(), password: IsNull() });
+        if (signedInByGmail) throw new Error(`The email has been used for Google sign in, please sign in by Google.`);
+
+        const user = await this.userRepository.findOneBy({ email: email.toLowerCase() });
 
         if (user && (await verifyPassword(password, user.password))) {
             return user;
@@ -163,7 +168,7 @@ export class UserService {
      *
      * @returns The user if credentials are valid.
      */
-    async authenticateUserFromGoogle(accessToken: string): Promise<User | null> {
+    private async authenticateFromGoogle(accessToken: string): Promise<{ gmail: string, name: string, avatarUrl?: string }> {
         try {
             const googleClient = new google.auth.OAuth2({ clientId: googleConfig.clientId });
             const tokenInfo = await googleClient.getTokenInfo(accessToken);
@@ -175,28 +180,44 @@ export class UserService {
             if (!userInfo || userInfo.status != 200) {
                 throw new Error('Failed to get information from accessToken.');
             }
-            if (!userInfo.data.email) {
+            const gmail = userInfo.data?.email?.toLowerCase();
+            if (!gmail) {
                 throw new Error('google account not bound email.');
             }
 
-            const existedUser = await this.userRepository.findOneBy({ email: userInfo.data.email });
-            if (existedUser) {
-                return existedUser;
-            } else {
-                const userData = {
-                    email: userInfo.data.email,
-                    name: userInfo.data.name,
-                    avatarUrl: userInfo.data.picture,
-                    provider: 'google',
-                };
-                await this.createUserWithOrganization(userData);
-                return this.userRepository.findOneBy({ email: userInfo.data.email });
-            }
+            return { gmail, name: userInfo.data.name, avatarUrl: userInfo.data.picture };
         } catch (err) {
             captureException(err);
             throw new GraphQLError(`Failed to verify accessToken, ${(err as Error).message}`, {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
+        }
+    }
+
+    /**
+     * authenticateUser from Google OAuth mechanism
+     * 
+     * @param accessToken
+     * @returns
+     */
+    async authenticateUserFromGoogle(accessToken: string): Promise<User | null> {
+        const { gmail, name, avatarUrl } = await this.authenticateFromGoogle(accessToken);
+
+        const existedUser = await this.userRepository.findOneBy({ email: gmail, gmail: IsNull() });
+        if (existedUser) await this.userRepository.update({ id: existedUser.id }, { gmail });
+        const existedGmailUser = await this.userRepository.findOneBy({ gmail });
+        if (existedGmailUser) {
+            return existedGmailUser;
+        } else {
+            const userData = {
+                email: gmail,
+                gmail,
+                name,
+                avatarUrl,
+                provider: 'google',
+            };
+            await this.createUserWithOrganization(userData);
+            return this.userRepository.findOneBy({ email: gmail });
         }
     }
 
