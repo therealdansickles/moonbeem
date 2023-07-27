@@ -371,7 +371,8 @@ export class CollectionService {
             })
             .groupBy('asset.owner')
             .addGroupBy('txn.tierId')
-            .addGroupBy('txn.price');
+            .addGroupBy('txn.price')
+            .orderBy('quantity', 'DESC');
         if (after) {
             builder.andWhere('asset.txTime > :cursor', { cursor: new Date(fromCursor(after)).valueOf() / 1000 });
             builder.limit(first);
@@ -405,6 +406,8 @@ export class CollectionService {
                 const createdAt = new Date(holder.txTime * 1000);
                 return {
                     ...wallet,
+                    // the owner can be someone not using our platform
+                    address: holder.owner,
                     price: holder.price,
                     totalPrice: holder.totalPrice,
                     quantity: holder.quantity ? parseInt(holder.quantity) : 0,

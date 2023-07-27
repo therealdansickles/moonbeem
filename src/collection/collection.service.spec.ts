@@ -1313,6 +1313,30 @@ describe('CollectionService', () => {
                             },
                         },
                     },
+                    {
+                        name: faker.company.name(),
+                        totalMints: 200,
+                        paymentTokenAddress: coin.address,
+                        tierId: 1,
+                        price: '200',
+                        metadata: {
+                            uses: [],
+                            properties: {
+                                level: {
+                                    name: 'level',
+                                    type: 'string',
+                                    value: 'basic',
+                                    display_value: 'Basic',
+                                },
+                                holding_days: {
+                                    name: 'holding_days',
+                                    type: 'integer',
+                                    value: 125,
+                                    display_value: 'Days of holding',
+                                },
+                            },
+                        },
+                    },
                 ],
             });
 
@@ -1386,6 +1410,8 @@ describe('CollectionService', () => {
 
         it('should get holders', async () => {
             const tokenId3 = faker.random.numeric(5);
+
+            // Total count won't include duplicates
             await asset721Service.createAsset721({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
@@ -1407,23 +1433,53 @@ describe('CollectionService', () => {
                 price: '100',
                 paymentToken: faker.finance.ethereumAddress(),
             });
+
             const result = await service.getHolders(collectionAddress, '', '', 10, 0);
             expect(result).toBeDefined();
             expect(result.totalCount).toEqual(2);
             expect(result.edges.length).toEqual(2);
             expect(result.edges[0].node.tier).toBeDefined();
-            const edges = result.edges;
-            edges.sort((a, b) => a.node.quantity - b.node.quantity);
-            expect(edges[0].node.quantity).toBe(1);
-            expect(edges[0].node.price).toBe('100');
-            expect(edges[0].node.totalPrice).toBe('100');
+            // Assert the sorting is correct
+            expect(result.edges[0].node.quantity).toBe(2);
 
-            expect(edges[1].node.quantity).toBe(2);
-            expect(edges[1].node.price).toBe('100');
-            expect(edges[1].node.totalPrice).toBe('200');
+            const holder1 = result.edges.find(edge => edge.node.address === owner1)?.node;
+            expect(holder1.quantity).toBe(1);
+            expect(holder1.price).toBe('100');
+            expect(holder1.totalPrice).toBe('100');
+            expect(holder1.address).toBe(owner1);
+
+            const holder2 = result.edges.find(edge => edge.node.address === owner2)?.node;
+            expect(holder2.quantity).toBe(2);
+            expect(holder2.price).toBe('100');
+            expect(holder2.totalPrice).toBe('200');
+            // Assert the owner shows even it can't be find in the wallet repo
+            expect(holder2.address).toBe(owner2);
+
         });
 
         it('should get unique holders', async () => {
+            const tokenId3 = faker.random.numeric(5);
+            await asset721Service.createAsset721({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address: tokenAddress,
+                tokenId: tokenId3,
+                owner: owner2,
+            });
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: faker.finance.ethereumAddress(),
+                tierId: 1,
+                tokenAddress: tokenAddress,
+                tokenId: tokenId3,
+                price: '100',
+                paymentToken: faker.finance.ethereumAddress(),
+            });
             const result = await service.getUniqueHolderCount(collectionAddress);
             expect(result).toEqual(2);
         });
