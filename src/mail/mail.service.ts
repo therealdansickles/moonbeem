@@ -63,11 +63,11 @@ export class MailService {
      * Send a verification email to a user
      *
      * @param emailAddress - The email address to send the email to
-     * @param data - The data to render the template with
+     * @param token - The string of the verificationToken
      * @returns
      */
-    async sendVerificationEmail(emailAddress: string, data: any): Promise<void> {
-        const content = await this.renderTemplate('verification.mjml', {ctaUrl: this.generateVerificationUrl(emailAddress, data.token)});
+    async sendVerificationEmail(emailAddress: string, token: string): Promise<void> {
+        const content = await this.renderTemplate('verification.mjml', {ctaUrl: this.generateVerificationUrl(emailAddress, token)});
         await this.sendEmail(emailAddress, 'Your Signup Verification Code on Vibe', content);
     }
 
@@ -106,9 +106,8 @@ export class MailService {
      */
     generateVerificationUrl(emailAddress: string, token: string): string {
         const verificationUrl = this.generateDashboardUrl(emailAddress);
-        verificationUrl.pathname = '/signup/basename';
+        verificationUrl.pathname = '/onboard';
         verificationUrl.searchParams.append('token', token);
-        verificationUrl.searchParams.append('identity', Buffer.from(emailAddress, 'utf8').toString('base64'));
         return verificationUrl.toString();
     }
 

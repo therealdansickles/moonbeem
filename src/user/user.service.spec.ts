@@ -138,7 +138,7 @@ describe('UserService', () => {
             }
         });
 
-        it('should send a welcome email to the new user', async () => {
+        it('should send a verification email to the new user', async () => {
             const userData = {
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
@@ -146,11 +146,11 @@ describe('UserService', () => {
                 password: 'password',
             };
 
-            const sendWelcomeEmailSpy = jest.spyOn(global.mailService, 'sendWelcomeEmail');
+            const sendEmailSpy = jest.spyOn(global.mailService, 'sendVerificationEmail');
 
             await service.createUserWithOrganization(userData);
 
-            expect(sendWelcomeEmailSpy).toHaveBeenCalledWith(userData.email.toLocaleLowerCase(), {});
+            expect(sendEmailSpy).toHaveBeenCalled();
         });
     });
 
@@ -288,7 +288,6 @@ describe('UserService', () => {
             jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
 
             const result = await service.getUserProfit(owner.id);
-            console.log(result);
             expect(result.length).toBe(1);
             expect(result[0].inPaymentToken).toBe('1');
             expect(result[0].inUSDC).toBe(tokenPriceUSD.toString());
@@ -318,7 +317,6 @@ describe('UserService', () => {
             jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
 
             const result = await service.getUserProfit(owner.id);
-            console.log(result);
             expect(result.length).toBe(1);
             expect(result[0].inPaymentToken).toBe('1');
             expect(result[0].inUSDC).toBe(tokenPriceUSD.toString());

@@ -69,7 +69,7 @@ export class UserService {
 
         const user = await this.createUser(input);
         await this.organizationService.createPersonalOrganization(user);
-        await this.mailService.sendWelcomeEmail(user.email, {});
+        await this.mailService.sendVerificationEmail(user.email, user.verificationToken);
         return user;
     }
 
