@@ -70,6 +70,7 @@
     "googleapis": "^118.0.0",
     "graphql": "^16.6.0",
     "graphql-type-json": "^0.3.2",
+    "jwt-simple": "^0.5.6",
     "lodash": "^4.17.21",
     "merkletreejs": "^0.3.10",
     "mjml": "^4.14.1",

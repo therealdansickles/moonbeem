@@ -15,6 +15,7 @@ describe('MembershipService', () => {
 
     it('should lower case the email', async () => {
         let membership = new Membership();
+        membership = repository.create(membership);
         membership.email = faker.internet.email().toUpperCase();
         await repository.insert(membership);
         membership = await repository.findOneBy({ email: membership.email.toLowerCase() });
@@ -23,9 +24,12 @@ describe('MembershipService', () => {
 
     it('should set the invite code', async () => {
         let membership = new Membership();
+        membership = repository.create(membership);
         membership.email = faker.internet.email();
         await repository.insert(membership);
         membership = await repository.findOneBy({ email: membership.email.toLowerCase() });
+
         expect(membership.inviteCode).toBeDefined();
+
     });
 });

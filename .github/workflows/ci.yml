@@ -19,6 +19,7 @@ env:
     REDIS_URL: redis://localhost:6379
     MONGO_URL: mongodb://localhost:27017
     SESSION_SECRET: secretKey
+    INVITE_SECRET: secretInvite
     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
