@@ -1,5 +1,6 @@
 import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 
+import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
@@ -60,13 +61,14 @@ dotenv.config();
             type: 'postgres',
             url: postgresConfig.url,
             autoLoadEntities: true,
-            synchronize: true,
+            synchronize: false,
             logging: true,
         }),
         JwtModule.register({
             secret: process.env.SESSION_SECRET,
             signOptions: { expiresIn: '30d' },
         }),
+        CacheModule.register({ isGlobal: true }),
     ],
     providers: [
         {

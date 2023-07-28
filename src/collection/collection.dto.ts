@@ -342,7 +342,7 @@ export class CollectionStat {
     @IsString()
     readonly source: string;
 
-    @Field(() => CollectionStatData)
+    @Field(() => CollectionStatData, { nullable: true })
     @IsObject()
     readonly data: CollectionStatData;
 }
@@ -416,6 +416,8 @@ export class CollectionSold extends PickType(
         'txHash',
         'chainId',
         'createdAt',
+        'sender',
+        'recipient',
     ] as const,
     ObjectType
 ) {

@@ -10,8 +10,14 @@ import { MembershipService } from '../membership/membership.service';
 import { Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
 import {
-    CreateOrganizationInput, Organization, OrganizationInput, TransferOrganizationInput,
-    UpdateOrganizationInput
+    AggregatedBuyer,
+    AggregatedCollection,
+    AggregatedEarning,
+    CreateOrganizationInput,
+    Organization,
+    OrganizationInput,
+    TransferOrganizationInput,
+    UpdateOrganizationInput,
 } from './organization.dto';
 import { OrganizationService } from './organization.service';
 
@@ -70,5 +76,27 @@ export class OrganizationResolver {
     @ResolveField(() => [Collaboration], { description: 'Returns the members for the given organization' })
     async collaborations(@Parent() organization: Organization): Promise<Collaboration[]> {
         return await this.collaborationService.getCollaborationsByOrganizationId(organization.id);
+    }
+
+    @Public()
+    @ResolveField(() => AggregatedCollection, {
+        description: 'Returns the aggregate data of collections for given organization',
+    })
+    async aggregatedCollection(@Parent() organization: Organization): Promise<AggregatedCollection> {
+        return await this.collectionService.getAggregatedCollectionsByOrganizationId(organization.id);
+    }
+
+    @Public()
+    @ResolveField(() => AggregatedBuyer, {
+        description: 'Returns the aggregate data of buyers for the given organization.',
+    })
+    async aggregatedBuyer(@Parent() organization: Organization): Promise<AggregatedBuyer> {
+        return await this.organizationService.getAggregatedBuyers(organization.id);
+    }
+
+    @Public()
+    @ResolveField(() => AggregatedEarning, { description: 'Returns the aggregate data of earngin for given wallet' })
+    async aggregatedEarning(@Parent() organization: Organization): Promise<AggregatedEarning> {
+        return await this.organizationService.getAggregatedEarnings(organization.id);
     }
 }

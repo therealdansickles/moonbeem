@@ -87,3 +87,8 @@ export class LeaderboardRanking {
     @IsEthereumAddress()
     readonly paymentToken: string;
 }
+
+export interface BasicTokenPrice {
+    token: string;
+    totalPrice: string;
+}

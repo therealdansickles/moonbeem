@@ -95,7 +95,7 @@ export class CollectionResolver {
     }
 
     @Public()
-    @Query(() => [CollectionStat], { description: 'Get collection stat from secondary markets' })
+    @Query(() => [CollectionStat], { description: 'Get collection stat from secondary markets', nullable: true })
     async secondaryMarketStat(
         @Args({ name: 'id', nullable: true }) id: string,
             @Args({ name: 'address', nullable: true }) address: string

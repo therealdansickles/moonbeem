@@ -6,7 +6,7 @@ import { In, IsNull, Repository, UpdateResult } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as Sentry from '@sentry/node';
-
+import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
 import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
 import { OpenseaService } from '../opensea/opensea.service';
 import { SaleHistory } from '../saleHistory/saleHistory.dto';
@@ -18,6 +18,7 @@ import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sa
 import { Tier as TierDto } from '../tier/tier.dto';
 import { Tier } from '../tier/tier.entity';
 import { TierService } from '../tier/tier.service';
+import { User } from '../user/user.entity';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
@@ -38,6 +39,7 @@ import {
     ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
+import { AggregatedCollection } from '../organization/organization.dto';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name'>>;
 
@@ -192,7 +194,12 @@ export class CollectionService {
             //     extensions: { code: 'INTERNAL_SERVER_ERROR' },
             // });
             console.error('The nameOnOpensea must provide');
-            return null;
+            return [
+                {
+                    source: 'opensea',
+                    data: null,
+                },
+            ];
         }
         const statFromOpensea = await this.openseaService.getCollection(collection.nameOnOpensea);
         // may have multiple sources, so make it as array
@@ -375,7 +382,8 @@ export class CollectionService {
             })
             .groupBy('asset.owner')
             .addGroupBy('txn.tierId')
-            .addGroupBy('txn.price');
+            .addGroupBy('txn.price')
+            .orderBy('quantity', 'DESC');
         if (after) {
             builder.andWhere('asset.txTime > :cursor', { cursor: new Date(fromCursor(after)).valueOf() / 1000 });
             builder.limit(first);
@@ -409,6 +417,8 @@ export class CollectionService {
                 const createdAt = new Date(holder.txTime * 1000);
                 return {
                     ...wallet,
+                    // the owner can be someone not using our platform
+                    address: holder.owner,
                     price: holder.price,
                     totalPrice: holder.totalPrice,
                     quantity: holder.quantity ? parseInt(holder.quantity) : 0,
@@ -753,5 +763,61 @@ export class CollectionService {
         if (!address) return { inPaymentToken: '0', inUSDC: '0' };
 
         return await this.getTotalPrice(address);
+    }
+
+    /**
+     * get the number of collections created by the given organization in the month.
+     * @param id organization id
+     * @returns number of collections
+     */
+    public async getAggregatedCollectionsByOrganizationId(id: string): Promise<AggregatedCollection> {
+        const [monthly, weekly, daily] = await Promise.all([
+            this.getCollectionsByOrganizationIdAndBeginTime(id, startOfMonth(new Date())),
+            this.getCollectionsByOrganizationIdAndBeginTime(id, startOfWeek(new Date())),
+            this.getCollectionsByOrganizationIdAndBeginTime(id, startOfDay(new Date())),
+        ]);
+        return { monthly, weekly, daily };
+    }
+
+    /**
+     * get the number of all created collections by wallet address.
+     * @param walletAddress wallet address
+     * @returns number of collections
+     */
+    async getCreatedCollectionsByWalletAddress(walletAddress: string): Promise<Collection[]> {
+        return await this.collectionRepository
+            .createQueryBuilder('collection')
+            .leftJoinAndSelect('collection.creator', 'wallet')
+            .where('wallet.address = :address', { address: walletAddress })
+            .andWhere('collection.address IS NOT NULL')
+            .getMany();
+    }
+
+    /**
+     * get all collections created by all user-bound wallets
+     * @param userId user id
+     * @returns number of collections
+     */
+    async getCollectionsByUserId(userId: string): Promise<Collection[]> {
+        return await this.collectionRepository
+            .createQueryBuilder('collection')
+            .leftJoinAndSelect(Wallet, 'wallet', 'collection.creatorId = wallet.id')
+            .leftJoinAndSelect(User, 'user', 'wallet.ownerId = user.id')
+            .where('user.id = :id', { id: userId })
+            .getMany();
+    }
+
+    /**
+     * Derive the number of all collections created from the start time to the present, based on the organization and the start time
+     * @param id organization id
+     * @param beginDate start time
+     * @returns
+     */
+    async getCollectionsByOrganizationIdAndBeginTime(id: string, beginDate: Date): Promise<number> {
+        return await this.collectionRepository
+            .createQueryBuilder('collection')
+            .where('collection.organizationId = :id', { id })
+            .andWhere('collection.createdAt >= :beginDate', { beginDate })
+            .getCount();
     }
 }

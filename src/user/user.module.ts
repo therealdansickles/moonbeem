@@ -15,16 +15,29 @@ import { Wallet } from '../wallet/wallet.entity';
 import { WalletModule } from '../wallet/wallet.module';
 import { JwtModule } from '@nestjs/jwt/dist/jwt.module';
 import { JwtService } from '@nestjs/jwt';
+import { CollectionModule } from '../collection/collection.module';
+import { Collection } from '../collection/collection.entity';
+import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { Coin } from '../sync-chain/coin/coin.entity';
+import { CoinModule } from '../sync-chain/coin/coin.module';
+import { Tier } from '../tier/tier.entity';
+import { TierModule } from '../tier/tier.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([User, Wallet, Membership, Organization, Collaboration]),
+        TypeOrmModule.forFeature([User, Wallet, Membership, Organization, Collaboration, Collection, Tier]),
+        TypeOrmModule.forFeature([MintSaleTransaction, Coin], 'sync_chain'),
         forwardRef(() => CollaborationModule),
         forwardRef(() => MailModule),
+        forwardRef(() => CollectionModule),
         forwardRef(() => MembershipModule),
         forwardRef(() => OrganizationModule),
         forwardRef(() => WalletModule),
-        JwtModule
+        forwardRef(() => MintSaleTransactionModule),
+        forwardRef(() => CoinModule),
+        forwardRef(() => TierModule),
+        JwtModule,
     ],
     exports: [UserService],
     providers: [JwtService, UserService, UserResolver],

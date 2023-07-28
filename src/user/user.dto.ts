@@ -1,5 +1,8 @@
 import { Field, ObjectType, InputType, ID, PickType, OmitType, PartialType, Int } from '@nestjs/graphql';
-import { IsString, IsOptional, IsNumber, IsArray } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsArray, IsObject, IsDateString } from 'class-validator';
+import { Collection } from '../collection/collection.dto';
+import Paginated from '../lib/pagination/pagination.model';
+import { Profit, Tier } from '../tier/tier.dto';
 import { Wallet } from '../wallet/wallet.dto';
 
 @ObjectType('User')
@@ -27,7 +30,6 @@ export class User {
     @IsOptional()
     readonly verificationToken?: string;
 
-    @Field({ description: 'The password of the user.', nullable: true })
     @IsString()
     @IsOptional()
     readonly password?: string;
@@ -72,7 +74,19 @@ export class User {
 }
 
 @InputType()
-export class CreateUserInput extends OmitType(User, ['id', 'wallets'] as const, InputType) {}
+export class CreateUserInput extends OmitType(User, ['id', 'wallets'] as const, InputType) {
+    @Field({ description: 'The password for the user.', nullable: true })
+    @IsString()
+    @IsOptional()
+    @IsString()
+        password?: string;
+
+    @Field({ description: "User provider: 'google' or 'local')", nullable: true })
+    @IsString()
+    @IsOptional()
+    @IsString()
+        provider?: string;
+}
 
 @InputType()
 export class UserInput extends PickType(User, ['id'] as const, InputType) {}
@@ -100,3 +114,60 @@ export class SearchUser {
     @IsArray()
     readonly users: UserOutput[];
 }
+
+@ObjectType('UserProfit')
+export class UserProfit extends Profit {}
+
+export interface PriceInfo {
+    price: string;
+    token: string;
+}
+
+@ObjectType('LatestSalePrices')
+export class LatestSalePrices extends Profit {}
+
+@ObjectType('LatestSaleData')
+export class LatestSaleData {
+    @Field(() => Tier, { description: 'Sales of collection and id.', nullable: true })
+    @IsObject()
+    readonly tier?: Tier;
+
+    @Field(() => Collection, { description: 'Sales of collection.', nullable: true })
+    @IsObject()
+    readonly collection?: Tier;
+
+    @IsString()
+    @Field({ description: 'Transaction hash of transaction.' })
+    readonly txHash: string;
+
+    @IsNumber()
+    @Field({ description: 'Transaction time of transaction.' })
+    readonly txTime: number;
+
+    @IsString()
+    @Field({ description: 'NFT Recipient of current transaction.' })
+    readonly recipient: string;
+
+    @IsString()
+    @Field({ description: 'The contract address' })
+    readonly address: string;
+
+    @IsString()
+    @Field({ description: 'The payment token address' })
+    readonly paymentToken: string;
+
+    @Field(() => Int, { description: 'The current quantity of the txHash' })
+    @IsNumber()
+    readonly quantity: number;
+
+    @Field(() => LatestSalePrices, { description: 'The current price.' })
+    @IsObject()
+    readonly totalPrice: LatestSalePrices;
+
+    @IsDateString()
+    @Field({ description: 'The DateTime that this latest slae was created.' })
+    readonly createdAt: Date;
+}
+
+@ObjectType('LatestSalePaginated')
+export class LatestSalePaginated extends Paginated(LatestSaleData) {}

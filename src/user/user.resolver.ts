@@ -1,7 +1,7 @@
-import { Resolver, Args, Query, Mutation, ResolveField, Parent } from '@nestjs/graphql';
+import { Resolver, Args, Query, Mutation, ResolveField, Parent, Int } from '@nestjs/graphql';
 import { Public } from '../session/session.decorator';
 import { UserService } from './user.service';
-import { User, CreateUserInput, UpdateUserInput, VerifyUserInput } from './user.dto';
+import { User, CreateUserInput, UpdateUserInput, VerifyUserInput, UserProfit, LatestSalePaginated } from './user.dto';
 import { Membership } from '../membership/membership.dto';
 import { MembershipService } from '../membership/membership.service';
 import { Organization } from '../organization/organization.dto';
@@ -54,5 +54,41 @@ export class UserResolver {
     @ResolveField(() => [Organization], { description: 'Returns the memberships for the given user' })
     async organizations(@Parent() user: User): Promise<Organization[]> {
         return await this.organizationService.getOrganizationsByOwnerId(user.id);
+    }
+
+    @Public()
+    @ResolveField(() => [UserProfit], { description: 'Returns the total raised for the given user.' })
+    async profit(@Parent() user: User): Promise<UserProfit[]> {
+        return await this.userService.getUserProfit(user.id);
+    }
+
+    @Public()
+    @ResolveField(() => Int, { description: 'Returns the total collections for the given user.' })
+    async totalCollections(@Parent() user: User): Promise<number> {
+        return await this.userService.getTotalCollections(user.id);
+    }
+
+    @Public()
+    @ResolveField(() => Int, { description: 'Returns the unique buyers for the given user.' })
+    async uniqueBuyers(@Parent() user: User): Promise<number> {
+        return await this.userService.getUniqueBuyers(user.id);
+    }
+
+    @Public()
+    @ResolveField(() => Int, { description: 'Returns the total sold for the given user.' })
+    async itemSold(@Parent() user: User): Promise<number> {
+        return await this.userService.getItemSold(user.id);
+    }
+
+    @Public()
+    @ResolveField(() => LatestSalePaginated, { description: 'Returns the latest sales list for the given user.' })
+    async latestSales(
+        @Parent() user: User,
+            @Args('before', { nullable: true }) before?: string,
+            @Args('after', { nullable: true }) after?: string,
+            @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+    ): Promise<LatestSalePaginated> {
+        return await this.userService.getLatestSales(user.id, before, after, first, last);
     }
 }

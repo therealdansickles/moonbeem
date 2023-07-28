@@ -13,6 +13,7 @@ import {
 import { Organization } from '../organization/organization.entity';
 import { User } from '../user/user.entity';
 import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
+import * as jwt from 'jwt-simple';
 
 @Entity({ name: 'Membership' })
 @Index(['user.id', 'organization.id'], { unique: true })
@@ -64,8 +65,12 @@ export class Membership extends BaseEntity {
 
     @BeforeInsert()
     async setInviteCode(): Promise<void> {
-        if (!this.inviteCode) {
-            this.inviteCode = Math.random().toString(36).substring(2, 15);
-        }
+        const payload = {
+            email: this.email,
+            organizationId: this.organization?.id,
+            displayName: this.organization?.displayName,
+            avatarUrl: this.organization?.avatarUrl,
+        };
+        this.inviteCode = jwt.encode(payload, process.env.INVITE_SECRET);
     }
 }

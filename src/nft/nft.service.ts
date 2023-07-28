@@ -10,7 +10,7 @@ export type INftQuery = {
     id?: string;
     collection?: { id: string };
     tier?: { id: string };
-    tokenId?: number;
+    tokenId?: string;
 };
 
 export type INftListQuery = {

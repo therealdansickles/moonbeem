@@ -2,6 +2,7 @@ import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-
 import { RavenInterceptor, RavenModule } from 'nest-raven';
 
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
@@ -78,13 +79,14 @@ dotenv.config();
             type: 'postgres',
             url: postgresConfig.url,
             autoLoadEntities: true,
-            synchronize: true,
+            synchronize: false,
             logging: true,
         }),
         JwtModule.register({
             secret: process.env.SESSION_SECRET,
             signOptions: { expiresIn: '30d' },
         }),
+        CacheModule.register({ isGlobal: true }),
     ],
     providers: [
         {

@@ -2923,6 +2923,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@nestjs/cache-manager@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "@nestjs/cache-manager@npm:2.1.0"
+  peerDependencies:
+    "@nestjs/common": ^9.0.0 || ^10.0.0
+    "@nestjs/core": ^9.0.0 || ^10.0.0
+    cache-manager: <=5
+    reflect-metadata: ^0.1.12
+    rxjs: ^7.0.0
+  checksum: f38cff32a17ce2277f90b80c9b58ed5d915ed4e3b644067d9315a71d8ba5e3caba99d283a9e2103a14673df529235f29c9e345ead0c0f6a7bb458f1c8cf6dcd5
+  languageName: node
+  linkType: hard
+
 "@nestjs/cli@npm:^9.0.0":
   version: 9.5.0
   resolution: "@nestjs/cli@npm:9.5.0"
@@ -5476,6 +5489,16 @@ __metadata:
     tar: ^6.1.11
     unique-filename: ^3.0.0
   checksum: 385756781e1e21af089160d89d7462b7ed9883c978e848c7075b90b73cb823680e66092d61513050164588387d2ca87dd6d910e28d64bc13a9ac82cd8580c796
+  languageName: node
+  linkType: hard
+
+"cache-manager@npm:^5.2.3":
+  version: 5.2.3
+  resolution: "cache-manager@npm:5.2.3"
+  dependencies:
+    lodash.clonedeep: ^4.5.0
+    lru-cache: ^9.1.2
+  checksum: 2bcd6a385e5575bf9577a209e02c9f5074cd476e6eb08a0f108e45d80c20f4e91fbff163493fe345f166f8ecb232687f20541bc4f42fb2167f8770f9f8b26c51
   languageName: node
   linkType: hard
 
@@ -9160,6 +9183,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jwt-simple@npm:^0.5.6":
+  version: 0.5.6
+  resolution: "jwt-simple@npm:0.5.6"
+  checksum: fa10ffd655d558c4063d426e7624397db51eddb0aae8c16fbbd4eb9e4e179f38feb0bbb854283f0d0051054f69835eba4d70844c8f528b89736370571999655d
+  languageName: node
+  linkType: hard
+
 "keccak@npm:^3.0.0":
   version: 3.0.3
   resolution: "keccak@npm:3.0.3"
@@ -9232,6 +9262,13 @@ __metadata:
   dependencies:
     p-locate: ^5.0.0
   checksum: 72eb661788a0368c099a184c59d2fee760b3831c9c1c33955e8a19ae4a21b4116e53fa736dc086cdeb9fce9f7cc508f2f92d2d3aae516f133e16a2bb59a39f5a
+  languageName: node
+  linkType: hard
+
+"lodash.clonedeep@npm:^4.5.0":
+  version: 4.5.0
+  resolution: "lodash.clonedeep@npm:4.5.0"
+  checksum: 92c46f094b064e876a23c97f57f81fbffd5d760bf2d8a1c61d85db6d1e488c66b0384c943abee4f6af7debf5ad4e4282e74ff83177c9e63d8ff081a4837c3489
   languageName: node
   linkType: hard
 
@@ -9340,7 +9377,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lru-cache@npm:^9.1.1":
+"lru-cache@npm:^9.1.1, lru-cache@npm:^9.1.2":
   version: 9.1.2
   resolution: "lru-cache@npm:9.1.2"
   checksum: d3415634be3908909081fc4c56371a8d562d9081eba70543d86871b978702fffd0e9e362b83921b27a29ae2b37b90f55675aad770a54ac83bb3e4de5049d4b15
@@ -10999,6 +11036,7 @@ __metadata:
     "@faker-js/faker": ^7.6.0
     "@nestjs/apollo": ^10.1.7
     "@nestjs/axios": ^2.0.0
+    "@nestjs/cache-manager": ^2.1.0
     "@nestjs/cli": ^9.0.0
     "@nestjs/common": ^9.0.0
     "@nestjs/config": ^3.0.0
@@ -11034,6 +11072,7 @@ __metadata:
     axios: ^1.4.0
     bcryptjs: ^2.4.3
     bignumber.js: ^9.1.1
+    cache-manager: ^5.2.3
     chalk: ^5.2.0
     class-transformer: ^0.5.1
     class-validator: ^0.14.0
@@ -11050,6 +11089,7 @@ __metadata:
     graphql-type-json: ^0.3.2
     jest: 28.1.3
     jest-util: ^29.5.0
+    jwt-simple: ^0.5.6
     lodash: ^4.17.21
     merkletreejs: ^0.3.10
     mjml: ^4.14.1

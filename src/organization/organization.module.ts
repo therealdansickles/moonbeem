@@ -21,6 +21,8 @@ import { UserModule } from '../user/user.module';
 import { Wallet } from '../wallet/wallet.entity';
 import { WalletModule } from '../wallet/wallet.module';
 import { JwtModule, JwtService } from '@nestjs/jwt';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { CoinModule } from '../sync-chain/coin/coin.module';
 
 @Module({
     imports: [
@@ -34,10 +36,11 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
         forwardRef(() => TierModule),
         forwardRef(() => UserModule),
         forwardRef(() => WalletModule),
+        forwardRef(() => CoinModule),
         JwtModule,
     ],
     exports: [OrganizationModule, OrganizationService],
-    providers: [JwtService, MembershipService, OrganizationService, OrganizationResolver],
+    providers: [JwtService, MembershipService, OrganizationService, OrganizationResolver, MintSaleTransactionService],
     controllers: [],
 })
 export class OrganizationModule {}

@@ -2,7 +2,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { MintSaleTransaction } from './mint-sale-transaction.entity';
-import { LeaderboardRanking } from './mint-sale-transaction.dto';
+import { BasicTokenPrice, LeaderboardRanking } from './mint-sale-transaction.dto';
 import { GraphQLError } from 'graphql';
 
 interface GetTransactionInput {
@@ -47,6 +47,48 @@ export class MintSaleTransactionService {
             .orderBy()
             .getRawMany();
 
+        return result;
+    }
+
+    /**
+     * get all buyers by matching address lists base on start time
+     * @param addresses list of collection addresses
+     * @param beginDate start time
+     * @returns number of buyers
+     */
+    async getBuyersByCollectionAddressesAndBeginTime(addresses: string[], beginDate: Date): Promise<number> {
+        if (addresses.length == 0) return 0;
+
+        const result = await this.transactionRepository
+            .createQueryBuilder('txn')
+            .select('COUNT(DISTINCT(txn.recipient))', 'total')
+            .where('txn.address IN (:...addresses)', { addresses })
+            // txTime is a timestamp that needs to be converted to a date type
+            .andWhere('TO_TIMESTAMP(txn.txTime) >= :beginDate', { beginDate })
+            .getRawOne();
+        return result ? parseInt(result.total ?? 0) : 0;
+    }
+
+    /**
+     * get all earnings based on address list and start time.
+     * @param addresses list of collection addresses
+     * @param beginDate start time
+     * @returns total earnings list
+     */
+    async getEarningsByCollectionAddressesAndBeginTime(
+        addresses: string[],
+        beginDate: Date
+    ): Promise<BasicTokenPrice[]> {
+        if (addresses.length == 0) return [];
+
+        const result: BasicTokenPrice[] = await this.transactionRepository
+            .createQueryBuilder('txn')
+            .select('txn.paymentToken', 'token')
+            .addSelect('SUM(txn.price::numeric(20,0))', 'totalPrice')
+            .where('txn.address IN (:...addresses)', { addresses })
+            .andWhere('TO_TIMESTAMP(txn.txTime) >= :beginDate', { beginDate })
+            .addGroupBy('txn.paymentToken')
+            .getRawMany();
         return result;
     }
 }

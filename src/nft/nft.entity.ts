@@ -27,8 +27,8 @@ export class Nft extends BaseEntity {
     @JoinColumn()
     readonly tier?: Tier;
 
-    @Column('int')
-    readonly tokenId: number;
+    @Column({ comment: 'The NFT tokenId' })
+    readonly tokenId: string;
 
     @Column({
         default: {},

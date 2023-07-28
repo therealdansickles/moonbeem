@@ -63,11 +63,11 @@ export class MailService {
      * Send a verification email to a user
      *
      * @param emailAddress - The email address to send the email to
-     * @param data - The data to render the template with
+     * @param token - The string of the verificationToken
      * @returns
      */
-    async sendVerificationEmail(emailAddress: string, data: any): Promise<void> {
-        const content = await this.renderTemplate('verification.mjml', {ctaUrl: this.generateVerificationUrl(emailAddress, data.token)});
+    async sendVerificationEmail(emailAddress: string, token: string): Promise<void> {
+        const content = await this.renderTemplate('verification.mjml', {ctaUrl: this.generateVerificationUrl(emailAddress, token)});
         await this.sendEmail(emailAddress, 'Your Signup Verification Code on Vibe', content);
     }
 
@@ -76,12 +76,12 @@ export class MailService {
      * Send an invite email to a user
      *
      * @param emailAddress - The email address to send the email to
-     * @param data - The data to render the template with
+     * @param token - The jwt token for the invite. (inviteCode)
      * @returns
      */
-    async sendInviteEmail(emailAddress: string, data: any): Promise<void> {
-        const content = await this.renderTemplate('invite.mjml', {ctaUrl: this.generateInviteUrl(emailAddress, data.token)});
-        await this.sendEmail(emailAddress, 'Your Signup Verification Code on Vibe', content);
+    async sendInviteEmail(emailAddress: string, token: string): Promise<void> {
+        const content = await this.renderTemplate('invite.mjml', {ctaUrl: this.generateInviteUrl(emailAddress, token)});
+        await this.sendEmail(emailAddress, 'You have been invited into a workspace on Vibe', content);
     }
 
     /**
@@ -106,9 +106,8 @@ export class MailService {
      */
     generateVerificationUrl(emailAddress: string, token: string): string {
         const verificationUrl = this.generateDashboardUrl(emailAddress);
-        verificationUrl.pathname = '/signup/basename';
+        verificationUrl.pathname = '/onboard';
         verificationUrl.searchParams.append('token', token);
-        verificationUrl.searchParams.append('identity', Buffer.from(emailAddress, 'utf8').toString('base64'));
         return verificationUrl.toString();
     }
 
@@ -135,8 +134,9 @@ export class MailService {
      */
     generateInviteUrl(emailAddress: string, token: string): string {
         const inviteUrl = this.generateDashboardUrl(emailAddress);
-        inviteUrl.pathname = '/authentication/orgInvite';
-        inviteUrl.searchParams.append('inviteCode', token);
+        const inviteCode = this.encodeBase64(token);
+        inviteUrl.pathname = '/onboard/invite';
+        inviteUrl.searchParams.append('inviteCode', inviteCode);
         return inviteUrl.toString();
     }
 
@@ -148,7 +148,17 @@ export class MailService {
      */
     private generateDashboardUrl(email: string): URL {
         const dashboardUrl = new URL(process.env.DASHBOARD_URL || 'https://dashboard.vibe.xyz');
-        dashboardUrl.searchParams.append('identity', Buffer.from(email, 'utf8').toString('base64'));
+        const encodedEmail = this.encodeBase64(email);
+        dashboardUrl.searchParams.append('identity', encodedEmail); // TODO: This was a legacy port. Probably change to another key
         return dashboardUrl;
+    }
+
+    /**
+     * Encodes a string to base64
+     *
+     * @param str - The string to encode
+     */
+    private encodeBase64(str: string): string {
+        return Buffer.from(str, 'utf8').toString('base64');
     }
 }

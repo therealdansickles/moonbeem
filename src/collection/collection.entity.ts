@@ -1,14 +1,7 @@
 import { Exclude } from 'class-transformer';
 import {
-    BaseEntity,
-    Column,
-    CreateDateColumn,
-    Entity,
-    JoinColumn,
-    ManyToOne,
-    OneToMany,
-    PrimaryGeneratedColumn,
-    UpdateDateColumn,
+    BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany,
+    PrimaryGeneratedColumn, UpdateDateColumn
 } from 'typeorm';
 
 import { Collaboration } from '../collaboration/collaboration.entity';
@@ -45,6 +38,13 @@ export class Collection extends BaseEntity {
         comment: 'The type of collection that this is.',
     })
     readonly kind: CollectionKind;
+
+    @Column({
+        nullable: true,
+        comment: 'The token contract address of the collection.',
+        transformer: lowercaseTransformer,
+    })
+    readonly tokenAddress?: string;
 
     @ManyToOne(() => Organization, (organization) => organization.collections, {
         eager: true,
