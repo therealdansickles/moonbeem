@@ -106,7 +106,7 @@ describe('SessionService', () => {
             
             await expect(
                 async () => await service.createSessionFromEmail(email, 'password')
-            ).rejects.toThrow(`The email has been used for Google sign in, please sign in by Google.`);
+            ).rejects.toThrow(`This email has been used for Google sign in. Please sign in with Google.`);
         });
 
         it('should work after bound and password setup', async () => {

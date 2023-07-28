@@ -194,7 +194,7 @@ describe('UserService', () => {
             });
             await expect(
                 async () => await service.authenticateUser(user.gmail, 'password')
-            ).rejects.toThrow(`The email has been used for Google sign in, please sign in by Google.`);
+            ).rejects.toThrow(`This email has been used for Google sign in. Please sign in with Google.`);
         });
 
         it('should authenticate the user if gmail and password both existed', async () => {

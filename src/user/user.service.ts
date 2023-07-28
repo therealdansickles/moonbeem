@@ -149,7 +149,7 @@ export class UserService {
     async authenticateUser(email: string, password: string): Promise<User | null> {
         // checking the email has been used for `Sign in with Google`
         const signedInByGmail = await this.userRepository.findOneBy({ gmail: email.toLowerCase(), password: IsNull() });
-        if (signedInByGmail) throw new Error(`The email has been used for Google sign in, please sign in by Google.`);
+        if (signedInByGmail) throw new Error(`This email has been used for Google sign in. Please sign in with Google.`);
 
         const user = await this.userRepository.findOneBy({ email: email.toLowerCase() });
 
