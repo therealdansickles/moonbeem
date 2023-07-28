@@ -278,6 +278,17 @@ export class TierService {
     }
 
 
+    /**
+     * getHolders of a tier.
+     * The holders definition is the unique owner of the assets
+     * So we should find the assets with unique owner in this tier.
+     *
+     * @param id tier id
+     * @param before The cursor value of an item in the dataset to return before.
+     * @param after The cursor value of an item in the dataset to return after.
+     * @param first The number of items to return, work with after
+     * @param last The number of items to return, work with before
+     */
     async getHolders(id: string,
         before: string,
         after: string,
@@ -305,14 +316,16 @@ export class TierService {
             .where('asset.address = :address AND txn.tokenAddress = :address', {
                 address: contract.tokenAddress,
             })
+            .where('txn.tierId = :tierId', { tierId: tier.tierId })
             .groupBy('asset.owner')
             .addGroupBy('txn.tierId');
+
 
         if (after) {
             builder.andWhere('asset.txTime > :cursor', { cursor: new Date(fromCursor(after)).valueOf() / 1000 });
             builder.limit(first);
         } else if (before) {
-            builder.andWhere('asset.txTime < :cursor', { cursor: fromCursor(before) });
+            builder.andWhere('asset.txTime < :cursor', { cursor: new Date(fromCursor(before)).valueOf() / 1000 });
             builder.limit(last);
         } else {
             const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
