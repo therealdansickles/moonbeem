@@ -188,7 +188,7 @@ describe('WalletService', () => {
                     owner: { id: anotherOwner.id },
                     message, signature
                 })
-            ).rejects.toThrow(`Wallet ${eipAddress} is already bound.`);
+            ).rejects.toThrow(`The wallet at ${eipAddress} is already connected to an existing account. Please connect another wallet to this account.`);
         });
     });
 

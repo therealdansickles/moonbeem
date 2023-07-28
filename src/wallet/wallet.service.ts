@@ -189,7 +189,7 @@ export class WalletService {
         const address = rawAddress.toLowerCase();
         const wallet = await this.verifyWallet(address, data.message, data.signature);
 
-        if (wallet.owner?.id) throw new Error(`Wallet ${address} is already bound.`);
+        if (wallet.owner?.id) throw new Error(`The wallet at ${address} is already connected to an existing account. Please connect another wallet to this account.`);
 
         await this.updateWallet(wallet.id, { ...omit(wallet, 'owner'), ownerId: owner.id });
         return this.walletRepository.findOne({
