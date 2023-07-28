@@ -1,5 +1,5 @@
 import { Field, ID, InputType, ObjectType, OmitType, PartialType, PickType } from '@nestjs/graphql';
-import { IsBoolean, IsDateString, IsObject, IsOptional, IsString, IsUrl, ValidateIf } from 'class-validator';
+import { IsBoolean, IsDateString, IsNumber, IsObject, IsOptional, IsString, IsUrl, ValidateIf } from 'class-validator';
 import { User, UserInput } from '../user/user.dto';
 
 @ObjectType('Organization')
@@ -170,3 +170,27 @@ export class TransferOrganizationInput extends PickType(Organization, ['id'], In
     @Field({ description: 'The new ownerId of the organization.' })
     readonly ownerId: string;
 }
+
+@ObjectType('BasicAggregator')
+export class BasicAggregator {
+    @IsNumber()
+    @Field({ description: 'Daily values in the aggregator' })
+    readonly daily: number;
+
+    @IsNumber()
+    @Field({ description: 'Weekly values in the aggregator' })
+    readonly weekly: number;
+
+    @IsNumber()
+    @Field({ description: 'Monthly values in the aggregator' })
+    readonly monthly: number;
+}
+
+@ObjectType('AggregatorForCollection')
+export class AggregatedCollection extends BasicAggregator {}
+
+@ObjectType('AggregatedBuyer')
+export class AggregatedBuyer extends BasicAggregator {}
+
+@ObjectType('AggregatedEarning')
+export class AggregatedEarning extends BasicAggregator {}

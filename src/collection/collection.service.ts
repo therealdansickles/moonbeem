@@ -6,7 +6,7 @@ import { In, IsNull, Repository, UpdateResult } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as Sentry from '@sentry/node';
-
+import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
 import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
 import { OpenseaService } from '../opensea/opensea.service';
 import { SaleHistory } from '../saleHistory/saleHistory.dto';
@@ -14,9 +14,7 @@ import { getCurrentPrice } from '../saleHistory/saleHistory.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import {
-    MintSaleTransaction
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Tier as TierDto } from '../tier/tier.dto';
 import { Tier } from '../tier/tier.entity';
 import { TierService } from '../tier/tier.service';
@@ -24,11 +22,24 @@ import { User } from '../user/user.entity';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    Collection, CollectionActivities, CollectionActivityType, CollectionPaginated, CollectionSold,
-    CollectionSoldPaginated, CollectionStat, CollectionStatus, CreateCollectionInput, GrossEarnings,
-    LandingPageCollection, SecondarySale, SevenDayVolume, UpdateCollectionInput, ZeroAccount
+    Collection,
+    CollectionActivities,
+    CollectionActivityType,
+    CollectionPaginated,
+    CollectionSold,
+    CollectionSoldPaginated,
+    CollectionStat,
+    CollectionStatus,
+    CreateCollectionInput,
+    GrossEarnings,
+    LandingPageCollection,
+    SecondarySale,
+    SevenDayVolume,
+    UpdateCollectionInput,
+    ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
+import { AggregatedCollection } from '../organization/organization.dto';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name'>>;
 
@@ -754,6 +765,25 @@ export class CollectionService {
         return await this.getTotalPrice(address);
     }
 
+    /**
+     * get the number of collections created by the given organization in the month.
+     * @param id organization id
+     * @returns number of collections
+     */
+    public async getAggregatedCollectionsByOrganizationId(id: string): Promise<AggregatedCollection> {
+        const [monthly, weekly, daily] = await Promise.all([
+            this.getCollectionsByOrganizationIdAndBeginTime(id, startOfMonth(new Date())),
+            this.getCollectionsByOrganizationIdAndBeginTime(id, startOfWeek(new Date())),
+            this.getCollectionsByOrganizationIdAndBeginTime(id, startOfDay(new Date())),
+        ]);
+        return { monthly, weekly, daily };
+    }
+
+    /**
+     * get the number of all created collections by wallet address.
+     * @param walletAddress wallet address
+     * @returns number of collections
+     */
     async getCreatedCollectionsByWalletAddress(walletAddress: string): Promise<Collection[]> {
         return await this.collectionRepository
             .createQueryBuilder('collection')
@@ -763,6 +793,11 @@ export class CollectionService {
             .getMany();
     }
 
+    /**
+     * get all collections created by all user-bound wallets
+     * @param userId user id
+     * @returns number of collections
+     */
     async getCollectionsByUserId(userId: string): Promise<Collection[]> {
         return await this.collectionRepository
             .createQueryBuilder('collection')
@@ -770,5 +805,19 @@ export class CollectionService {
             .leftJoinAndSelect(User, 'user', 'wallet.ownerId = user.id')
             .where('user.id = :id', { id: userId })
             .getMany();
+    }
+
+    /**
+     * Derive the number of all collections created from the start time to the present, based on the organization and the start time
+     * @param id organization id
+     * @param beginDate start time
+     * @returns
+     */
+    async getCollectionsByOrganizationIdAndBeginTime(id: string, beginDate: Date): Promise<number> {
+        return await this.collectionRepository
+            .createQueryBuilder('collection')
+            .where('collection.organizationId = :id', { id })
+            .andWhere('collection.createdAt >= :beginDate', { beginDate })
+            .getCount();
     }
 }

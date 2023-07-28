@@ -3,19 +3,32 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { captureException } from '@sentry/node';
 import { generate as generateString } from 'randomstring';
-
+import BigNumber from 'bignumber.js';
 import { Organization, OrganizationKind } from './organization.entity';
-import { CreateOrganizationInput, UpdateOrganizationInput } from './organization.dto';
+import {
+    AggregatedBuyer,
+    AggregatedEarning,
+    CreateOrganizationInput,
+    UpdateOrganizationInput,
+} from './organization.dto';
 import { User } from '../user/user.entity';
 import { GraphQLError } from 'graphql';
 import { MembershipService } from '../membership/membership.service';
+import { CollectionService } from '../collection/collection.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
+import { BasicTokenPrice } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
 
 @Injectable()
 export class OrganizationService {
     constructor(
         @InjectRepository(Organization) private organizationRepository: Repository<Organization>,
         @InjectRepository(User) private userRepository: Repository<User>,
-        private membershipService: MembershipService
+        private membershipService: MembershipService,
+        private collectionService: CollectionService,
+        private coinService: CoinService,
+        private mintSaleTransactionService: MintSaleTransactionService
     ) {}
 
     /**
@@ -184,5 +197,87 @@ export class OrganizationService {
                 extensions: { code: 'INTERNAL_SERVER_ERROR' },
             });
         }
+    }
+
+    /**
+     * get all buyers for all collections created by this organization
+     * @param id organization id
+     * @returns number of buyers
+     */
+    async getAggregatedBuyers(id: string): Promise<AggregatedBuyer> {
+        const collections = await this.collectionService.getCollectionsByOrganizationId(id);
+
+        const addresses = collections.map((c) => {
+            if (c.address) return c.address;
+        });
+
+        const [monthly, weekly, daily] = await Promise.all([
+            this.mintSaleTransactionService.getBuyersByCollectionAddressesAndBeginTime(
+                addresses,
+                startOfMonth(new Date())
+            ),
+            this.mintSaleTransactionService.getBuyersByCollectionAddressesAndBeginTime(
+                addresses,
+                startOfWeek(new Date())
+            ),
+            this.mintSaleTransactionService.getBuyersByCollectionAddressesAndBeginTime(
+                addresses,
+                startOfDay(new Date())
+            ),
+        ]);
+        return { monthly, weekly, daily };
+    }
+
+    /**
+     * get aggregated data of earnings by organization
+     * @param id organization id
+     * @returns total earnings in usd
+     */
+    public async getAggregatedEarnings(id: string): Promise<AggregatedEarning> {
+        const collections = await this.collectionService.getCollectionsByOrganizationId(id);
+
+        const addresses = collections.map((c) => {
+            if (c.address) return c.address;
+        });
+
+        const [monthlyEarning, weeklyEarning, dailyEarning] = await Promise.all([
+            this.mintSaleTransactionService.getEarningsByCollectionAddressesAndBeginTime(
+                addresses,
+                startOfMonth(new Date())
+            ),
+            this.mintSaleTransactionService.getEarningsByCollectionAddressesAndBeginTime(
+                addresses,
+                startOfWeek(new Date())
+            ),
+            this.mintSaleTransactionService.getEarningsByCollectionAddressesAndBeginTime(
+                addresses,
+                startOfDay(new Date())
+            ),
+        ]);
+
+        const [monthly, weekly, daily] = await Promise.all([
+            this.calculateUSDPrice(monthlyEarning),
+            this.calculateUSDPrice(weeklyEarning),
+            this.calculateUSDPrice(dailyEarning),
+        ]);
+        return { monthly: monthly.toNumber(), weekly: weekly.toNumber(), daily: daily.toNumber() };
+    }
+
+    /**
+     * get usd price based on tokan price.
+     * @param prices A list with paymentToken and totalPrice
+     * @returns total usd price
+     */
+    public async calculateUSDPrice(prices: BasicTokenPrice[]): Promise<BigNumber> {
+        return await prices.reduce(async (accumulatorPromise, current) => {
+            const accumulator = await accumulatorPromise;
+            const coin = await this.coinService.getCoinByAddress(current.token);
+            const quote = await this.coinService.getQuote(coin.symbol);
+            const usdPrice = quote['USD'].price;
+
+            const totalTokenPrice = new BigNumber(current.totalPrice).div(new BigNumber(10).pow(coin.decimals));
+            const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(usdPrice);
+            return accumulator.plus(totalUSDC);
+        }, Promise.resolve(new BigNumber(0)));
     }
 }

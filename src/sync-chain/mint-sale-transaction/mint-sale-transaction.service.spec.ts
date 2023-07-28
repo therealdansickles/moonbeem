@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
 import { MintSaleTransactionService } from './mint-sale-transaction.service';
 
 describe('MintSaleTransactionService', () => {
@@ -86,6 +87,336 @@ describe('MintSaleTransactionService', () => {
             expect(leaderboard[0].rank).toBe('1'); // raw query with all fields as string
             expect(leaderboard[1].rank).toBeDefined();
             expect(leaderboard[1].rank).toBe('2'); // raw query with all fields as string
+        });
+    });
+
+    describe('getMonthlyBuyersByCollectionAddresses', () => {
+        it('should be return the number of unique buyers', async () => {
+            const collectionAddress = faker.finance.ethereumAddress();
+            const recipient1 = faker.finance.ethereumAddress();
+
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: recipient1,
+                address: collectionAddress,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
+            // the same recipient
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: recipient1,
+                address: collectionAddress,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
+            const result = await service.getBuyersByCollectionAddressesAndBeginTime(
+                [collectionAddress],
+                startOfMonth(new Date())
+            );
+            expect(result).toBe(2);
+
+            const result1 = await service.getBuyersByCollectionAddressesAndBeginTime(
+                [collectionAddress],
+                startOfWeek(new Date())
+            );
+            expect(result1).toBe(2);
+
+            const result2 = await service.getBuyersByCollectionAddressesAndBeginTime(
+                [collectionAddress],
+                startOfDay(new Date())
+            );
+            expect(result2).toBe(2);
+        });
+
+        it("should be returned to this month's buyers", async () => {
+            const collectionAddress = faker.finance.ethereumAddress();
+            const month = new Date().getMonth();
+
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
+            // two months before this month
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().setMonth(month - 2) / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
+            const result = await service.getBuyersByCollectionAddressesAndBeginTime(
+                [collectionAddress],
+                startOfMonth(new Date())
+            );
+            expect(result).toBe(2);
+
+            const result1 = await service.getBuyersByCollectionAddressesAndBeginTime(
+                [collectionAddress],
+                startOfWeek(new Date())
+            );
+            expect(result1).toBe(2);
+
+            const result2 = await service.getBuyersByCollectionAddressesAndBeginTime(
+                [collectionAddress],
+                startOfDay(new Date())
+            );
+            expect(result2).toBe(2);
+        });
+
+        it('should be return the number of unique buyers, multiple address', async () => {
+            const collectionAddress1 = faker.finance.ethereumAddress();
+            const collectionAddress2 = faker.finance.ethereumAddress();
+
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress1,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress2,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
+            const result = await service.getBuyersByCollectionAddressesAndBeginTime(
+                [collectionAddress1, collectionAddress2],
+                startOfMonth(new Date())
+            );
+            expect(result).toBe(2);
+        });
+    });
+
+    describe('getEarningsByCollectionAddressesAndBeginTime', () => {
+        it('should return monthly earnings', async () => {
+            const collectionAddress = faker.finance.ethereumAddress();
+            const paymentToken = faker.finance.ethereumAddress();
+
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: '1000000000000000000',
+                paymentToken: paymentToken,
+            });
+
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: '1000000000000000000',
+                paymentToken: paymentToken,
+            });
+
+            const result = await service.getEarningsByCollectionAddressesAndBeginTime(
+                [collectionAddress],
+                startOfMonth(new Date())
+            );
+            expect(result).toBeDefined();
+            expect(result.length).toBe(1);
+            expect(result[0].token).toBe(paymentToken);
+            expect(result[0].totalPrice).toBe('2000000000000000000');
+        });
+
+        it('should return monthly earnings, multiple collections', async () => {
+            const collectionAddress1 = faker.finance.ethereumAddress();
+            const collectionAddress2 = faker.finance.ethereumAddress();
+            const paymentToken = faker.finance.ethereumAddress();
+
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress1,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: '1000000000000000000',
+                paymentToken: paymentToken,
+            });
+
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress1,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: '1000000000000000000',
+                paymentToken: paymentToken,
+            });
+
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress2,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: '1000000000000000000',
+                paymentToken: paymentToken,
+            });
+
+            const result = await service.getEarningsByCollectionAddressesAndBeginTime(
+                [collectionAddress1, collectionAddress2],
+                startOfMonth(new Date())
+            );
+            expect(result).toBeDefined();
+            expect(result.length).toBe(1);
+        });
+
+        it('should return number of earnings on this month', async () => {
+            const collectionAddress1 = faker.finance.ethereumAddress();
+            const paymentToken = faker.finance.ethereumAddress();
+            const month = new Date().getMonth();
+
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress1,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: '1000000000000000000',
+                paymentToken: paymentToken,
+            });
+
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress1,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: '1000000000000000000',
+                paymentToken: paymentToken,
+            });
+
+            // two months before this month
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().setMonth(month - 2) / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress1,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: '1000000000000000000',
+                paymentToken: paymentToken,
+            });
+
+            const result = await service.getEarningsByCollectionAddressesAndBeginTime(
+                [collectionAddress1],
+                startOfMonth(new Date())
+            );
+            expect(result).toBeDefined();
+            expect(result.length).toBe(1);
+            expect(result[0].token).toBe(paymentToken);
+            expect(result[0].totalPrice).toBe('2000000000000000000');
         });
     });
 });

@@ -29,6 +29,7 @@ import {
 } from './wallet.dto';
 import { Wallet } from './wallet.entity';
 import { CollectionService } from '../collection/collection.service';
+import { startOfMonth } from 'date-fns';
 
 interface ITokenPrice {
     token: string;
@@ -532,35 +533,29 @@ export class WalletService {
         const collections = await this.collectionService.getCreatedCollectionsByWalletAddress(address);
 
         if (collections.length <= 0) return 0;
-        const currentDate = new Date();
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth() + 1;
+        const beginDate = startOfMonth(new Date());
 
         const total = await this.mintSaleTransactionRepository
             .createQueryBuilder('txn')
             // txTime is a timestamp that needs to be converted to a date type
-            .where('EXTRACT(YEAR FROM TO_TIMESTAMP(txn.txTime)) = :year', { year })
-            .andWhere('EXTRACT(MONTH FROM TO_TIMESTAMP(txn.txTime)) = :month', { month })
-            .andWhere('txn.address IN (:...addresses)', {
+            .where('txn.address IN (:...addresses)', {
                 addresses: collections.map((c) => {
                     if (c.address) return c.address;
                 }),
             })
+            .andWhere('TO_TIMESTAMP(txn.txTime) >= :beginDate', { beginDate })
             .getCount();
         return total;
     }
 
     public async getMonthlyCollections(address: string): Promise<number> {
-        const currentDate = new Date();
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth() + 1;
+        const beginDate = startOfMonth(new Date());
 
         const total = await this.collectionRepository
             .createQueryBuilder('collection')
             .leftJoinAndSelect('collection.creator', 'wallet')
             .where('wallet.address = :address', { address })
-            .andWhere('EXTRACT(YEAR FROM collection.createdAt) = :year', { year })
-            .andWhere('EXTRACT(MONTH FROM collection.createdAt) = :month', { month })
+            .andWhere('collection.createdAt >= :beginDate', { beginDate })
             .getCount();
         return total;
     }
@@ -569,21 +564,18 @@ export class WalletService {
         const collections = await this.collectionService.getCreatedCollectionsByWalletAddress(address);
 
         if (collections.length <= 0) return 0;
-        const currentDate = new Date();
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth() + 1;
+        const beginDate = startOfMonth(new Date());
 
         const result = await this.mintSaleTransactionRepository
             .createQueryBuilder('txn')
             .select('txn.paymentToken', 'token')
             .addSelect('SUM(txn.price::numeric(20,0))', 'total_price')
-            .where('EXTRACT(YEAR FROM TO_TIMESTAMP(txn.txTime)) = :year', { year })
-            .andWhere('EXTRACT(MONTH FROM TO_TIMESTAMP(txn.txTime)) = :month', { month })
-            .andWhere('txn.address IN (:...addresses)', {
+            .where('txn.address IN (:...addresses)', {
                 addresses: collections.map((c) => {
                     if (c.address) return c.address;
                 }),
             })
+            .andWhere('TO_TIMESTAMP(txn.txTime) >= :beginDate', { beginDate })
             .addGroupBy('txn.paymentToken')
             .getRawMany();
 
