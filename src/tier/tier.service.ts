@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { captureException } from '@sentry/node';
 
 import { Collection, CollectionKind } from '../collection/collection.entity';
-import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
+import { fromCursor, PaginatedImp } from '../pagination/pagination.module';
 import { MetadataPropertySearchInput } from '../metadata/metadata.dto';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Coin } from '../sync-chain/coin/coin.entity';

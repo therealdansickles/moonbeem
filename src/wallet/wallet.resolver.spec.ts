@@ -634,7 +634,6 @@ describe('WalletResolver', () => {
                         minted {
                             totalCount
                             edges {
-                                cursor
                                 node {
                                     address
                                     txTime
