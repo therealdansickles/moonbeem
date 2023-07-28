@@ -9,7 +9,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { captureException } from '@sentry/node';
 
 import { Collection } from '../collection/collection.entity';
-import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
+import {
+    cursorToDateAndString,
+    fromCursor,
+    PaginatedImp,
+    toPaginated
+} from '../pagination/pagination.module';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
@@ -289,6 +294,10 @@ export class WalletService {
      * the NFT details itself via the `tier` and the `collection` associated with it.
      *
      * @param address The address of the wallet to retrieve.
+     * @param before The cursor to retrieve the next page of results.
+     * @param after The cursor to retrieve the previous page of results.
+     * @param first The number of results to retrieve, work with after together
+     * @param last The number of results to retrieve, work with before together
      * @returns The `Minted` details + mint sale transactions associated with the given address.
      */
     async getMintedByAddress(
@@ -306,10 +315,19 @@ export class WalletService {
         const countBuilder = builder.clone();
 
         if (after) {
-            builder.andWhere('tx.createdAt > :cursor', { cursor: fromCursor(after) });
+            const [createdAt, id] = cursorToDateAndString(after);
+            // We assume that the createdAt can be duplicated, use >= instead of > here
+            builder.andWhere('tx.createdAt >= :createdAt', { createdAt });
+            builder.andWhere('tx.id > :id', { id });
+            builder.orderBy('createdAt', 'ASC');
+            builder.addOrderBy('id', 'ASC');
             builder.limit(first);
         } else if (before) {
-            builder.andWhere('tx.createdAt < :cursor', { cursor: fromCursor(before) });
+            const [createdAt, id] = cursorToDateAndString(after);
+            builder.andWhere('tx.createdAt <= :createdAt', { createdAt });
+            builder.andWhere('tx.id < :id', { id });
+            builder.orderBy('createdAt', 'DESC');
+            builder.addOrderBy('id', 'DESC');
             builder.limit(last);
         } else {
             const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
@@ -318,7 +336,7 @@ export class WalletService {
 
         const [mintSaleTransactions, total] = await Promise.all([builder.getMany(), countBuilder.getCount()]);
 
-        const minted: Minted[] = await Promise.all(
+        const mintedList: Minted[] = await Promise.all(
             mintSaleTransactions.map(async (mintSaleTransaction) => {
                 const { tierId, address } = mintSaleTransaction;
 
@@ -334,7 +352,7 @@ export class WalletService {
             })
         );
 
-        return PaginatedImp(minted, total);
+        return toPaginated(mintedList, total);
     }
 
     /**

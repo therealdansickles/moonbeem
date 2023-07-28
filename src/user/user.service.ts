@@ -12,7 +12,7 @@ import { captureException } from '@sentry/node';
 import { Collection } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
 import { googleConfig } from '../lib/configs/app.config';
-import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
+import { fromCursor, PaginatedImp } from '../pagination/pagination.module';
 import { MailService } from '../mail/mail.service';
 import { OrganizationService } from '../organization/organization.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
@@ -196,7 +196,7 @@ export class UserService {
 
     /**
      * authenticateUser from Google OAuth mechanism
-     * 
+     *
      * @param accessToken
      * @returns
      */

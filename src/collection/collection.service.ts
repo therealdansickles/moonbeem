@@ -7,7 +7,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as Sentry from '@sentry/node';
 import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
-import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
+import { fromCursor, PaginatedImp } from '../pagination/pagination.module';
 import { OpenseaService } from '../opensea/opensea.service';
 import { SaleHistory } from '../saleHistory/saleHistory.dto';
 import { getCurrentPrice } from '../saleHistory/saleHistory.service';
