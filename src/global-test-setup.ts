@@ -8,6 +8,7 @@ import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CoinMarketCapModule } from './coinmarketcap/coinmarketcap.module';
+import { CoinMarketCapService } from './coinmarketcap/coinmarketcap.service';
 // platform modules
 import { CollaborationModule } from './collaboration/collaboration.module';
 // platform services
@@ -183,6 +184,7 @@ export default async () => {
     global.walletService = module.get<WalletService>(WalletService);
     global.merkleTreeService = module.get<MerkleTreeService>(MerkleTreeService);
     global.openseaService = module.get<OpenseaService>(OpenseaService);
+    global.coinmarketcapService = module.get<CoinMarketCapService>(CoinMarketCapService);
 
     // sync chain services
     global.asset721Service = module.get<Asset721Service>(Asset721Service);
