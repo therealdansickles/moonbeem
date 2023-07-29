@@ -577,6 +577,7 @@ describe('TierService', () => {
                 tags: [],
                 kind: CollectionKind.edition,
                 address: collectionAddress,
+                tokenAddress: tokenAddress,
             });
 
             draftCollection =  await collectionService.createCollection({

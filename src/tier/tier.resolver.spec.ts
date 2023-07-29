@@ -783,6 +783,7 @@ describe('TierResolver', () => {
                 tags: [],
                 kind: CollectionKind.edition,
                 address: collectionAddress,
+                tokenAddress: tokenAddress,
             });
 
             await service.createTier({

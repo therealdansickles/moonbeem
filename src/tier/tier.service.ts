@@ -263,11 +263,12 @@ export class TierService {
             const { count } = await this.asset721Repository
                 .createQueryBuilder('asset')
                 .leftJoinAndSelect(MintSaleTransaction, 'txn', 'asset.tokenId = txn.tokenId')
-                .select('COUNT(DISTINCT(owner))', 'count')
+                .select('COUNT(DISTINCT(asset.owner))', 'count')
                 .where('txn.address = :address AND txn.tierId = :tierId', {
                     address: tier.collection.address,
                     tierId: tier.tierId,
                 })
+                .andWhere('asset.address = :tokenAddress', { tokenAddress: tier.collection.tokenAddress })
                 .getRawOne();
 
             // The count is a number string due to the javascript number limit
