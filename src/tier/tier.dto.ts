@@ -4,7 +4,7 @@ import { GraphQLJSONObject } from 'graphql-type-json';
 import { Field, InputType, Int, ObjectType, OmitType } from '@nestjs/graphql';
 
 import { Collection, CollectionInput } from '../collection/collection.dto';
-import Paginated from '../pagination/pagination.module';
+import Paginated from '../pagination/pagination.dto';
 import { Metadata, MetadataPropertySearchInput } from '../metadata/metadata.dto';
 import { Coin } from '../sync-chain/coin/coin.dto';
 

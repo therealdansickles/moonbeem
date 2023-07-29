@@ -1,55 +1,4 @@
-import { Type } from '@nestjs/common';
-import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { IEntity, IPaginatedType } from './pagination.interface';
-import { IsArray, IsBoolean, IsObject, IsString } from 'class-validator';
-
-@ObjectType('PageInfo')
-export class PageInfo {
-    @Field(() => Boolean, { description: 'Next page in the current paging results, Used to determine paging status' })
-    @IsBoolean()
-    readonly hasNextPage: boolean;
-
-    @Field(() => Boolean, {
-        description: 'Previous page in the current paging results, Used to determine paging status',
-    })
-    @IsBoolean()
-    readonly hasPreviousPage: boolean;
-
-    @Field(() => String, { nullable: true, description: 'Cursor value of the first item in the result set' })
-    @IsString()
-    readonly startCursor?: string;
-
-    @Field(() => String, { nullable: true, description: 'Cursor value of the last item in the result set' })
-    @IsString()
-    readonly endCursor?: string;
-}
-
-export default function Paginated<T>(classRef: Type<T>) {
-    @ObjectType(`${classRef.name}Edge`)
-    abstract class EdgeType {
-        @Field(() => String)
-        readonly cursor?: string;
-
-        @Field(() => classRef)
-        readonly node: T;
-    }
-
-    @ObjectType(`${classRef.name}Connection`)
-    abstract class PaginatedType implements IPaginatedType<T> {
-        @Field(() => [EdgeType], { nullable: true, description: 'Return the result set' })
-        @IsArray()
-        readonly edges: Array<EdgeType>;
-
-        @Field(() => PageInfo, { description: 'Cursor-based paging information' })
-        @IsObject()
-        readonly pageInfo: PageInfo;
-
-        @Field(() => Int, { description: 'Total number of entity objects in query' })
-        readonly totalCount: number;
-    }
-
-    return PaginatedType;
-}
 
 export function PaginatedImp<T extends IEntity>(result: T[], total: number): IPaginatedType<T> {
     const hasPreviousPage = !!result;
@@ -142,22 +91,24 @@ export const getCursors = <T extends IEntity>(items: T[], cursorGenerator: Curso
  */
 export const entityCursorGenerator = (entity: IEntity): string => dateAndStringToCursor(entity.createdAt, entity.id);
 
+/**
+ * Function to compensate the timezone lost. It happens when get the UTC time but used as local time.
+ * @param date The date to be converted
+ */
 export const toISODateWithTimezone = (date: Date): string => new Date(
     date.getTime() - date.getTimezoneOffset() * 60 * 1000).toISOString();
 
 /**
  * Generate the cursor string from a Date and a string
- * @param date
- * @param string
+ * @param date The date to be converted
+ * @param string The string to be converted
  */
 export const dateAndStringToCursor = (date: Date, string: string): string =>
     Buffer.from(`${toISODateWithTimezone(date)}${CURSOR_SPLITTER}${string}`).toString('base64');
 
 /**
  * Convert a cursor back to a Date and a string
- * @param cursor
+ * @param cursor The cursor to be converted
  */
-export const cursorToDateAndString = (cursor: string): [Date, string] => {
-    const [date, string] = Buffer.from(cursor, 'base64').toString().split(CURSOR_SPLITTER);
-    return [new Date(date), string];
-};
+export const cursorToStrings = (cursor: string): string[] =>
+    Buffer.from(cursor, 'base64').toString().split(CURSOR_SPLITTER);

@@ -45,7 +45,9 @@ export class MintSaleTransaction extends BaseEntity {
     @Column({ default: false, comment: 'Whether the metadata had beed uploaded.' })
     readonly isUploaded: boolean;
 
-    @CreateDateColumn()
+    @CreateDateColumn({
+        precision: 3
+    })
     @Exclude()
     readonly createdAt: Date;
 

@@ -30,7 +30,9 @@ export class Royalty extends BaseEntity {
     @Column({ default: 1, comment: 'The chain id for the royalty contract.' })
     readonly chainId?: number;
 
-    @CreateDateColumn()
+    @CreateDateColumn({
+        precision: 3
+    })
     @Exclude()
     readonly createdAt: Date;
 

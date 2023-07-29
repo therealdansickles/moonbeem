@@ -373,6 +373,56 @@ describe('WalletService', () => {
             expect(result.edges[0].node.tier.id).toEqual(tier.id);
             expect(result.edges[0].node.tier.collection.id).toEqual(collection.id);
         });
+
+        it('should return minted transactions by address with pagination', async () => {
+            const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                tierId: 1,
+                collection: { id: collection.id },
+                paymentTokenAddress: faker.finance.ethereumAddress(),
+                metadata: {}
+            });
+
+            for (let i = 0; i < 15; i++) {
+                await mintSaleTransactionService.createMintSaleTransaction({
+                    height: parseInt(faker.random.numeric(5)),
+                    txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                    txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                    sender: faker.finance.ethereumAddress(),
+                    recipient: wallet.address,
+                    address: collection.address,
+                    tierId: tier.tierId,
+                    tokenAddress: faker.finance.ethereumAddress(),
+                    tokenId: faker.random.numeric(3),
+                    price: faker.random.numeric(19),
+                    paymentToken: faker.finance.ethereumAddress(),
+                });
+            }
+
+            const all = await service.getMintedByAddress(wallet.address, '', '', 20, 10);
+            expect(all.edges.length).toEqual(15);
+
+            const firstPage = await service.getMintedByAddress(wallet.address, '', '', 10, 10);
+            const firstPageEndCursor = firstPage.pageInfo.endCursor;
+            expect(firstPage.edges.length).toEqual(10);
+            const secondPage = await service.getMintedByAddress(wallet.address, '', firstPageEndCursor, 10, 10);
+            const secondPageEndCursor = secondPage.pageInfo.endCursor;
+            expect(firstPageEndCursor).not.toEqual(secondPageEndCursor);
+            expect(secondPage.edges.length).toEqual(5);
+        });
     });
 
     describe('getActivitiesByAddress', () => {

@@ -10,7 +10,7 @@ import { captureException } from '@sentry/node';
 
 import { Collection } from '../collection/collection.entity';
 import {
-    cursorToDateAndString,
+    cursorToStrings,
     fromCursor,
     PaginatedImp,
     toPaginated
@@ -315,19 +315,19 @@ export class WalletService {
         const countBuilder = builder.clone();
 
         if (after) {
-            const [createdAt, id] = cursorToDateAndString(after);
+            const [createdAt, id] = cursorToStrings(after);
             // We assume that the createdAt can be duplicated, use >= instead of > here
-            builder.andWhere('tx.createdAt >= :createdAt', { createdAt });
-            builder.andWhere('tx.id > :id', { id });
-            builder.orderBy('createdAt', 'ASC');
-            builder.addOrderBy('id', 'ASC');
+            builder.andWhere('tx.createdAt > :createdAt', { createdAt });
+            builder.orWhere('tx.createdAt = :createdAt AND tx.id > :id', { createdAt, id });
+            builder.orderBy('tx.createdAt', 'ASC');
+            builder.addOrderBy('tx.id', 'ASC');
             builder.limit(first);
         } else if (before) {
-            const [createdAt, id] = cursorToDateAndString(after);
-            builder.andWhere('tx.createdAt <= :createdAt', { createdAt });
-            builder.andWhere('tx.id < :id', { id });
-            builder.orderBy('createdAt', 'DESC');
-            builder.addOrderBy('id', 'DESC');
+            const [createdAt, id] = cursorToStrings(after);
+            builder.andWhere('tx.createdAt < :createdAt', { createdAt });
+            builder.orWhere('tx.createdAt = :createdAt AND tx.id < :id', { createdAt, id });
+            builder.orderBy('tx.createdAt', 'DESC');
+            builder.addOrderBy('tx.id', 'DESC');
             builder.limit(last);
         } else {
             const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);

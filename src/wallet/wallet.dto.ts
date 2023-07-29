@@ -24,7 +24,7 @@ import { User, UserInput } from '../user/user.dto';
 import { Tier } from '../tier/tier.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
 import { Asset721 } from '../sync-chain/asset721/asset721.dto';
-import Paginated from '../pagination/pagination.module';
+import Paginated from '../pagination/pagination.dto';
 
 @ObjectType('Wallet')
 export class Wallet {
