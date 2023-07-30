@@ -1,5 +1,6 @@
 import { AxiosError, AxiosRequestConfig } from 'axios';
 import { Cache } from 'cache-manager';
+import { get } from 'lodash';
 import { catchError, firstValueFrom } from 'rxjs';
 
 import { HttpService } from '@nestjs/axios';
@@ -58,7 +59,7 @@ export class CoinMarketCapService {
         if (!result || Object.keys(result).length === 0) {
             return {};
         }
-        const data = result.data?.quote;
+        const data = get(result, 'data.0.quote');
         await this.cacheManager.set(cacheKey, JSON.stringify(data), 60 * 1000);
 
         return data;
@@ -69,7 +70,7 @@ export class CoinMarketCapService {
         const data = await this.getPrice(symbol, conversion);
 
         return {
-            price: data['USD'].price
+            price: data[conversion.toUpperCase()].price
         };
     }
 }
