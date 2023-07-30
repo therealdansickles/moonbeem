@@ -21,7 +21,7 @@ export class CoinMarketCapService {
         @Inject(CACHE_MANAGER) private cacheManager: Cache
     ) {}
 
-    async callCoinMarketCap<T>(url, params: AxiosRequestConfig): Promise<T> {
+    private async callCoinMarketCap<T>(url, params: AxiosRequestConfig): Promise<T> {
         params = Object.assign({ headers: this.defaultHeaders }, params);
         const { data } = await firstValueFrom(
             this.httpRequest.get(url, params).pipe(
@@ -58,8 +58,8 @@ export class CoinMarketCapService {
         if (!result || Object.keys(result).length === 0) {
             return {};
         }
-        const data = result.data[0]?.quote;
-        await this.cacheManager.set(cacheKey, JSON.stringify(cache), 60 * 1000);
+        const data = result.data?.quote;
+        await this.cacheManager.set(cacheKey, JSON.stringify(data), 60 * 1000);
 
         return data;
     }
