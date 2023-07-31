@@ -16,9 +16,7 @@ import { fromCursor, PaginatedImp } from '../pagination/pagination.module';
 import { MailService } from '../mail/mail.service';
 import { OrganizationService } from '../organization/organization.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleTransaction
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Tier } from '../tier/tier.entity';
 import { Wallet } from '../wallet/wallet.entity';
 import { CreateUserInput, LatestSalePaginated, PriceInfo, UserProfit } from './user.dto';
@@ -149,7 +147,8 @@ export class UserService {
     async authenticateUser(email: string, password: string): Promise<User | null> {
         // checking the email has been used for `Sign in with Google`
         const signedInByGmail = await this.userRepository.findOneBy({ gmail: email.toLowerCase(), password: IsNull() });
-        if (signedInByGmail) throw new Error(`This email has been used for Google sign in. Please sign in with Google.`);
+        if (signedInByGmail)
+            throw new Error(`This email has been used for Google sign in. Please sign in with Google.`);
 
         const user = await this.userRepository.findOneBy({ email: email.toLowerCase() });
 
@@ -168,7 +167,9 @@ export class UserService {
      *
      * @returns The user if credentials are valid.
      */
-    private async authenticateFromGoogle(accessToken: string): Promise<{ gmail: string, name: string, avatarUrl?: string }> {
+    private async authenticateFromGoogle(
+        accessToken: string
+    ): Promise<{ gmail: string; name: string; avatarUrl?: string }> {
         try {
             const googleClient = new google.auth.OAuth2({ clientId: googleConfig.clientId });
             const tokenInfo = await googleClient.getTokenInfo(accessToken);
@@ -407,6 +408,7 @@ export class UserService {
                         ...rest,
                         tier,
                         collection,
+                        paymentToken,
                         totalPrice: {
                             inPaymentToken: totalTokenPrice.toString(),
                             inUSDC: totalUSDC.toString(),
