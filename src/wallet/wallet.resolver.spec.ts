@@ -11,6 +11,8 @@ import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
 import { RelationshipService } from '../relationship/relationship.service';
 import { SessionService } from '../session/session.service';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 
 export const gql = String.raw;
 
@@ -25,6 +27,7 @@ describe('WalletResolver', () => {
     let sessionService: SessionService;
     let app: INestApplication;
     let address: string;
+    let coinService: CoinService;
 
     beforeAll(async () => {
         app = global.app;
@@ -36,6 +39,7 @@ describe('WalletResolver', () => {
         userService = global.userService;
         relationshipService = global.relationshipService;
         sessionService = global.sessionService;
+        coinService = global.coinService;
     });
 
     afterEach(async () => {
@@ -336,7 +340,7 @@ describe('WalletResolver', () => {
             const tokenVariables = {
                 input: {
                     email: owner.email,
-                    password
+                    password,
                 },
             };
 
@@ -778,6 +782,17 @@ describe('WalletResolver', () => {
 
     describe('getEstimatedValue', () => {
         it('should get estimated value', async () => {
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
             const sender1 = faker.finance.ethereumAddress();
 
             const wallet = await service.createWallet({ address: sender1 });
@@ -817,7 +832,7 @@ describe('WalletResolver', () => {
                 },
             });
 
-            const paymentToken = faker.finance.ethereumAddress();
+            const paymentToken = coin.address;
 
             await mintSaleTransactionService.createMintSaleTransaction({
                 height: parseInt(faker.random.numeric(5)),
@@ -829,7 +844,7 @@ describe('WalletResolver', () => {
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
+                price: '1000000000000000000',
                 paymentToken,
             });
             await mintSaleTransactionService.createMintSaleTransaction({
@@ -842,7 +857,7 @@ describe('WalletResolver', () => {
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
+                price: '1000000000000000000',
                 paymentToken,
             });
 
@@ -884,6 +899,11 @@ describe('WalletResolver', () => {
             const variables = {
                 address: wallet.address,
             };
+            const tokenPriceUSD = faker.datatype.number({ max: 1000 });
+            const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+                USD: { price: tokenPriceUSD },
+            });
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
 
             return request(app.getHttpServer())
                 .post('/graphql')
@@ -891,8 +911,8 @@ describe('WalletResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.wallet.estimatedValue).toBeDefined();
-                    expect(+body.data.wallet.estimatedValue[0].total).toBeGreaterThan(0);
-                    expect(+body.data.wallet.estimatedValue[0].paymentTokenAddress).toBeDefined();
+                    expect(body.data.wallet.estimatedValue[0].total).toBe('2');
+                    expect(body.data.wallet.estimatedValue[0].totalUSDC).toBe((tokenPriceUSD * 2).toString());
                 });
         });
     });

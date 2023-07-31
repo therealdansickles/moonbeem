@@ -6,16 +6,13 @@ import { faker } from '@faker-js/faker';
 import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { Wallet } from './wallet.entity';
 import { WalletService } from './wallet.service';
+import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 
 describe('WalletService', () => {
     let address: string;
@@ -183,12 +180,16 @@ describe('WalletService', () => {
             message = 'Hi from tests!';
             signature = await wallet.signMessage(message);
             await expect(
-                async () => await service.bindWallet({
-                    address: eipAddress,
-                    owner: { id: anotherOwner.id },
-                    message, signature
-                })
-            ).rejects.toThrow(`The wallet at ${eipAddress} is already connected to an existing account. Please connect another wallet to this account.`);
+                async () =>
+                    await service.bindWallet({
+                        address: eipAddress,
+                        owner: { id: anotherOwner.id },
+                        message,
+                        signature,
+                    })
+            ).rejects.toThrow(
+                `The wallet at ${eipAddress} is already connected to an existing account. Please connect another wallet to this account.`
+            );
         });
     });
 
@@ -393,7 +394,7 @@ describe('WalletService', () => {
                 tierId: 1,
                 collection: { id: collection.id },
                 paymentTokenAddress: faker.finance.ethereumAddress(),
-                metadata: {}
+                metadata: {},
             });
 
             for (let i = 0; i < 15; i++) {
@@ -631,6 +632,16 @@ describe('WalletService', () => {
 
     describe('getEstimatesByAddress', () => {
         it('should return correct value', async () => {
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
             const sender1 = faker.finance.ethereumAddress();
 
             const wallet = await service.createWallet({ address: sender1 });
@@ -670,7 +681,7 @@ describe('WalletService', () => {
                 },
             });
 
-            const paymentToken = faker.finance.ethereumAddress();
+            const paymentToken = coin.address;
 
             await mintSaleTransactionService.createMintSaleTransaction({
                 height: parseInt(faker.random.numeric(5)),
@@ -682,7 +693,7 @@ describe('WalletService', () => {
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
+                price: '1000000000000000000',
                 paymentToken,
             });
             await mintSaleTransactionService.createMintSaleTransaction({
@@ -695,7 +706,7 @@ describe('WalletService', () => {
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
+                price: '1000000000000000000',
                 paymentToken,
             });
 
@@ -710,7 +721,7 @@ describe('WalletService', () => {
                 isDerivativeAllowed: true,
                 beginTime: Math.floor(faker.date.recent().valueOf() / 1000),
                 endTime: Math.floor(faker.date.future().valueOf() / 1000),
-                price: faker.random.numeric(5),
+                price: '1000000000000000000',
                 tierId: tier.tierId,
                 address: collection.address,
                 paymentToken,
@@ -720,13 +731,31 @@ describe('WalletService', () => {
                 tokenAddress: faker.finance.ethereumAddress(),
             });
 
+            const tokenPriceUSD = faker.datatype.number({ max: 1000 });
+            const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+                USD: { price: tokenPriceUSD },
+            });
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
+
             const estimatedValue = await service.getEstimatesByAddress(sender1);
-            expect(+estimatedValue[0].total).toBeGreaterThan(0);
+            expect(estimatedValue[0].total).toBe('2');
+            expect(estimatedValue[0].totalUSDC).toBe((tokenPriceUSD * 2).toString());
         });
     });
 
     describe('getSold', () => {
         it('it should return a record of all the collections sold at that address.', async () => {
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
             const sender1 = faker.finance.ethereumAddress();
 
             const wallet = await service.createWallet({ address: sender1 });
@@ -768,7 +797,7 @@ describe('WalletService', () => {
                 },
             });
 
-            const paymentToken = faker.finance.ethereumAddress();
+            const paymentToken = coin.address;
 
             await mintSaleTransactionService.createMintSaleTransaction({
                 height: parseInt(faker.random.numeric(5)),

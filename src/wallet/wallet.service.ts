@@ -9,12 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { captureException } from '@sentry/node';
 
 import { Collection } from '../collection/collection.entity';
-import {
-    cursorToStrings,
-    fromCursor,
-    PaginatedImp,
-    toPaginated
-} from '../pagination/pagination.module';
+import { cursorToStrings, fromCursor, PaginatedImp, toPaginated } from '../pagination/pagination.module';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
@@ -194,7 +189,10 @@ export class WalletService {
         const address = rawAddress.toLowerCase();
         const wallet = await this.verifyWallet(address, data.message, data.signature);
 
-        if (wallet.owner?.id) throw new Error(`The wallet at ${address} is already connected to an existing account. Please connect another wallet to this account.`);
+        if (wallet.owner?.id)
+            throw new Error(
+                `The wallet at ${address} is already connected to an existing account. Please connect another wallet to this account.`
+            );
 
         await this.updateWallet(wallet.id, { ...omit(wallet, 'owner'), ownerId: owner.id });
         return this.walletRepository.findOne({
@@ -428,13 +426,15 @@ export class WalletService {
 
         for (const group of priceTokenGroups) {
             const coin = await this.coinService.getCoinByAddress(group.token);
-            const usdcValue = coin?.derivedUSDC || '0';
+            const quote = await this.coinService.getQuote(coin.symbol);
+            const usdPrice = quote['USD'].price;
             const price = group?.price || '0';
+            const totalTokenPrice = new BigNumber(price).div(new BigNumber(10).pow(coin.decimals));
 
             values.push({
                 paymentTokenAddress: group.token,
-                total: price,
-                totalUSDC: new BigNumber(price).multipliedBy(usdcValue).toString(),
+                total: totalTokenPrice.toString(),
+                totalUSDC: new BigNumber(totalTokenPrice).multipliedBy(usdPrice).toString(),
             });
         }
 
