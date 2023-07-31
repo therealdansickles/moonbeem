@@ -225,7 +225,7 @@ export class CreateTierInCollectionInput {
     readonly metadata: Metadata;
 
     @IsString()
-    @Field({ nullable: true, description: 'This merekleRoot of tier.' })
+    @Field({ nullable: true, description: 'This merkleRoot of tier.' })
     @IsOptional()
     readonly merkleRoot?: string;
 

@@ -355,7 +355,7 @@ export class WalletService {
 
     /**
      *
-     * The `Minted` list + `Deply` list
+     * The `Minted` list + `Deploy` list
      *
      * @param address
      * @returns
@@ -394,7 +394,7 @@ export class WalletService {
         }));
 
         // merge and sort in desc order
-        const mergedList = [...(mintList || []), ...(deployList || [])].sort((item) => item.txTime * -1);
+        const mergedList = [...(mintList || []), ...(deployList || [])].sort((a, b) => b.txTime - a.txTime);
 
         const activities = await Promise.all(
             mergedList.map(async (item) => {

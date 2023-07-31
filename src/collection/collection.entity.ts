@@ -72,7 +72,7 @@ export class Collection extends BaseEntity {
         default: [],
         array: true,
         comment:
-            'This is going to change later as a stronger, association betwen our `User`. The list of artists attached to the collection.',
+            'This is going to change later as a stronger, association between our `User`. The list of artists attached to the collection.',
     })
     readonly artists?: string[];
 

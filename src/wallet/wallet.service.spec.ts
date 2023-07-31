@@ -467,24 +467,11 @@ describe('WalletService', () => {
 
             const txTime = Math.floor(faker.date.recent().getTime() / 1000);
 
-            await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
-                txTime,
-                sender: faker.finance.ethereumAddress(),
-                recipient: wallet.address,
-                address: collection.address,
-                tierId: tier.tierId,
-                tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
-                paymentToken: faker.finance.ethereumAddress(),
-            });
-
+            // Deploy transaction
             await mintSaleContractService.createMintSaleContract({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
-                txTime: txTime + 1,
+                txTime,
                 sender: wallet.address,
                 royaltyReceiver: wallet.address,
                 royaltyRate: faker.random.numeric(2),
@@ -502,11 +489,28 @@ describe('WalletService', () => {
                 tokenAddress: faker.finance.ethereumAddress(),
             });
 
+            // Mint transaction
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: txTime + 1,
+                sender: faker.finance.ethereumAddress(),
+                recipient: wallet.address,
+                address: collection.address,
+                tierId: tier.tierId,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
             const list = await service.getActivitiesByAddress(wallet.address);
-            const [deployItem, mintItem] = list;
+            const [first, second] = list;
             expect(list.length).toEqual(2);
-            expect(deployItem.type).toEqual('Deploy');
-            expect(mintItem.type).toEqual('Mint');
+            expect(first.type).toEqual('Mint');
+            expect(second.type).toEqual('Deploy');
+            // should be sorted by txTime desc
+            expect(first.txTime).toBeGreaterThan(second.txTime);
         });
     });
 
