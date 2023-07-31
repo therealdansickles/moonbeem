@@ -393,8 +393,8 @@ export class WalletService {
             tierId: tx.tierId,
         }));
 
-        // merge and sort in chronological order
-        const mergedList = [...mintList, ...deployList].sort((a, b) => a.txTime - b.txTime);
+        // merge and sort in desc order
+        const mergedList = [...(mintList || []), ...(deployList || [])].sort((item) => item.txTime * -1);
 
         const activities = await Promise.all(
             mergedList.map(async (item) => {

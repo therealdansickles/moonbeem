@@ -503,7 +503,7 @@ describe('WalletService', () => {
             });
 
             const list = await service.getActivitiesByAddress(wallet.address);
-            const [mintItem, deployItem] = list;
+            const [deployItem, mintItem] = list;
             expect(list.length).toEqual(2);
             expect(deployItem.type).toEqual('Deploy');
             expect(mintItem.type).toEqual('Mint');
