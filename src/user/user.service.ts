@@ -192,10 +192,7 @@ export class UserService {
 
     /**
      * Verify user credentials.
-     *
-     * @param email user email
-     * @param password user hashed password
-     *
+     * @param accessToken user access token
      * @returns The user if credentials are valid.
      */
     private async authenticateFromGoogle(
