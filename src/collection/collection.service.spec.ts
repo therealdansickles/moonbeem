@@ -1,3 +1,5 @@
+import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
+import { ethers } from 'ethers';
 import { Repository } from 'typeorm';
 
 import { faker } from '@faker-js/faker';
@@ -6,16 +8,18 @@ import { CollaborationService } from '../collaboration/collaboration.service';
 import { OrganizationService } from '../organization/organization.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import { CollectionStat, CollectionStatus } from './collection.dto';
 import { Collection } from './collection.entity';
 import { CollectionService } from './collection.service';
-import { ethers } from 'ethers';
-import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
@@ -1235,8 +1239,8 @@ describe('CollectionService', () => {
                 },
             ] as CollectionStat[];
 
-            jest.spyOn(service, 'getSecondartMarketStat').mockImplementation(async () => mockResponse);
-            const result = await service.getSecondartMarketStat({ address: collection.address });
+            jest.spyOn(service, 'getSecondaryMarketStat').mockImplementation(async () => mockResponse);
+            const result = await service.getSecondaryMarketStat({ address: collection.address });
             expect(result.length).toEqual(1);
             expect(result[0].source).toEqual('opensea');
         });
@@ -1978,7 +1982,7 @@ describe('CollectionService', () => {
             expect(result.monthly).toBe(0);
         });
 
-        it('shoule return the number of collections created this month', async () => {
+        it('should return the number of collections created this month', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',
@@ -2440,6 +2444,166 @@ describe('CollectionService', () => {
                 startOfMonth(new Date())
             );
             expect(result2).toBe(1);
+        });
+    });
+
+    describe('getAggregatedCollectionActivities', () => {
+        const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
+        const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
+        const walletAddress1 = faker.finance.ethereumAddress().toLowerCase();
+        const walletAddress2 = faker.finance.ethereumAddress().toLowerCase();
+        const txHash1 = faker.datatype.hexadecimal({ length: 66, case: 'lower' });
+        const txHash2 = faker.datatype.hexadecimal({ length: 66, case: 'lower' });
+        let collection;
+
+        beforeEach(async () => {
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: user,
+            });
+
+            collection = await service.createCollectionWithTiers({
+                name: faker.commerce.productName(),
+                displayName: faker.commerce.productName(),
+                about: faker.commerce.productDescription(),
+                address: collectionAddress,
+                tags: [],
+                organization: { id: organization.id },
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: 200,
+                        paymentTokenAddress: coin.address,
+                        tierId: 0,
+                        price: '200',
+                        metadata: {
+                            uses: [],
+                            properties: {
+                                level: {
+                                    name: 'level',
+                                    type: 'string',
+                                    value: 'basic',
+                                    display_value: 'Basic',
+                                },
+                                holding_days: {
+                                    name: 'holding_days',
+                                    type: 'integer',
+                                    value: 125,
+                                    display_value: 'Days of holding',
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+
+            const transactionContent = {
+                height: parseInt(faker.random.numeric(5)),
+                txHash: txHash1,
+                txTime: Math.floor(new Date().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: walletAddress1,
+                address: collectionAddress,
+                tierId: 0,
+                tokenAddress,
+                paymentToken: coin.address,
+            };
+
+            const assetContent = {
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address: tokenAddress,
+            };
+
+            // minted 3 in one transaction
+            const tokenId1 = faker.random.numeric(1);
+            await mintSaleTransactionService.createMintSaleTransaction({
+                tokenId: tokenId1,
+                price: '1000000000000000000',
+                ...transactionContent
+            });
+            await asset721Service.createAsset721({
+                tokenId: tokenId1,
+                owner: walletAddress1,
+                ...assetContent
+            });
+
+            const tokenId2 = faker.random.numeric(2);
+            await mintSaleTransactionService.createMintSaleTransaction({
+                tokenId: tokenId2,
+                price: '2000000000000000000',
+                ...transactionContent
+            });
+            await asset721Service.createAsset721({
+                tokenId: tokenId2,
+                owner: walletAddress1,
+                ...assetContent,
+            });
+
+            const tokenId3 = faker.random.numeric(3);
+            await mintSaleTransactionService.createMintSaleTransaction({
+                tokenId: tokenId3,
+                price: '3000000000000000000',
+                ...transactionContent
+            });
+            await asset721Service.createAsset721({
+                tokenId: tokenId3,
+                owner: walletAddress1,
+                ...assetContent
+            });
+
+            // another transaction
+            const tokenId4 = faker.random.numeric(4);
+            const anotherTransactionContent = Object.assign(transactionContent, {
+                tokenId: tokenId4,
+                price: '4000000000000000000',
+                recipient: walletAddress2,
+                height: parseInt(faker.random.numeric(5)),
+                txHash: txHash2,
+                txTime: Math.floor(new Date().getTime() / 1000),
+            });
+            await mintSaleTransactionService.createMintSaleTransaction(anotherTransactionContent);
+            await asset721Service.createAsset721({
+                tokenId: tokenId4,
+                owner: walletAddress2,
+                ...assetContent
+            });
+        });
+
+        it('should work', async () => {
+            const result = await service.getAggregatedCollectionActivities(collectionAddress, tokenAddress);
+            expect(result.total).toEqual(2);
+            expect(result.data.length).toEqual(2);
+            const aggregation1 = result.data.find(item => item.txHash === txHash1);
+            expect(aggregation1.tokenIds.length).toEqual(3);
+            expect(aggregation1.tier.name).toEqual(collection.tiers[0].name);
+            const aggregation2 = result.data.find(item => item.txHash === txHash2);
+            expect(aggregation2.tokenIds.length).toEqual(1);
         });
     });
 });

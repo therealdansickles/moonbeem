@@ -1,6 +1,5 @@
 import { UseGuards } from '@nestjs/common';
-import { Args, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
-
+import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { Collaboration } from '../collaboration/collaboration.dto';
 import { CollaborationService } from '../collaboration/collaboration.service';
 import { Collection } from '../collection/collection.dto';
@@ -13,9 +12,12 @@ import {
     AggregatedBuyer,
     AggregatedCollection,
     AggregatedEarning,
+    CollectionStatFromOrganization,
     CreateOrganizationInput,
     Organization,
     OrganizationInput,
+    OrganizationLatestSalePaginated,
+    OrganizationProfit,
     TransferOrganizationInput,
     UpdateOrganizationInput,
 } from './organization.dto';
@@ -98,5 +100,51 @@ export class OrganizationResolver {
     @ResolveField(() => AggregatedEarning, { description: 'Returns the aggregate data of earngin for given wallet' })
     async aggregatedEarning(@Parent() organization: Organization): Promise<AggregatedEarning> {
         return await this.organizationService.getAggregatedEarnings(organization.id);
+    }
+
+    @Public()
+    @ResolveField(() => [OrganizationProfit], { description: 'Returns the total raised for the given organization.' })
+    async profit(@Parent() organization: Organization): Promise<OrganizationProfit[]> {
+        return await this.organizationService.getOrganizationProfit(organization.id);
+    }
+
+    @Public()
+    @ResolveField(() => Int, { description: 'Returns the total collections for the given organization.' })
+    async totalCollections(@Parent() organization: Organization): Promise<number> {
+        return await this.organizationService.getTotalCollections(organization.id);
+    }
+
+    @Public()
+    @ResolveField(() => Int, { description: 'Returns the total sold for the given organization.' })
+    async itemSold(@Parent() organization: Organization): Promise<number> {
+        return await this.organizationService.getItemSold(organization.id);
+    }
+
+    @Public()
+    @ResolveField(() => Int, { description: 'Returns the unique buyers for the given organization.' })
+    async uniqueBuyers(@Parent() organization: Organization): Promise<number> {
+        return await this.organizationService.getUniqueBuyers(organization.id);
+    }
+
+    @Public()
+    @ResolveField(() => OrganizationLatestSalePaginated, {
+        description: 'Returns the latest sales list for the given organization.',
+    })
+    async latestSales(
+        @Parent() organization: Organization,
+            @Args('before', { nullable: true }) before?: string,
+            @Args('after', { nullable: true }) after?: string,
+            @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+    ): Promise<OrganizationLatestSalePaginated> {
+        return await this.organizationService.getLatestSales(organization.id, before, after, first, last);
+    }
+
+    @Public()
+    @ResolveField(() => CollectionStatFromOrganization, {
+        description: 'Returns the collection stat for given organization.',
+    })
+    async collectionStat(@Parent() organization: Organization): Promise<CollectionStatFromOrganization> {
+        return await this.organizationService.getCollectionStat(organization.id);
     }
 }

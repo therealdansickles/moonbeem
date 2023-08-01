@@ -7,8 +7,12 @@ import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { WalletService } from '../wallet/wallet.service';
 import { Tier } from './tier.dto';
 import { TierService } from './tier.service';
@@ -90,7 +94,7 @@ describe('TierService', () => {
             expect(tier.price).toEqual('100');
         });
 
-        it('Should create a new tier for whitelisting collection', async () => {
+        it('should create a new tier for whitelisting collection', async () => {
             const coin = await coinService.createCoin({
                 address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
                 name: 'Wrapped Ether',
@@ -138,7 +142,43 @@ describe('TierService', () => {
             });
         });
 
-        it('Should create a tier with attributes, conditions and plugins', async () => {
+        it('should create a tier with empty metadata', async () => {
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1.5,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.whitelistEdition,
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const tier = await service.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                merkleRoot: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+            });
+
+            expect(tier.metadata.uses).toEqual([]);
+            expect(tier.metadata.properties).toEqual({});
+            expect(tier.metadata.conditions).toEqual({});
+        });
+
+        it('should create a tier with attributes, conditions and plugins', async () => {
             const coin = await coinService.createCoin({
                 address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
                 name: 'Wrapped Ether',

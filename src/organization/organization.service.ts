@@ -8,7 +8,10 @@ import { Organization, OrganizationKind } from './organization.entity';
 import {
     AggregatedBuyer,
     AggregatedEarning,
+    CollectionStatFromOrganization,
     CreateOrganizationInput,
+    OrganizationLatestSalePaginated,
+    OrganizationProfit,
     UpdateOrganizationInput,
 } from './organization.dto';
 import { User } from '../user/user.entity';
@@ -19,12 +22,20 @@ import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
 import { BasicTokenPrice } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
+import { Collection } from '../collection/collection.entity';
+import { fromCursor, PaginatedImp } from '../pagination/pagination.module';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { Tier } from '../tier/tier.entity';
 
 @Injectable()
 export class OrganizationService {
     constructor(
         @InjectRepository(Organization) private organizationRepository: Repository<Organization>,
         @InjectRepository(User) private userRepository: Repository<User>,
+        @InjectRepository(Tier) private tierRepository: Repository<Tier>,
+        @InjectRepository(Collection) private collectionRepository: Repository<Collection>,
+        @InjectRepository(MintSaleTransaction, 'sync_chain')
+        private mintSaleTransactionRepository: Repository<MintSaleTransaction>,
         private membershipService: MembershipService,
         private collectionService: CollectionService,
         private coinService: CoinService,
@@ -279,5 +290,201 @@ export class OrganizationService {
             const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(usdPrice);
             return accumulator.plus(totalUSDC);
         }, Promise.resolve(new BigNumber(0)));
+    }
+
+    /**
+     * Total Profit from organization
+     *
+     * @param id organization id
+     * @returns profit in payment token and usd
+     */
+    async getOrganizationProfit(id: string): Promise<OrganizationProfit[]> {
+        const collections = await this.collectionService.getCollectionsByOrganizationId(id);
+        if (collections.length == 0) return [];
+
+        const result = await this.mintSaleTransactionService.getTotalSalesByCollectionAddresses(
+            collections.map((c) => {
+                if (c.address) return c.address;
+            })
+        );
+
+        const data = await Promise.all(
+            result.map(async (item) => {
+                const coin = await this.coinService.getCoinByAddress(item.token);
+                const totalTokenPrice = new BigNumber(item.totalPrice).div(new BigNumber(10).pow(coin.decimals));
+                const quote = await this.coinService.getQuote(coin.symbol);
+                const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(quote['USD'].price);
+                return {
+                    paymentToken: item.token,
+                    inPaymentToken: totalTokenPrice.toString(),
+                    inUSDC: totalUSDC.toString(),
+                };
+            })
+        );
+        return data;
+    }
+
+    /**
+     * get total collections for the given user.
+     *
+     * @param id user id
+     * @returns collection count
+     */
+    async getTotalCollections(id: string): Promise<number> {
+        return await this.collectionRepository.count({ where: { organization: { id } } });
+    }
+
+    /**
+     *
+     * @param id organization id
+     * @returns
+     */
+    async getItemSold(id: string): Promise<number> {
+        const collections = await this.collectionService.getCollectionsByOrganizationId(id);
+        if (collections.length == 0) return 0;
+
+        return await this.mintSaleTransactionService.getTotalItemByCollectionAddresses(
+            collections.map((c) => {
+                if (c.address) return c.address;
+            })
+        );
+    }
+
+    /**
+     * get unique buyers for the given organization
+     * @param id user id
+     * @returns unique buyers
+     */
+    async getUniqueBuyers(id: string): Promise<number> {
+        const collections = await this.collectionService.getCollectionsByOrganizationId(id);
+        if (collections.length == 0) return 0;
+
+        return await this.mintSaleTransactionService.getUniqueRecipientByCollectionAddresses(
+            collections.map((c) => {
+                if (c.address) return c.address;
+            })
+        );
+    }
+
+    /**
+     * sales histories in all collections created by this organization
+     *
+     * @param id organization id
+     * @param before before cursor
+     * @param after after cursor
+     * @param first first limit
+     * @param last limit
+     * @returns LatestSalePaginated object
+     */
+    async getLatestSales(
+        id: string,
+        before: string,
+        after: string,
+        first: number,
+        last: number
+    ): Promise<OrganizationLatestSalePaginated> {
+        const collections = await this.collectionService.getCollectionsByOrganizationId(id);
+        if (collections.length == 0) return PaginatedImp([], 0);
+
+        const addresses = collections.map((c) => {
+            if (c.address) return c.address;
+        });
+
+        if (addresses.length > 0) {
+            const builder = await this.mintSaleTransactionRepository
+                .createQueryBuilder('txn')
+                .select('txn.txHash', 'txHash')
+                .addSelect('COUNT(1)', 'quantity')
+                .addSelect('SUM("txn".price::decimal(30,0))', 'totalPrice')
+                .addSelect('txn.recipient', 'recipient')
+                .addSelect('txn.txTime', 'txTime')
+                .addSelect('txn.tierId', 'tierId')
+                .addSelect('txn.address', 'address')
+                .addSelect('txn.paymentToken', 'paymentToken')
+                .where('txn.address IN (:...addresses)', { addresses })
+                .groupBy('txn.txHash')
+                .addGroupBy('txn.txTime')
+                .addGroupBy('txn.recipient')
+                .addGroupBy('txn.tierId')
+                .addGroupBy('txn.address')
+                .addGroupBy('txn.paymentToken');
+
+            if (after) {
+                builder.andWhere('asset.txTime > :cursor', { cursor: new Date(fromCursor(after)).valueOf() / 1000 });
+                builder.limit(first);
+            } else if (before) {
+                builder.andWhere('asset.txTime < :cursor', { cursor: fromCursor(before) });
+                builder.limit(last);
+            } else {
+                const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
+                builder.limit(limit);
+            }
+
+            const subquery = this.mintSaleTransactionRepository
+                .createQueryBuilder('txn')
+                .select('txn.recipient', 'recipient')
+                .where('txn.address IN (:...addresses)', { addresses })
+                .groupBy('txn.recipient')
+                .addGroupBy('txn.address')
+                .addGroupBy('txn.tierId');
+
+            const [result, totalResult] = await Promise.all([
+                builder.getRawMany(),
+                this.mintSaleTransactionRepository.manager.query(
+                    `SELECT COUNT(1) AS "total" FROM (${subquery.getSql()}) AS subquery`,
+                    addresses
+                ),
+            ]);
+
+            const dd = await Promise.all(
+                result.map(async (item) => {
+                    const { tierId, paymentToken, totalPrice, quantity, ...rest } = item;
+                    const collection = collections.find((c) => c.address == item.address);
+                    const tier = await this.tierRepository.findOneBy({
+                        tierId: tierId,
+                        collection: { id: collection.id },
+                    });
+                    const coin = await this.coinService.getCoinByAddress(paymentToken);
+                    const quote = await this.coinService.getQuote(coin.symbol);
+                    const totalTokenPrice = new BigNumber(totalPrice).div(new BigNumber(10).pow(coin.decimals));
+                    const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(quote['USD'].price);
+
+                    const createdAt = new Date(item.txTime * 1000);
+                    return {
+                        quantity: parseInt(quantity),
+                        ...rest,
+                        tier,
+                        collection,
+                        paymentToken,
+                        totalPrice: {
+                            inPaymentToken: totalTokenPrice.toString(),
+                            inUSDC: totalUSDC.toString(),
+                        },
+                        createdAt: new Date(createdAt.getTime() + createdAt.getTimezoneOffset() * 60 * 1000),
+                    };
+                })
+            );
+            return PaginatedImp(dd, totalResult.length > 0 ? parseInt(totalResult[0].total ?? 0) : 0);
+        }
+
+        return PaginatedImp([], 0);
+    }
+
+    async getCollectionStat(id: string): Promise<CollectionStatFromOrganization> {
+        const current = Math.floor(new Date().valueOf() / 1000);
+        const [total, live, closed] = await Promise.all([
+            this.collectionRepository.count({ where: { organization: { id } } }),
+            this.collectionRepository
+                .createQueryBuilder('collection')
+                .where('collection.organizationId = :id', { id })
+                .andWhere('collection.beginSaleAt <= :current AND collection.endSaleAt >= :current', { current })
+                .getCount(),
+            this.collectionRepository
+                .createQueryBuilder('collection')
+                .where('collection.organizationId = :id', { id })
+                .andWhere('collection.endSaleAt <= :current', { current })
+                .getCount(),
+        ]);
+        return { total, live, closed };
     }
 }

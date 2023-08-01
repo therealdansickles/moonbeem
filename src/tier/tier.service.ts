@@ -9,28 +9,22 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { captureException } from '@sentry/node';
 
 import { Collection, CollectionKind } from '../collection/collection.entity';
-import { fromCursor, PaginatedImp } from '../pagination/pagination.module';
 import { MetadataPropertySearchInput } from '../metadata/metadata.dto';
+import { fromCursor, PaginatedImp } from '../pagination/pagination.module';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Coin } from '../sync-chain/coin/coin.entity';
+import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { TierHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    BasicPriceInfo,
-    CreateTierInput,
-    IAttributeOverview,
-    IOverview,
-    IPluginOverview,
-    IUpgradeOverview,
-    Profit,
-    Tier,
-    TierSearchPaginated,
-    UpdateTierInput,
+    BasicPriceInfo, CreateTierInput, IAttributeOverview, IOverview, IPluginOverview,
+    IUpgradeOverview, Profit, Tier, TierSearchPaginated, UpdateTierInput
 } from './tier.dto';
 import * as tierEntity from './tier.entity';
-import { CoinService } from '../sync-chain/coin/coin.service';
 
 interface ITierSearch {
     collectionId?: string;
@@ -44,6 +38,7 @@ interface ITierSearch {
 export type ITierQuery = {
     name?: string;
     collection?: { id: string };
+    tierId?: number
 };
 
 @Injectable()

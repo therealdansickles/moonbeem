@@ -1,6 +1,8 @@
-import { Field, ID, InputType, ObjectType, OmitType, PartialType, PickType } from '@nestjs/graphql';
+import { Field, ID, InputType, Int, ObjectType, OmitType, PartialType, PickType } from '@nestjs/graphql';
 import { IsBoolean, IsDateString, IsNumber, IsObject, IsOptional, IsString, IsUrl, ValidateIf } from 'class-validator';
-import { User, UserInput } from '../user/user.dto';
+import Paginated from '../pagination/pagination.dto';
+import { Profit } from '../tier/tier.dto';
+import { LatestSaleData, User, UserInput } from '../user/user.dto';
 
 @ObjectType('Organization')
 export class Organization {
@@ -194,3 +196,31 @@ export class AggregatedBuyer extends BasicAggregator {}
 
 @ObjectType('AggregatedEarning')
 export class AggregatedEarning extends BasicAggregator {}
+
+@ObjectType('OrganizationProfit')
+export class OrganizationProfit extends Profit {
+    @IsString()
+    @Field({ description: 'payment token for profit' })
+    readonly paymentToken: string;
+}
+
+@ObjectType('OrganizationLatestSaleData')
+export class OrganizationLatestSaleData extends LatestSaleData {}
+
+@ObjectType('OrganizationLatestSalePaginated')
+export class OrganizationLatestSalePaginated extends Paginated(OrganizationLatestSaleData) {}
+
+@ObjectType('CollectionStatFromOrganization')
+export class CollectionStatFromOrganization {
+    @Field(() => Int, { description: 'The number of total collections for this stat' })
+    @IsNumber()
+    readonly total: number;
+
+    @Field(() => Int, { description: 'The number of live collections for this stat' })
+    @IsNumber()
+    readonly live: number;
+
+    @Field(() => Int, { description: 'The number of close collections for this stat' })
+    @IsNumber()
+    readonly closed: number;
+}

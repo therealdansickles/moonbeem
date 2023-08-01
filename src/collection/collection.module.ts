@@ -30,6 +30,9 @@ import {
 import {
     MintSaleTransactionModule
 } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { Tier } from '../tier/tier.entity';
 import { TierModule } from '../tier/tier.module';
 import { TierService } from '../tier/tier.service';
@@ -83,6 +86,7 @@ import { CollectionService } from './collection.service';
         CollectionService,
         CollectionResolver,
         CoinMarketCapService,
+        MintSaleTransactionService,
     ],
     controllers: [],
 })

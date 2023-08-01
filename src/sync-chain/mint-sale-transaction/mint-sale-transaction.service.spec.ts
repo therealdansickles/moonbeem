@@ -1,5 +1,7 @@
-import { faker } from '@faker-js/faker';
 import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
+
+import { faker } from '@faker-js/faker';
+
 import { MintSaleTransactionService } from './mint-sale-transaction.service';
 
 describe('MintSaleTransactionService', () => {
@@ -417,6 +419,210 @@ describe('MintSaleTransactionService', () => {
             expect(result.length).toBe(1);
             expect(result[0].token).toBe(paymentToken);
             expect(result[0].totalPrice).toBe('2000000000000000000');
+        });
+    });
+
+    describe('getTotalSalesByCollectionAddresses', () => {
+        it('should be return total prices by collections', async () => {
+            const collectionAddress1 = faker.finance.ethereumAddress();
+            const paymentToken = faker.finance.ethereumAddress();
+
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress1,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: '1000000000000000000',
+                paymentToken: paymentToken,
+            });
+
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress1,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: '1000000000000000000',
+                paymentToken: paymentToken,
+            });
+
+            const result = await service.getTotalSalesByCollectionAddresses([collectionAddress1]);
+            expect(result.length).toBe(1);
+            expect(result[0].token).toBe(paymentToken);
+            expect(result[0].totalPrice).toBe('2000000000000000000');
+        });
+
+        it('shoule be return total prices by collection, multiple payment tokens and multiple collections', async () => {
+            const collectionAddress1 = faker.finance.ethereumAddress();
+            const paymentToken = faker.finance.ethereumAddress();
+
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress1,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: '1000000000000000000',
+                paymentToken: paymentToken,
+            });
+
+            const collectionAddress2 = faker.finance.ethereumAddress();
+            const paymentToken2 = faker.finance.ethereumAddress();
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress2,
+                tierId: 1,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: '2000000000000000000',
+                paymentToken: paymentToken2,
+            });
+
+            const result = await service.getTotalSalesByCollectionAddresses([collectionAddress1, collectionAddress2]);
+            expect(result.length).toBe(2);
+
+            const filter1 = result.filter((item) => {
+                return item.token == paymentToken;
+            });
+            expect(filter1).toBeDefined();
+            expect(filter1.length).toBe(1);
+            expect(filter1[0].totalPrice).toBe('1000000000000000000');
+
+            const filter2 = result.filter((item) => {
+                return item.token == paymentToken2;
+            });
+            expect(filter2).toBeDefined();
+            expect(filter2.length).toBe(1);
+            expect(filter2[0].totalPrice).toBe('2000000000000000000');
+        });
+    });
+    
+    describe('getAggregatedCollectionTransaction', () => {
+        it('should return aggregated collection transaction with minted NFT items', async () => {
+            const collectionAddress = faker.finance.ethereumAddress();
+            const tokenAddress = faker.finance.ethereumAddress();
+            const paymentToken = faker.finance.ethereumAddress();
+
+            const transactionContent = {
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress,
+                tierId: 0,
+                tokenAddress,
+                paymentToken: paymentToken
+            };
+
+            // minted 3 in one transaction
+            const tnx1 = await service.createMintSaleTransaction({
+                tokenId: faker.random.numeric(1),
+                price: '1000000000000000000',
+                ...transactionContent
+            });
+
+            const tnx2 = await service.createMintSaleTransaction({
+                tokenId: faker.random.numeric(2),
+                price: '2000000000000000000',
+                ...transactionContent
+            });
+
+            const tnx3 = await service.createMintSaleTransaction({
+                tokenId: faker.random.numeric(3),
+                price: '3000000000000000000',
+                ...transactionContent
+            });
+
+            // another transaction
+            const tnx4 = await service.createMintSaleTransaction({
+                tokenId: faker.random.numeric(4),
+                price: '4000000000000000000',
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress,
+                tierId: 1,
+                tokenAddress,
+                paymentToken
+            });
+
+            const result = await service.getAggregatedCollectionTransaction(collectionAddress);
+
+            expect(result).toBeDefined();
+            expect(result.length).toEqual(2);
+            expect(result[0].cost.toString()).toEqual((BigInt(tnx1.price) + BigInt(tnx2.price) + BigInt(tnx3.price)).toString());
+            expect(result[1].cost.toString()).toEqual(tnx4.price.toString());
+        });
+
+        it('should not accumulate the different token even they are in the same transaction', async () => {
+            const collectionAddress = faker.finance.ethereumAddress();
+            const tokenAddress = faker.finance.ethereumAddress();
+            const paymentToken = faker.finance.ethereumAddress();
+
+            const transactionContent = {
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress,
+                tierId: 0,
+                tokenAddress,
+                paymentToken: paymentToken
+            };
+
+            // minted 3 in one transaction
+            await service.createMintSaleTransaction({
+                tokenId: faker.random.numeric(1),
+                price: '1000000000000000000',
+                ...transactionContent
+            });
+
+            await service.createMintSaleTransaction({
+                tokenId: faker.random.numeric(2),
+                price: '2000000000000000000',
+                ...transactionContent
+            });
+
+            await service.createMintSaleTransaction({
+                tokenId: faker.random.numeric(3),
+                price: '3000000000000000000',
+                ...transactionContent
+            });
+
+            // another contract
+            await service.createMintSaleTransaction({
+                tokenId: faker.random.numeric(4),
+                price: '4000000000000000000',
+                ...transactionContent,
+                tokenAddress: faker.finance.ethereumAddress(),
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const result = await service.getAggregatedCollectionTransaction(collectionAddress);
+
+            expect(result).toBeDefined();
+            expect(result.length).toEqual(1);
         });
     });
 });

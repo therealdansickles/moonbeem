@@ -17,7 +17,7 @@ export enum CollectionKind {
     edition = 'edition', // single NFT.
     tiered = 'tiered', // Multiple NFTs with different prices and attributes.
     bulk = 'bulk', // Bulk generation of NFTs.
-    other = 'other', // unknow type
+    other = 'other', // unknown type
     whitelistEdition = 'whitelistEdition',
     whitelistTiered = 'whitelistTiered',
     whitelistBulk = 'whitelistBulk',
