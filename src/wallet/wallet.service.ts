@@ -1,4 +1,5 @@
 import BigNumber from 'bignumber.js';
+import { startOfMonth } from 'date-fns';
 import { ethers, isAddress } from 'ethers';
 import { GraphQLError } from 'graphql';
 import { isEmpty, isNil, omit, omitBy } from 'lodash';
@@ -9,27 +10,23 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { captureException } from '@sentry/node';
 
 import { Collection } from '../collection/collection.entity';
-import { cursorToStrings, fromCursor, PaginatedImp, toPaginated } from '../pagination/pagination.module';
+import { CollectionService } from '../collection/collection.service';
+import {
+    cursorToStrings, fromCursor, PaginatedImp, toPaginated
+} from '../pagination/pagination.module';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { BasicPriceInfo, Profit } from '../tier/tier.dto';
 import { Tier } from '../tier/tier.entity';
 import { User } from '../user/user.entity';
 import {
-    BindWalletInput,
-    CreateWalletInput,
-    EstimatedValue,
-    Minted,
-    MintPaginated,
-    UnbindWalletInput,
-    UpdateWalletInput,
-    WalletSold,
-    WalletSoldPaginated,
+    BindWalletInput, CreateWalletInput, EstimatedValue, Minted, MintPaginated, UnbindWalletInput,
+    UpdateWalletInput, WalletSold, WalletSoldPaginated
 } from './wallet.dto';
 import { Wallet } from './wallet.entity';
-import { CollectionService } from '../collection/collection.service';
-import { startOfMonth } from 'date-fns';
 
 interface ITokenPrice {
     token: string;
@@ -153,7 +150,7 @@ export class WalletService {
             });
         }
         if (payload.name && payload.name !== '') {
-            if (isAddress(payload.name) && payload.name.toLowerCase() !== payload.address.toLowerCase())
+            if (isAddress(payload.name) && payload.name.toLowerCase() !== wallet.address.toLowerCase())
                 throw new GraphQLError(`Wallet name can't be in the address format.`, {
                     extensions: { code: 'BAD_REQUEST' },
                 });

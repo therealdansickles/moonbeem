@@ -5,14 +5,18 @@ import { faker } from '@faker-js/faker';
 
 import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
+import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { Wallet } from './wallet.entity';
 import { WalletService } from './wallet.service';
-import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 
 describe('WalletService', () => {
     let address: string;
@@ -532,7 +536,11 @@ describe('WalletService', () => {
                 address: faker.finance.ethereumAddress(),
                 name: faker.internet.domainName(),
             });
-            expect(() => service.updateWallet(wallet.id, { name: faker.finance.ethereumAddress() })).rejects.toThrow();
+            try {
+                await service.updateWallet(wallet.id, { name: faker.finance.ethereumAddress() });
+            } catch (err) {
+                expect(err.message).toEqual(`Wallet name can't be in the address format.`);
+            }
         });
     });
 
