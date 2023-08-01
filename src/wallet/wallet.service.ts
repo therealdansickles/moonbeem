@@ -102,7 +102,7 @@ export class WalletService {
      * @returns
      */
     async checkWalletExistence(address: string): Promise<Wallet> {
-        const wallet = this.getWalletByQuery({ address });
+        const wallet = await this.getWalletByQuery({ address });
         if (!wallet) throw new GraphQLError(`wallet ${address} doesn't exist.`);
         return wallet;
     }
