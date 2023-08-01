@@ -584,7 +584,7 @@ export class WalletService {
         const result = await this.mintSaleTransactionRepository
             .createQueryBuilder('txn')
             .select('txn.paymentToken', 'token')
-            .addSelect('SUM(txn.price::numeric(20,0))', 'total_price')
+            .addSelect('SUM(txn.price::REAL)', 'total_price')
             .where('txn.address IN (:...addresses)', {
                 addresses: collections.map((c) => {
                     if (c.address) return c.address;

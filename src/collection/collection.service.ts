@@ -380,7 +380,7 @@ export class CollectionService {
             .addSelect('COUNT(*)', 'quantity')
             .addSelect('MIN(asset.txTime)', 'txTime')
             .addSelect('txn.price', 'price')
-            .addSelect('SUM(txn.price::numeric(20,0))', 'totalPrice')
+            .addSelect('SUM(txn.price::REAL)', 'totalPrice')
             .where('asset.address = :address AND txn.tokenAddress = :address', {
                 address: contract.tokenAddress,
             })
@@ -750,7 +750,7 @@ export class CollectionService {
         const result = await this.mintSaleTransactionRepository
             .createQueryBuilder('txn')
             .select('txn.paymentToken', 'token')
-            .addSelect('SUM(txn.price::numeric(20,0))', 'total_price')
+            .addSelect('SUM(txn.price::REAL)', 'total_price')
             .where('txn.txTime BETWEEN :startDate AND :endDate', { startDate, endDate })
             .andWhere('txn.address = :address', { address })
             .addGroupBy('txn.paymentToken')
@@ -775,7 +775,7 @@ export class CollectionService {
         const builder = this.mintSaleTransactionRepository
             .createQueryBuilder('txn')
             .select('txn.paymentToken', 'token')
-            .addSelect('SUM(txn.price::numeric(20,0))', 'total_price')
+            .addSelect('SUM(txn.price::REAL)', 'total_price')
             .andWhere('txn.address = :address', { address });
 
         if (between && between.length == 2) {
