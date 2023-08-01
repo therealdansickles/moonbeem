@@ -1,4 +1,5 @@
 import BigNumber from 'bignumber.js';
+import { startOfMonth } from 'date-fns';
 import { ethers, isAddress } from 'ethers';
 import { GraphQLError } from 'graphql';
 import { isEmpty, isNil, omit, omitBy } from 'lodash';
@@ -9,27 +10,23 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { captureException } from '@sentry/node';
 
 import { Collection } from '../collection/collection.entity';
-import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
+import { CollectionService } from '../collection/collection.service';
+import {
+    cursorToStrings, fromCursor, PaginatedImp, toPaginated
+} from '../pagination/pagination.module';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { BasicPriceInfo, Profit } from '../tier/tier.dto';
 import { Tier } from '../tier/tier.entity';
 import { User } from '../user/user.entity';
 import {
-    BindWalletInput,
-    CreateWalletInput,
-    EstimatedValue,
-    Minted,
-    MintPaginated,
-    UnbindWalletInput,
-    UpdateWalletInput,
-    WalletSold,
-    WalletSoldPaginated,
+    BindWalletInput, CreateWalletInput, EstimatedValue, Minted, MintPaginated, UnbindWalletInput,
+    UpdateWalletInput, WalletSold, WalletSoldPaginated
 } from './wallet.dto';
 import { Wallet } from './wallet.entity';
-import { CollectionService } from '../collection/collection.service';
-import { startOfMonth } from 'date-fns';
 
 interface ITokenPrice {
     token: string;
@@ -153,7 +150,7 @@ export class WalletService {
             });
         }
         if (payload.name && payload.name !== '') {
-            if (isAddress(payload.name) && payload.name.toLowerCase() !== payload.address.toLowerCase())
+            if (isAddress(payload.name) && payload.name.toLowerCase() !== wallet.address.toLowerCase())
                 throw new GraphQLError(`Wallet name can't be in the address format.`, {
                     extensions: { code: 'BAD_REQUEST' },
                 });
@@ -189,7 +186,10 @@ export class WalletService {
         const address = rawAddress.toLowerCase();
         const wallet = await this.verifyWallet(address, data.message, data.signature);
 
-        if (wallet.owner?.id) throw new Error(`Wallet ${address} is already bound.`);
+        if (wallet.owner?.id)
+            throw new Error(
+                `The wallet at ${address} is already connected to an existing account. Please connect another wallet to this account.`
+            );
 
         await this.updateWallet(wallet.id, { ...omit(wallet, 'owner'), ownerId: owner.id });
         return this.walletRepository.findOne({
@@ -289,6 +289,10 @@ export class WalletService {
      * the NFT details itself via the `tier` and the `collection` associated with it.
      *
      * @param address The address of the wallet to retrieve.
+     * @param before The cursor to retrieve the next page of results.
+     * @param after The cursor to retrieve the previous page of results.
+     * @param first The number of results to retrieve, work with after together
+     * @param last The number of results to retrieve, work with before together
      * @returns The `Minted` details + mint sale transactions associated with the given address.
      */
     async getMintedByAddress(
@@ -306,10 +310,19 @@ export class WalletService {
         const countBuilder = builder.clone();
 
         if (after) {
-            builder.andWhere('tx.createdAt > :cursor', { cursor: fromCursor(after) });
+            const [createdAt, id] = cursorToStrings(after);
+            // We assume that the createdAt can be duplicated, use >= instead of > here
+            builder.andWhere('tx.createdAt > :createdAt', { createdAt });
+            builder.orWhere('tx.createdAt = :createdAt AND tx.id > :id', { createdAt, id });
+            builder.orderBy('tx.createdAt', 'ASC');
+            builder.addOrderBy('tx.id', 'ASC');
             builder.limit(first);
         } else if (before) {
-            builder.andWhere('tx.createdAt < :cursor', { cursor: fromCursor(before) });
+            const [createdAt, id] = cursorToStrings(after);
+            builder.andWhere('tx.createdAt < :createdAt', { createdAt });
+            builder.orWhere('tx.createdAt = :createdAt AND tx.id < :id', { createdAt, id });
+            builder.orderBy('tx.createdAt', 'DESC');
+            builder.addOrderBy('tx.id', 'DESC');
             builder.limit(last);
         } else {
             const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
@@ -318,7 +331,7 @@ export class WalletService {
 
         const [mintSaleTransactions, total] = await Promise.all([builder.getMany(), countBuilder.getCount()]);
 
-        const minted: Minted[] = await Promise.all(
+        const mintedList: Minted[] = await Promise.all(
             mintSaleTransactions.map(async (mintSaleTransaction) => {
                 const { tierId, address } = mintSaleTransaction;
 
@@ -334,12 +347,12 @@ export class WalletService {
             })
         );
 
-        return PaginatedImp(minted, total);
+        return toPaginated(mintedList, total);
     }
 
     /**
      *
-     * The `Minted` list + `Deply` list
+     * The `Minted` list + `Deploy` list
      *
      * @param address
      * @returns
@@ -377,8 +390,8 @@ export class WalletService {
             tierId: tx.tierId,
         }));
 
-        // merge and sort in chronological order
-        const mergedList = [...mintList, ...deployList].sort((a, b) => a.txTime - b.txTime);
+        // merge and sort in desc order
+        const mergedList = [...(mintList || []), ...(deployList || [])].sort((a, b) => b.txTime - a.txTime);
 
         const activities = await Promise.all(
             mergedList.map(async (item) => {
@@ -410,13 +423,15 @@ export class WalletService {
 
         for (const group of priceTokenGroups) {
             const coin = await this.coinService.getCoinByAddress(group.token);
-            const usdcValue = coin?.derivedUSDC || '0';
+            const quote = await this.coinService.getQuote(coin.symbol);
+            const usdPrice = quote['USD'].price;
             const price = group?.price || '0';
+            const totalTokenPrice = new BigNumber(price).div(new BigNumber(10).pow(coin.decimals));
 
             values.push({
                 paymentTokenAddress: group.token,
-                total: price,
-                totalUSDC: new BigNumber(price).multipliedBy(usdcValue).toString(),
+                total: totalTokenPrice.toString(),
+                totalUSDC: new BigNumber(totalTokenPrice).multipliedBy(usdPrice).toString(),
             });
         }
 

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/graphql';
 
 import { Collaboration, CollaborationInput } from '../collaboration/collaboration.dto';
-import Paginated from '../lib/pagination/pagination.model';
+import Paginated from '../pagination/pagination.dto';
 import { Metadata } from '../metadata/metadata.dto';
 import { Organization, OrganizationInput } from '../organization/organization.dto';
 import { Asset721 } from '../sync-chain/asset721/asset721.dto';
@@ -225,7 +225,7 @@ export class CreateTierInCollectionInput {
     readonly metadata: Metadata;
 
     @IsString()
-    @Field({ nullable: true, description: 'This merekleRoot of tier.' })
+    @Field({ nullable: true, description: 'This merkleRoot of tier.' })
     @IsOptional()
     readonly merkleRoot?: string;
 

@@ -15,7 +15,7 @@ import { CollectionStat, CollectionStatus } from './collection.dto';
 import { Collection } from './collection.entity';
 import { CollectionService } from './collection.service';
 import { ethers } from 'ethers';
-import { startOfDay, startOfMonth, startOfWeek, subDays } from 'date-fns';
+import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
@@ -2358,28 +2358,7 @@ describe('CollectionService', () => {
                 artists: [],
                 tags: [],
                 organization: organization,
-                createdAt: subDays(new Date(), 10),
-            });
-
-            await repository.save({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                address: faker.finance.ethereumAddress(),
-                artists: [],
-                tags: [],
-                organization: organization,
-                createdAt: subDays(new Date(), 3),
-            });
-
-            await repository.save({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                address: faker.finance.ethereumAddress(),
-                artists: [],
-                tags: [],
-                organization: organization,
+                createdAt: startOfDay(new Date()),
             });
 
             const result = await service.getCollectionsByOrganizationIdAndBeginTime(
@@ -2387,18 +2366,80 @@ describe('CollectionService', () => {
                 startOfDay(new Date())
             );
             expect(result).toBe(1);
+        });
+
+        it('should be return the number of collections by this week', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            await repository.save({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+                createdAt: startOfWeek(new Date()),
+            });
 
             const result1 = await service.getCollectionsByOrganizationIdAndBeginTime(
                 organization.id,
                 startOfWeek(new Date())
             );
-            expect(result1).toBe(2);
+            expect(result1).toBe(1);
+        });
+
+        it('should be return the number of collections by this month', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            await repository.save({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+                createdAt: startOfMonth(new Date()),
+            });
 
             const result2 = await service.getCollectionsByOrganizationIdAndBeginTime(
                 organization.id,
                 startOfMonth(new Date())
             );
-            expect(result2).toBe(3);
+            expect(result2).toBe(1);
         });
     });
 });

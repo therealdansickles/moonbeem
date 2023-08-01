@@ -7,7 +7,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as Sentry from '@sentry/node';
 import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
-import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
+import { fromCursor, PaginatedImp } from '../pagination/pagination.module';
 import { OpenseaService } from '../opensea/opensea.service';
 import { SaleHistory } from '../saleHistory/saleHistory.dto';
 import { getCurrentPrice } from '../saleHistory/saleHistory.service';
@@ -354,7 +354,7 @@ export class CollectionService {
 
         return result.map((r) => r.recipient);
 
-        // NOTE: use this when we wanna attach wallet. CURENTLY, we will not have wallet's for every address
+        // NOTE: use this when we wanna attach wallet. CURRENTLY, we will not have wallet's for every address
         // so this WILL BREAK.
         //return await this.walletRepository.find({ where: { address: In(result.map((r) => r.recipient)) } });
     }

@@ -10,8 +10,15 @@ import { AuthorizedWallet, CurrentWallet, Public } from '../session/session.deco
 import { SigninByEmailGuard } from '../session/session.guard';
 import { Profit } from '../tier/tier.dto';
 import {
-    Activity, BindWalletInput, CreateWalletInput, EstimatedValue, MintPaginated, UnbindWalletInput,
-    UpdateWalletInput, Wallet, WalletSoldPaginated
+    Activity,
+    BindWalletInput,
+    CreateWalletInput,
+    EstimatedValue,
+    MintPaginated,
+    UnbindWalletInput,
+    UpdateWalletInput,
+    Wallet,
+    WalletSoldPaginated,
 } from './wallet.dto';
 import { WalletService } from './wallet.service';
 
@@ -83,8 +90,7 @@ export class WalletResolver {
             @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
             @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
     ): Promise<MintPaginated> {
-        const minted = await this.walletService.getMintedByAddress(wallet.address, before, after, first, last);
-        return minted;
+        return this.walletService.getMintedByAddress(wallet.address, before, after, first, last);
     }
 
     @Public()

@@ -554,10 +554,11 @@ describe('TierService', () => {
         let draftTier: Tier;
         let innerCollection: Collection;
         let draftCollection: Collection;
+        let coin;
 
         beforeEach(async () => {
             const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
-            const coin = await coinService.createCoin({
+            coin = await coinService.createCoin({
                 address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
                 name: 'Wrapped Ether',
                 symbol: 'WETH',
@@ -576,6 +577,7 @@ describe('TierService', () => {
                 tags: [],
                 kind: CollectionKind.edition,
                 address: collectionAddress,
+                tokenAddress: tokenAddress,
             });
 
             draftCollection =  await collectionService.createCollection({
@@ -787,8 +789,95 @@ describe('TierService', () => {
         it('should get aggregated holders of tier', async () => {
             const tierHolders = await service.getHolders(tier.id, '', '',10, 10);
             expect(tierHolders.totalCount).toEqual(2);
-            expect(tierHolders.edges[0].node.quantity).toEqual(1);
-            expect(tierHolders.edges[1].node.quantity).toEqual(2);
+            expect(tierHolders.edges.length).toEqual(2);
+            // We are not ordering by quantity, so we can't expect the order
+            expect(tierHolders.edges[0].node.quantity + tierHolders.edges[1].node.quantity).toEqual(3);
+        });
+
+        it('should not include other collection holders', async () => {
+            const anotherCollectionAddress = faker.finance.ethereumAddress().toLowerCase();
+            const anotherTokenAddress = faker.finance.ethereumAddress().toLowerCase();
+            const tokenId = faker.random.numeric(5);
+            const tokenId2 = faker.random.numeric(4);
+            const owner = faker.finance.ethereumAddress().toLowerCase();
+            const owner2 = faker.finance.ethereumAddress().toLowerCase();
+            const anotherCollection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                tokenAddress: anotherTokenAddress,
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: anotherCollectionAddress
+            });
+            await service.createTier({
+                name: tierName,
+                totalMints: 100,
+                collection: { id: anotherCollection.id },
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+                metadata: {}
+            });
+
+            await mintSaleContractService.createMintSaleContract({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                address: anotherCollectionAddress,
+                royaltyReceiver: faker.finance.ethereumAddress(),
+                royaltyRate: 10000,
+                derivativeRoyaltyRate: 1000,
+                isDerivativeAllowed: true,
+                beginTime: Math.floor(faker.date.recent().getTime() / 1000),
+                endTime: Math.floor(faker.date.recent().getTime() / 1000),
+                tierId: 0,
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+                startId: 1,
+                endId: 100,
+                currentId: 1,
+                tokenAddress: anotherTokenAddress,
+                collectionId: anotherCollection.id,
+            });
+
+            await asset721Service.createAsset721({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address: anotherTokenAddress,
+                tokenId: tokenId,
+                owner: owner,
+            });
+
+            await asset721Service.createAsset721({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address: anotherTokenAddress,
+                tokenId: tokenId2,
+                owner: owner2,
+            });
+
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: owner,
+                address: anotherCollectionAddress,
+                tierId: 0,
+                tokenAddress: anotherTokenAddress,
+                tokenId: tokenId,
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
+            const tierHolders = await service.getHolders(tier.id, '', '',10, 10);
+            expect(tierHolders.totalCount).toEqual(2);
+            expect(tierHolders.edges.length).toEqual(2);
+            expect(tierHolders.edges[0].node.quantity + tierHolders.edges[1].node.quantity).toEqual(3);
         });
 
         it('should get attribute overview', async () => {

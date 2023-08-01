@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js';
 import { GraphQLError } from 'graphql';
 import { isEmpty, isNil, omitBy } from 'lodash';
-import { DeleteResult, In, Repository, UpdateResult } from 'typeorm';
+import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { captureException } from '@sentry/node';
 
 import { Collection, CollectionKind } from '../collection/collection.entity';
-import { fromCursor, PaginatedImp } from '../lib/pagination/pagination.model';
+import { fromCursor, PaginatedImp } from '../pagination/pagination.module';
 import { MetadataPropertySearchInput } from '../metadata/metadata.dto';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Coin } from '../sync-chain/coin/coin.entity';
@@ -260,13 +260,15 @@ export class TierService {
         try {
             const tier = await this.tierRepository.findOne({ where: { id: id }, relations: ['collection'] });
 
-            const { count } = await this.transactionRepository
-                .createQueryBuilder('txn')
-                .select('COUNT(DISTINCT(recipient))', 'count')
+            const { count } = await this.asset721Repository
+                .createQueryBuilder('asset')
+                .leftJoinAndSelect(MintSaleTransaction, 'txn', 'asset.tokenId = txn.tokenId')
+                .select('COUNT(DISTINCT(asset.owner))', 'count')
                 .where('txn.address = :address AND txn.tierId = :tierId', {
                     address: tier.collection.address,
                     tierId: tier.tierId,
                 })
+                .andWhere('asset.address = :tokenAddress', { tokenAddress: tier.collection.tokenAddress })
                 .getRawOne();
 
             // The count is a number string due to the javascript number limit
@@ -278,6 +280,17 @@ export class TierService {
     }
 
 
+    /**
+     * getHolders of a tier.
+     * The holders definition is the unique owner of the assets
+     * So we should find the assets with unique owner in this tier.
+     *
+     * @param id tier id
+     * @param before The cursor value of an item in the dataset to return before.
+     * @param after The cursor value of an item in the dataset to return after.
+     * @param first The number of items to return, work with after
+     * @param last The number of items to return, work with before
+     */
     async getHolders(id: string,
         before: string,
         after: string,
@@ -289,7 +302,6 @@ export class TierService {
             return PaginatedImp([], 0);
         }
 
-        // get contract info from sync_chain
         const contract = await this.contractRepository.findOneBy({
             address: tier.collection.address,
             tierId: tier.tierId,
@@ -305,14 +317,16 @@ export class TierService {
             .where('asset.address = :address AND txn.tokenAddress = :address', {
                 address: contract.tokenAddress,
             })
+            .andWhere('txn.tierId = :tierId', { tierId: tier.tierId })
             .groupBy('asset.owner')
             .addGroupBy('txn.tierId');
+
 
         if (after) {
             builder.andWhere('asset.txTime > :cursor', { cursor: new Date(fromCursor(after)).valueOf() / 1000 });
             builder.limit(first);
         } else if (before) {
-            builder.andWhere('asset.txTime < :cursor', { cursor: fromCursor(before) });
+            builder.andWhere('asset.txTime < :cursor', { cursor: new Date(fromCursor(before)).valueOf() / 1000 });
             builder.limit(last);
         } else {
             const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
@@ -320,19 +334,21 @@ export class TierService {
         }
 
         const holders = await builder.getRawMany();
-        const wallets = await this.walletRepository.findBy({
-            address: In(
-                holders.map(holder => holder.owner))
-        });
 
         // ignore the transactions and assets until we are clear about the usage
-        const data = wallets.map(wallet => {
-            const holder = holders.find(holder => holder.owner === wallet.address);
-            return {
-                ...wallet,
-                quantity: holder?.quantity ? parseInt(holder?.quantity) : 0,
-            };
-        });
+        const data = await Promise.all(
+            holders.map(async holder => {
+                const wallet = await this.walletRepository.findOneBy({ address: holder.owner });
+                // Will update his soon when we refactor the pagination
+                const createdAt = new Date(holder.txTime * 1000);
+                return {
+                    ...wallet,
+                    address: holder.address,
+                    quantity: holder?.quantity ? parseInt(holder?.quantity) : 0,
+                    createdAt: new Date(createdAt.getTime() - createdAt.getTimezoneOffset() * 60 * 1000),
+                };
+            })
+        );
 
         const total = await this.getTotalHolders(id);
         return PaginatedImp(data, total);

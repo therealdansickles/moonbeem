@@ -48,7 +48,9 @@ export class Factory extends BaseEntity {
     @Column({ default: 1, comment: 'The chain id for the factory.' })
     readonly chainId?: number;
 
-    @CreateDateColumn()
+    @CreateDateColumn({
+        precision: 3
+    })
     @Exclude()
     readonly createdAt: Date;
 

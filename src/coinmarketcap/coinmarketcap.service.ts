@@ -1,87 +1,76 @@
-import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
-import { RateLimiterMemory } from 'rate-limiter-flexible';
-import { catchError, firstValueFrom, of } from 'rxjs';
-import * as Sentry from '@sentry/node';
-import { coinMarketCapConfig } from '../lib/configs/coinmarketcap.config';
+import { AxiosError, AxiosRequestConfig } from 'axios';
+import { Cache } from 'cache-manager';
+import { get } from 'lodash';
+import { catchError, firstValueFrom } from 'rxjs';
 
-const opts = {
-    points: 4, // 4 points
-    duration: 1, // Per second
-};
-const rateLimiter = new RateLimiterMemory(opts);
+import { HttpService } from '@nestjs/axios';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable } from '@nestjs/common';
+
+import { coinMarketCapConfig } from '../lib/configs/coinmarketcap.config';
 
 @Injectable()
 export class CoinMarketCapService {
-    constructor(private readonly httpRequest: HttpService) {}
 
-    callCoinMarketCap<T>(url, params): Promise<T> {
-        return new Promise((resolve, reject) => {
-            const call = () => {
-                rateLimiter
-                    .consume(coinMarketCapConfig.url, 1)
-                    .then(async () => {
-                        try {
-                            const response = await firstValueFrom(
-                                this.httpRequest.get(url, params).pipe(
-                                    catchError((error) => {
-                                        Sentry.captureException(error);
-                                        return of(null);
-                                    })
-                                )
-                            );
-                            const { data } = response || {};
-                            resolve(data);
-                        } catch (error) {
-                            reject(error);
-                        }
-                    })
-                    .catch((rateLimiterRes) => {
-                        setTimeout(call, rateLimiterRes.msBeforeNext);
-                    });
-            };
-            call();
-        });
+    private defaultHeaders = {
+        'X-CMC_PRO_API_KEY': coinMarketCapConfig.apiKey,
+        'Content-Type': 'application/json',
+    };
+
+    constructor(
+        private readonly httpRequest: HttpService,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache
+    ) {}
+
+    private async callCoinMarketCap<T>(url, params: AxiosRequestConfig): Promise<T> {
+        params = Object.assign({ headers: this.defaultHeaders }, params);
+        const { data } = await firstValueFrom(
+            this.httpRequest.get(url, params).pipe(
+                catchError((error: AxiosError) => {
+                    throw new Error(`Bad response from coinmarketcap: ${error.response.status}/${error.response.statusText}/${JSON.stringify(params)}`);
+                })
+            )
+        );
+        return data;
     }
 
-    async getPrice(symbol: string): Promise<CoinMarketCapQuoteData> {
+    async getPrice(symbol: string, conversion?: string): Promise<CoinMarketCapQuoteData> {
         const endpoint = `/v2/tools/price-conversion`;
         const url = new URL(endpoint, coinMarketCapConfig.url);
-        const headers = {
-            'X-CMC_PRO_API_KEY': coinMarketCapConfig.apiKey,
-            'Content-Type': 'application/json',
-        };
 
         const params = {
-            symbol: symbol,
+            symbol,
             amount: 1,
+            convert: conversion
         };
-        const result = await this.callCoinMarketCap<any>(url, { headers, params });
+        const cacheKey = `${endpoint}::${JSON.stringify(params)}`;
+        const cache = await this.cacheManager.get(cacheKey) as string;
+        if (cache) {
+            try {
+                // it should be a recoverable JSON string
+                // but need to check if the string had been hacked
+                return JSON.parse(cache);
+            } catch (err) {
+                throw new Error('invalid cache data');
+            }
+        }
+
+        const result = await this.callCoinMarketCap<any>(url, { params });
         if (!result || Object.keys(result).length === 0) {
             return {};
         }
+        const data = get(result, 'data.0.quote');
+        await this.cacheManager.set(cacheKey, JSON.stringify(data), 60 * 1000);
 
-        return result.data[0].quote;
+        return data;
     }
 
     async getPriceInUSD(symbol: string): Promise<CoinMarketCapQuoteCoin> {
-        const endpoint = `/v2/tools/price-conversion`;
-        const url = new URL(endpoint, coinMarketCapConfig.url);
-        const headers = {
-            'X-CMC_PRO_API_KEY': coinMarketCapConfig.apiKey,
-            'Content-Type': 'application/json',
-        };
-
-        const params = {
-            symbol: symbol,
-            amount: 1,
-            convert: 'usd',
-        };
-
-        const result = await this.callCoinMarketCap<any>(url, { headers, params });
+        const conversion = 'usd';
+        const data = await this.getPrice(symbol, conversion);
 
         return {
-            price: result.data[0].quote['USD'].price,
+            price: data[conversion.toUpperCase()].price
         };
     }
 }

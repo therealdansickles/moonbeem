@@ -21,7 +21,9 @@ export class SystemConfig extends BaseEntity {
     @Column({ default: 1, comment: 'The chain id for the config.' })
     readonly chainId?: number;
 
-    @CreateDateColumn()
+    @CreateDateColumn({
+        precision: 3
+    })
     @Exclude()
     readonly createdAt: Date;
 

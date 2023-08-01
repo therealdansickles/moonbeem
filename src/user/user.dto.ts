@@ -1,7 +1,8 @@
 import { Field, ObjectType, InputType, ID, PickType, OmitType, PartialType, Int } from '@nestjs/graphql';
 import { IsString, IsOptional, IsNumber, IsArray, IsObject, IsDateString } from 'class-validator';
 import { Collection } from '../collection/collection.dto';
-import Paginated from '../lib/pagination/pagination.model';
+import Paginated from '../pagination/pagination.dto';
+
 import { Profit, Tier } from '../tier/tier.dto';
 import { Wallet } from '../wallet/wallet.dto';
 

@@ -6,7 +6,7 @@ export interface IPageInfo {
 }
 
 export interface IEdgeType<T> {
-    cursor: string;
+    cursor?: string;
     node: T;
 }
 

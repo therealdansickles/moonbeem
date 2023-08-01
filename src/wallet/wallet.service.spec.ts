@@ -5,6 +5,7 @@ import { faker } from '@faker-js/faker';
 
 import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
+import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import {
     MintSaleContractService
@@ -183,12 +184,16 @@ describe('WalletService', () => {
             message = 'Hi from tests!';
             signature = await wallet.signMessage(message);
             await expect(
-                async () => await service.bindWallet({
-                    address: eipAddress,
-                    owner: { id: anotherOwner.id },
-                    message, signature
-                })
-            ).rejects.toThrow(`Wallet ${eipAddress} is already bound.`);
+                async () =>
+                    await service.bindWallet({
+                        address: eipAddress,
+                        owner: { id: anotherOwner.id },
+                        message,
+                        signature,
+                    })
+            ).rejects.toThrow(
+                `The wallet at ${eipAddress} is already connected to an existing account. Please connect another wallet to this account.`
+            );
         });
     });
 
@@ -373,6 +378,56 @@ describe('WalletService', () => {
             expect(result.edges[0].node.tier.id).toEqual(tier.id);
             expect(result.edges[0].node.tier.collection.id).toEqual(collection.id);
         });
+
+        it('should return minted transactions by address with pagination', async () => {
+            const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                kind: CollectionKind.edition,
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                tierId: 1,
+                collection: { id: collection.id },
+                paymentTokenAddress: faker.finance.ethereumAddress(),
+                metadata: {},
+            });
+
+            for (let i = 0; i < 15; i++) {
+                await mintSaleTransactionService.createMintSaleTransaction({
+                    height: parseInt(faker.random.numeric(5)),
+                    txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                    txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                    sender: faker.finance.ethereumAddress(),
+                    recipient: wallet.address,
+                    address: collection.address,
+                    tierId: tier.tierId,
+                    tokenAddress: faker.finance.ethereumAddress(),
+                    tokenId: faker.random.numeric(3),
+                    price: faker.random.numeric(19),
+                    paymentToken: faker.finance.ethereumAddress(),
+                });
+            }
+
+            const all = await service.getMintedByAddress(wallet.address, '', '', 20, 10);
+            expect(all.edges.length).toEqual(15);
+
+            const firstPage = await service.getMintedByAddress(wallet.address, '', '', 10, 10);
+            const firstPageEndCursor = firstPage.pageInfo.endCursor;
+            expect(firstPage.edges.length).toEqual(10);
+            const secondPage = await service.getMintedByAddress(wallet.address, '', firstPageEndCursor, 10, 10);
+            const secondPageEndCursor = secondPage.pageInfo.endCursor;
+            expect(firstPageEndCursor).not.toEqual(secondPageEndCursor);
+            expect(secondPage.edges.length).toEqual(5);
+        });
     });
 
     describe('getActivitiesByAddress', () => {
@@ -416,24 +471,11 @@ describe('WalletService', () => {
 
             const txTime = Math.floor(faker.date.recent().getTime() / 1000);
 
-            await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
-                txTime,
-                sender: faker.finance.ethereumAddress(),
-                recipient: wallet.address,
-                address: collection.address,
-                tierId: tier.tierId,
-                tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
-                paymentToken: faker.finance.ethereumAddress(),
-            });
-
+            // Deploy transaction
             await mintSaleContractService.createMintSaleContract({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
-                txTime: txTime + 1,
+                txTime,
                 sender: wallet.address,
                 royaltyReceiver: wallet.address,
                 royaltyRate: faker.random.numeric(2),
@@ -451,11 +493,28 @@ describe('WalletService', () => {
                 tokenAddress: faker.finance.ethereumAddress(),
             });
 
+            // Mint transaction
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: txTime + 1,
+                sender: faker.finance.ethereumAddress(),
+                recipient: wallet.address,
+                address: collection.address,
+                tierId: tier.tierId,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
             const list = await service.getActivitiesByAddress(wallet.address);
-            const [mintItem, deployItem] = list;
+            const [first, second] = list;
             expect(list.length).toEqual(2);
-            expect(deployItem.type).toEqual('Deploy');
-            expect(mintItem.type).toEqual('Mint');
+            expect(first.type).toEqual('Mint');
+            expect(second.type).toEqual('Deploy');
+            // should be sorted by txTime desc
+            expect(first.txTime).toBeGreaterThan(second.txTime);
         });
     });
 
@@ -477,7 +536,11 @@ describe('WalletService', () => {
                 address: faker.finance.ethereumAddress(),
                 name: faker.internet.domainName(),
             });
-            expect(() => service.updateWallet(wallet.id, { name: faker.finance.ethereumAddress() })).rejects.toThrow();
+            try {
+                await service.updateWallet(wallet.id, { name: faker.finance.ethereumAddress() });
+            } catch (err) {
+                expect(err.message).toEqual(`Wallet name can't be in the address format.`);
+            }
         });
     });
 
@@ -581,6 +644,16 @@ describe('WalletService', () => {
 
     describe('getEstimatesByAddress', () => {
         it('should return correct value', async () => {
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
             const sender1 = faker.finance.ethereumAddress();
 
             const wallet = await service.createWallet({ address: sender1 });
@@ -620,7 +693,7 @@ describe('WalletService', () => {
                 },
             });
 
-            const paymentToken = faker.finance.ethereumAddress();
+            const paymentToken = coin.address;
 
             await mintSaleTransactionService.createMintSaleTransaction({
                 height: parseInt(faker.random.numeric(5)),
@@ -632,7 +705,7 @@ describe('WalletService', () => {
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
+                price: '1000000000000000000',
                 paymentToken,
             });
             await mintSaleTransactionService.createMintSaleTransaction({
@@ -645,7 +718,7 @@ describe('WalletService', () => {
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
+                price: '1000000000000000000',
                 paymentToken,
             });
 
@@ -660,7 +733,7 @@ describe('WalletService', () => {
                 isDerivativeAllowed: true,
                 beginTime: Math.floor(faker.date.recent().valueOf() / 1000),
                 endTime: Math.floor(faker.date.future().valueOf() / 1000),
-                price: faker.random.numeric(5),
+                price: '1000000000000000000',
                 tierId: tier.tierId,
                 address: collection.address,
                 paymentToken,
@@ -670,13 +743,31 @@ describe('WalletService', () => {
                 tokenAddress: faker.finance.ethereumAddress(),
             });
 
+            const tokenPriceUSD = faker.datatype.number({ max: 1000 });
+            const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+                USD: { price: tokenPriceUSD },
+            });
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
+
             const estimatedValue = await service.getEstimatesByAddress(sender1);
-            expect(+estimatedValue[0].total).toBeGreaterThan(0);
+            expect(estimatedValue[0].total).toBe('2');
+            expect(estimatedValue[0].totalUSDC).toBe((tokenPriceUSD * 2).toString());
         });
     });
 
     describe('getSold', () => {
         it('it should return a record of all the collections sold at that address.', async () => {
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
             const sender1 = faker.finance.ethereumAddress();
 
             const wallet = await service.createWallet({ address: sender1 });
@@ -718,7 +809,7 @@ describe('WalletService', () => {
                 },
             });
 
-            const paymentToken = faker.finance.ethereumAddress();
+            const paymentToken = coin.address;
 
             await mintSaleTransactionService.createMintSaleTransaction({
                 height: parseInt(faker.random.numeric(5)),

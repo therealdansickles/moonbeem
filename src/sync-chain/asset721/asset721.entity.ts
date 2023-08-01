@@ -27,7 +27,9 @@ export class Asset721 extends BaseEntity {
     @Column({ default: 1, comment: 'The chain id for the transaction.' })
     readonly chainId?: number;
 
-    @CreateDateColumn()
+    @CreateDateColumn({
+        precision: 3
+    })
     @Exclude()
     readonly createdAt: Date;
 

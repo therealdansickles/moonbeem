@@ -77,7 +77,6 @@ export class OpenseaService {
         const headers = {
             'X-API-KEY': openseaConfig.apiKey,
             'Content-Type': 'application/json',
-            'User-Agent': 'Vibe platform',
         };
 
         const data = await this.callOpenSea<any>(url, { headers });
@@ -124,7 +123,6 @@ export class OpenseaService {
         const headers = {
             'X-API-KEY': openseaConfig.apiKey,
             'Content-Type': 'application/json',
-            'User-Agent': 'Vibe platform',
         };
 
         const data = await this.callOpenSea<any>(url, { headers });
