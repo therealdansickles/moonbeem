@@ -189,7 +189,15 @@ export class BasicAggregator {
 }
 
 @ObjectType('AggregatorForCollection')
-export class AggregatedCollection extends BasicAggregator {}
+export class AggregatedCollection extends BasicAggregator {
+    @IsNumber()
+    @Field({ description: 'Last 30 days in the aggregator' })
+    readonly last30Days: number;
+
+    @IsNumber()
+    @Field({ description: 'Last 7 days in the aggregator' })
+    readonly last7Days: number;
+}
 
 @ObjectType('AggregatedBuyer')
 export class AggregatedBuyer extends BasicAggregator {}

@@ -513,7 +513,7 @@ describe('MintSaleTransactionService', () => {
             expect(filter2[0].totalPrice).toBe('2000000000000000000');
         });
     });
-    
+
     describe('getAggregatedCollectionTransaction', () => {
         it('should return aggregated collection transaction with minted NFT items', async () => {
             const collectionAddress = faker.finance.ethereumAddress();
@@ -529,26 +529,26 @@ describe('MintSaleTransactionService', () => {
                 address: collectionAddress,
                 tierId: 0,
                 tokenAddress,
-                paymentToken: paymentToken
+                paymentToken: paymentToken,
             };
 
             // minted 3 in one transaction
             const tnx1 = await service.createMintSaleTransaction({
                 tokenId: faker.random.numeric(1),
                 price: '1000000000000000000',
-                ...transactionContent
+                ...transactionContent,
             });
 
             const tnx2 = await service.createMintSaleTransaction({
                 tokenId: faker.random.numeric(2),
                 price: '2000000000000000000',
-                ...transactionContent
+                ...transactionContent,
             });
 
             const tnx3 = await service.createMintSaleTransaction({
                 tokenId: faker.random.numeric(3),
                 price: '3000000000000000000',
-                ...transactionContent
+                ...transactionContent,
             });
 
             // another transaction
@@ -563,14 +563,17 @@ describe('MintSaleTransactionService', () => {
                 address: collectionAddress,
                 tierId: 1,
                 tokenAddress,
-                paymentToken
+                paymentToken,
             });
 
             const result = await service.getAggregatedCollectionTransaction(collectionAddress);
 
             expect(result).toBeDefined();
             expect(result.length).toEqual(2);
-            expect(result[0].cost.toString()).toEqual((BigInt(tnx1.price) + BigInt(tnx2.price) + BigInt(tnx3.price)).toString());
+            result.sort((a, b) => b.cost - a.cost); // It needs to be sorted first, otherwise the order in the array may be messed up, resulting in test failure.
+            expect(result[0].cost.toString()).toEqual(
+                (BigInt(tnx1.price) + BigInt(tnx2.price) + BigInt(tnx3.price)).toString()
+            );
             expect(result[1].cost.toString()).toEqual(tnx4.price.toString());
         });
 
@@ -588,26 +591,26 @@ describe('MintSaleTransactionService', () => {
                 address: collectionAddress,
                 tierId: 0,
                 tokenAddress,
-                paymentToken: paymentToken
+                paymentToken: paymentToken,
             };
 
             // minted 3 in one transaction
             await service.createMintSaleTransaction({
                 tokenId: faker.random.numeric(1),
                 price: '1000000000000000000',
-                ...transactionContent
+                ...transactionContent,
             });
 
             await service.createMintSaleTransaction({
                 tokenId: faker.random.numeric(2),
                 price: '2000000000000000000',
-                ...transactionContent
+                ...transactionContent,
             });
 
             await service.createMintSaleTransaction({
                 tokenId: faker.random.numeric(3),
                 price: '3000000000000000000',
-                ...transactionContent
+                ...transactionContent,
             });
 
             // another contract
