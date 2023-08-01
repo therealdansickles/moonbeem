@@ -1,6 +1,7 @@
 import { Repository } from 'typeorm';
-
 import { faker } from '@faker-js/faker';
+import { ethers } from 'ethers';
+import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
 
 import { CollaborationService } from '../collaboration/collaboration.service';
 import { OrganizationService } from '../organization/organization.service';
@@ -14,8 +15,6 @@ import { WalletService } from '../wallet/wallet.service';
 import { CollectionStat, CollectionStatus } from './collection.dto';
 import { Collection } from './collection.entity';
 import { CollectionService } from './collection.service';
-import { ethers } from 'ethers';
-import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
@@ -1235,8 +1234,8 @@ describe('CollectionService', () => {
                 },
             ] as CollectionStat[];
 
-            jest.spyOn(service, 'getSecondartMarketStat').mockImplementation(async () => mockResponse);
-            const result = await service.getSecondartMarketStat({ address: collection.address });
+            jest.spyOn(service, 'getSecondaryMarketStat').mockImplementation(async () => mockResponse);
+            const result = await service.getSecondaryMarketStat({ address: collection.address });
             expect(result.length).toEqual(1);
             expect(result[0].source).toEqual('opensea');
         });
@@ -1978,7 +1977,7 @@ describe('CollectionService', () => {
             expect(result.monthly).toBe(0);
         });
 
-        it('shoule return the number of collections created this month', async () => {
+        it('should return the number of collections created this month', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',

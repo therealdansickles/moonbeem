@@ -100,7 +100,7 @@ export class CollectionResolver {
         @Args({ name: 'id', nullable: true }) id: string,
             @Args({ name: 'address', nullable: true }) address: string
     ): Promise<CollectionStat[]> {
-        return this.collectionService.getSecondartMarketStat({ id, address });
+        return this.collectionService.getSecondaryMarketStat({ id, address });
     }
 
     @Public()

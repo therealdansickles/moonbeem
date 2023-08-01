@@ -184,7 +184,7 @@ export class CollectionService {
      * Retrieve the collection stat from secondary markets.
      * @param query The condition of the collection to retrieve.
      */
-    async getSecondartMarketStat(query: ICollectionQuery): Promise<CollectionStat[]> {
+    async getSecondaryMarketStat(query: ICollectionQuery): Promise<CollectionStat[]> {
         query = omitBy(query, isNil);
         if (isEmpty(query)) return null;
         const collection = await this.collectionRepository.findOne({ where: query });
@@ -252,7 +252,7 @@ export class CollectionService {
      * Updates a collection.
      *
      * @param params The id of the collection to update and the data to update it with.
-     * @returns A boolean if it updated succesfully.
+     * @returns A boolean if it updated successfully.
      */
     async updateCollection(id: string, data: Partial<Omit<UpdateCollectionInput, 'id'>>): Promise<boolean> {
         try {
