@@ -1,5 +1,6 @@
-import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
 import { IsNumber, IsOptional, IsString } from 'class-validator';
+
+import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
 export class Search {}
