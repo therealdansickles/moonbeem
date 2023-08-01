@@ -91,4 +91,58 @@ export class MintSaleTransactionService {
             .getRawMany();
         return result;
     }
+
+    /**
+     * get total sale prices by collection addresses
+     *
+     * @param addresses list of collection addresses
+     * @returns list of token price info
+     */
+    async getTotalSalesByCollectionAddresses(addresses: string[]): Promise<BasicTokenPrice[]> {
+        if (addresses.length == 0) return [];
+
+        const result: BasicTokenPrice[] = await this.transactionRepository
+            .createQueryBuilder('txn')
+            .select('SUM("txn".price::decimal(30,0))', 'totalPrice')
+            .addSelect('txn.paymentToken', 'token')
+            .where('txn.address IN (:...addresses)', { addresses })
+            .groupBy('txn.paymentToken')
+            .getRawMany();
+        return result;
+    }
+
+    /**
+     * get total item by collection addresses
+     *
+     * @param addresses list of collection addresses
+     * @returns number of item
+     */
+    async getTotalItemByCollectionAddresses(addresses: string[]): Promise<number> {
+        if (addresses.length == 0) return 0;
+        const { total } = await this.transactionRepository
+            .createQueryBuilder('txn')
+            .select('COUNT(1)', 'total')
+            .where('txn.address IN (:...addresses)', { addresses })
+            .getRawOne();
+
+        return parseInt(total ?? '0');
+    }
+
+    /**
+     * get unique recipient by collection addresses
+     *
+     * @param addresses list of collection addresses
+     * @returns number of unique recipient
+     */
+    async getUniqueRecipientByCollectionAddresses(addresses: string[]): Promise<number> {
+        if (addresses.length == 0) return 0;
+
+        const { total } = await this.transactionRepository
+            .createQueryBuilder('txn')
+            .select('COUNT(DISTINCT(txn.recipient))', 'total')
+            .where('txn.address IN (:...addresses)', { addresses })
+            .getRawOne();
+
+        return parseInt(total ?? '0');
+    }
 }

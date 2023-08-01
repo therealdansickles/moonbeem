@@ -419,4 +419,96 @@ describe('MintSaleTransactionService', () => {
             expect(result[0].totalPrice).toBe('2000000000000000000');
         });
     });
+
+    describe('getTotalSalesByCollectionAddresses', () => {
+        it('should be return total prices by collections', async () => {
+            const collectionAddress1 = faker.finance.ethereumAddress();
+            const paymentToken = faker.finance.ethereumAddress();
+
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress1,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: '1000000000000000000',
+                paymentToken: paymentToken,
+            });
+
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress1,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: '1000000000000000000',
+                paymentToken: paymentToken,
+            });
+
+            const result = await service.getTotalSalesByCollectionAddresses([collectionAddress1]);
+            expect(result.length).toBe(1);
+            expect(result[0].token).toBe(paymentToken);
+            expect(result[0].totalPrice).toBe('2000000000000000000');
+        });
+
+        it('shoule be return total prices by collection, multiple payment tokens and multiple collections', async () => {
+            const collectionAddress1 = faker.finance.ethereumAddress();
+            const paymentToken = faker.finance.ethereumAddress();
+
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress1,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: '1000000000000000000',
+                paymentToken: paymentToken,
+            });
+
+            const collectionAddress2 = faker.finance.ethereumAddress();
+            const paymentToken2 = faker.finance.ethereumAddress();
+            await service.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collectionAddress2,
+                tierId: 1,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: '2000000000000000000',
+                paymentToken: paymentToken2,
+            });
+
+            const result = await service.getTotalSalesByCollectionAddresses([collectionAddress1, collectionAddress2]);
+            expect(result.length).toBe(2);
+
+            const filter1 = result.filter((item) => {
+                return item.token == paymentToken;
+            });
+            expect(filter1).toBeDefined();
+            expect(filter1.length).toBe(1);
+            expect(filter1[0].totalPrice).toBe('1000000000000000000');
+
+            const filter2 = result.filter((item) => {
+                return item.token == paymentToken2;
+            });
+            expect(filter2).toBeDefined();
+            expect(filter2.length).toBe(1);
+            expect(filter2[0].totalPrice).toBe('2000000000000000000');
+        });
+    });
 });

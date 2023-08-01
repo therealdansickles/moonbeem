@@ -16,6 +16,7 @@ import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { Tier } from '../tier/tier.entity';
 import { User } from '../user/user.entity';
 import { UserModule } from '../user/user.module';
 import { Membership } from './membership.entity';
@@ -25,7 +26,7 @@ import { MembershipService } from './membership.service';
 @Module({
     imports: [
         HttpModule,
-        TypeOrmModule.forFeature([Membership, Organization, User, Collection]),
+        TypeOrmModule.forFeature([Membership, Organization, User, Collection, Tier]),
         TypeOrmModule.forFeature([MintSaleTransaction, Coin], 'sync_chain'),
         forwardRef(() => OrganizationModule),
         forwardRef(() => UserModule),
