@@ -184,8 +184,7 @@ describe('MembershipService', () => {
             expect(result.user.id).toEqual(user.id);
         });
 
-
-        it('should prevent duplicate memberships', async () => {
+        it('should go through if membership exist', async () => {
             const user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
@@ -206,22 +205,19 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            await service.createMembership({
+            const result = await service.createMembership({
                 organizationId: organization.id,
                 email: user.email,
+                canDeploy: true,
             });
 
-            const newOrganization = await organizationService.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                owner: owner,
+            const resultAgain = await service.createMembership({
+                organizationId: organization.id,
+                email: user.email,
+                canDeploy: true,
             });
 
-            await expect(async () => {
-                await service.createMembership({ organizationId: newOrganization.id, email: owner.email });
-            }).rejects.toThrow();
+            expect(result.id).toEqual(resultAgain.id);
         });
     });
 
