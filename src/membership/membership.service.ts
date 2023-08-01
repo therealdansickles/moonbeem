@@ -87,14 +87,13 @@ export class MembershipService {
         // and treat that as the source of truth.
         membership.user = await this.userRepository.findOneBy({ email });
         membership.email = email;
-        const existedMembership = await this.membershipRepository.findOneBy({
+        // use `upsert` to ignore the existed membership but not throw an error
+        await this.membershipRepository.upsert(membership, ['user.id', 'organization.id']);
+
+        const result = await this.membershipRepository.findOneBy({
             user: { id: membership.user.id },
             organization: { id: membership.organization.id }
         });
-        // just ignore the existed membership but not throw an error
-        if (!existedMembership) await this.membershipRepository.insert(membership);
-
-        const result = await this.membershipRepository.findOneBy({ id: membership.id });
         await this.mailService.sendInviteEmail(email, result.inviteCode); // FIXME: Move to a queue
 
         return result;
