@@ -38,6 +38,7 @@ interface ITierSearch {
 export type ITierQuery = {
     name?: string;
     collection?: { id: string };
+    tierId?: number
 };
 
 @Injectable()

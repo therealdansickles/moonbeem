@@ -2,9 +2,9 @@ import { HttpModule } from '@nestjs/axios';
 import { forwardRef, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { CoinMarketCapModule } from '../coinmarketcap/coinmarketcap.module';
 import { CoinMarketCapService } from '../coinmarketcap/coinmarketcap.service';
-
 import { Collection } from '../collection/collection.entity';
 import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
@@ -22,7 +22,15 @@ import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinModule } from '../sync-chain/coin/coin.module';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import {
+    MintSaleTransactionModule
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { Tier } from '../tier/tier.entity';
 import { TierModule } from '../tier/tier.module';
 import { TierService } from '../tier/tier.service';
@@ -48,6 +56,7 @@ import { SessionService } from './session.service';
         forwardRef(() => TierModule),
         forwardRef(() => UserModule),
         forwardRef(() => WalletModule),
+        forwardRef(() => MintSaleTransactionModule),
         JwtModule.register({
             secret: process.env.SESSION_SECRET,
             signOptions: { expiresIn: '1d' },
@@ -64,6 +73,7 @@ import { SessionService } from './session.service';
         SessionService,
         SessionResolver,
         CoinMarketCapService,
+        MintSaleTransactionService,
     ],
     exports: [SessionModule, SessionResolver],
 })

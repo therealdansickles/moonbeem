@@ -1,14 +1,30 @@
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Injectable } from '@nestjs/common';
-import { MintSaleTransaction } from './mint-sale-transaction.entity';
-import { BasicTokenPrice, LeaderboardRanking } from './mint-sale-transaction.dto';
 import { GraphQLError } from 'graphql';
+import { Tier } from 'src/tier/tier.dto';
+import { Repository } from 'typeorm';
+
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+
+import { BasicTokenPrice, LeaderboardRanking } from './mint-sale-transaction.dto';
+import { MintSaleTransaction } from './mint-sale-transaction.entity';
 
 interface GetTransactionInput {
     id?: string;
     address?: string;
     recipient?: string;
+}
+
+interface IAggregatedTransactions {
+    txHash: string;
+    txTime: number;
+    tokenIds: Array<string>;
+    cost: number;
+    recipient: string;
+    sender: string;
+    paymentToken: string;
+    collectionAddress: string;
+    tierId: number;
+    tier: Tier;
 }
 
 @Injectable()
@@ -144,5 +160,31 @@ export class MintSaleTransactionService {
             .getRawOne();
 
         return parseInt(total ?? '0');
+    }
+    
+    /* Get aggregation transactions by address
+     * multi NFTs can be minted in one transaction but will stored as multiple records in MintSaleTransaction
+     * 
+     * @param address
+     * @param offset
+     * @param limit
+     */
+    async getAggregatedCollectionTransaction(address: string): Promise<Array<IAggregatedTransactions>> {
+        const aggregatedTxns = await this.transactionRepository
+            .createQueryBuilder('txn')
+            .select('min(txn.txHash)', 'txHash')
+            .addSelect('array_agg(txn.tokenId order by txn.tokenId)', 'tokenIds')
+            .addSelect('sum(txn.price::REAL) as cost')
+            .addSelect('min(recipient)', 'recipient')
+            .addSelect('min(sender)', 'sender')
+            .addSelect('min(txn.txTime)', 'txTime')
+            .addSelect('min(txn.paymentToken)', 'paymentToken')
+            .addSelect('min(txn.address)', 'collectionAddress')
+            .addSelect('min(txn.tierId)', 'tierId')
+            .where('txn.address = :address', { address })
+            .addGroupBy('txn.txHash')
+            .getRawMany();
+            
+        return aggregatedTxns;
     }
 }

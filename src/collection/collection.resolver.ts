@@ -12,9 +12,10 @@ import {
 } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import {
-    Collection, CollectionActivities, CollectionInput, CollectionPaginated, CollectionSoldPaginated,
-    CollectionStat, CollectionStatus, CreateCollectionInput, GrossEarnings, LandingPageCollection,
-    SevenDayVolume, UpdateCollectionInput
+    Collection, CollectionActivities, CollectionAggregatedActivities, CollectionInput,
+    CollectionPaginated, CollectionSoldPaginated, CollectionStat, CollectionStatus,
+    CreateCollectionInput, GrossEarnings, LandingPageCollection, SevenDayVolume,
+    UpdateCollectionInput
 } from './collection.dto';
 import { CollectionService } from './collection.service';
 
@@ -111,6 +112,12 @@ export class CollectionResolver {
             @Args('limit', { nullable: true, defaultValue: 10 }) limit?: number
     ): Promise<CollectionActivities> {
         return this.collectionService.getCollectionActivities(collection.address, offset, limit);
+    }
+
+    @Public()
+    @ResolveField(() => CollectionAggregatedActivities, { description: 'Returns the aggregated activities for collection.' })
+    async aggregatedActivities(@Parent() collection: Collection): Promise<CollectionAggregatedActivities> {
+        return this.collectionService.getAggregatedCollectionActivities(collection.address, collection.tokenAddress);
     }
 
     @Public()
