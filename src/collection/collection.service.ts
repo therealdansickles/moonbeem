@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
+import { startOfDay, startOfMonth, startOfWeek, subDays } from 'date-fns';
 import { GraphQLError } from 'graphql';
 import { isEmpty, isNil, omitBy } from 'lodash';
 import { In, IsNull, Repository, UpdateResult } from 'typeorm';
@@ -16,12 +16,8 @@ import { getCurrentPrice } from '../saleHistory/saleHistory.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import {
-    MintSaleTransaction
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { Tier as TierDto } from '../tier/tier.dto';
 import { Tier } from '../tier/tier.entity';
 import { TierService } from '../tier/tier.service';
@@ -29,10 +25,22 @@ import { User } from '../user/user.entity';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    Collection, CollectionActivities, CollectionActivityType, CollectionAggregatedActivities,
-    CollectionPaginated, CollectionSold, CollectionSoldPaginated, CollectionStat, CollectionStatus,
-    CreateCollectionInput, GrossEarnings, LandingPageCollection, SecondarySale, SevenDayVolume,
-    UpdateCollectionInput, ZeroAccount
+    Collection,
+    CollectionActivities,
+    CollectionActivityType,
+    CollectionAggregatedActivities,
+    CollectionPaginated,
+    CollectionSold,
+    CollectionSoldPaginated,
+    CollectionStat,
+    CollectionStatus,
+    CreateCollectionInput,
+    GrossEarnings,
+    LandingPageCollection,
+    SecondarySale,
+    SevenDayVolume,
+    UpdateCollectionInput,
+    ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
 
@@ -486,23 +494,28 @@ export class CollectionService {
         return { data, total };
     }
 
-    async getAggregatedCollectionActivities(collectionAddress: string, tokenAddress: string): Promise<CollectionAggregatedActivities> {
+    async getAggregatedCollectionActivities(
+        collectionAddress: string,
+        tokenAddress: string
+    ): Promise<CollectionAggregatedActivities> {
         const assets = await this.asset721Repository
             .createQueryBuilder('asset')
             .where('asset.address = :address', { address: tokenAddress })
             .getMany();
 
         const collection = await this.getCollectionByAddress(collectionAddress);
-        
+
         const txns = await this.transactionService.getAggregatedCollectionTransaction(collectionAddress);
-        const tierInfos = await Promise.all(txns.map(txn => 
-            this.tierService.getTiersByQuery({ collection: { id: collection.id }, tierId: txn.tierId })
-        ));
-        const result = txns.map(txn => {
+        const tierInfos = await Promise.all(
+            txns.map((txn) =>
+                this.tierService.getTiersByQuery({ collection: { id: collection.id }, tierId: txn.tierId })
+            )
+        );
+        const result = txns.map((txn) => {
             // theoretically all token ids should belongs to the same recipient and transaction
             // so we just use the first one as represent
             const tokenId = txn.tokenIds[0];
-            const assetInfo = assets.find(asset => asset.tokenId === tokenId);
+            const assetInfo = assets.find((asset) => asset.tokenId === tokenId);
 
             // handle activity type
             let type: CollectionActivityType = CollectionActivityType.Transfer;
@@ -510,11 +523,11 @@ export class CollectionService {
             if (assetInfo.owner == txn.recipient) type = CollectionActivityType.Mint;
 
             // bind tier info
-            const tiers = tierInfos.find(tierInfo => tierInfo[0]?.tierId === txn.tierId);
+            const tiers = tierInfos.find((tierInfo) => tierInfo[0]?.tierId === txn.tierId);
             txn.tier = tiers ? tiers[0] : null;
             return {
                 type,
-                ...txn
+                ...txn,
             };
         });
 
@@ -802,12 +815,14 @@ export class CollectionService {
      * @returns number of collections
      */
     public async getAggregatedCollectionsByOrganizationId(id: string): Promise<AggregatedCollection> {
-        const [monthly, weekly, daily] = await Promise.all([
+        const [monthly, weekly, daily, last30Days, last7Days] = await Promise.all([
             this.getCollectionsByOrganizationIdAndBeginTime(id, startOfMonth(new Date())),
             this.getCollectionsByOrganizationIdAndBeginTime(id, startOfWeek(new Date())),
             this.getCollectionsByOrganizationIdAndBeginTime(id, startOfDay(new Date())),
+            this.getCollectionsByOrganizationIdAndBeginTime(id, subDays(new Date(), 30)),
+            this.getCollectionsByOrganizationIdAndBeginTime(id, subDays(new Date(), 7)),
         ]);
-        return { monthly, weekly, daily };
+        return { monthly, weekly, daily, last30Days, last7Days };
     }
 
     /**

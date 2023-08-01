@@ -1,4 +1,4 @@
-import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
+import { startOfDay, startOfMonth, startOfWeek, subDays } from 'date-fns';
 import { ethers } from 'ethers';
 import { Repository } from 'typeorm';
 
@@ -8,12 +8,8 @@ import { CollaborationService } from '../collaboration/collaboration.service';
 import { OrganizationService } from '../organization/organization.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
@@ -2091,6 +2087,76 @@ describe('CollectionService', () => {
             const result2 = await service.getAggregatedCollectionsByOrganizationId(organization2.id);
             expect(result2.monthly).toBe(1);
         });
+
+        it('should return the last 7/30 days collections', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            await repository.save({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+                createdAt: subDays(new Date(), 29),
+            });
+
+            // 31 days ago
+            await repository.save({
+                name: faker.company.name(),
+                displayName: 'The best collection1',
+                about: 'The best collection ever1',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+                createdAt: subDays(new Date(), 31),
+            });
+            const result = await service.getAggregatedCollectionsByOrganizationId(organization.id);
+            expect(result.last30Days).toBe(1);
+
+            // test for last7Days
+            await repository.save({
+                name: faker.company.name(),
+                displayName: 'The best collection2',
+                about: 'The best collection ever2',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+                createdAt: subDays(new Date(), 5),
+            });
+
+            await repository.save({
+                name: faker.company.name(),
+                displayName: 'The best collection3',
+                about: 'The best collection ever3',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+                createdAt: subDays(new Date(), 8), // 8days ago
+            });
+            const result1 = await service.getAggregatedCollectionsByOrganizationId(organization.id);
+            expect(result1.last7Days).toBe(1);
+        });
     });
 
     describe('getCreatedCollectionsByWalletAddress', () => {
@@ -2545,19 +2611,19 @@ describe('CollectionService', () => {
             await mintSaleTransactionService.createMintSaleTransaction({
                 tokenId: tokenId1,
                 price: '1000000000000000000',
-                ...transactionContent
+                ...transactionContent,
             });
             await asset721Service.createAsset721({
                 tokenId: tokenId1,
                 owner: walletAddress1,
-                ...assetContent
+                ...assetContent,
             });
 
             const tokenId2 = faker.random.numeric(2);
             await mintSaleTransactionService.createMintSaleTransaction({
                 tokenId: tokenId2,
                 price: '2000000000000000000',
-                ...transactionContent
+                ...transactionContent,
             });
             await asset721Service.createAsset721({
                 tokenId: tokenId2,
@@ -2569,12 +2635,12 @@ describe('CollectionService', () => {
             await mintSaleTransactionService.createMintSaleTransaction({
                 tokenId: tokenId3,
                 price: '3000000000000000000',
-                ...transactionContent
+                ...transactionContent,
             });
             await asset721Service.createAsset721({
                 tokenId: tokenId3,
                 owner: walletAddress1,
-                ...assetContent
+                ...assetContent,
             });
 
             // another transaction
@@ -2591,7 +2657,7 @@ describe('CollectionService', () => {
             await asset721Service.createAsset721({
                 tokenId: tokenId4,
                 owner: walletAddress2,
-                ...assetContent
+                ...assetContent,
             });
         });
 
@@ -2599,10 +2665,10 @@ describe('CollectionService', () => {
             const result = await service.getAggregatedCollectionActivities(collectionAddress, tokenAddress);
             expect(result.total).toEqual(2);
             expect(result.data.length).toEqual(2);
-            const aggregation1 = result.data.find(item => item.txHash === txHash1);
+            const aggregation1 = result.data.find((item) => item.txHash === txHash1);
             expect(aggregation1.tokenIds.length).toEqual(3);
             expect(aggregation1.tier.name).toEqual(collection.tiers[0].name);
-            const aggregation2 = result.data.find(item => item.txHash === txHash2);
+            const aggregation2 = result.data.find((item) => item.txHash === txHash2);
             expect(aggregation2.tokenIds.length).toEqual(1);
         });
     });
