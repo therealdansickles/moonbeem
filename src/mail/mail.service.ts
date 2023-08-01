@@ -88,11 +88,11 @@ export class MailService {
      * Send a password reset email to a user
      *
      * @param emailAddress - The email address to send the email to
-     * @param data - The data to render the template with
+     * @param token - The string of the password reset token
      * @returns
      */
-    async sendPasswordResetEmail(emailAddress: string, data: any): Promise<void> {
-        const content = await this.renderTemplate('reset.mjml', {ctaUrl: this.generatePasswordResetUrl(emailAddress, data.token)});
+    async sendPasswordResetEmail(emailAddress: string, token: string): Promise<void> {
+        const content = await this.renderTemplate('reset.mjml', {ctaUrl: this.generatePasswordResetUrl(emailAddress, token)});
         await this.sendEmail(emailAddress, 'Your Password Reset Code on Vibe', content);
     }
 

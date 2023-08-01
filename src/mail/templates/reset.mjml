@@ -18,7 +18,7 @@
     <mj-section background-color="#F7F8FC">
       <mj-column>
         <mj-text align="left" font-size="24px">
-          Hi {{ usernmae }},
+          Hi,
         </mj-text>
 
         <mj-text align="left">

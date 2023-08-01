@@ -1,7 +1,17 @@
 import { Resolver, Args, Query, Mutation, ResolveField, Parent, Int } from '@nestjs/graphql';
 import { Public } from '../session/session.decorator';
 import { UserService } from './user.service';
-import { User, CreateUserInput, UpdateUserInput, VerifyUserInput, UserProfit, LatestSalePaginated } from './user.dto';
+import {
+    User,
+    CreateUserInput,
+    UpdateUserInput,
+    VerifyUserInput,
+    UserProfit,
+    LatestSalePaginated,
+    PasswordResetLinkInput,
+    ResetPasswordInput,
+    ResetPasswordOutput
+} from './user.dto';
 import { Membership } from '../membership/membership.dto';
 import { MembershipService } from '../membership/membership.service';
 import { Organization } from '../organization/organization.dto';
@@ -42,6 +52,18 @@ export class UserResolver {
     @Mutation(() => User, { description: 'verify the given user.' })
     async verifyUser(@Args('input') input: VerifyUserInput): Promise<User> {
         return this.userService.verifyUser(input.email, input.verificationToken);
+    }
+
+    @Public()
+    @Mutation(() => Boolean, { description: 'Send the reset password link to the user' })
+    async sendPasswordResetLink(@Args('input') input: PasswordResetLinkInput): Promise<boolean> {
+        return this.userService.sendPasswordResetLink(input.email);
+    }
+
+    @Public()
+    @Mutation(() => ResetPasswordOutput, { description: 'Reset the user password' })
+    async resetPassword(@Args('input') input: ResetPasswordInput): Promise<ResetPasswordOutput> {
+        return this.userService.resetUserPassword(input.email, input.verificationToken, input.password);
     }
 
     @Public()

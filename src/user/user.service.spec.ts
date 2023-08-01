@@ -220,6 +220,62 @@ describe('UserService', () => {
         });
     });
 
+    describe('sendPasswordResetLink', () => {
+        it('should send the reset link to the user', async () => {
+            const email = faker.internet.email();
+            await service.createUser({
+                username: faker.internet.userName(),
+                email,
+                gmail: email,
+                password: 'password',
+            });
+            const sendEmailSpy = jest.spyOn(global.mailService, 'sendPasswordResetEmail');
+            const result = await service.sendPasswordResetLink(email);
+            expect(result).toBeTruthy();
+            expect(sendEmailSpy).toHaveBeenCalled();
+        });
+
+        it('should throw error no user found using given email', async () => {
+            const email = faker.internet.email();
+            try {
+                await service.sendPasswordResetLink(email);
+            } catch (error) {
+                expect((error as GraphQLError).message).toBe('No user registered with this email.');
+                expect((error as GraphQLError).extensions.code).toBe('NO_USER_FOUND');
+            }
+        });
+    });
+
+    describe('resetUserPassword', () => {
+        it('should reset the user password', async () => {
+            const email = faker.internet.email();
+            const user = await service.createUser({
+                username: faker.internet.userName(),
+                email,
+                gmail: email,
+                password: 'password',
+            });
+            const result = await service.resetUserPassword(user.email, user.verificationToken,'new_password');
+            expect(result.code).toEqual('SUCCESS');
+        });
+
+        it('should throw error no user found using given email and verification code', async () => {
+            const email = faker.internet.email();
+            const user = await service.createUser({
+                username: faker.internet.userName(),
+                email,
+                gmail: email,
+                password: 'password',
+            });
+            try {
+                await service.resetUserPassword(user.email, 'Wrong token','new_password');
+            } catch (error) {
+                expect((error as GraphQLError).message).toBe('Invalid verification token.');
+                expect((error as GraphQLError).extensions.code).toBe('INVALID_VERIFICATION_TOKEN');
+            }
+        });
+    });
+
     describe('getUserProfit', () => {
         let owner: User;
         let collection: Collection;
