@@ -305,7 +305,7 @@ describe('MintSaleTransactionService', () => {
             expect(result).toBeDefined();
             expect(result.length).toBe(1);
             expect(result[0].token).toBe(paymentToken);
-            expect(result[0].totalPrice).toBe('2000000000000000000');
+            expect(result[0].totalPrice).toBe(2000000000000000000);
         });
 
         it('should return monthly earnings, multiple collections', async () => {
@@ -418,7 +418,7 @@ describe('MintSaleTransactionService', () => {
             expect(result).toBeDefined();
             expect(result.length).toBe(1);
             expect(result[0].token).toBe(paymentToken);
-            expect(result[0].totalPrice).toBe('2000000000000000000');
+            expect(result[0].totalPrice).toBe(2000000000000000000);
         });
     });
 
@@ -458,7 +458,7 @@ describe('MintSaleTransactionService', () => {
             const result = await service.getTotalSalesByCollectionAddresses([collectionAddress1]);
             expect(result.length).toBe(1);
             expect(result[0].token).toBe(paymentToken);
-            expect(result[0].totalPrice).toBe('2000000000000000000');
+            expect(result[0].totalPrice).toBe(2000000000000000000);
         });
 
         it('shoule be return total prices by collection, multiple payment tokens and multiple collections', async () => {
@@ -503,14 +503,14 @@ describe('MintSaleTransactionService', () => {
             });
             expect(filter1).toBeDefined();
             expect(filter1.length).toBe(1);
-            expect(filter1[0].totalPrice).toBe('1000000000000000000');
+            expect(filter1[0].totalPrice).toBe(1000000000000000000);
 
             const filter2 = result.filter((item) => {
                 return item.token == paymentToken2;
             });
             expect(filter2).toBeDefined();
             expect(filter2.length).toBe(1);
-            expect(filter2[0].totalPrice).toBe('2000000000000000000');
+            expect(filter2[0].totalPrice).toBe(2000000000000000000);
         });
     });
 

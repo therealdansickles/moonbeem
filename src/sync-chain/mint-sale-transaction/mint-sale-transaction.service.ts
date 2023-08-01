@@ -52,9 +52,9 @@ export class MintSaleTransactionService {
             .createQueryBuilder('tx')
             .select([
                 'tx.recipient AS address',
-                'SUM(tx.price::numeric(20,0)) AS amount',
+                'SUM(tx.price::REAL) AS amount',
                 'COUNT(*) AS item',
-                'ROW_NUMBER() OVER (ORDER BY SUM(tx.price::numeric(20,0)) DESC) AS rank',
+                'ROW_NUMBER() OVER (ORDER BY SUM(tx.price::REAL) DESC) AS rank',
                 'tx.paymentToken AS "paymentToken"',
             ])
             .groupBy('tx.recipient')
@@ -100,7 +100,7 @@ export class MintSaleTransactionService {
         const result: BasicTokenPrice[] = await this.transactionRepository
             .createQueryBuilder('txn')
             .select('txn.paymentToken', 'token')
-            .addSelect('SUM(txn.price::numeric(20,0))', 'totalPrice')
+            .addSelect('SUM(txn.price::REAL)', 'totalPrice')
             .where('txn.address IN (:...addresses)', { addresses })
             .andWhere('TO_TIMESTAMP(txn.txTime) >= :beginDate', { beginDate })
             .addGroupBy('txn.paymentToken')
@@ -119,7 +119,7 @@ export class MintSaleTransactionService {
 
         const result: BasicTokenPrice[] = await this.transactionRepository
             .createQueryBuilder('txn')
-            .select('SUM("txn".price::decimal(30,0))', 'totalPrice')
+            .select('SUM("txn".price::REAL)', 'totalPrice')
             .addSelect('txn.paymentToken', 'token')
             .where('txn.address IN (:...addresses)', { addresses })
             .groupBy('txn.paymentToken')
