@@ -2368,7 +2368,7 @@ describe('CollectionService', () => {
             expect(result).toBe(1);
         });
 
-        it('should be return the number of collectios by this week', async () => {
+        it('should be return the number of collections by this week', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',

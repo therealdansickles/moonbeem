@@ -5,14 +5,18 @@ import { faker } from '@faker-js/faker';
 
 import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
+import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { Wallet } from './wallet.entity';
 import { WalletService } from './wallet.service';
-import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 
 describe('WalletService', () => {
     let address: string;
@@ -467,24 +471,11 @@ describe('WalletService', () => {
 
             const txTime = Math.floor(faker.date.recent().getTime() / 1000);
 
-            await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
-                txTime,
-                sender: faker.finance.ethereumAddress(),
-                recipient: wallet.address,
-                address: collection.address,
-                tierId: tier.tierId,
-                tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
-                paymentToken: faker.finance.ethereumAddress(),
-            });
-
+            // Deploy transaction
             await mintSaleContractService.createMintSaleContract({
                 height: parseInt(faker.random.numeric(5)),
                 txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
-                txTime: txTime + 1,
+                txTime,
                 sender: wallet.address,
                 royaltyReceiver: wallet.address,
                 royaltyRate: faker.random.numeric(2),
@@ -502,11 +493,28 @@ describe('WalletService', () => {
                 tokenAddress: faker.finance.ethereumAddress(),
             });
 
+            // Mint transaction
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: txTime + 1,
+                sender: faker.finance.ethereumAddress(),
+                recipient: wallet.address,
+                address: collection.address,
+                tierId: tier.tierId,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: faker.random.numeric(19),
+                paymentToken: faker.finance.ethereumAddress(),
+            });
+
             const list = await service.getActivitiesByAddress(wallet.address);
-            const [mintItem, deployItem] = list;
+            const [first, second] = list;
             expect(list.length).toEqual(2);
-            expect(deployItem.type).toEqual('Deploy');
-            expect(mintItem.type).toEqual('Mint');
+            expect(first.type).toEqual('Mint');
+            expect(second.type).toEqual('Deploy');
+            // should be sorted by txTime desc
+            expect(first.txTime).toBeGreaterThan(second.txTime);
         });
     });
 
@@ -528,7 +536,11 @@ describe('WalletService', () => {
                 address: faker.finance.ethereumAddress(),
                 name: faker.internet.domainName(),
             });
-            expect(() => service.updateWallet(wallet.id, { name: faker.finance.ethereumAddress() })).rejects.toThrow();
+            try {
+                await service.updateWallet(wallet.id, { name: faker.finance.ethereumAddress() });
+            } catch (err) {
+                expect(err.message).toEqual(`Wallet name can't be in the address format.`);
+            }
         });
     });
 

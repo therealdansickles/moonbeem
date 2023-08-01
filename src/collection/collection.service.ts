@@ -354,7 +354,7 @@ export class CollectionService {
 
         return result.map((r) => r.recipient);
 
-        // NOTE: use this when we wanna attach wallet. CURENTLY, we will not have wallet's for every address
+        // NOTE: use this when we wanna attach wallet. CURRENTLY, we will not have wallet's for every address
         // so this WILL BREAK.
         //return await this.walletRepository.find({ where: { address: In(result.map((r) => r.recipient)) } });
     }
