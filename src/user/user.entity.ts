@@ -1,4 +1,4 @@
-import { hashSync as hashPassword } from 'bcryptjs';
+import { hashSync } from 'bcryptjs';
 import {
     BaseEntity, BeforeInsert, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn,
     UpdateDateColumn
@@ -83,10 +83,18 @@ export class User extends BaseEntity {
      */
     @BeforeInsert()
     async beforeInsertActions() {
-        this.verificationToken = await Math.random().toString(36).substring(2);
+        this.verificationToken = this.generateVerificationToken();
 
         if (this.password) {
-            this.password = hashPassword(this.password, 10);
+            this.password = this.hashPassword(this.password);
         }
+    }
+
+    generateVerificationToken(): string {
+        return Math.random().toString(36).substring(2);
+    }
+
+    hashPassword(password: string): string {
+        return hashSync(password);
     }
 }

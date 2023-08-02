@@ -96,6 +96,17 @@ export class UserInput extends PickType(User, ['id'] as const, InputType) {}
 export class VerifyUserInput extends PickType(User, ['email', 'verificationToken'] as const, InputType) {}
 
 @InputType()
+export class PasswordResetLinkInput extends PickType(User, ['email'] as const, InputType) {}
+
+@InputType()
+export class ResetPasswordInput extends PickType(User, ['email', 'verificationToken'] as const, InputType) {
+    // I can't just include it in the PickType array. It's not working.
+    @Field({ description: 'The new password for the user.' })
+    @IsString()
+    readonly password: string;
+}
+
+@InputType()
 export class UpdateUserInput extends PartialType(OmitType(User, ['password', 'wallets'] as const), InputType) {}
 
 @ObjectType()
@@ -104,6 +115,13 @@ export class UserOutput extends OmitType(
     ['password', 'websiteUrl', 'twitter', 'instagram', 'discord', 'wallets'],
     ObjectType
 ) {}
+
+@ObjectType()
+export class ResetPasswordOutput {
+    @Field(() => String)
+    @IsString()
+    readonly code: string;
+}
 
 @ObjectType()
 export class SearchUser {

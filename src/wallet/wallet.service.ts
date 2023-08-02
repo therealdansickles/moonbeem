@@ -102,7 +102,7 @@ export class WalletService {
      * @returns
      */
     async checkWalletExistence(address: string): Promise<Wallet> {
-        const wallet = this.getWalletByQuery({ address });
+        const wallet = await this.getWalletByQuery({ address });
         if (!wallet) throw new GraphQLError(`wallet ${address} doesn't exist.`);
         return wallet;
     }
@@ -584,7 +584,7 @@ export class WalletService {
         const result = await this.mintSaleTransactionRepository
             .createQueryBuilder('txn')
             .select('txn.paymentToken', 'token')
-            .addSelect('SUM(txn.price::numeric(20,0))', 'total_price')
+            .addSelect('SUM(txn.price::REAL)', 'total_price')
             .where('txn.address IN (:...addresses)', {
                 addresses: collections.map((c) => {
                     if (c.address) return c.address;

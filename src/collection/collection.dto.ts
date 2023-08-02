@@ -8,9 +8,9 @@ import {
 } from '@nestjs/graphql';
 
 import { Collaboration, CollaborationInput } from '../collaboration/collaboration.dto';
-import Paginated from '../pagination/pagination.dto';
 import { Metadata } from '../metadata/metadata.dto';
 import { Organization, OrganizationInput } from '../organization/organization.dto';
+import Paginated from '../pagination/pagination.dto';
 import { Asset721 } from '../sync-chain/asset721/asset721.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
@@ -60,6 +60,13 @@ export class Collection {
     })
     @IsOptional()
     readonly address?: string;
+    
+    @Field({
+        description: 'The token address of the collection',
+        nullable: true,
+    })
+    @IsOptional()
+    readonly tokenAddress?: string;
 
     @ValidateIf((collection) => collection.avatarUrl !== '')
     @IsUrl()
@@ -366,13 +373,6 @@ export class CollectionActivities {
     readonly data: CollectionActivityData[];
 }
 
-@ObjectType('SecondarySale')
-export class SecondarySale {
-    @Field(() => Number)
-    @IsNumber()
-    public total: number;
-}
-
 @ObjectType('CollectionActivityData')
 export class CollectionActivityData extends OmitType(Asset721, [], ObjectType) {
     @IsObject()
@@ -386,6 +386,43 @@ export class CollectionActivityData extends OmitType(Asset721, [], ObjectType) {
     @IsObject()
     @Field(() => MintSaleTransaction, { description: 'The transaction of the activity data.' })
     readonly transaction: MintSaleTransaction;
+}
+
+@ObjectType('CollectionAggregatedActivities')
+export class CollectionAggregatedActivities {
+    @Field(() => Int)
+    @IsNumber()
+    readonly total: number;
+
+    @Field(() => [CollectionAggregatedActivityData])
+    @IsArray()
+    readonly data: CollectionAggregatedActivityData[];
+}
+
+@ObjectType('CollectionAggregatedActivityData')
+export class CollectionAggregatedActivityData extends PickType(MintSaleTransaction, ['txHash', 'txTime', 'recipient', 'sender', 'paymentToken'], ObjectType) {
+    @IsString()
+    @Field(() => Number, { description: 'Total cost for the aggregated transaction' })
+    readonly cost: number;
+    
+    @IsEnum(CollectionActivityType)
+    @Field(() => CollectionActivityType, { description: 'The activity type for the aggregated transaction.' })
+    readonly type: CollectionActivityType;
+
+    @IsArray()
+    @Field(() => [String], { description: 'The tokenIds in the aggregated transaction.' })
+    readonly tokenIds: Array<string>;
+
+    @IsObject()
+    @Field(() => Tier, { nullable: true, description: 'The tier info for the aggregated transaction.' })
+    readonly tier?: Tier;
+}
+
+@ObjectType('SecondarySale')
+export class SecondarySale {
+    @Field(() => Number)
+    @IsNumber()
+    public total: number;
 }
 
 @ObjectType('LandingPageCollection')

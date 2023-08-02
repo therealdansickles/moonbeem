@@ -19,7 +19,7 @@ import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Tier } from '../tier/tier.entity';
 import { Wallet } from '../wallet/wallet.entity';
-import { CreateUserInput, LatestSalePaginated, PriceInfo, UserProfit } from './user.dto';
+import { CreateUserInput, LatestSalePaginated, PriceInfo, ResetPasswordOutput, UserProfit } from './user.dto';
 import { User } from './user.entity';
 
 type IUserQuery = Partial<Pick<User, 'id' | 'username'>>;
@@ -113,6 +113,37 @@ export class UserService {
     }
 
     /**
+     * Send password reset link to the given email.
+     * @param email The email of the user to send password reset link.
+     */
+    async sendPasswordResetLink(email: string): Promise<boolean> {
+        const user = await this.userRepository.findOneBy({ email });
+        if (!user) throw new GraphQLError(`No user registered with this email.`, {
+            extensions: { code: 'NO_USER_FOUND' },
+        });
+        await this.userRepository.save({ ...user, verificationToken: user.generateVerificationToken()});
+        this.mailService.sendPasswordResetEmail(user.email, user.verificationToken);
+        return true;
+    }
+
+    /**
+     * Reset user password.
+     * @param email The email of the user to redeem password reset token.
+     * @param verificationToken The verification token of the user to redeem password reset token.
+     * @param password The new password.
+     * @returns
+     */
+    async resetUserPassword(email: string, verificationToken: string, password: string): Promise<ResetPasswordOutput> {
+        const user = await this.userRepository.findOneBy({ email, verificationToken });
+        if (!user) throw new GraphQLError(`Invalid verification token.`, {
+            extensions: { code: 'INVALID_VERIFICATION_TOKEN' },
+        });
+        await this.userRepository.save({ ...user, password: user.hashPassword(password), verificationToken: null });
+        // TODO: It's the legacy behavior, we can update it according to the current design
+        return { code: 'SUCCESS' };
+    }
+
+    /**
      *
      * @param id
      * @param payload
@@ -161,10 +192,7 @@ export class UserService {
 
     /**
      * Verify user credentials.
-     *
-     * @param email user email
-     * @param password user hashed password
-     *
+     * @param accessToken user access token
      * @returns The user if credentials are valid.
      */
     private async authenticateFromGoogle(

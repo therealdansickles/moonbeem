@@ -3,12 +3,13 @@ import { IsNull, Repository } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+
+import { MailService } from '../mail/mail.service';
 import { Organization } from '../organization/organization.entity';
 import { User } from '../user/user.entity';
 import {
     CreateMembershipInput, MembershipRequestInput, UpdateMembershipInput
 } from './membership.dto';
-import { MailService } from '../mail/mail.service';
 import { Membership } from './membership.entity';
 
 @Injectable()
@@ -86,7 +87,8 @@ export class MembershipService {
         // and treat that as the source of truth.
         membership.user = await this.userRepository.findOneBy({ email });
         membership.email = email;
-        await this.membershipRepository.insert(membership);
+        // use `upsert` to ignore the existed membership but not throw an error
+        await this.membershipRepository.upsert(membership, ['user.id', 'organization.id']);
 
         const result = await this.membershipRepository.findOneBy({ id: membership.id });
         await this.mailService.sendInviteEmail(email, result.inviteCode); // FIXME: Move to a queue
@@ -97,7 +99,7 @@ export class MembershipService {
     /**
      * Update a membership.
      *
-     * @param id The id of the membership to update.
+     * @param id The id of the membership to update.    
      * @returns The updated membership.
      */
     async updateMembership(id: string, data: Omit<UpdateMembershipInput, 'id'>): Promise<Membership> {

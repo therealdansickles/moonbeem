@@ -206,7 +206,7 @@ describe('CollectionResolver', () => {
                 });
         });
 
-        it('should get a collection by id with no contract details, if contract doesnt exist', async () => {
+        it('should get a collection by id with no contract details, if contract doesn\'t exist', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',
@@ -722,7 +722,6 @@ describe('CollectionResolver', () => {
                     expect(body.errors[0].message).toMatch(`The collection name ${variables.input.name} already existed`);
                 });
         });
-
 
         it('should allow authenticated users to create a collection', async () => {
             const owner = await userService.createUser({
@@ -1343,7 +1342,7 @@ describe('CollectionResolver', () => {
                 },
             ] as CollectionStat[];
 
-            jest.spyOn(service, 'getSecondartMarketStat').mockImplementation(async () => mockResponse);
+            jest.spyOn(service, 'getSecondaryMarketStat').mockImplementation(async () => mockResponse);
 
             return await request(app.getHttpServer())
                 .post('/graphql')

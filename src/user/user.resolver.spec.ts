@@ -234,6 +234,68 @@ describe('UserResolver', () => {
         });
     });
 
+    describe('sendPasswordResetLink', () => {
+        it('send the reset link successfully', async () => {
+            basicUser = await service.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const query = gql`
+                mutation sendPasswordResetLink($input: PasswordResetLinkInput!) {
+                    sendPasswordResetLink(input: $input) 
+                }
+            `;
+
+            const variables = {
+                input: {
+                    email: basicUser.email,
+                },
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.sendPasswordResetLink).toEqual(true);
+                });
+        });
+    });
+
+    describe('resetPassword', () => {
+        it('reset the password successfully', async () => {
+            basicUser = await service.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const query = gql`
+                mutation resetPassword($input: ResetPasswordInput!) {
+                    resetPassword(input: $input) {
+                        code
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    email: basicUser.email,
+                    verificationToken: basicUser.verificationToken,
+                    password: 'new_password',
+                },
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.resetPassword.code).toEqual('SUCCESS');
+                });
+        });
+    });
+
     describe('getUserProfit', () => {
         let owner: User;
         let collection: Collection;

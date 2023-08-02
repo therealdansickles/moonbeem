@@ -1,4 +1,5 @@
 import BigNumber from 'bignumber.js';
+import { startOfDay, startOfMonth, startOfWeek, subDays } from 'date-fns';
 import { GraphQLError } from 'graphql';
 import { isEmpty, isNil, omitBy } from 'lodash';
 import { In, IsNull, Repository, UpdateResult } from 'typeorm';
@@ -6,15 +7,17 @@ import { In, IsNull, Repository, UpdateResult } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as Sentry from '@sentry/node';
-import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
-import { fromCursor, PaginatedImp } from '../pagination/pagination.module';
+
 import { OpenseaService } from '../opensea/opensea.service';
+import { AggregatedCollection } from '../organization/organization.dto';
+import { fromCursor, PaginatedImp } from '../pagination/pagination.module';
 import { SaleHistory } from '../saleHistory/saleHistory.dto';
 import { getCurrentPrice } from '../saleHistory/saleHistory.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { Tier as TierDto } from '../tier/tier.dto';
 import { Tier } from '../tier/tier.entity';
 import { TierService } from '../tier/tier.service';
@@ -25,6 +28,7 @@ import {
     Collection,
     CollectionActivities,
     CollectionActivityType,
+    CollectionAggregatedActivities,
     CollectionPaginated,
     CollectionSold,
     CollectionSoldPaginated,
@@ -39,7 +43,6 @@ import {
     ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
-import { AggregatedCollection } from '../organization/organization.dto';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name'>>;
 
@@ -59,6 +62,7 @@ export class CollectionService {
         @InjectRepository(Asset721, 'sync_chain')
         private readonly asset721Repository: Repository<Asset721>,
         private tierService: TierService,
+        private transactionService: MintSaleTransactionService,
         private openseaService: OpenseaService,
         private coinService: CoinService
     ) {}
@@ -184,7 +188,7 @@ export class CollectionService {
      * Retrieve the collection stat from secondary markets.
      * @param query The condition of the collection to retrieve.
      */
-    async getSecondartMarketStat(query: ICollectionQuery): Promise<CollectionStat[]> {
+    async getSecondaryMarketStat(query: ICollectionQuery): Promise<CollectionStat[]> {
         query = omitBy(query, isNil);
         if (isEmpty(query)) return null;
         const collection = await this.collectionRepository.findOne({ where: query });
@@ -252,7 +256,7 @@ export class CollectionService {
      * Updates a collection.
      *
      * @param params The id of the collection to update and the data to update it with.
-     * @returns A boolean if it updated succesfully.
+     * @returns A boolean if it updated successfully.
      */
     async updateCollection(id: string, data: Partial<Omit<UpdateCollectionInput, 'id'>>): Promise<boolean> {
         try {
@@ -376,7 +380,7 @@ export class CollectionService {
             .addSelect('COUNT(*)', 'quantity')
             .addSelect('MIN(asset.txTime)', 'txTime')
             .addSelect('txn.price', 'price')
-            .addSelect('SUM(txn.price::numeric(20,0))', 'totalPrice')
+            .addSelect('SUM(txn.price::REAL)', 'totalPrice')
             .where('asset.address = :address AND txn.tokenAddress = :address', {
                 address: contract.tokenAddress,
             })
@@ -488,6 +492,46 @@ export class CollectionService {
         );
 
         return { data, total };
+    }
+
+    async getAggregatedCollectionActivities(
+        collectionAddress: string,
+        tokenAddress: string
+    ): Promise<CollectionAggregatedActivities> {
+        const assets = await this.asset721Repository
+            .createQueryBuilder('asset')
+            .where('asset.address = :address', { address: tokenAddress })
+            .getMany();
+
+        const collection = await this.getCollectionByAddress(collectionAddress);
+
+        const txns = await this.transactionService.getAggregatedCollectionTransaction(collectionAddress);
+        const tierInfos = await Promise.all(
+            txns.map((txn) =>
+                this.tierService.getTiersByQuery({ collection: { id: collection.id }, tierId: txn.tierId })
+            )
+        );
+        const result = txns.map((txn) => {
+            // theoretically all token ids should belongs to the same recipient and transaction
+            // so we just use the first one as represent
+            const tokenId = txn.tokenIds[0];
+            const assetInfo = assets.find((asset) => asset.tokenId === tokenId);
+
+            // handle activity type
+            let type: CollectionActivityType = CollectionActivityType.Transfer;
+            if (assetInfo.owner == ZeroAccount) type = CollectionActivityType.Burn;
+            if (assetInfo.owner == txn.recipient) type = CollectionActivityType.Mint;
+
+            // bind tier info
+            const tiers = tierInfos.find((tierInfo) => tierInfo[0]?.tierId === txn.tierId);
+            txn.tier = tiers ? tiers[0] : null;
+            return {
+                type,
+                ...txn,
+            };
+        });
+
+        return { total: result.length, data: result };
     }
 
     async getLandingPageCollections(
@@ -706,7 +750,7 @@ export class CollectionService {
         const result = await this.mintSaleTransactionRepository
             .createQueryBuilder('txn')
             .select('txn.paymentToken', 'token')
-            .addSelect('SUM(txn.price::numeric(20,0))', 'total_price')
+            .addSelect('SUM(txn.price::REAL)', 'total_price')
             .where('txn.txTime BETWEEN :startDate AND :endDate', { startDate, endDate })
             .andWhere('txn.address = :address', { address })
             .addGroupBy('txn.paymentToken')
@@ -731,7 +775,7 @@ export class CollectionService {
         const builder = this.mintSaleTransactionRepository
             .createQueryBuilder('txn')
             .select('txn.paymentToken', 'token')
-            .addSelect('SUM(txn.price::numeric(20,0))', 'total_price')
+            .addSelect('SUM(txn.price::REAL)', 'total_price')
             .andWhere('txn.address = :address', { address });
 
         if (between && between.length == 2) {
@@ -771,12 +815,14 @@ export class CollectionService {
      * @returns number of collections
      */
     public async getAggregatedCollectionsByOrganizationId(id: string): Promise<AggregatedCollection> {
-        const [monthly, weekly, daily] = await Promise.all([
+        const [monthly, weekly, daily, last30Days, last7Days] = await Promise.all([
             this.getCollectionsByOrganizationIdAndBeginTime(id, startOfMonth(new Date())),
             this.getCollectionsByOrganizationIdAndBeginTime(id, startOfWeek(new Date())),
             this.getCollectionsByOrganizationIdAndBeginTime(id, startOfDay(new Date())),
+            this.getCollectionsByOrganizationIdAndBeginTime(id, subDays(new Date(), 30)),
+            this.getCollectionsByOrganizationIdAndBeginTime(id, subDays(new Date(), 7)),
         ]);
-        return { monthly, weekly, daily };
+        return { monthly, weekly, daily, last30Days, last7Days };
     }
 
     /**
