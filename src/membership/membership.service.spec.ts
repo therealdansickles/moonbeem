@@ -48,9 +48,9 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            await service.createMembership({
+            await service.createMemberships({
                 organizationId: organization.id,
-                email: user.email,
+                emails: [user.email],
             });
 
             const membership = await repository.findOneBy({
@@ -109,9 +109,9 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            await service.createMembership({
+            await service.createMemberships({
                 organizationId: organization.id,
-                email: user.email,
+                emails: [user.email],
             });
 
             const rs = await service.checkMembershipByOrganizationIdAndUserId(organization.id, user.id);
@@ -139,9 +139,9 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            await service.createMembership({
+            await service.createMemberships({
                 organizationId: organization.id,
-                email: user.email,
+                emails: [user.email],
             });
 
             const rs = await service.checkMembershipByOrganizationIdAndUserId(organization.id, faker.datatype.uuid());
@@ -171,17 +171,19 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            const result = await service.createMembership({
+            const result = await service.createMemberships({
                 organizationId: organization.id,
-                email: user.email,
+                emails: [user.email],
                 canDeploy: true,
             });
 
-            expect(result.id).toBeDefined();
-            expect(result.canDeploy).toBeTruthy();
-            expect(result.organization.id).toEqual(organization.id);
-            expect(result.organization.owner.id).not.toBeNull();
-            expect(result.user.id).toEqual(user.id);
+            expect(result).toBeDefined();
+            expect(result.length).toBe(1);
+            expect(result[0].id).toBeDefined();
+            expect(result[0].canDeploy).toBeTruthy();
+            expect(result[0].organization.id).toEqual(organization.id);
+            expect(result[0].organization.owner.id).not.toBeNull();
+            expect(result[0].user.id).toEqual(user.id);
         });
 
         it('should go through if membership exist', async () => {
@@ -205,19 +207,21 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            const result = await service.createMembership({
+            const result = await service.createMemberships({
                 organizationId: organization.id,
-                email: user.email,
+                emails: [user.email],
                 canDeploy: true,
             });
 
-            const resultAgain = await service.createMembership({
+            const resultAgain = await service.createMemberships({
                 organizationId: organization.id,
-                email: user.email,
+                emails: [user.email],
                 canDeploy: true,
             });
 
-            expect(result.id).toEqual(resultAgain.id);
+            expect(result).toBeDefined();
+            expect(result.length).toBe(1);
+            expect(result[0].id).toEqual(resultAgain[0].id);
         });
 
         it('should work if user does\'t exist', async () => {
@@ -300,12 +304,12 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            const membership = await service.createMembership({
+            const membership = await service.createMemberships({
                 organizationId: organization.id,
-                email: user.email,
+                emails: [user.email],
             });
 
-            const result = await service.updateMembership(membership.id, { canEdit: true });
+            const result = await service.updateMembership(membership[0].id, { canEdit: true });
             expect(result.canEdit).toBeTruthy();
         });
     });
@@ -332,15 +336,15 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            const membership = await service.createMembership({
+            const membership = await service.createMemberships({
                 organizationId: organization.id,
-                email: user.email,
+                emails: [user.email],
             });
 
             const result = await service.acceptMembership({
                 email: user.email,
                 organizationId: organization.id,
-                inviteCode: membership.inviteCode,
+                inviteCode: membership[0].inviteCode,
             });
 
             expect(result).toBeTruthy;
@@ -367,9 +371,9 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            await service.createMembership({
+            await service.createMemberships({
                 organizationId: organization.id,
-                email: user.email,
+                emails: [user.email],
             });
 
             try {
@@ -404,15 +408,15 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            const membership = await service.createMembership({
+            const membership = await service.createMemberships({
                 organizationId: organization.id,
-                email: user.email,
+                emails: [user.email],
             });
 
             const result = await service.declineMembership({
                 email: user.email,
                 organizationId: organization.id,
-                inviteCode: membership.inviteCode,
+                inviteCode: membership[0].inviteCode,
             });
 
             expect(result).toBeTruthy;
@@ -443,7 +447,7 @@ describe('MembershipService', () => {
                 await service.declineMembership({ email: user.email, organizationId: organization.id, inviteCode: '' });
             } catch (error) {
                 expect((error as Error).message).toBe(
-                    `We couldn't find a membership request for ${user.email} to organization ${organization.id}.`,
+                    `We couldn't find a membership request for ${user.email} to organization ${organization.id}.`
                 );
             }
         });
@@ -471,13 +475,56 @@ describe('MembershipService', () => {
                 owner: owner,
             });
 
-            const membership = await service.createMembership({
+            const membership = await service.createMemberships({
                 organizationId: organization.id,
-                email: user.email,
+                emails: [user.email],
             });
 
-            const result = await service.deleteMembership(membership.id);
+            const result = await service.deleteMembership(membership[0].id);
             expect(result).toBeTruthy();
+        });
+    });
+
+    describe('createMemberships', () => {
+        it('should be create memberships via multiple emails', async () => {
+            const user1 = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: 'password',
+            });
+            const user2 = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: 'password',
+            });
+
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: 'password',
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                owner: owner,
+            });
+
+            const memberships = await service.createMemberships({
+                organizationId: organization.id,
+                emails: [user1.email, user2.email],
+            });
+
+            expect(memberships.length).toBe(2);
+            expect(memberships[0].email).toBe(user1.email);
+            expect(memberships[0].inviteCode).toBeDefined();
+
+            expect(memberships[1].email).toBe(user2.email);
+            expect(memberships[1].inviteCode).toBeDefined();
+
+            expect(memberships[0].organization.id).toBe(memberships[1].organization.id);
         });
     });
 });
