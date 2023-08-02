@@ -69,9 +69,8 @@ export class OrganizationService {
         const owner = await this.userRepository.findOneBy({ id: data.owner.id });
 
         const organization = await this.organizationRepository.save(data);
-        await this.membershipService.createMembership({
-            email: owner.email,
-            organizationId: organization.id,
+        await this.membershipService.createMembership(owner.email, {
+            organization,
             canEdit: true,
             canDeploy: true,
             canManage: true,

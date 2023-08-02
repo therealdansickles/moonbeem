@@ -918,6 +918,8 @@ describe('TierService', () => {
             expect(tierHolders.totalCount).toEqual(2);
             expect(tierHolders.edges.length).toEqual(2);
             expect(tierHolders.edges[0].node.quantity + tierHolders.edges[1].node.quantity).toEqual(3);
+            expect(tierHolders.edges[0].node.address).toBeDefined();
+            expect(tierHolders.edges[1].node.address).toBeDefined();
         });
 
         it('should get attribute overview', async () => {

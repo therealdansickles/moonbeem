@@ -48,9 +48,9 @@ describe('MembershipResolver', () => {
                 owner: owner,
             });
 
-            const membership = await service.createMembership({
+            const membership = await service.createMemberships({
                 organizationId: organization.id,
-                email: user.email,
+                emails: [user.email],
             });
 
             const query = gql`
@@ -75,7 +75,7 @@ describe('MembershipResolver', () => {
             `;
 
             const variables = {
-                id: membership.id,
+                id: membership[0].id,
             };
 
             return await request(app.getHttpServer())
@@ -151,7 +151,7 @@ describe('MembershipResolver', () => {
             const variables = {
                 input: {
                     organizationId: organization.id,
-                    email: user.email,
+                    emails: [user.email],
                     canEdit: true,
                 },
             };
@@ -162,8 +162,10 @@ describe('MembershipResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.data.createMembership.id).toBeDefined();
-                    expect(body.data.createMembership.canEdit).toBeTruthy();
+                    expect(body.data.createMembership).toBeDefined();
+                    expect(body.data.createMembership.length).toBe(1);
+                    expect(body.data.createMembership[0].id).toBeDefined();
+                    expect(body.data.createMembership[0].canEdit).toBeTruthy();
                 });
         });
     });
@@ -190,9 +192,9 @@ describe('MembershipResolver', () => {
                 owner: owner,
             });
 
-            const membership = await service.createMembership({
+            const membership = await service.createMemberships({
                 organizationId: organization.id,
-                email: user.email,
+                emails: [user.email],
             });
 
             const tokenQuery = gql`
@@ -231,7 +233,7 @@ describe('MembershipResolver', () => {
 
             const variables = {
                 input: {
-                    id: membership.id,
+                    id: membership[0].id,
                     canEdit: true,
                 },
             };
@@ -272,9 +274,9 @@ describe('MembershipResolver', () => {
                 owner: owner,
             });
 
-            const membership = await service.createMembership({
+            const membership = await service.createMemberships({
                 organizationId: organization.id,
-                email: user.email,
+                emails: [user.email],
             });
 
             const query = gql`
@@ -287,7 +289,7 @@ describe('MembershipResolver', () => {
                 input: {
                     email: user.email,
                     organizationId: organization.id,
-                    inviteCode: membership.inviteCode,
+                    inviteCode: membership[0].inviteCode,
                 },
             };
 
@@ -322,9 +324,9 @@ describe('MembershipResolver', () => {
                 owner: owner,
             });
 
-            const membership = await service.createMembership({
+            const membership = await service.createMemberships({
                 organizationId: organization.id,
-                email: user.email,
+                emails: [user.email],
             });
 
             const tokenQuery = gql`
@@ -362,7 +364,7 @@ describe('MembershipResolver', () => {
                 input: {
                     email: user.email,
                     organizationId: organization.id,
-                    inviteCode: membership.inviteCode,
+                    inviteCode: membership[0].inviteCode,
                 },
             };
 
@@ -399,9 +401,9 @@ describe('MembershipResolver', () => {
                 owner: owner,
             });
 
-            const membership = await service.createMembership({
+            const membership = await service.createMemberships({
                 organizationId: organization.id,
-                email: user.email,
+                emails: [user.email],
             });
 
             const tokenQuery = gql`
@@ -438,7 +440,7 @@ describe('MembershipResolver', () => {
                 input: {
                     email: user.email,
                     organizationId: organization.id,
-                    inviteCode: membership.inviteCode,
+                    inviteCode: membership[0].inviteCode,
                 },
             };
 
@@ -475,9 +477,9 @@ describe('MembershipResolver', () => {
                 owner: owner,
             });
 
-            const membership = await service.createMembership({
+            const membership = await service.createMemberships({
                 organizationId: organization.id,
-                email: user.email,
+                emails: [user.email],
             });
 
             const tokenQuery = gql`
@@ -513,7 +515,7 @@ describe('MembershipResolver', () => {
 
             const variables = {
                 input: {
-                    id: membership.id,
+                    id: membership[0].id,
                 },
             };
 
@@ -550,9 +552,8 @@ describe('MembershipResolver', () => {
                 owner: anotherUser,
             });
 
-            const membership1 = await service.createMembership({
-                organizationId: organization1.id,
-                email: user.email,
+            const membership1 = await service.createMembership(user.email, {
+                organization: organization1,
                 canDeploy: true,
                 canManage: true,
             });
@@ -565,9 +566,8 @@ describe('MembershipResolver', () => {
                 owner: anotherUser,
             });
 
-            const membership2 = await service.createMembership({
-                organizationId: organization2.id,
-                email: user.email,
+            const membership2 = await service.createMembership(user.email, {
+                organization: organization2,
                 canDeploy: true,
                 canManage: false,
             });

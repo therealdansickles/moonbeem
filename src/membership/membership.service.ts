@@ -8,7 +8,10 @@ import { MailService } from '../mail/mail.service';
 import { Organization } from '../organization/organization.entity';
 import { User } from '../user/user.entity';
 import {
-    CreateMembershipInput, MembershipRequestInput, UpdateMembershipInput
+    CreateMembershipInput,
+    ICreateMembership,
+    MembershipRequestInput,
+    UpdateMembershipInput,
 } from './membership.dto';
 import { Membership } from './membership.entity';
 
@@ -18,7 +21,7 @@ export class MembershipService {
         private readonly mailService: MailService,
         @InjectRepository(Membership) private membershipRepository: Repository<Membership>,
         @InjectRepository(User) private userRepository: Repository<User>,
-        @InjectRepository(Organization) private organizationRepository: Repository<Organization>,
+        @InjectRepository(Organization) private organizationRepository: Repository<Organization>
     ) {}
 
     /**
@@ -59,15 +62,15 @@ export class MembershipService {
     }
 
     /**
-     * Check 
-     * 
+     * Check
+     *
      * @param organizationId
      * @param userId
      */
     async checkMembershipByOrganizationIdAndUserId(organizationId: string, userId: string) {
         const count = await this.membershipRepository.countBy({
             organization: { id: organizationId },
-            user: { id: userId }
+            user: { id: userId },
         });
         return count > 0;
     }
@@ -78,17 +81,18 @@ export class MembershipService {
      * @param data The data to create the membership with.
      * @returns The created membership.
      */
-    async createMembership(data: CreateMembershipInput): Promise<Membership> {
-        const { organizationId, email, ...rest } = data;
+    async createMembership(email: string, data: ICreateMembership): Promise<Membership> {
+        const { organization, ...rest } = data;
         const membership = await this.membershipRepository.create(rest);
-        membership.organization = await this.organizationRepository.findOneBy({ id: organizationId });
+        // membership.organization = await this.organizationRepository.findOneBy({ id: organizationId });
+        membership.organization = organization;
         // We try to attach a user that we find in the database but it's possible
         // that they may invite someone not in the system. therefore we should still set `email`
         // and treat that as the source of truth.
         membership.user = await this.userRepository.findOneBy({ email });
         membership.email = email;
         // use `upsert` to ignore the existed membership but not throw an error
-        await this.membershipRepository.upsert(membership, ['user.id', 'organization.id']);
+        await this.membershipRepository.upsert(membership, ['email', 'organization.id']);
 
         const result = await this.membershipRepository.findOneBy({ id: membership.id });
         await this.mailService.sendInviteEmail(email, result.inviteCode); // FIXME: Move to a queue
@@ -96,10 +100,28 @@ export class MembershipService {
         return result;
     }
 
+    async createMemberships(data: CreateMembershipInput): Promise<Membership[]> {
+        const { emails, organizationId, ...rest } = data;
+
+        const organization = await this.organizationRepository.findOneBy({ id: organizationId });
+        if (!organization) {
+            throw new GraphQLError(`Membership with organization id ${organizationId} doesn't exist`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
+        }
+
+        const result = await Promise.all(
+            emails.map((email) => {
+                return this.createMembership(email, { organization, ...rest });
+            })
+        );
+        return result;
+    }
+
     /**
      * Update a membership.
      *
-     * @param id The id of the membership to update.    
+     * @param id The id of the membership to update.
      * @returns The updated membership.
      */
     async updateMembership(id: string, data: Omit<UpdateMembershipInput, 'id'>): Promise<Membership> {
@@ -127,13 +149,13 @@ export class MembershipService {
     /**
      * Accepts a membership request
      *
-     * @param input MembershipRequestInput object containiner userId and organizationId
+     * @param input MembershipRequestInput object container userId and organizationId
      * @returns true if the membership was updated in the database, false otherwise.
      */
     async acceptMembership(input: MembershipRequestInput): Promise<boolean> {
         const membership = await this.membershipRepository.findOne({
             where: {
-                user: { email: input.email },
+                email: input.email,
                 organization: { id: input.organizationId },
                 acceptedAt: IsNull(),
                 declinedAt: IsNull(),
@@ -151,6 +173,9 @@ export class MembershipService {
 
         membership.acceptedAt = new Date();
         membership.inviteCode = null;
+        if (!membership.user) {
+            membership.user = await this.userRepository.findOneBy({ email: input.email });
+        }
 
         return !!(await this.membershipRepository.save(membership));
     }

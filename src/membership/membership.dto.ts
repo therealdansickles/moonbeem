@@ -1,6 +1,7 @@
 import { Field, ObjectType, InputType } from '@nestjs/graphql';
-import { IsObject, IsString, IsBoolean, IsOptional } from 'class-validator';
+import { IsObject, IsString, IsBoolean, IsOptional, IsArray } from 'class-validator';
 import { Organization } from '../organization/organization.dto';
+import { Organization as OrganizationEntity } from '../organization/organization.entity';
 import { User } from '../user/user.dto';
 
 @ObjectType('Membership')
@@ -51,10 +52,10 @@ export class MembershipRequestInput {
 
 @InputType()
 export class CreateMembershipInput {
-    @IsString()
-    @Field({ description: 'The email of the user', nullable: true })
+    @IsArray()
+    @Field(() => [String], { description: 'The email of the user', nullable: true })
     @IsOptional()
-    readonly email?: string;
+    readonly emails?: string[];
 
     @IsString()
     @Field({ description: 'The organization that this user is a member of.' })
@@ -100,4 +101,11 @@ export class DeleteMembershipInput {
     @IsString()
     @Field({ description: 'The id for a membership.' })
     readonly id: string;
+}
+
+export interface ICreateMembership {
+    organization: OrganizationEntity;
+    canEdit?: boolean;
+    canManage?: boolean;
+    canDeploy?: boolean;
 }

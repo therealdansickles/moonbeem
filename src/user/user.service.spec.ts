@@ -9,9 +9,7 @@ import { Organization } from '../organization/organization.dto';
 import { OrganizationService } from '../organization/organization.service';
 import { Coin, CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { Wallet } from '../wallet/wallet.dto';
 import { WalletService } from '../wallet/wallet.service';
 import { User } from './user.entity';
@@ -192,9 +190,9 @@ describe('UserService', () => {
                 email,
                 gmail: email,
             });
-            await expect(
-                async () => await service.authenticateUser(user.gmail, 'password')
-            ).rejects.toThrow(`This email has been used for Google sign in. Please sign in with Google.`);
+            await expect(async () => await service.authenticateUser(user.gmail, 'password')).rejects.toThrow(
+                `This email has been used for Google sign in. Please sign in with Google.`
+            );
         });
 
         it('should authenticate the user if gmail and password both existed', async () => {
@@ -223,7 +221,7 @@ describe('UserService', () => {
     describe('sendPasswordResetLink', () => {
         it('should send the reset link to the user', async () => {
             const email = faker.internet.email();
-            await service.createUser({
+            const user = await service.createUser({
                 username: faker.internet.userName(),
                 email,
                 gmail: email,
@@ -231,8 +229,11 @@ describe('UserService', () => {
             });
             const sendEmailSpy = jest.spyOn(global.mailService, 'sendPasswordResetEmail');
             const result = await service.sendPasswordResetLink(email);
+            const foundUser = await repository.findOneBy({ id: user.id });
             expect(result).toBeTruthy();
-            expect(sendEmailSpy).toHaveBeenCalled();
+            // There is a lowercase transformer on the email column
+            // The verification token should be the one in the database
+            expect(sendEmailSpy).toHaveBeenCalledWith(email.toLowerCase(), foundUser.verificationToken);
         });
 
         it('should throw error no user found using given email', async () => {
@@ -255,7 +256,7 @@ describe('UserService', () => {
                 gmail: email,
                 password: 'password',
             });
-            const result = await service.resetUserPassword(user.email, user.verificationToken,'new_password');
+            const result = await service.resetUserPassword(user.email, user.verificationToken, 'new_password');
             expect(result.code).toEqual('SUCCESS');
         });
 
@@ -268,7 +269,7 @@ describe('UserService', () => {
                 password: 'password',
             });
             try {
-                await service.resetUserPassword(user.email, 'Wrong token','new_password');
+                await service.resetUserPassword(user.email, 'Wrong token', 'new_password');
             } catch (error) {
                 expect((error as GraphQLError).message).toBe('Invalid verification token.');
                 expect((error as GraphQLError).extensions.code).toBe('INVALID_VERIFICATION_TOKEN');
