@@ -224,7 +224,7 @@ describe('MembershipService', () => {
             expect(result[0].id).toEqual(resultAgain[0].id);
         });
 
-        it('should work if user does\'t exist', async () => {
+        it("should work if user does't exist", async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
@@ -240,9 +240,8 @@ describe('MembershipService', () => {
             });
 
             const emailForNewUser = faker.internet.email();
-            const result = await service.createMembership({
-                organizationId: organization.id,
-                email: emailForNewUser,
+            const result = await service.createMembership(emailForNewUser, {
+                organization: organization,
                 canDeploy: true,
             });
 
@@ -266,15 +265,13 @@ describe('MembershipService', () => {
             });
 
             const emailForNewUser = faker.internet.email();
-            const result = await service.createMembership({
-                organizationId: organization.id,
-                email: emailForNewUser,
+            const result = await service.createMembership(emailForNewUser, {
+                organization: organization,
                 canDeploy: true,
             });
 
-            const resultAgain = await service.createMembership({
-                organizationId: organization.id,
-                email: emailForNewUser,
+            const resultAgain = await service.createMembership(emailForNewUser, {
+                organization: organization,
                 canDeploy: true,
             });
 
