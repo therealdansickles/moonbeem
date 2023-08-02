@@ -277,6 +277,7 @@ describe('MembershipService', () => {
 
             expect(result.id).toEqual(resultAgain.id);
         });
+
     });
 
     describe('updateMembership', () => {
@@ -380,6 +381,48 @@ describe('MembershipService', () => {
                     `We couldn't find a membership request for ${user.email} to organization ${organization.id}.`
                 );
             }
+        });
+
+        it('should re attach the user if there is a membership already', async () => {
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: 'password',
+            });
+
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: 'password',
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                owner: owner,
+            });
+
+            const membership = repository.create({
+                email: user.email,
+                canDeploy: true,
+            });
+            membership.organization = organization;
+            const updatedMembership = await repository.save(membership);
+
+            const existBeforeCreation = await service.checkMembershipByOrganizationIdAndUserId(
+                organization.id,
+                user.id
+            );
+            expect(existBeforeCreation).toBeFalsy();
+            await service.acceptMembership({
+                organizationId: organization.id,
+                email: user.email,
+                inviteCode: updatedMembership.inviteCode
+            });
+            const existAfterCreation = await service.checkMembershipByOrganizationIdAndUserId(organization.id, user.id);
+            expect(existAfterCreation).toBeTruthy();
         });
     });
 

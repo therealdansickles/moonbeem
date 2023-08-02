@@ -149,13 +149,13 @@ export class MembershipService {
     /**
      * Accepts a membership request
      *
-     * @param input MembershipRequestInput object containiner userId and organizationId
+     * @param input MembershipRequestInput object container userId and organizationId
      * @returns true if the membership was updated in the database, false otherwise.
      */
     async acceptMembership(input: MembershipRequestInput): Promise<boolean> {
         const membership = await this.membershipRepository.findOne({
             where: {
-                user: { email: input.email },
+                email: input.email,
                 organization: { id: input.organizationId },
                 acceptedAt: IsNull(),
                 declinedAt: IsNull(),
@@ -173,6 +173,9 @@ export class MembershipService {
 
         membership.acceptedAt = new Date();
         membership.inviteCode = null;
+        if (!membership.user) {
+            membership.user = await this.userRepository.findOneBy({ email: input.email });
+        }
 
         return !!(await this.membershipRepository.save(membership));
     }
