@@ -22,6 +22,11 @@ export const postgresConfig = {
     },
 };
 
+export const testPostgresConfig = {
+    v1Url: process.env.TEST_V1_DATABASE_URL,
+    syncChainUrl: process.env.TEST_SYNC_CHAIN_DATABASE_URL,
+};
+
 export const mongoConfig = {
     url: process.env.MONGO_URL,
     db: process.env.MONGO_DATABASE || 'platform',

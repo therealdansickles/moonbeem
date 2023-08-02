@@ -16,7 +16,7 @@ import { CollaborationService } from './collaboration/collaboration.service';
 import { CollectionModule } from './collection/collection.module';
 import { CollectionService } from './collection/collection.service';
 import { AWSAdapter } from './lib/adapters/aws.adapter';
-import { postgresConfig } from './lib/configs/db.config';
+import { postgresConfig, testPostgresConfig } from './lib/configs/db.config';
 import { MailModule } from './mail/mail.module';
 import { MailService } from './mail/mail.service';
 import { MembershipModule } from './membership/membership.module';
@@ -96,7 +96,8 @@ export default async () => {
         imports: [
             TypeOrmModule.forRoot({
                 type: 'postgres',
-                url: postgresConfig.url,
+                // Or we create a const for the url
+                url: testPostgresConfig.v1Url,
                 logging: false,
                 dropSchema: true,
                 synchronize: true,
@@ -105,7 +106,8 @@ export default async () => {
             TypeOrmModule.forRoot({
                 name: 'sync_chain',
                 type: 'postgres',
-                url: postgresConfig.syncChain.url,
+                // Or we create a const for the url
+                url: testPostgresConfig.syncChainUrl,
                 logging: false,
                 dropSchema: true,
                 synchronize: true,
