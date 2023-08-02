@@ -95,6 +95,12 @@ jobs:
             - name: yarn install --immutable
               run: yarn install --immutable
 
+            - name: Migrate Database
+              run: yarn typeorm:schema:sync
+
+            - name: Migrate Sync Chain Database
+              run: yarn typeorm:schema:sync-chain:sync
+
             - name: Run Tests/CI
               env:
                   NODE_OPTIONS: '--max_old_space_size=8192'

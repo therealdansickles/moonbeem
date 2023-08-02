@@ -27,7 +27,8 @@
     "typeorm:schema:sync-chain:log": "yarn exec typeorm-ts-node-commonjs schema:log -d src/sync-chain/data-source.config.ts",
     "typeorm:schema:sync-chain:sync": "yarn exec typeorm-ts-node-commonjs schema:sync -d src/sync-chain/data-source.config.ts",
     "typeorm:generate": "yarn exec typeorm-ts-node-commonjs migration:generate -d src/lib/configs/postgres.config.ts migrations/migration",
-    "typeorm:migrate": "yarn exec typeorm-ts-node-commonjs migration:run -d src/lib/configs/postgres.config.ts"
+    "typeorm:migrate": "yarn exec typeorm-ts-node-commonjs migration:run -d src/lib/configs/postgres.config.ts",
+    "typeorm:sync": "yarn run typeorm:schema:sync && yarn run typeorm:schema:sync-chain:sync"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.319.0",
