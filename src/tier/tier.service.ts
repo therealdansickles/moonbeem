@@ -302,14 +302,14 @@ export class TierService {
             tierId: tier.tierId,
         });
 
-        const builder = this.transactionRepository
-            .createQueryBuilder('txn')
-            .leftJoinAndSelect(Asset721, 'asset', 'asset.tokenId = txn.tokenId')
+        const builder = this.asset721Repository
+            .createQueryBuilder('asset')
+            .innerJoinAndSelect(MintSaleTransaction, 'txn', 'asset.tokenId = txn.tokenId AND asset.address = txn.tokenAddress')
             .select('txn.tierId', 'tierId')
             .addSelect('asset.owner', 'owner')
             .addSelect('MIN(asset.txTime)', 'txTime')
             .addSelect('COUNT(*)', 'quantity')
-            .where('asset.address = :address AND txn.tokenAddress = :address', {
+            .where('asset.address = :address', {
                 address: contract.tokenAddress,
             })
             .andWhere('txn.tierId = :tierId', { tierId: tier.tierId })
@@ -338,7 +338,7 @@ export class TierService {
                 const createdAt = new Date(holder.txTime * 1000);
                 return {
                     ...wallet,
-                    address: holder.address,
+                    address: holder.owner,
                     quantity: holder?.quantity ? parseInt(holder?.quantity) : 0,
                     createdAt: new Date(createdAt.getTime() - createdAt.getTimezoneOffset() * 60 * 1000),
                 };
