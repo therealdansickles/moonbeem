@@ -121,8 +121,9 @@ export class UserService {
         if (!user) throw new GraphQLError(`No user registered with this email.`, {
             extensions: { code: 'NO_USER_FOUND' },
         });
-        await this.userRepository.save({ ...user, verificationToken: user.generateVerificationToken()});
-        this.mailService.sendPasswordResetEmail(user.email, user.verificationToken);
+        const verificationToken = user.generateVerificationToken();
+        await this.userRepository.save({ ...user, verificationToken });
+        this.mailService.sendPasswordResetEmail(user.email, verificationToken);
         return true;
     }
 
