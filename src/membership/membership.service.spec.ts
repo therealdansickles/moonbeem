@@ -219,6 +219,63 @@ describe('MembershipService', () => {
 
             expect(result.id).toEqual(resultAgain.id);
         });
+
+        it('should work if user does\'t exist', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: 'password',
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                owner: owner,
+            });
+
+            const emailForNewUser = faker.internet.email();
+            const result = await service.createMembership({
+                organizationId: organization.id,
+                email: emailForNewUser,
+                canDeploy: true,
+            });
+
+            expect(result.user).toBeFalsy();
+            expect(result.email).toEqual(emailForNewUser.toLowerCase());
+        });
+
+        it('should only create one record for invitation flow', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: 'password',
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                owner: owner,
+            });
+
+            const emailForNewUser = faker.internet.email();
+            const result = await service.createMembership({
+                organizationId: organization.id,
+                email: emailForNewUser,
+                canDeploy: true,
+            });
+
+            const resultAgain = await service.createMembership({
+                organizationId: organization.id,
+                email: emailForNewUser,
+                canDeploy: true,
+            });
+
+            expect(result.id).toEqual(resultAgain.id);
+        });
     });
 
     describe('updateMembership', () => {

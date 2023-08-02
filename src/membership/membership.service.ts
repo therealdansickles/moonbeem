@@ -88,7 +88,7 @@ export class MembershipService {
         membership.user = await this.userRepository.findOneBy({ email });
         membership.email = email;
         // use `upsert` to ignore the existed membership but not throw an error
-        await this.membershipRepository.upsert(membership, ['user.id', 'organization.id']);
+        await this.membershipRepository.upsert(membership, ['email', 'organization.id']);
 
         const result = await this.membershipRepository.findOneBy({ id: membership.id });
         await this.mailService.sendInviteEmail(email, result.inviteCode); // FIXME: Move to a queue

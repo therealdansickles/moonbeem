@@ -1,22 +1,16 @@
+import * as jwt from 'jwt-simple';
 import {
-    BaseEntity,
-    BeforeInsert,
-    Column,
-    CreateDateColumn,
-    Entity,
-    Index,
-    JoinColumn,
-    ManyToOne,
-    PrimaryGeneratedColumn,
-    UpdateDateColumn,
+    BaseEntity, BeforeInsert, Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne,
+    PrimaryGeneratedColumn, UpdateDateColumn
 } from 'typeorm';
+
+import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
 import { Organization } from '../organization/organization.entity';
 import { User } from '../user/user.entity';
-import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
-import * as jwt from 'jwt-simple';
 
 @Entity({ name: 'Membership' })
 @Index(['user.id', 'organization.id'], { unique: true })
+@Index(['email', 'organization.id'], { unique: true })
 export class Membership extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     readonly id: string;
