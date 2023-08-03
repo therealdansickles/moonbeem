@@ -538,9 +538,9 @@ export class CollectionService {
             const cost = (BigInt(txn.cost) / base ** BigInt(tokenDecimals)).toString();
 
             return {
+                ...txn,
                 type,
                 cost,
-                ...txn,
             };
         }));
 

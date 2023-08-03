@@ -408,8 +408,8 @@ export class CollectionAggregatedActivityData extends PickType(
     ObjectType
 ) {
     @IsString()
-    @Field(() => Number, { description: 'Total cost for the aggregated transaction' })
-    readonly cost: number;
+    @Field(() => String, { description: 'Total cost for the aggregated transaction' })
+    readonly cost: string;
     
     @IsEnum(CollectionActivityType)
     @Field(() => CollectionActivityType, { description: 'The activity type for the aggregated transaction.' })
