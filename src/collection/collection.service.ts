@@ -511,7 +511,8 @@ export class CollectionService {
                 this.tierService.getTiersByQuery({ collection: { id: collection.id }, tierId: txn.tierId })
             )
         );
-        const result = txns.map((txn) => {
+
+        const result = await Promise.all(txns.map( async(txn) => {
             // theoretically all token ids should belongs to the same recipient and transaction
             // so we just use the first one as represent
             const tokenId = txn.tokenIds[0];
@@ -525,11 +526,26 @@ export class CollectionService {
             // bind tier info
             const tiers = tierInfos.find((tierInfo) => tierInfo[0]?.tierId === txn.tierId);
             txn.tier = tiers ? tiers[0] : null;
+
+            // format cost to human readable given the payment token decimals
+            const token = await this.coinService.getCoinByAddress(txn.paymentToken);
+            if (!token) {
+                throw new Error(`Failed to get token ${txn.paymentToken}`);
+            }
+
+            const tokenDecimals = token?.decimals || 18;
+            const base = BigInt(10);
+            const cost = (BigInt(txn.cost) / base ** BigInt(tokenDecimals)).toString();
+
             return {
                 type,
+                cost,
                 ...txn,
             };
-        });
+        }));
+
+        // sort by txTime desc
+        result.sort((a, b) => b.txTime - a.txTime);
 
         return { total: result.length, data: result };
     }

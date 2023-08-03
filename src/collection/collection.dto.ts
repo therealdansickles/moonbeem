@@ -400,7 +400,13 @@ export class CollectionAggregatedActivities {
 }
 
 @ObjectType('CollectionAggregatedActivityData')
-export class CollectionAggregatedActivityData extends PickType(MintSaleTransaction, ['txHash', 'txTime', 'recipient', 'sender', 'paymentToken'], ObjectType) {
+export class CollectionAggregatedActivityData extends PickType(
+    MintSaleTransaction, 
+    [
+        'txHash', 'txTime', 'recipient', 'sender', 'paymentToken', 'chainId'
+    ], 
+    ObjectType
+) {
     @IsString()
     @Field(() => Number, { description: 'Total cost for the aggregated transaction' })
     readonly cost: number;
