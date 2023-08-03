@@ -406,7 +406,8 @@ export class OrganizationService {
                 .addGroupBy('txn.recipient')
                 .addGroupBy('txn.tierId')
                 .addGroupBy('txn.address')
-                .addGroupBy('txn.paymentToken');
+                .addGroupBy('txn.paymentToken')
+                .orderBy('txn.txTime', 'DESC');
 
             if (after) {
                 builder.andWhere('asset.txTime > :cursor', { cursor: new Date(fromCursor(after)).valueOf() / 1000 });
@@ -423,9 +424,12 @@ export class OrganizationService {
                 .createQueryBuilder('txn')
                 .select('txn.recipient', 'recipient')
                 .where('txn.address IN (:...addresses)', { addresses })
-                .groupBy('txn.recipient')
+                .groupBy('txn.txHash')
+                .addGroupBy('txn.txTime')
+                .addGroupBy('txn.recipient')
+                .addGroupBy('txn.tierId')
                 .addGroupBy('txn.address')
-                .addGroupBy('txn.tierId');
+                .addGroupBy('txn.paymentToken');
 
             const [result, totalResult] = await Promise.all([
                 builder.getRawMany(),
