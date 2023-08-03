@@ -10,6 +10,7 @@ import {
     AggregatedEarning,
     CollectionStatFromOrganization,
     CreateOrganizationInput,
+    OrganizationEarningsChartPaginated,
     OrganizationLatestSalePaginated,
     OrganizationProfit,
     UpdateOrganizationInput,
@@ -23,7 +24,7 @@ import { CoinService } from '../sync-chain/coin/coin.service';
 import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
 import { BasicTokenPrice } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
 import { Collection } from '../collection/collection.entity';
-import { fromCursor, PaginatedImp } from '../pagination/pagination.module';
+import { cursorToStrings, fromCursor, PaginatedImp } from '../pagination/pagination.module';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Tier } from '../tier/tier.entity';
 
@@ -489,5 +490,78 @@ export class OrganizationService {
                 .getCount(),
         ]);
         return { total, live, closed };
+    }
+
+    async getOrganizationEarningsChart(
+        id: string,
+        before: string,
+        after: string,
+        first: number,
+        last: number
+    ): Promise<OrganizationEarningsChartPaginated> {
+        const collections = await this.collectionService.getCollectionsByOrganizationId(id);
+        if (collections.length == 0) return PaginatedImp([], 0);
+        const addresses = collections.map((c) => {
+            if (c.address) return c.address;
+        });
+
+        const builder = this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .select(`EXTRACT(EPOCH FROM DATE(TO_TIMESTAMP("txTime")))`, 'time')
+            .addSelect('SUM(txn.price::NUMERIC)', 'totalPrice')
+            .addSelect('txn.paymentToken', 'paymentToken')
+            .where('txn.address IN (:...addresses)', { addresses })
+            .groupBy('time')
+            .addGroupBy('txn.paymentToken')
+            .orderBy('time', 'DESC');
+
+        if (after) {
+            const [_createdAt, id] = cursorToStrings(after);
+            builder.andWhere(`DATE_TRUNC('day', TO_TIMESTAMP(txn."txTime")) * 1000 > :cursorTime`, { id });
+            builder.limit(first);
+        } else if (before) {
+            const [_createdAt, id] = cursorToStrings(after);
+            builder.andWhere(`DATE_TRUNC('day', TO_TIMESTAMP(txn."txTime")) * 1000 < :cursorTime`, { id });
+            builder.limit(last);
+        } else {
+            const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
+            builder.limit(limit);
+        }
+
+        const subquery = this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .select(`EXTRACT(EPOCH FROM DATE(TO_TIMESTAMP("txTime")))`, 'time')
+            .addSelect('SUM(txn.price::NUMERIC)', 'totalPrice')
+            .addSelect('txn.paymentToken', 'paymentToken')
+            .where('txn.address IN (:...addresses)', { addresses })
+            .groupBy('time')
+            .addGroupBy('txn.paymentToken');
+
+        const [result, totalResult] = await Promise.all([
+            builder.getRawMany(),
+            this.mintSaleTransactionRepository.manager.query(
+                `SELECT COUNT(1) AS "total" FROM (${subquery.getSql()}) AS subquery`,
+                addresses
+            ),
+        ]);
+
+        const data = await Promise.all(
+            result.map(async (item) => {
+                const coin = await this.coinService.getCoinByAddress(item.paymentToken);
+                const quote = await this.coinService.getQuote(coin.symbol);
+                const totalTokenPrice = new BigNumber(item.totalPrice).div(new BigNumber(10).pow(coin.decimals));
+                const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(quote['USD'].price);
+                return {
+                    id: item.time.toString(),
+                    createdAt: new Date(item.time * 1000),
+                    time: item.time,
+                    volume: {
+                        inUSDC: totalUSDC.toString(),
+                    },
+                };
+            })
+        );
+        const total = totalResult.length > 0 ? parseInt(totalResult[0].total ?? 0) : 0;
+        return PaginatedImp(data, total);
     }
 }
