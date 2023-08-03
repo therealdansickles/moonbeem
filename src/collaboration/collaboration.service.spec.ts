@@ -1,9 +1,11 @@
 import { faker } from '@faker-js/faker';
+import BigNumber from 'bignumber.js';
 
 import { CollectionService } from '../collection/collection.service';
 import { OrganizationService } from '../organization/organization.service';
 import { CoinQuotes } from '../sync-chain/coin/coin.dto';
-import { Coin } from '../sync-chain/coin/coin.entity';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import { CollaborationService } from './collaboration.service';
@@ -14,6 +16,8 @@ describe('CollaborationService', () => {
     let organizationService: OrganizationService;
     let userService: UserService;
     let walletService: WalletService;
+    let mintSaleTransactionService: MintSaleTransactionService;
+    let coinService: CoinService;
 
     beforeAll(async () => {
         userService = global.userService;
@@ -21,6 +25,8 @@ describe('CollaborationService', () => {
         service = global.collaborationService;
         collectionService = global.collectionService;
         organizationService = global.organizationService;
+        mintSaleTransactionService = global.mintSaleTransactionService;
+        coinService = global.coinService;
     });
 
     beforeEach(async () => {
@@ -295,48 +301,7 @@ describe('CollaborationService', () => {
     });
 
     describe('getCollaborationWithEarnings', () => {
-        const totalEarnings = faker.datatype.number({ max: 1000 });
-        const tokenPriceUSD = faker.datatype.number({ max: 1000 });
-        const tokenDecimals = faker.datatype.number({ max: 18, min: 1 });
-        const totalEarningsUsd = totalEarnings * tokenPriceUSD;
-
-        const mockCoin: Coin = Object.assign(new Coin(), {
-            id: faker.datatype.uuid(),
-            address: faker.finance.ethereumAddress(),
-            name: faker.finance.currencyName(),
-            symbol: faker.finance.currencySymbol(),
-            decimals: tokenDecimals,
-            derivedETH: faker.finance.amount(),
-            derivedUSDC: faker.finance.amount(),
-            native: false,
-            enable: true,
-            chainId: 1,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        });
-
-        const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
-            USD: { price: tokenPriceUSD },
-        });
-
-        const collaborators = [
-            {
-                address: faker.finance.ethereumAddress(),
-                role: faker.finance.accountName(),
-                name: faker.finance.accountName(),
-                rate: 20,
-            },
-            {
-                address: faker.finance.ethereumAddress(),
-                role: faker.finance.accountName(),
-                name: faker.finance.accountName(),
-                rate: 80,
-            },
-        ];
-
-        let collaboration;
-
-        beforeEach(async () => {
+        it('should return collaborators and null earnings(if collection is not provided)', async () => {
             const user = await userService.createUser({
                 username: faker.internet.userName(),
                 email: faker.internet.email(),
@@ -361,7 +326,25 @@ describe('CollaborationService', () => {
                 owner: user,
             });
 
-            collaboration = await service.createCollaboration({
+            const address1 = faker.finance.ethereumAddress();
+            const address2 = faker.finance.ethereumAddress();
+
+            const collaborators = [
+                {
+                    address: address1,
+                    role: faker.finance.accountName(),
+                    name: faker.finance.accountName(),
+                    rate: 20,
+                },
+                {
+                    address: address2,
+                    role: faker.finance.accountName(),
+                    name: faker.finance.accountName(),
+                    rate: 80,
+                },
+            ];
+
+            const collaboration = await service.createCollaboration({
                 walletId: wallet.id,
                 organizationId: organization.id,
                 userId: user.id,
@@ -369,7 +352,76 @@ describe('CollaborationService', () => {
                 collaborators,
             });
 
-            await collectionService.createCollectionWithTiers({
+            const result = await service.getCollaborationWithEarnings(collaboration.id);
+            expect(result.id).toBe(collaboration.id);
+            expect(result.royaltyRate).toBe(12);
+
+            const collaboratorResult = result.collaborators;
+            expect(collaboratorResult).toBeDefined();
+            expect(collaborators.length).toBe(2);
+            collaboratorResult.sort((a, b) => a.rate - b.rate);
+
+            expect(collaboratorResult[0].address).toBe(address1);
+            expect(collaboratorResult[0].rate).toBe(20);
+            expect(collaboratorResult[0].earnings).not.toBeDefined();
+
+            expect(collaboratorResult[1].address).toBe(address2);
+            expect(collaboratorResult[1].rate).toBe(80);
+            expect(collaboratorResult[1].earnings).not.toBeDefined();
+        });
+
+        it('should return a collaboration with its zero earnings if no mint sale', async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const wallet = await walletService.createWallet({
+                address: `arb:${faker.finance.ethereumAddress()}`,
+                ownerId: user.id,
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: user,
+            });
+
+            const address1 = faker.finance.ethereumAddress();
+            const address2 = faker.finance.ethereumAddress();
+
+            const collaborators = [
+                {
+                    address: address1,
+                    role: faker.finance.accountName(),
+                    name: faker.finance.accountName(),
+                    rate: 20,
+                },
+                {
+                    address: address2,
+                    role: faker.finance.accountName(),
+                    name: faker.finance.accountName(),
+                    rate: 80,
+                },
+            ];
+
+            const collaboration = await service.createCollaboration({
+                walletId: wallet.id,
+                organizationId: organization.id,
+                userId: user.id,
+                royaltyRate: 12,
+                collaborators,
+            });
+
+            const collection = await collectionService.createCollectionWithTiers({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -380,82 +432,136 @@ describe('CollaborationService', () => {
                 tiers: [],
             });
 
-            jest.spyOn(service['collectionService'], 'getCollectionEarningsByCollectionAddress').mockResolvedValue({
-                sum: (BigInt(totalEarnings) * BigInt(10) ** BigInt(tokenDecimals)).toString(),
-                paymentToken: faker.finance.ethereumAddress(),
+            const result = await service.getCollaborationWithEarnings(collaboration.id, collection.id);
+            expect(result).toBeDefined();
+            expect(result.collaborators).toBeDefined();
+            expect(result.collaborators.length).toBe(2);
+            const collaboratorResult = result.collaborators;
+            collaboratorResult.sort((a, b) => a.rate - b.rate);
+
+            expect(collaboratorResult[0].earnings).toBeDefined();
+            expect(collaboratorResult[0].earnings.inPaymentToken).toBe('0');
+            expect(collaboratorResult[0].earnings.inUSDC).toBe('0');
+            expect(collaboratorResult[0].earnings.paymentToken).toBe('');
+        });
+        it('should return a collaboration with individual collaborator earnings', async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: 'password',
             });
 
-            jest.spyOn(service['coinService'], 'getCoinByAddress').mockResolvedValue(mockCoin);
+            const wallet = await walletService.createWallet({
+                address: `arb:${faker.finance.ethereumAddress()}`,
+                ownerId: user.id,
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: user,
+            });
+
+            const address1 = faker.finance.ethereumAddress();
+            const address2 = faker.finance.ethereumAddress();
+
+            const collaborators = [
+                {
+                    address: address1,
+                    role: faker.finance.accountName(),
+                    name: faker.finance.accountName(),
+                    rate: 20,
+                },
+                {
+                    address: address2,
+                    role: faker.finance.accountName(),
+                    name: faker.finance.accountName(),
+                    rate: 80,
+                },
+            ];
+
+            const collaboration = await service.createCollaboration({
+                walletId: wallet.id,
+                organizationId: organization.id,
+                userId: user.id,
+                royaltyRate: 12,
+                collaborators,
+            });
+
+            const collection = await collectionService.createCollectionWithTiers({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                organization: { id: organization.id },
+                collaboration: { id: collaboration.id },
+                tiers: [],
+            });
+
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collection.address,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: '1000000000000000000',
+                collectionId: collection.id,
+                paymentToken: coin.address,
+            });
+
+            const tokenPriceUSD = faker.datatype.number({ max: 1000 });
+            const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+                USD: { price: tokenPriceUSD },
+            });
 
             jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
-        });
 
-        beforeEach(async () => {
-            jest.clearAllMocks();
-        });
-
-        it('should return a collaboration with its total earnings', async () => {
-            const result = await service.getCollaborationWithEarnings(collaboration.id);
-
+            const result = await service.getCollaborationWithEarnings(collaboration.id, collection.id);
             expect(result).toBeDefined();
-            expect(result.id).toEqual(collaboration.id);
-            expect(result.totalEarnings).toEqual(totalEarningsUsd);
-        });
+            const collaboratorResult = result.collaborators;
+            collaboratorResult.sort((a, b) => a.rate - b.rate);
 
-        it('should return a collaboration with its zero earnings if no mint sales', async () => {
-            jest.spyOn(service['collectionService'], 'getCollectionEarningsByCollectionAddress').mockResolvedValue(
-                null
-            );
+            const address1Earning = new BigNumber('1000000000000000000')
+                .multipliedBy(20) // rate
+                .div(100)
+                .div(new BigNumber(10).pow(coin.decimals)); // coin decimals
 
-            const result = await service.getCollaborationWithEarnings(collaboration.id);
+            expect(collaboratorResult[0].earnings).toBeDefined();
+            expect(collaboratorResult[0].earnings.inPaymentToken).toBe(address1Earning.toString());
+            expect(collaboratorResult[0].earnings.inUSDC).toBe(address1Earning.multipliedBy(tokenPriceUSD).toString());
+            expect(collaboratorResult[0].earnings.paymentToken).toBe(coin.address.toLowerCase());
 
-            expect(result).toBeDefined();
-            expect(result.id).toEqual(collaboration.id);
-            expect(result.totalEarnings).toEqual(0);
-        });
-
-        it('should return a collaboration with individual collaborator earnings', async () => {
-            const result = await service.getCollaborationWithEarnings(collaboration.id);
-
-            // check first collaborator earnings
-            const expectedEarningsFirst = Math.round(
-                totalEarningsUsd * (collaborators[0].rate / 100) * (collaboration.royaltyRate / 100)
-            );
-            expect(result.collaborators[0].earnings).toEqual(expectedEarningsFirst);
-
-            // check second collaborator earnings
-            const expectedEarningsSecond = Math.round(
-                totalEarningsUsd * (collaborators[1].rate / 100) * (collaboration.royaltyRate / 100)
-            );
-            expect(result.collaborators[1].earnings).toEqual(expectedEarningsSecond);
-        });
-
-        it('should throw error if the collaboration does not exist', async () => {
-            try {
-                await service.getCollaborationWithEarnings(faker.datatype.uuid());
-            } catch (error) {
-                expect(error.message).toMatch(/Collaboration with id .* doesn't exist\./);
-            }
-        });
-
-        it('should throw an error if coinService.getCoinByAddress returns no token', async () => {
-            jest.spyOn(service['coinService'], 'getCoinByAddress').mockResolvedValue(null);
-
-            try {
-                await service.getCollaborationWithEarnings(collaboration.id);
-            } catch (error) {
-                expect(error.message).toMatch(/Failed to get token/);
-            }
-        });
-
-        it('should throw an error if coinService.getQuote returns no quote', async () => {
-            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(null);
-
-            try {
-                await service.getCollaborationWithEarnings(collaboration.id);
-            } catch (error) {
-                expect(error.message).toMatch(/Failed to get price for token/);
-            }
+            const address2Earning = new BigNumber('1000000000000000000')
+                .multipliedBy(80) // rate
+                .div(100)
+                .div(new BigNumber(10).pow(coin.decimals)); // coin decimals
+            expect(collaboratorResult[1].earnings).toBeDefined();
+            expect(collaboratorResult[1].earnings.inPaymentToken).toBe(address2Earning.toString());
+            expect(collaboratorResult[1].earnings.inUSDC).toBe(address2Earning.multipliedBy(tokenPriceUSD).toString());
+            expect(collaboratorResult[1].earnings.paymentToken).toBe(coin.address.toLowerCase());
         });
     });
 });

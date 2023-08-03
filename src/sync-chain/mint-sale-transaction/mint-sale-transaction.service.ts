@@ -181,6 +181,7 @@ export class MintSaleTransactionService {
             .addSelect('min(txn.paymentToken)', 'paymentToken')
             .addSelect('min(txn.address)', 'collectionAddress')
             .addSelect('min(txn.tierId)', 'tierId')
+            .addSelect('min(txn.chainId)', 'chainId')
             .where('txn.address = :address', { address })
             .addGroupBy('txn.txHash')
             .getRawMany();

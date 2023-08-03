@@ -400,10 +400,16 @@ export class CollectionAggregatedActivities {
 }
 
 @ObjectType('CollectionAggregatedActivityData')
-export class CollectionAggregatedActivityData extends PickType(MintSaleTransaction, ['txHash', 'txTime', 'recipient', 'sender', 'paymentToken'], ObjectType) {
+export class CollectionAggregatedActivityData extends PickType(
+    MintSaleTransaction, 
+    [
+        'txHash', 'txTime', 'recipient', 'sender', 'paymentToken', 'chainId'
+    ], 
+    ObjectType
+) {
     @IsString()
-    @Field(() => Number, { description: 'Total cost for the aggregated transaction' })
-    readonly cost: number;
+    @Field(() => String, { description: 'Total cost for the aggregated transaction' })
+    readonly cost: string;
     
     @IsEnum(CollectionActivityType)
     @Field(() => CollectionActivityType, { description: 'The activity type for the aggregated transaction.' })

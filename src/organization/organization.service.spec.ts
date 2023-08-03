@@ -7,6 +7,7 @@ import { Collection } from '../collection/collection.entity';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { CoinQuotes } from '../sync-chain/coin/coin.dto';
+import { subSeconds } from 'date-fns';
 
 describe('OrganizationService', () => {
     let service: OrganizationService;
@@ -963,6 +964,91 @@ describe('OrganizationService', () => {
             expect(filter2.length).toBe(1);
             expect(filter2[0].inPaymentToken).toBe('1');
             expect(filter2[0].inUSDC).toBe(tokenPriceUSD.toString());
+        });
+    });
+
+    describe('getLatestSales', () => {
+        it('should be return latest slaes', async () => {
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await service.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+            const collection = await collectionRepository.save({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+            });
+
+            const tx1 = await transactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collection.address,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: '1000000000000000000',
+                paymentToken: coin.address,
+            });
+
+            const tx2 = await transactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(subSeconds(new Date(), 100).getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collection.address,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: '1000000000000000000',
+                paymentToken: coin.address,
+            });
+
+            const tokenPriceUSD = faker.datatype.number({ max: 1000 });
+            const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+                USD: { price: tokenPriceUSD },
+            });
+
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
+
+            const result = await service.getLatestSales(organization.id, '', '', 10, 10);
+            expect(result).toBeDefined();
+            expect(result.totalCount).toBe(2);
+            expect(result.edges.length).toBe(2);
+            expect(result.edges[0].node.txHash).toBe(tx1.txHash);
+            expect(result.edges[1].node.txHash).toBe(tx2.txHash);
+            expect(result.edges[0].node.txTime).toBeGreaterThan(result.edges[1].node.txTime);
         });
     });
 });
