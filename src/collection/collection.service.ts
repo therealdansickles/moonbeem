@@ -10,7 +10,7 @@ import * as Sentry from '@sentry/node';
 
 import { OpenseaService } from '../opensea/opensea.service';
 import { AggregatedCollection } from '../organization/organization.dto';
-import { fromCursor, PaginatedImp } from '../pagination/pagination.module';
+import { cursorToStrings, fromCursor, PaginatedImp, toPaginated } from '../pagination/pagination.module';
 import { SaleHistory } from '../saleHistory/saleHistory.dto';
 import { getCurrentPrice } from '../saleHistory/saleHistory.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
@@ -29,6 +29,7 @@ import {
     CollectionActivities,
     CollectionActivityType,
     CollectionAggregatedActivities,
+    CollectionEarningsChartPaginated,
     CollectionPaginated,
     CollectionSold,
     CollectionSoldPaginated,
@@ -881,5 +882,86 @@ export class CollectionService {
             .where('collection.organizationId = :id', { id })
             .andWhere('collection.createdAt >= :beginDate', { beginDate })
             .getCount();
+    }
+
+    /**
+     * Get daily earnings data based on collecton address
+     *
+     * @param address collection address
+     * @param before before cursor
+     * @param after after cursor
+     * @param first first limit
+     * @param last limit
+     * @returns CollectionEarningsChartPaginated object
+     */
+    async getCollectionEarningsChart(
+        address: string,
+        before: string,
+        after: string,
+        first: number,
+        last: number
+    ): Promise<CollectionEarningsChartPaginated> {
+        if (!address) toPaginated([], 0);
+
+        const builder = this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .select(`EXTRACT(EPOCH FROM DATE(TO_TIMESTAMP("txTime")))`, 'time')
+            .addSelect('SUM(txn.price::NUMERIC)', 'totalPrice')
+            .addSelect('txn.paymentToken', 'paymentToken')
+            .where('txn.address = :address', { address })
+            .groupBy('time')
+            .addGroupBy('txn.paymentToken')
+            .orderBy('time', 'DESC');
+        if (after) {
+            const [_createdAt, id] = cursorToStrings(after);
+            builder.andWhere(`DATE_TRUNC('day', TO_TIMESTAMP(txn."txTime")) * 1000 > :cursorTime`, { id });
+            builder.limit(first);
+        } else if (before) {
+            const [_createdAt, id] = cursorToStrings(after);
+            builder.andWhere(`DATE_TRUNC('day', TO_TIMESTAMP(txn."txTime")) * 1000 < :cursorTime`, { id });
+            builder.limit(last);
+        } else {
+            const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
+            builder.limit(limit);
+        }
+
+        const subquery = this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .select(`EXTRACT(EPOCH FROM DATE(TO_TIMESTAMP("txTime")))`, 'time')
+            .addSelect('SUM(txn.price::NUMERIC)', 'totalPrice')
+            .addSelect('txn.paymentToken', 'paymentToken')
+            .where('txn.address = :address', { address })
+            .groupBy('time')
+            .addGroupBy('txn.paymentToken');
+
+        const [result, totalResult] = await Promise.all([
+            builder.getRawMany(),
+            this.mintSaleTransactionRepository.manager.query(
+                `SELECT COUNT(1) AS "total" FROM (${subquery.getSql()}) AS subquery`,
+                [address]
+            ),
+        ]);
+
+        const data = await Promise.all(
+            result.map(async (item) => {
+                const coin = await this.coinService.getCoinByAddress(item.paymentToken);
+                const quote = await this.coinService.getQuote(coin.symbol);
+                const totalTokenPrice = new BigNumber(item.totalPrice).div(new BigNumber(10).pow(coin.decimals));
+                const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(quote['USD'].price);
+                return {
+                    id: item.time.toString(),
+                    createdAt: new Date(item.time * 1000),
+                    time: item.time,
+                    volume: {
+                        paymentToken: item.paymentToken,
+                        inUSDC: totalUSDC.toString(),
+                        inPaymentToken: totalTokenPrice.toString(),
+                    },
+                };
+            })
+        );
+
+        const total = totalResult.length > 0 ? parseInt(totalResult[0].total ?? 0) : 0;
+        return PaginatedImp(data, total);
     }
 }

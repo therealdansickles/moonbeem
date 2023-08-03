@@ -7,15 +7,23 @@ import { OpenseaService } from '../opensea/opensea.service';
 import { AuthorizedOrganization, Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import {
-    Collection, CollectionActivities, CollectionAggregatedActivities, CollectionInput,
-    CollectionPaginated, CollectionSoldPaginated, CollectionStat, CollectionStatus,
-    CreateCollectionInput, GrossEarnings, LandingPageCollection, SevenDayVolume,
-    UpdateCollectionInput
+    Collection,
+    CollectionActivities,
+    CollectionAggregatedActivities,
+    CollectionEarningsChartPaginated,
+    CollectionInput,
+    CollectionPaginated,
+    CollectionSoldPaginated,
+    CollectionStat,
+    CollectionStatus,
+    CreateCollectionInput,
+    GrossEarnings,
+    LandingPageCollection,
+    SevenDayVolume,
+    UpdateCollectionInput,
 } from './collection.dto';
 import { CollectionService } from './collection.service';
 
@@ -24,7 +32,7 @@ export class CollectionResolver {
     constructor(
         private readonly collectionService: CollectionService,
         private readonly MintSaleContractService: MintSaleContractService,
-        private readonly openseaService: OpenseaService,
+        private readonly openseaService: OpenseaService
     ) {}
 
     @Public()
@@ -115,7 +123,9 @@ export class CollectionResolver {
     }
 
     @Public()
-    @ResolveField(() => CollectionAggregatedActivities, { description: 'Returns the aggregated activities for collection.' })
+    @ResolveField(() => CollectionAggregatedActivities, {
+        description: 'Returns the aggregated activities for collection.',
+    })
     async aggregatedActivities(@Parent() collection: Collection): Promise<CollectionAggregatedActivities> {
         return this.collectionService.getAggregatedCollectionActivities(collection.address, collection.tokenAddress);
     }
@@ -166,14 +176,32 @@ export class CollectionResolver {
     }
 
     @Public()
-    @ResolveField(() => SevenDayVolume, {description: 'Returns 7 days of volume for given collection.', nullable: true })
-    async sevenDayVolume(@Parent() collection: Collection): Promise<SevenDayVolume> { 
+    @ResolveField(() => SevenDayVolume, {
+        description: 'Returns 7 days of volume for given collection.',
+        nullable: true,
+    })
+    async sevenDayVolume(@Parent() collection: Collection): Promise<SevenDayVolume> {
         return this.collectionService.getSevenDayVolume(collection.address);
     }
 
     @Public()
     @ResolveField(() => GrossEarnings, { description: 'Returns gross earnings for given collection.', nullable: true })
-    async grossEarnings(@Parent() collection: Collection): Promise<GrossEarnings> { 
+    async grossEarnings(@Parent() collection: Collection): Promise<GrossEarnings> {
         return this.collectionService.getGrossEarnings(collection.address);
+    }
+
+    @Public()
+    @ResolveField(() => CollectionEarningsChartPaginated, {
+        description: 'Returns the earnings chart for given collection.',
+        nullable: true,
+    })
+    async earnings(
+        @Parent() collection: Collection,
+            @Args('before', { nullable: true }) before?: string,
+            @Args('after', { nullable: true }) after?: string,
+            @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+    ): Promise<CollectionEarningsChartPaginated> {
+        return this.collectionService.getCollectionEarningsChart(collection.address, before, after, first, last);
     }
 }

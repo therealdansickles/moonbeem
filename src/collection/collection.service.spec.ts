@@ -16,6 +16,7 @@ import { WalletService } from '../wallet/wallet.service';
 import { CollectionStat, CollectionStatus } from './collection.dto';
 import { Collection } from './collection.entity';
 import { CollectionService } from './collection.service';
+import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
@@ -2668,6 +2669,105 @@ describe('CollectionService', () => {
             expect(aggregation1.tier.name).toEqual(collection.tiers[0].name);
             const aggregation2 = result.data.find((item) => item.txHash === txHash2);
             expect(aggregation2.tokenIds.length).toEqual(1);
+        });
+    });
+
+    describe('getCollectionEarningsChart', () => {
+        it('should return the earnings chart', async () => {
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: user,
+            });
+
+            const collection = await service.createCollectionWithTiers({
+                name: faker.commerce.productName(),
+                displayName: faker.commerce.productName(),
+                about: faker.commerce.productDescription(),
+                address: faker.commerce.productDescription(),
+                tags: [],
+                organization: { id: organization.id },
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: 200,
+                        paymentTokenAddress: coin.address,
+                        tierId: 0,
+                        price: '200',
+                        metadata: {
+                            uses: [],
+                            properties: {
+                                level: {
+                                    name: 'level',
+                                    type: 'string',
+                                    value: 'basic',
+                                    display_value: 'Basic',
+                                },
+                                holding_days: {
+                                    name: 'holding_days',
+                                    type: 'integer',
+                                    value: 125,
+                                    display_value: 'Days of holding',
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.random.numeric(5)),
+                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                txTime: Math.floor(new Date().valueOf() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collection.address,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.random.numeric(3),
+                price: '1000000000000000000',
+                paymentToken: coin.address,
+            });
+
+            const tokenPriceUSD = faker.datatype.number({ max: 1000 });
+            const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+                USD: { price: tokenPriceUSD },
+            });
+
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
+
+            const result = await service.getCollectionEarningsChart(collection.address, '', '', 10, 10);
+            expect(result.totalCount).toBe(1);
+            expect(result.edges).toBeDefined();
+            expect(result.edges.length).toBe(1);
+            expect(result.edges[0].node.volume).toEqual({
+                paymentToken: coin.address,
+                inUSDC: tokenPriceUSD.toString(),
+                inPaymentToken: '1',
+            });
         });
     });
 });
