@@ -1617,11 +1617,9 @@ describe('CollectionService', () => {
             });
 
             const earnings = await service.getCollectionEarningsByCollectionAddress(collection.address);
-
-            expect(earnings).toEqual({
-                paymentToken,
-                sum: price,
-            });
+            expect(earnings).toBeDefined();
+            expect(earnings.token).toBe(paymentToken);
+            expect(earnings.totalPrice).toBe(price);
         });
 
         it('should return null if there are no mint sale transaction', async () => {

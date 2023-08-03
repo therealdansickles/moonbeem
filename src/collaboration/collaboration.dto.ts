@@ -1,9 +1,10 @@
-import { Field, ObjectType, InputType, Int, PickType, OmitType, PartialType, Float } from '@nestjs/graphql';
+import { Field, ObjectType, InputType, Int, PickType, OmitType, PartialType } from '@nestjs/graphql';
 import { IsObject, IsNumber, IsString, IsDateString, IsArray, IsOptional } from 'class-validator';
 import { Wallet } from '../wallet/wallet.dto';
 import { Collection } from '../collection/collection.dto';
 import { User } from '../user/user.dto';
 import { Organization } from '../organization/organization.dto';
+import { Profit } from '../tier/tier.dto';
 
 @ObjectType()
 export class CollaboratorOutput {
@@ -113,21 +114,28 @@ export class CreateCollaborationInput extends OmitType(PartialType(Collaboration
 @InputType()
 export class CollaborationInput extends PickType(Collaboration, ['id'], InputType) {}
 
-@ObjectType()
+@ObjectType('CollaboratorEarningData')
+export class CollaboratorEarningData extends Profit {
+    @IsString()
+    @Field({ nullable: true, description: 'payment token for collaborator earning data.' })
+    readonly paymentToken?: string;
+}
+
+@ObjectType('CollaboratorEarningsOutput')
 export class CollaboratorEarningsOutput extends CollaboratorOutput {
-    @IsNumber()
-    @Field(() => Float, { description: 'The earnings of the collaborator in USD.' })
-    readonly earnings: number;
+    @IsObject()
+    @Field(() => CollaboratorEarningData, { nullable: true, description: 'The earnings data for the collaborator.' })
+    readonly earnings?: CollaboratorEarningData;
 }
 
 // Separate ObjectType for the modified collaboration data, which includes earnings
 // Necessary to avoid altering the existing Collaboration ObjectType
-@ObjectType()
+@ObjectType('CollaborationWithEarnings')
 export class CollaborationWithEarnings extends OmitType(Collaboration, ['collaborators'] as const) {
     @IsArray()
-    @Field(() => [CollaboratorEarningsOutput], { description: 'All collaborators of this collaboration.', nullable: true })
+    @Field(() => [CollaboratorEarningsOutput], {
+        description: 'All collaborators of this collaboration.',
+        nullable: true,
+    })
     readonly collaborators?: CollaboratorEarningsOutput[];
-    @IsNumber()
-    @Field(() => Float, { description: 'Collaboration total earnings in USD.' })
-    readonly totalEarnings: number;
 }

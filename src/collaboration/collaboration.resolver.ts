@@ -11,14 +11,17 @@ import { CollectionService } from '../collection/collection.service';
 @Resolver(() => Collaboration)
 export class CollaborationResolver {
     constructor(
-        private readonly collaborationService: CollaborationService, 
+        private readonly collaborationService: CollaborationService,
         private readonly collectionService: CollectionService
     ) {}
 
     @Public()
     @Query(() => CollaborationWithEarnings, { description: 'returns a collaboration for a given uuid', nullable: true })
-    async collaboration(@Args('id') id: string): Promise<CollaborationWithEarnings> {
-        return await this.collaborationService.getCollaborationWithEarnings(id);
+    async collaboration(
+        @Args('id') id: string,
+            @Args('collectionId', { nullable: true }) collectionId?: string
+    ): Promise<CollaborationWithEarnings> {
+        return await this.collaborationService.getCollaborationWithEarnings(id, collectionId);
     }
 
     @ResolveField(() => [Collection], { nullable: 'itemsAndList' })

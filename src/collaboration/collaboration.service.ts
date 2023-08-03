@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { GraphQLError } from 'graphql';
 import BigNumber from 'bignumber.js';
 import { CreateCollaborationInput, CollaborationWithEarnings } from './collaboration.dto';
 import { Collaboration } from './collaboration.entity';
@@ -10,6 +9,9 @@ import { User } from '../user/user.entity';
 import { Organization } from '../organization/organization.entity';
 import { CollectionService } from '../collection/collection.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
+import { BasicTokenPrice } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
+import { Coin } from '../sync-chain/coin/coin.entity';
+import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 
 @Injectable()
 export class CollaborationService {
@@ -53,7 +55,7 @@ export class CollaborationService {
         const tokenDecimals = token?.decimals || 18;
         const base = BigInt(10);
         const earningsToken = BigInt(sum) / base ** BigInt(tokenDecimals);
-        // using BigNumber to convert both numbers to a common format that can handle the precision and range 
+        // using BigNumber to convert both numbers to a common format that can handle the precision and range
         // and convert back to BigInt as a final result
         const earningsUsd = new BigNumber(earningsToken.toString()).multipliedBy(priceUsd['USD'].price).toString();
         const resultAsBigInt = BigInt(Math.floor(new BigNumber(earningsUsd).toNumber()));
@@ -66,50 +68,58 @@ export class CollaborationService {
      * @param id The id of the collaboration to retrieve.
      * @returns The collaboration associated with the given id including total earnings and earnings for each collaborator .
      */
-    async getCollaborationWithEarnings(id: string): Promise<CollaborationWithEarnings> {
+    async getCollaborationWithEarnings(id: string, collectionId?: string): Promise<CollaborationWithEarnings> {
         const collaboration = await this.collaborationRepository.findOne({
             where: { id },
             relations: ['wallet', 'user', 'organization', 'collections'],
         });
 
-        if (!collaboration) {
-            throw new GraphQLError(`Collaboration with id ${id} doesn't exist.`, {
-                extensions: { code: 'NOT_FOUND' },
-            });
+        if (!collaboration) return;
+
+        let coin: Coin;
+        let quote: CoinQuotes;
+        let totalEarnings: BasicTokenPrice;
+        if (collectionId) {
+            const collection = collaboration.collections.find((collection) => collection.id === collectionId);
+            totalEarnings = await this.collectionService.getCollectionEarningsByCollectionAddress(collection.address);
+            if (totalEarnings) {
+                coin = await this.coinService.getCoinByAddress(totalEarnings.token);
+                quote = await this.coinService.getQuote(coin.symbol);
+            }
         }
 
-        const earningsByCollection = await Promise.all(
-            collaboration.collections.map(({ address }) =>
-                this.collectionService.getCollectionEarningsByCollectionAddress(address)
-            )
-        );
-
-        const collectionEarningsInUsd: bigint[] = await Promise.all(
-            earningsByCollection.map(this.calculateEarningsUsd.bind(this))
-        );
-
-        const totalEarnings = Number(
-            collectionEarningsInUsd.reduce((total: bigint, earnings: bigint) => total + earnings, BigInt(0))
-        );
-
-        const collaborators =
-            collaboration.collaborators?.map((collaborator) => {
-                const earnings = Math.round(
-                    totalEarnings * (collaborator.rate / 100) * (collaboration.royaltyRate / 100)
-                );
+        const collaborators = collaboration.collaborators.map((item) => {
+            if (!collectionId) return item;
+            if (!totalEarnings) {
                 return {
-                    ...collaborator,
-                    earnings,
+                    ...item,
+                    earnings: {
+                        paymentToken: '',
+                        inPaymentToken: '0',
+                        inUSDC: '0',
+                    },
                 };
-            }) || [];
+            }
 
-        const collaborationWithEarnings: CollaborationWithEarnings = {
+            const personalEarning = new BigNumber(totalEarnings.totalPrice).multipliedBy(item.rate).div(100);
+
+            const totalTokenPrice = new BigNumber(personalEarning).div(new BigNumber(10).pow(coin.decimals));
+            const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(quote['USD'].price);
+
+            return {
+                ...item,
+                earnings: {
+                    paymentToken: totalEarnings.token,
+                    inPaymentToken: totalTokenPrice.toString(),
+                    inUSDC: totalUSDC.toString(),
+                },
+            };
+        });
+
+        return {
             ...collaboration,
             collaborators,
-            totalEarnings,
         };
-
-        return collaborationWithEarnings;
     }
 
     /**

@@ -43,6 +43,7 @@ import {
     ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
+import { BasicTokenPrice } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name'>>;
 
@@ -512,37 +513,39 @@ export class CollectionService {
             )
         );
 
-        const result = await Promise.all(txns.map( async(txn) => {
-            // theoretically all token ids should belongs to the same recipient and transaction
-            // so we just use the first one as represent
-            const tokenId = txn.tokenIds[0];
-            const assetInfo = assets.find((asset) => asset.tokenId === tokenId);
+        const result = await Promise.all(
+            txns.map(async (txn) => {
+                // theoretically all token ids should belongs to the same recipient and transaction
+                // so we just use the first one as represent
+                const tokenId = txn.tokenIds[0];
+                const assetInfo = assets.find((asset) => asset.tokenId === tokenId);
 
-            // handle activity type
-            let type: CollectionActivityType = CollectionActivityType.Transfer;
-            if (assetInfo.owner == ZeroAccount) type = CollectionActivityType.Burn;
-            if (assetInfo.owner == txn.recipient) type = CollectionActivityType.Mint;
+                // handle activity type
+                let type: CollectionActivityType = CollectionActivityType.Transfer;
+                if (assetInfo.owner == ZeroAccount) type = CollectionActivityType.Burn;
+                if (assetInfo.owner == txn.recipient) type = CollectionActivityType.Mint;
 
-            // bind tier info
-            const tiers = tierInfos.find((tierInfo) => tierInfo[0]?.tierId === txn.tierId);
-            txn.tier = tiers ? tiers[0] : null;
+                // bind tier info
+                const tiers = tierInfos.find((tierInfo) => tierInfo[0]?.tierId === txn.tierId);
+                txn.tier = tiers ? tiers[0] : null;
 
-            // format cost to human readable given the payment token decimals
-            const token = await this.coinService.getCoinByAddress(txn.paymentToken);
-            if (!token) {
-                throw new Error(`Failed to get token ${txn.paymentToken}`);
-            }
+                // format cost to human readable given the payment token decimals
+                const token = await this.coinService.getCoinByAddress(txn.paymentToken);
+                if (!token) {
+                    throw new Error(`Failed to get token ${txn.paymentToken}`);
+                }
 
-            const tokenDecimals = token?.decimals || 18;
-            const base = BigInt(10);
-            const cost = (BigInt(txn.cost) / base ** BigInt(tokenDecimals)).toString();
+                const tokenDecimals = token?.decimals || 18;
+                const base = BigInt(10);
+                const cost = (BigInt(txn.cost) / base ** BigInt(tokenDecimals)).toString();
 
-            return {
-                ...txn,
-                type,
-                cost,
-            };
-        }));
+                return {
+                    ...txn,
+                    type,
+                    cost,
+                };
+            })
+        );
 
         // sort by txTime desc
         result.sort((a, b) => b.txTime - a.txTime);
@@ -679,19 +682,16 @@ export class CollectionService {
      *
      * @returns The earnings and payment token of the collection
      */
-    public async getCollectionEarningsByCollectionAddress(address: string): Promise<{
-        sum: string;
-        paymentToken: string;
-    } | null> {
-        const result = await this.mintSaleTransactionRepository
+    public async getCollectionEarningsByCollectionAddress(address: string): Promise<BasicTokenPrice> {
+        const result: BasicTokenPrice = await this.mintSaleTransactionRepository
             .createQueryBuilder('MintSaleTransaction')
-            .select('SUM(CAST("MintSaleTransaction"."price" as NUMERIC))', 'sum')
-            .addSelect('MAX("MintSaleTransaction"."paymentToken")', 'paymentToken')
+            .select('SUM(CAST("MintSaleTransaction"."price" as NUMERIC))', 'totalPrice')
+            .addSelect('MAX("MintSaleTransaction"."paymentToken")', 'token')
             .where('"MintSaleTransaction"."address" = :address', { address })
             .getRawOne();
 
         // Return null if collection does not have any mint sale transactions
-        if (!result.sum || !result.paymentToken) {
+        if (!result.token || !result.totalPrice) {
             return null;
         }
 
