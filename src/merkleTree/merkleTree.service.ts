@@ -50,38 +50,39 @@ export class MerkleTreeService {
         tierId?: number
     ): Promise<MerkleProofOutput> {
         const merkleTree = await this.repository.findOneBy({ merkleRoot });
-        if (!merkleTree) throw new Error('Invalid Merkle Tree');
+        if (!merkleTree) return;
 
         const tree = this.generateMerkleRoot(merkleTree.data);
         for (const data of merkleTree.data) {
             if (data.address.toLocaleLowerCase() == address.toLocaleLowerCase()) {
                 const merkleProof = tree.getHexProof(encodeAddressAndAmount(data.address, parseInt(data.amount)));
 
-                let count = 0;
+                let usable = parseInt(data.amount);
                 if (collectionAddress) {
                     const contract = await this.contractRepository.findOneBy({
                         address: collectionAddress.toLowerCase(),
                         tierId: tierId ? tierId : 0,
                     });
-                    if (contract.merkleRoot != merkleRoot) {
-                        throw new GraphQLError('The merkleRoot on this collection is invalid.', {
-                            extensions: { code: 'BAD_REQUEST' },
-                        });
-                    }
 
-                    count = await this.transactionRepository.count({
-                        where: {
-                            recipient: address.toLowerCase(),
-                            tierId: tierId,
-                            address: collectionAddress.toLowerCase(),
-                        },
-                    });
+                    if (!contract || contract.merkleRoot != merkleRoot) {
+                        usable = -1;
+                    } else {
+                        const used = await this.transactionRepository.count({
+                            where: {
+                                recipient: address.toLowerCase(),
+                                tierId: tierId,
+                                address: collectionAddress.toLowerCase(),
+                            },
+                        });
+                        usable -= used;
+                    }
                 }
+
                 return {
                     address: data.address.toLocaleLowerCase(),
                     amount: data.amount,
                     proof: merkleProof,
-                    usable: parseInt(data.amount) - count,
+                    usable: usable,
                 };
             }
         }

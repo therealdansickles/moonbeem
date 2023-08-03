@@ -24,75 +24,115 @@ describe('MerkleTreeService', () => {
                 ],
             });
 
-            expect(merkleTree).toBeDefined();
-        });
-
-        it('should get merkle data', async () => {
-            const merkleTree = await service.createMerkleTree({
-                data: [
-                    {
-                        address: faker.finance.ethereumAddress(),
-                        amount: faker.random.numeric(2),
-                    },
-                ],
-            });
-
             const result = await service.getMerkleTree(merkleTree.merkleRoot);
-            expect(result.merkleRoot).toBe(merkleTree.merkleRoot);
-            expect(result.data.length).toBe(1);
+
+            expect(merkleTree).toBeDefined();
+            expect(result).toBeDefined();
+            expect(result.id).toBe(merkleTree.id);
         });
 
-        it('should get merkle proof', async () => {
+        it('should return the same merkle tree, if data is the same.', async () => {
             const address = faker.finance.ethereumAddress();
             const amount = faker.random.numeric(2);
             const merkleTree = await service.createMerkleTree({
-                data: [
-                    {
-                        address: faker.finance.ethereumAddress(),
-                        amount: faker.random.numeric(2),
-                    },
-                    {
-                        address: address,
-                        amount: amount,
-                    },
-                ],
+                data: [{ address, amount }],
             });
 
-            const result = await service.getMerkleProof(address, merkleTree.merkleRoot);
-            expect(result).toBeDefined();
-            expect(result.address).toBe(address);
-            expect(result.amount).toBe(amount);
+            const reCreate = await service.createMerkleTree({
+                data: [{ address, amount }],
+            });
+
+            expect(merkleTree.id).toBe(reCreate.id);
         });
 
-        it('should be fail, if no whitelist address', async () => {
+        it('should throw an error, if data is empty', async () => {
             try {
                 await service.createMerkleTree({ data: [] });
             } catch (error) {
                 expect(error.message).toMatch(/The length of data cannot be 0./);
             }
         });
+    });
 
-        it('should be fail, if merkleRoot does not match', async () => {
+    describe('getMerkleProof', () => {
+        it('should get merkle proof, single address', async () => {
             const address = faker.finance.ethereumAddress();
             const amount = faker.random.numeric(2);
-            await service.createMerkleTree({
+            const merkleTree = await service.createMerkleTree({
+                data: [{ address, amount }],
+            });
+
+            const result = await service.getMerkleProof(address, merkleTree.merkleRoot);
+            expect(result.address).toBe(address.toLowerCase());
+            expect(result.amount).toBe(amount);
+            expect(result.proof).toBeDefined();
+            expect(result.proof).toEqual([]);
+        });
+
+        it('should get merkle proof, multiple addresses', async () => {
+            const address = faker.finance.ethereumAddress();
+            const amount = faker.random.numeric(2);
+
+            const address1 = faker.finance.ethereumAddress();
+            const amount1 = faker.random.numeric(2);
+
+            const merkleTree = await service.createMerkleTree({
                 data: [
-                    {
-                        address: faker.finance.ethereumAddress(),
-                        amount: faker.random.numeric(2),
-                    },
-                    {
-                        address: address,
-                        amount: amount,
-                    },
+                    { address, amount },
+                    { address: address1, amount: amount1 },
                 ],
             });
 
-            try {
-                await service.getMerkleProof(address, faker.datatype.hexadecimal({ length: 66 }));
-            } catch (error) {
-                expect(error.message).toMatch(/Invalid Merkle Tree/);
-            }
+            const result = await service.getMerkleProof(address, merkleTree.merkleRoot);
+            expect(result.address).toBe(address.toLowerCase());
+            expect(result.amount).toBe(amount);
+            expect(result.proof).toBeDefined();
+
+            const result1 = await service.getMerkleProof(address1, merkleTree.merkleRoot);
+            expect(result1.address).toBe(address1.toLowerCase());
+            expect(result1.amount).toBe(amount1);
+            expect(result1.proof).toBeDefined();
+        });
+
+        it('should return null, if merklet root not match', async () => {
+            const result = await service.getMerkleProof(
+                faker.finance.ethereumAddress(),
+                faker.datatype.hexadecimal({ length: 66 })
+            );
+            expect(result).toBeUndefined();
+        });
+
+        it('should return null, if you are not allowlist', async () => {
+            const address = faker.finance.ethereumAddress();
+            const amount = faker.random.numeric(2);
+            const merkleTree = await service.createMerkleTree({
+                data: [{ address, amount }],
+            });
+
+            const result = await service.getMerkleProof(faker.finance.ethereumAddress(), merkleTree.merkleRoot);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return usable equal -1', async () => {
+            const address = faker.finance.ethereumAddress();
+            const amount = faker.random.numeric(2);
+
+            const address1 = faker.finance.ethereumAddress();
+            const amount1 = faker.random.numeric(2);
+
+            const merkleTree = await service.createMerkleTree({
+                data: [
+                    { address, amount },
+                    { address: address1, amount: amount1 },
+                ],
+            });
+
+            const result = await service.getMerkleProof(
+                address,
+                merkleTree.merkleRoot,
+                faker.finance.ethereumAddress()
+            );
+            expect(result.usable).toEqual(-1);
         });
     });
 });
