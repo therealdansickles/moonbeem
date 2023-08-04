@@ -150,27 +150,31 @@ describe('MembershipService', () => {
     });
 
     describe('createMembership', () => {
-        it('should create a membership', async () => {
-            const user = await userService.createUser({
+        let user;
+        let owner;
+        let organization;
+        beforeAll(async () => {
+            user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
                 password: 'password',
             });
 
-            const owner = await userService.createUser({
+            owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
                 password: 'password',
             });
 
-            const organization = await organizationService.createOrganization({
+            organization = await organizationService.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
                 avatarUrl: faker.image.imageUrl(),
                 owner: owner,
             });
-
+        });
+        it('should create a membership', async () => {
             const result = await service.createMemberships({
                 organizationId: organization.id,
                 emails: [user.email],
@@ -187,35 +191,53 @@ describe('MembershipService', () => {
         });
 
         it('should go through if membership exist', async () => {
-            const user = await userService.createUser({
+            const result = await service.createMembership(user.email, {
+                organization,
+                canDeploy: true,
+            });
+
+            const resultAgain = await service.createMembership(user.email, {
+                organization,
+                canDeploy: true
+            });
+
+            expect(result).toBeDefined();
+            expect(result.id).toEqual(resultAgain.id);
+        });
+
+        it('should go through if memberships exist', async () => {
+            const user1 = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
                 password: 'password',
             });
 
-            const owner = await userService.createUser({
+            const owner1 = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
                 password: 'password',
             });
 
-            const organization = await organizationService.createOrganization({
+            const organization1 = await organizationService.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
                 avatarUrl: faker.image.imageUrl(),
-                owner: owner,
+                owner: owner1,
             });
-
+            // TODO: The test will fail if we reuse the user/owner/organization.
+            //   Not sure why the organization can be found in the second call.
+            //   And I think we can remove this test as I created another one to test this case
+            //      using createMembership() instead of createMemberships()
             const result = await service.createMemberships({
-                organizationId: organization.id,
-                emails: [user.email],
+                organizationId: organization1.id,
+                emails: [user1.email],
                 canDeploy: true,
             });
 
             const resultAgain = await service.createMemberships({
-                organizationId: organization.id,
-                emails: [user.email],
+                organizationId: organization1.id,
+                emails: [user1.email],
                 canDeploy: true,
             });
 
@@ -224,21 +246,7 @@ describe('MembershipService', () => {
             expect(result[0].id).toEqual(resultAgain[0].id);
         });
 
-        it("should work if user does't exist", async () => {
-            const owner = await userService.createUser({
-                email: faker.internet.email(),
-                username: faker.internet.userName(),
-                password: 'password',
-            });
-
-            const organization = await organizationService.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                owner: owner,
-            });
-
+        it("should work if user doesn't exist", async () => {
             const emailForNewUser = faker.internet.email();
             const result = await service.createMembership(emailForNewUser, {
                 organization: organization,
@@ -250,20 +258,6 @@ describe('MembershipService', () => {
         });
 
         it('should only create one record for invitation flow', async () => {
-            const owner = await userService.createUser({
-                email: faker.internet.email(),
-                username: faker.internet.userName(),
-                password: 'password',
-            });
-
-            const organization = await organizationService.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                owner: owner,
-            });
-
             const emailForNewUser = faker.internet.email();
             const result = await service.createMembership(emailForNewUser, {
                 organization: organization,
@@ -278,6 +272,22 @@ describe('MembershipService', () => {
             expect(result.id).toEqual(resultAgain.id);
         });
 
+        it('should refill invited code if create membership again', async () => {
+            const emailForNewUser = faker.internet.email();
+            const existedMembership = await service.createMembership(emailForNewUser, {
+                organization: organization,
+                canDeploy: true,
+            });
+            existedMembership.inviteCode = null;
+            await existedMembership.save();
+
+            const updatedMembership = await service.createMembership(emailForNewUser, {
+                organization: organization,
+                canDeploy: true,
+            });
+
+            expect(updatedMembership.inviteCode).toBeDefined();
+        });
     });
 
     describe('updateMembership', () => {
@@ -419,7 +429,7 @@ describe('MembershipService', () => {
             await service.acceptMembership({
                 organizationId: organization.id,
                 email: user.email,
-                inviteCode: updatedMembership.inviteCode
+                inviteCode: updatedMembership.inviteCode,
             });
             const existAfterCreation = await service.checkMembershipByOrganizationIdAndUserId(organization.id, user.id);
             expect(existAfterCreation).toBeTruthy();
