@@ -1,32 +1,33 @@
+import BigNumber from 'bignumber.js';
+import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
+import { GraphQLError } from 'graphql';
+import { generate as generateString } from 'randomstring';
+import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { captureException } from '@sentry/node';
-import { generate as generateString } from 'randomstring';
-import BigNumber from 'bignumber.js';
-import { Organization, OrganizationKind } from './organization.entity';
-import {
-    AggregatedBuyer,
-    AggregatedEarning,
-    CollectionStatFromOrganization,
-    CreateOrganizationInput,
-    OrganizationEarningsChartPaginated,
-    OrganizationLatestSalePaginated,
-    OrganizationProfit,
-    UpdateOrganizationInput,
-} from './organization.dto';
-import { User } from '../user/user.entity';
-import { GraphQLError } from 'graphql';
-import { MembershipService } from '../membership/membership.service';
-import { CollectionService } from '../collection/collection.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import { CoinService } from '../sync-chain/coin/coin.service';
-import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
-import { BasicTokenPrice } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
+
 import { Collection } from '../collection/collection.entity';
+import { CollectionService } from '../collection/collection.service';
+import { MembershipService } from '../membership/membership.service';
 import { cursorToStrings, fromCursor, PaginatedImp } from '../pagination/pagination.module';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import { BasicTokenPrice } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { Tier } from '../tier/tier.entity';
+import { User } from '../user/user.entity';
+import {
+    AggregatedBuyer, AggregatedEarning, CollectionStatFromOrganization, CreateOrganizationInput,
+    OrganizationEarningsChartPaginated, OrganizationLatestSalePaginated, OrganizationProfit,
+    UpdateOrganizationInput
+} from './organization.dto';
+import { Organization, OrganizationKind } from './organization.entity';
 
 @Injectable()
 export class OrganizationService {
@@ -477,17 +478,18 @@ export class OrganizationService {
     async getCollectionStat(id: string): Promise<CollectionStatFromOrganization> {
         const current = Math.floor(new Date().valueOf() / 1000);
         const [total, live, closed] = await Promise.all([
-            this.collectionRepository.count({ where: { organization: { id } } }),
-            this.collectionRepository
-                .createQueryBuilder('collection')
-                .where('collection.organizationId = :id', { id })
-                .andWhere('collection.beginSaleAt <= :current AND collection.endSaleAt >= :current', { current })
-                .getCount(),
-            this.collectionRepository
-                .createQueryBuilder('collection')
-                .where('collection.organizationId = :id', { id })
-                .andWhere('collection.endSaleAt <= :current', { current })
-                .getCount(),
+            this.collectionService.countCollections({ organization: { id } }),
+            this.collectionService.countCollections({
+                organization: { id },
+                publishedAt: MoreThanOrEqual(new Date()),
+                beginSaleAt: LessThanOrEqual(current),
+                endSaleAt: MoreThanOrEqual(current)
+            }),
+            this.collectionService.countCollections({
+                organization: { id },
+                publishedAt: MoreThanOrEqual(new Date()),
+                endSaleAt: LessThanOrEqual(current)
+            }),
         ]);
         return { total, live, closed };
     }

@@ -1,6 +1,6 @@
 import { startOfDay, startOfMonth, startOfWeek, subDays } from 'date-fns';
 import { ethers } from 'ethers';
-import { Repository } from 'typeorm';
+import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 
 import { faker } from '@faker-js/faker';
 
@@ -357,6 +357,168 @@ describe('CollectionService', () => {
             });
             const result = await service.getCollectionByQuery({ name: `${collection.name}+1` });
             expect(result).toBeNull();
+        });
+    });
+
+    describe('countCollections', () => {
+        it('should get total count for given publishedAt parameter', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            await repository.save({
+                name: `${faker.company.name()}${faker.random.numeric(5)}`,
+                displayName: faker.company.name(),
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+                publishedAt: faker.date.past(),
+            });
+
+            await repository.save({
+                name: `${faker.company.name()}${faker.random.numeric(5)}`,
+                displayName: faker.company.name(),
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+                publishedAt: faker.date.future(),
+            });
+
+            const result = await service.countCollections({ publishedAt: MoreThanOrEqual(new Date()) });
+            expect(result).toEqual(1);
+        });
+
+        it('should get total count for organizationId & beginSaleAt & endSaleAt', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const anotherOrganization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.imageUrl(),
+                backgroundUrl: faker.image.imageUrl(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            await repository.save({
+                name: `${faker.company.name()}${faker.random.numeric(5)}`,
+                displayName: faker.company.name(),
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+                beginSaleAt: Math.floor(faker.date.past().getTime() / 1000),
+                endSaleAt: Math.floor(faker.date.future().getTime() / 1000),
+            });
+
+            // don't belongs to this
+            await repository.save({
+                name: `${faker.company.name()}${faker.random.numeric(5)}`,
+                displayName: faker.company.name(),
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: anotherOrganization,
+                beginSaleAt: Math.floor(faker.date.past().getTime() / 1000),
+                endSaleAt: Math.floor(faker.date.future().getTime() / 1000),
+            });
+
+            // missing `beginSaleAt`
+            await repository.save({
+                name: `${faker.company.name()}${faker.random.numeric(5)}`,
+                displayName: faker.company.name(),
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: anotherOrganization,
+                endSaleAt: Math.floor(faker.date.future().getTime() / 1000),
+            });
+
+            // missing `endSaleAt`
+            await repository.save({
+                name: `${faker.company.name()}${faker.random.numeric(5)}`,
+                displayName: faker.company.name(),
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: anotherOrganization,
+                startSaleAt: Math.floor(faker.date.past().getTime() / 1000),
+            });
+
+            // `beginSaleAt` is the future time
+            await repository.save({
+                name: `${faker.company.name()}${faker.random.numeric(5)}`,
+                displayName: faker.company.name(),
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+                beginSaleAt: Math.floor(faker.date.future().getTime() / 1000),
+                endSaleAt: Math.floor(faker.date.future().getTime() / 1000),
+            });
+
+            // `endSaleAt` is the past time
+            await repository.save({
+                name: `${faker.company.name()}${faker.random.numeric(5)}`,
+                displayName: faker.company.name(),
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: anotherOrganization,
+                beginSaleAt: Math.floor(faker.date.past().getTime() / 1000),
+                endSaleAt: Math.floor(faker.date.past().getTime() / 1000),
+            });
+
+            const result = await service.countCollections({
+                organization: { id: organization.id },
+                beginSaleAt: LessThanOrEqual(Math.floor(new Date().getTime() / 1000)),
+                endSaleAt: MoreThanOrEqual(Math.floor(new Date().getTime() / 1000)),
+            });
+            expect(result).toEqual(1);
         });
     });
 

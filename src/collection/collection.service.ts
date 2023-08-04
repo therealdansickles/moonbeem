@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js';
 import { startOfDay, startOfMonth, startOfWeek, subDays } from 'date-fns';
 import { GraphQLError } from 'graphql';
 import { isEmpty, isNil, omitBy } from 'lodash';
-import { In, IsNull, Repository, UpdateResult } from 'typeorm';
+import { FindOptionsWhere, In, IsNull, Repository, UpdateResult } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -10,14 +10,21 @@ import * as Sentry from '@sentry/node';
 
 import { OpenseaService } from '../opensea/opensea.service';
 import { AggregatedCollection } from '../organization/organization.dto';
-import { cursorToStrings, fromCursor, PaginatedImp, toPaginated } from '../pagination/pagination.module';
+import {
+    cursorToStrings, fromCursor, PaginatedImp, toPaginated
+} from '../pagination/pagination.module';
 import { SaleHistory } from '../saleHistory/saleHistory.dto';
 import { getCurrentPrice } from '../saleHistory/saleHistory.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { BasicTokenPrice } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { Profit, Tier as TierDto } from '../tier/tier.dto';
 import { Tier } from '../tier/tier.entity';
 import { TierService } from '../tier/tier.service';
@@ -25,27 +32,13 @@ import { User } from '../user/user.entity';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    AggregatedVolume,
-    Collection,
-    CollectionActivities,
-    CollectionActivityType,
-    CollectionAggregatedActivities,
-    CollectionEarningsChartPaginated,
-    CollectionPaginated,
-    CollectionSold,
-    CollectionSoldPaginated,
-    CollectionStat,
-    CollectionStatus,
-    CreateCollectionInput,
-    GrossEarnings,
-    LandingPageCollection,
-    SecondarySale,
-    SevenDayVolume,
-    UpdateCollectionInput,
-    ZeroAccount,
+    AggregatedVolume, Collection, CollectionActivities, CollectionActivityType,
+    CollectionAggregatedActivities, CollectionEarningsChartPaginated, CollectionPaginated,
+    CollectionSold, CollectionSoldPaginated, CollectionStat, CollectionStatus,
+    CreateCollectionInput, GrossEarnings, LandingPageCollection, SecondarySale, SevenDayVolume,
+    UpdateCollectionInput, ZeroAccount
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
-import { BasicTokenPrice } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name'>>;
 
@@ -104,6 +97,16 @@ export class CollectionService {
         }
 
         return collection;
+    }
+
+    /**
+     * Calculate the count for given query
+     * 
+     * @param query
+     * @returns count
+     */
+    async countCollections(query: FindOptionsWhere<Collection>): Promise<number> {
+        return this.collectionRepository.countBy(query);
     }
 
     /**
