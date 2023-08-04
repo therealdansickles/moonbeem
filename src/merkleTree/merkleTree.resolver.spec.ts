@@ -1,6 +1,8 @@
 import * as request from 'supertest';
+
 import { faker } from '@faker-js/faker';
 import { INestApplication } from '@nestjs/common';
+
 import { MerkleTreeService } from './merkleTree.service';
 
 export const gql = String.raw;
@@ -22,12 +24,12 @@ describe('MerkleTreeResolver', () => {
     describe('MerkleTree', () => {
         it('should get merkle proof', async () => {
             const address = faker.finance.ethereumAddress();
-            const amount = faker.random.numeric(2);
+            const amount = faker.string.numeric(2);
             const merkleTree = await service.createMerkleTree({
                 data: [
                     {
                         address: faker.finance.ethereumAddress(),
-                        amount: faker.random.numeric(2),
+                        amount: faker.string.numeric(2),
                     },
                     {
                         address: address,

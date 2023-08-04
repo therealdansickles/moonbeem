@@ -1,6 +1,8 @@
 import * as request from 'supertest';
+
 import { faker } from '@faker-js/faker';
 import { INestApplication } from '@nestjs/common';
+
 import { Record721Service } from './record721.service';
 
 export const gql = String.raw;
@@ -22,8 +24,8 @@ describe('Record721Resolver', () => {
     describe('erc721 record', () => {
         it('should return contract info', async () => {
             const record = await service.createRecord721({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: faker.finance.ethereumAddress(),
                 name: 'USC Coin',

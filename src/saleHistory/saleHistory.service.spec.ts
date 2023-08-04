@@ -1,6 +1,9 @@
-import { SaleHistoryService } from './saleHistory.service';
-import { Account, Asset, EarningChart, EarningPerDay, PaymentToken, Sale, Transaction } from './saleHistory.dto';
 import { faker } from '@faker-js/faker';
+
+import {
+    Account, Asset, EarningChart, EarningPerDay, PaymentToken, Sale, Transaction
+} from './saleHistory.dto';
+import { SaleHistoryService } from './saleHistory.service';
 
 describe('SaleHistoryService', () => {
     let service: SaleHistoryService;
@@ -36,7 +39,7 @@ describe('SaleHistoryService', () => {
 
 function generateEarningPerDay(): EarningPerDay {
     const earningPerDay = {
-        total: parseFloat(faker.random.numeric()),
+        total: parseFloat(faker.string.numeric()),
         day: faker.company.name(),
     };
     return earningPerDay;
@@ -51,8 +54,8 @@ export function generateEarningChart(): EarningChart {
 
 export function generateAsset(): Asset {
     const asset_events = {
-        num_sales: faker.random.numeric(),
-        image_url: faker.image.imageUrl(),
+        num_sales: faker.string.numeric(),
+        image_url: faker.image.url(),
         name: faker.company.name(),
         collection: { is_rarity_enabled: faker.datatype.boolean() },
         asset_contract: { address: faker.finance.ethereumAddress() },
@@ -64,13 +67,13 @@ export function generateAssetEvent(): Sale {
     const assetEvent = {
         payment_token: generatePaymentToken(),
         event_timestamp: `${faker.date.recent()}`,
-        total_price: `${faker.datatype.float()}`,
+        total_price: `${faker.number.float()}`,
         transaction: generateTransasction(),
         nftName: faker.company.name(),
-        nftPicture: faker.image.imageUrl(),
-        currentPrice: faker.random.numeric(19),
+        nftPicture: faker.image.url(),
+        currentPrice: faker.string.numeric(19),
         rarity: faker.datatype.boolean(),
-        quantity: faker.random.numeric(1),
+        quantity: faker.string.numeric(1),
         timeListed: `${faker.date.recent().getTime()}`,
         from: faker.finance.ethereumAddress(),
         to: faker.finance.ethereumAddress(),
@@ -88,9 +91,9 @@ export function generatePaymentToken(): PaymentToken {
         address: faker.finance.ethereumAddress(),
         image_url: faker.internet.url(),
         name: faker.company.name(),
-        decimals: faker.random.numeric(),
-        eth_price: `${faker.random.numeric()}`,
-        usd_price: `${faker.random.numeric()}`,
+        decimals: faker.string.numeric(),
+        eth_price: `${faker.string.numeric()}`,
+        usd_price: `${faker.string.numeric()}`,
     };
 }
 

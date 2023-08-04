@@ -1,6 +1,8 @@
 import * as request from 'supertest';
+
 import { faker } from '@faker-js/faker';
 import { INestApplication } from '@nestjs/common';
+
 import { MintSaleContractService } from './mint-sale-contract.service';
 
 export const gql = String.raw;
@@ -22,8 +24,8 @@ describe('MintSaleContractResolver', () => {
     describe('MintSaleContract', () => {
         it('should return an contract', async () => {
             const contract = await service.createMintSaleContract({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 address: faker.finance.ethereumAddress(),
@@ -34,7 +36,7 @@ describe('MintSaleContractResolver', () => {
                 beginTime: Math.floor(faker.date.recent().getTime() / 1000),
                 endTime: Math.floor(faker.date.recent().getTime() / 1000),
                 tierId: 0,
-                price: faker.random.numeric(19),
+                price: faker.string.numeric(19),
                 paymentToken: faker.finance.ethereumAddress(),
                 startId: 1,
                 endId: 100,

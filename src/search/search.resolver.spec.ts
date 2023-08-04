@@ -1,10 +1,12 @@
 import * as request from 'supertest';
-import { INestApplication } from '@nestjs/common';
+
 import { faker } from '@faker-js/faker';
+import { INestApplication } from '@nestjs/common';
+
 import { CollectionService } from '../collection/collection.service';
-import { WalletService } from '../wallet/wallet.service';
-import { UserService } from '../user/user.service';
 import { OrganizationService } from '../organization/organization.service';
+import { UserService } from '../user/user.service';
+import { WalletService } from '../wallet/wallet.service';
 
 export const gql = String.raw;
 
@@ -48,8 +50,8 @@ describe('SearchResolver', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),

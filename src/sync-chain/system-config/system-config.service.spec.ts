@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+
 import { SystemConfigService } from './system-config.service';
 
 describe('SystemConfigService', () => {
@@ -17,7 +18,7 @@ describe('SystemConfigService', () => {
         it('should get an config', async () => {
             const config = await service.createConfig({
                 name: faker.company.name(),
-                value: faker.random.numeric(5),
+                value: faker.string.numeric(5),
                 kind: 'string',
                 comment: 'The Config Comment',
             });
@@ -31,7 +32,7 @@ describe('SystemConfigService', () => {
         it('should be return config list', async () => {
             await service.createConfig({
                 name: faker.company.name(),
-                value: faker.random.numeric(5),
+                value: faker.string.numeric(5),
                 kind: 'string',
                 comment: 'The Config Comment',
             });

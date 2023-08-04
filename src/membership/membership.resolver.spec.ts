@@ -1,9 +1,11 @@
 import * as request from 'supertest';
-import { INestApplication } from '@nestjs/common';
+
 import { faker } from '@faker-js/faker';
-import { MembershipService } from './membership.service';
+import { INestApplication } from '@nestjs/common';
+
 import { OrganizationService } from '../organization/organization.service';
 import { UserService } from '../user/user.service';
+import { MembershipService } from './membership.service';
 
 export const gql = String.raw;
 
@@ -44,7 +46,7 @@ describe('MembershipResolver', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: owner,
             });
 
@@ -110,7 +112,7 @@ describe('MembershipResolver', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: owner,
             });
 
@@ -188,7 +190,7 @@ describe('MembershipResolver', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: owner,
             });
 
@@ -270,7 +272,7 @@ describe('MembershipResolver', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: owner,
             });
 
@@ -320,7 +322,7 @@ describe('MembershipResolver', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: owner,
             });
 
@@ -397,7 +399,7 @@ describe('MembershipResolver', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: owner,
             });
 
@@ -473,7 +475,7 @@ describe('MembershipResolver', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: owner,
             });
 
@@ -548,7 +550,7 @@ describe('MembershipResolver', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: anotherUser,
             });
 
@@ -562,7 +564,7 @@ describe('MembershipResolver', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: anotherUser,
             });
 

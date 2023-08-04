@@ -1,12 +1,14 @@
+import { firstValueFrom } from 'rxjs';
+
+import { faker } from '@faker-js/faker';
+import { HttpModule, HttpService } from '@nestjs/axios';
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { HttpModule, HttpService } from '@nestjs/axios';
-import { firstValueFrom } from 'rxjs';
-import { faker } from '@faker-js/faker';
-import { UploadController } from './upload.controller';
-import { UploadService } from './upload.service';
+
 import { AWSAdapter } from '../lib/adapters/aws.adapter';
 import { ResponseInternalError } from '../lib/interfaces/response.interface';
+import { UploadController } from './upload.controller';
+import { UploadService } from './upload.service';
 
 describe('UploadController', () => {
     let app: INestApplication;
@@ -16,7 +18,7 @@ describe('UploadController', () => {
     let awsAdapter: AWSAdapter;
     let requestService: HttpService;
 
-    const imageUrl = faker.image.business();
+    const imageUrl = faker.image.urlLoremFlickr({ category: 'business' });
     const url = 'http://test.com/image.jpeg';
 
     beforeAll(async () => {

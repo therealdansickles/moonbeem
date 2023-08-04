@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+
 import { CoinService } from './coin.service';
 
 describe('CoinService', () => {
@@ -22,8 +23,8 @@ describe('CoinService', () => {
                 decimals: 6,
                 native: false,
                 enable: true,
-                derivedETH: faker.random.numeric(5),
-                derivedUSDC: faker.random.numeric(5),
+                derivedETH: faker.string.numeric(5),
+                derivedUSDC: faker.string.numeric(5),
             });
 
             const result = await service.getCoin(coin.id);
@@ -39,8 +40,8 @@ describe('CoinService', () => {
                 decimals: 6,
                 native: false,
                 enable: true,
-                derivedETH: faker.random.numeric(5),
-                derivedUSDC: faker.random.numeric(5),
+                derivedETH: faker.string.numeric(5),
+                derivedUSDC: faker.string.numeric(5),
             });
             const result = await service.getCoinByAddress(coin.address);
             expect(result.address).toEqual(coin.address);
@@ -55,8 +56,8 @@ describe('CoinService', () => {
                 chainId: 1,
                 native: false,
                 enable: true,
-                derivedETH: faker.random.numeric(5),
-                derivedUSDC: faker.random.numeric(5),
+                derivedETH: faker.string.numeric(5),
+                derivedUSDC: faker.string.numeric(5),
             });
             await service.createCoin({
                 address: faker.finance.ethereumAddress(),
@@ -66,8 +67,8 @@ describe('CoinService', () => {
                 chainId: 42161,
                 native: false,
                 enable: true,
-                derivedETH: faker.random.numeric(5),
-                derivedUSDC: faker.random.numeric(5),
+                derivedETH: faker.string.numeric(5),
+                derivedUSDC: faker.string.numeric(5),
             });
 
             // Should return all coins if chainid is 0 or null.

@@ -1,6 +1,8 @@
 import * as request from 'supertest';
+
 import { faker } from '@faker-js/faker';
 import { INestApplication } from '@nestjs/common';
+
 import { CoinService } from './coin.service';
 
 export const gql = String.raw;
@@ -28,8 +30,8 @@ describe('CoinResolver', () => {
                 decimals: 6,
                 native: false,
                 enable: true,
-                derivedETH: faker.random.numeric(5),
-                derivedUSDC: faker.random.numeric(5),
+                derivedETH: faker.string.numeric(5),
+                derivedUSDC: faker.string.numeric(5),
             });
 
             const query = gql`
@@ -63,8 +65,8 @@ describe('CoinResolver', () => {
                 chainId: 1,
                 native: false,
                 enable: true,
-                derivedETH: faker.random.numeric(5),
-                derivedUSDC: faker.random.numeric(5),
+                derivedETH: faker.string.numeric(5),
+                derivedUSDC: faker.string.numeric(5),
             });
 
             const query = gql`

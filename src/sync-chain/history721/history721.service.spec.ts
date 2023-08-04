@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+
 import { History721Type } from './history721.entity';
 import { History721Service } from './history721.service';
 
@@ -17,11 +18,11 @@ describe('History721Service', () => {
     describe('history721', () => {
         it('should get an nft history', async () => {
             const history = await service.createHistory721({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(5),
+                tokenId: faker.string.numeric(5),
                 sender: faker.finance.ethereumAddress(),
                 receiver: faker.finance.ethereumAddress(),
                 kind: History721Type.unknown,

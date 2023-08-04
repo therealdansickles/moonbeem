@@ -1,7 +1,9 @@
 import * as request from 'supertest';
+
 import { faker } from '@faker-js/faker';
-import { Asset721Service } from './asset721.service';
 import { INestApplication } from '@nestjs/common';
+
+import { Asset721Service } from './asset721.service';
 
 export const gql = String.raw;
 
@@ -22,11 +24,11 @@ describe('Asset721Resolver', () => {
     describe('asset721', () => {
         it('should return an factory', async () => {
             const asset721 = await service.createAsset721({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(5),
+                tokenId: faker.string.numeric(5),
                 owner: faker.finance.ethereumAddress(),
             });
             const query = gql`

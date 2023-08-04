@@ -1,7 +1,9 @@
 import * as request from 'supertest';
-import { INestApplication } from '@nestjs/common';
-import { RoyaltyService } from './royalty.service';
+
 import { faker } from '@faker-js/faker';
+import { INestApplication } from '@nestjs/common';
+
+import { RoyaltyService } from './royalty.service';
 
 export const gql = String.raw;
 
@@ -22,13 +24,13 @@ describe('RoyaltyResolver', () => {
     describe('royalty', () => {
         it('should return an factory', async () => {
             const royalty = await service.createRoyalty({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 address: faker.finance.ethereumAddress(),
                 userAddress: faker.finance.ethereumAddress(),
-                userRate: faker.random.numeric(3),
+                userRate: faker.string.numeric(3),
             });
 
             const query = gql`

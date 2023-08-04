@@ -44,7 +44,7 @@ describe('MembershipService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: owner,
             });
 
@@ -76,7 +76,7 @@ describe('MembershipService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: owner,
             });
 
@@ -105,7 +105,7 @@ describe('MembershipService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: owner,
             });
 
@@ -135,7 +135,7 @@ describe('MembershipService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: owner,
             });
 
@@ -144,7 +144,7 @@ describe('MembershipService', () => {
                 emails: [user.email],
             });
 
-            const rs = await service.checkMembershipByOrganizationIdAndUserId(organization.id, faker.datatype.uuid());
+            const rs = await service.checkMembershipByOrganizationIdAndUserId(organization.id, faker.string.uuid());
             expect(rs).toEqual(false);
         });
     });
@@ -170,7 +170,7 @@ describe('MembershipService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: owner,
             });
         });
@@ -222,7 +222,7 @@ describe('MembershipService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: owner1,
             });
             // TODO: The test will fail if we reuse the user/owner/organization.
@@ -308,7 +308,7 @@ describe('MembershipService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: owner,
             });
 
@@ -340,7 +340,7 @@ describe('MembershipService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: owner,
             });
 
@@ -375,7 +375,7 @@ describe('MembershipService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: owner,
             });
 
@@ -410,7 +410,7 @@ describe('MembershipService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: owner,
             });
 
@@ -454,7 +454,7 @@ describe('MembershipService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: owner,
             });
 
@@ -489,7 +489,7 @@ describe('MembershipService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: owner,
             });
 
@@ -521,7 +521,7 @@ describe('MembershipService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: owner,
             });
 
@@ -558,7 +558,7 @@ describe('MembershipService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
                 owner: owner,
             });
 

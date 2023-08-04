@@ -13,22 +13,22 @@ describe('OpenseaService', () => {
     describe('#getCollectionStat', () => {
         it('should return the right response', async () => {
             const mockResponse = {
-                supply: faker.datatype.float(),
-                floorPrice: faker.datatype.float(),
+                supply: faker.number.float(),
+                floorPrice: faker.number.float(),
                 volume: {
-                    hourly: faker.datatype.float(),
-                    daily: faker.datatype.float(),
-                    weekly: faker.datatype.float(),
-                    total: faker.datatype.float(),
+                    hourly: faker.number.float(),
+                    daily: faker.number.float(),
+                    weekly: faker.number.float(),
+                    total: faker.number.float(),
                 },
                 sales: {
-                    hourly: faker.datatype.float(),
-                    daily: faker.datatype.float(),
-                    weekly: faker.datatype.float(),
-                    total: faker.datatype.float(),
-                    thirtyDayAvg: faker.datatype.float(),
+                    hourly: faker.number.float(),
+                    daily: faker.number.float(),
+                    weekly: faker.number.float(),
+                    total: faker.number.float(),
+                    thirtyDayAvg: faker.number.float(),
                 },
-                netGrossEarning: faker.datatype.float(),
+                netGrossEarning: faker.number.float(),
             };
             jest.spyOn(service, 'getCollectionStat').mockImplementation(async () => mockResponse);
             const result = await service.getCollectionStat('vibe-season-1-vibe-check');
@@ -41,32 +41,32 @@ describe('OpenseaService', () => {
         it('should return the right response', async () => {
             const mockResponse = {
                 volume: {
-                    hourly: faker.datatype.float(),
-                    daily: faker.datatype.float(),
-                    weekly: faker.datatype.float(),
-                    monthly: faker.datatype.float(),
-                    total: faker.datatype.float(),
+                    hourly: faker.number.float(),
+                    daily: faker.number.float(),
+                    weekly: faker.number.float(),
+                    monthly: faker.number.float(),
+                    total: faker.number.float(),
                 },
                 sales: {
-                    hourly: faker.datatype.float(),
-                    daily: faker.datatype.float(),
-                    weekly: faker.datatype.float(),
-                    monthly: faker.datatype.float(),
-                    total: faker.datatype.float(),
+                    hourly: faker.number.float(),
+                    daily: faker.number.float(),
+                    weekly: faker.number.float(),
+                    monthly: faker.number.float(),
+                    total: faker.number.float(),
                 },
                 price: {
-                    hourly: faker.datatype.float(),
-                    daily: faker.datatype.float(),
-                    weekly: faker.datatype.float(),
-                    monthly: faker.datatype.float(),
+                    hourly: faker.number.float(),
+                    daily: faker.number.float(),
+                    weekly: faker.number.float(),
+                    monthly: faker.number.float(),
                 },
                 paymentToken: {
                     symbol: 'ETH',
-                    priceInUSD: faker.datatype.float()
+                    priceInUSD: faker.number.float()
                 },
-                supply: faker.datatype.float(),
-                floorPrice: faker.datatype.float(),
-                netGrossEarning: faker.datatype.float(),
+                supply: faker.number.float(),
+                floorPrice: faker.number.float(),
+                netGrossEarning: faker.number.float(),
             };
             jest.spyOn(service, 'getCollection').mockImplementation(async () => mockResponse);
             const result = await service.getCollection('vibe-season-1-vibe-check');

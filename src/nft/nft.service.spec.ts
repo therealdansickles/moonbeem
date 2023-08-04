@@ -76,7 +76,7 @@ describe('NftService', () => {
             const result = await service.createOrUpdateNftByTokenId({
                 collectionId: collection.id,
                 tierId: tier.id,
-                tokenId: faker.random.numeric(1),
+                tokenId: faker.string.numeric(1),
                 properties: {
                     foo: 'bar',
                 },
@@ -131,7 +131,7 @@ describe('NftService', () => {
                 },
             });
 
-            const tokenId = +faker.random.numeric(1);
+            const tokenId = +faker.string.numeric(1);
 
             await service.createOrUpdateNftByTokenId({
                 collectionId: collection.id,
@@ -202,7 +202,7 @@ describe('NftService', () => {
                 },
             });
 
-            const tokenId = faker.random.numeric(1);
+            const tokenId = faker.string.numeric(1);
 
             const nft = await service.createOrUpdateNftByTokenId({
                 collectionId: collection.id,
@@ -268,9 +268,9 @@ describe('NftService', () => {
                 },
             });
 
-            const tokenId1 = +faker.random.numeric(1);
-            const tokenId2 = +faker.random.numeric(2);
-            const tokenId3 = +faker.random.numeric(4);
+            const tokenId1 = +faker.string.numeric(1);
+            const tokenId2 = +faker.string.numeric(2);
+            const tokenId3 = +faker.string.numeric(4);
 
             const [nft1, , nft3] = await Promise.all([
                 service.createOrUpdateNftByTokenId({
