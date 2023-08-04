@@ -30,7 +30,7 @@ import Paginated from '../pagination/pagination.dto';
 import { Asset721 } from '../sync-chain/asset721/asset721.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
-import { Tier } from '../tier/tier.dto';
+import { Profit, Tier } from '../tier/tier.dto';
 import { Wallet, WalletInput } from '../wallet/wallet.dto';
 import { CollectionKind } from './collection.entity';
 
@@ -526,3 +526,18 @@ export class CollectionEarningsChart {
 
 @ObjectType('CollectionEarningsChartPaginated')
 export class CollectionEarningsChartPaginated extends Paginated(CollectionEarningsChart) {}
+
+@ObjectType('AggregatedVolume')
+export class AggregatedVolume {
+    @IsNumber()
+    @Field(() => Profit, { description: 'total volume in the aggregator' })
+    readonly total: Profit;
+
+    @IsNumber()
+    @Field(() => Profit, { description: 'monthly volume in the aggregator' })
+    readonly monthly: Profit;
+
+    @IsNumber()
+    @Field(() => Profit, { description: 'weekly volume in the aggregator' })
+    readonly weekly: Profit;
+}

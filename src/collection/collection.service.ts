@@ -18,13 +18,14 @@ import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import { Tier as TierDto } from '../tier/tier.dto';
+import { Profit, Tier as TierDto } from '../tier/tier.dto';
 import { Tier } from '../tier/tier.entity';
 import { TierService } from '../tier/tier.service';
 import { User } from '../user/user.entity';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
+    AggregatedVolume,
     Collection,
     CollectionActivities,
     CollectionActivityType,
@@ -963,5 +964,52 @@ export class CollectionService {
 
         const total = totalResult.length > 0 ? parseInt(totalResult[0].total ?? 0) : 0;
         return PaginatedImp(data, total);
+    }
+
+    /**
+     * get aggregated volumes
+     * @param address collection address
+     * @returns volume. include total/monthly/weekly
+     */
+    async getAggregatedVolumes(address: string): Promise<AggregatedVolume> {
+        if (!address) return;
+
+        const [total, monthly, weekly] = await Promise.all([
+            this.getVolumeByTime(address),
+            this.getVolumeByTime(address, startOfMonth(new Date())),
+            this.getVolumeByTime(address, startOfWeek(new Date())),
+        ]);
+
+        return { total, monthly, weekly };
+    }
+
+    async getVolumeByTime(address: string, beginDate?: Date): Promise<Profit> {
+        if (!address) return { inPaymentToken: '0', inUSDC: '0' };
+
+        const builder = await this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .select('txn.paymentToken', 'token')
+            .addSelect('SUM(txn.price::NUMERIC)', 'total_price')
+            .where('txn.address = :address', { address })
+            .addGroupBy('txn.paymentToken');
+
+        if (beginDate) {
+            builder.andWhere('TO_TIMESTAMP(txn.txTime) >= :beginDate', { beginDate });
+        }
+
+        const result = await builder.getRawOne();
+        if (result) {
+            const coin = await this.coinService.getCoinByAddress(result.token);
+            const quote = await this.coinService.getQuote(coin.symbol);
+            const usdPrice = quote['USD'].price;
+
+            const tokenPrice = new BigNumber(result.total_price).div(new BigNumber(10).pow(coin.decimals));
+            const volume = new BigNumber(tokenPrice).multipliedBy(usdPrice);
+            return {
+                inPaymentToken: tokenPrice.toString(),
+                inUSDC: volume.toString(),
+            };
+        }
+        return { inPaymentToken: '0', inUSDC: '0' };
     }
 }

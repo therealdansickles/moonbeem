@@ -10,6 +10,7 @@ import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-con
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import {
+    AggregatedVolume,
     Collection,
     CollectionActivities,
     CollectionAggregatedActivities,
@@ -203,5 +204,13 @@ export class CollectionResolver {
             @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
     ): Promise<CollectionEarningsChartPaginated> {
         return this.collectionService.getCollectionEarningsChart(collection.address, before, after, first, last);
+    }
+
+    @Public()
+    @ResolveField(() => AggregatedVolume, {
+        description: 'Returns the aggregate data of volume for the given organization.',
+    })
+    async aggregatedVolumes(@Parent() collection: Collection): Promise<AggregatedVolume> {
+        return this.collectionService.getAggregatedVolumes(collection.address);
     }
 }
