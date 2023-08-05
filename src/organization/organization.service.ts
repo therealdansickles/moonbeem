@@ -8,10 +8,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { captureException } from '@sentry/node';
 
-import { Collection } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
 import { MembershipService } from '../membership/membership.service';
-import { cursorToStrings, fromCursor, PaginatedImp } from '../pagination/pagination.module';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { BasicTokenPrice } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
 import {
@@ -20,6 +18,8 @@ import {
 import {
     MintSaleTransactionService
 } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { Collection } from '../collection/collection.entity';
+import { cursorToStrings, fromCursor, PaginatedImp } from '../pagination/pagination.utils';
 import { Tier } from '../tier/tier.entity';
 import { User } from '../user/user.entity';
 import {

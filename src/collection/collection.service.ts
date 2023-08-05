@@ -12,7 +12,7 @@ import { OpenseaService } from '../opensea/opensea.service';
 import { AggregatedCollection } from '../organization/organization.dto';
 import {
     cursorToStrings, fromCursor, PaginatedImp, toPaginated
-} from '../pagination/pagination.module';
+} from '../pagination/pagination.utils';
 import { SaleHistory } from '../saleHistory/saleHistory.dto';
 import { getCurrentPrice } from '../saleHistory/saleHistory.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
@@ -101,7 +101,7 @@ export class CollectionService {
 
     /**
      * Calculate the count for given query
-     * 
+     *
      * @param query
      * @returns count
      */

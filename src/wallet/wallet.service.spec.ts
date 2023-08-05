@@ -7,12 +7,8 @@ import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
 import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { Wallet } from './wallet.entity';
@@ -401,6 +397,7 @@ describe('WalletService', () => {
                 metadata: {},
             });
 
+            const createdAt = new Date();
             for (let i = 0; i < 15; i++) {
                 await mintSaleTransactionService.createMintSaleTransaction({
                     height: parseInt(faker.string.numeric(5)),
@@ -414,19 +411,26 @@ describe('WalletService', () => {
                     tokenId: faker.string.numeric(3),
                     price: faker.string.numeric(19),
                     paymentToken: faker.finance.ethereumAddress(),
+                    createdAt,
                 });
             }
 
-            const all = await service.getMintedByAddress(wallet.address, '', '', 20, 10);
+            const all = await service.getMintedByAddress(wallet.address, '', '', 20, 0);
             expect(all.edges.length).toEqual(15);
 
-            const firstPage = await service.getMintedByAddress(wallet.address, '', '', 10, 10);
+            const firstPage = await service.getMintedByAddress(wallet.address, '', '', 10, 0);
+            const firstPageStartCursor = firstPage.pageInfo.startCursor;
             const firstPageEndCursor = firstPage.pageInfo.endCursor;
             expect(firstPage.edges.length).toEqual(10);
-            const secondPage = await service.getMintedByAddress(wallet.address, '', firstPageEndCursor, 10, 10);
+            const secondPage = await service.getMintedByAddress(wallet.address, '', firstPageEndCursor, 10, 0);
             const secondPageEndCursor = secondPage.pageInfo.endCursor;
             expect(firstPageEndCursor).not.toEqual(secondPageEndCursor);
             expect(secondPage.edges.length).toEqual(5);
+            const sendPageStartCursor = secondPage.pageInfo.startCursor;
+            const previousPage = await service.getMintedByAddress(wallet.address, sendPageStartCursor, '', 0, 10);
+            expect(previousPage.edges.length).toEqual(10);
+            expect(previousPage.pageInfo.endCursor).toEqual(firstPageStartCursor);
+
         });
     });
 

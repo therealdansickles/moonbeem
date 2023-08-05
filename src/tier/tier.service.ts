@@ -10,7 +10,7 @@ import { captureException } from '@sentry/node';
 
 import { Collection, CollectionKind } from '../collection/collection.entity';
 import { MetadataPropertySearchInput } from '../metadata/metadata.dto';
-import { fromCursor, PaginatedImp } from '../pagination/pagination.module';
+import { fromCursor, PaginatedImp } from '../pagination/pagination.utils';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';

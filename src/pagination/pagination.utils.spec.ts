@@ -1,4 +1,4 @@
-import { dateAndStringToCursor, toPaginated } from './pagination.module';
+import { dateAndStringToCursor, toPaginated } from './pagination.utils';
 import { faker } from '@faker-js/faker';
 
 describe('Pagination', function () {
