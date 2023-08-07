@@ -9,12 +9,8 @@ import { OrganizationService } from '../organization/organization.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
@@ -1614,13 +1610,13 @@ describe('CollectionService', () => {
             const holder1 = result.edges.find((edge) => edge.node.address === owner1)?.node;
             expect(holder1.quantity).toBe(1);
             expect(holder1.price).toBe('100');
-            expect(holder1.totalPrice).toBe(100);
+            expect(holder1.totalPrice).toBe('100');
             expect(holder1.address).toBe(owner1);
 
             const holder2 = result.edges.find((edge) => edge.node.address === owner2)?.node;
             expect(holder2.quantity).toBe(2);
             expect(holder2.price).toBe('100');
-            expect(holder2.totalPrice).toBe(200);
+            expect(holder2.totalPrice).toBe('200');
             // Assert the owner shows even it can't be find in the wallet repo
             expect(holder2.address).toBe(owner2);
         });

@@ -10,21 +10,15 @@ import * as Sentry from '@sentry/node';
 
 import { OpenseaService } from '../opensea/opensea.service';
 import { AggregatedCollection } from '../organization/organization.dto';
-import {
-    cursorToStrings, fromCursor, PaginatedImp, toPaginated
-} from '../pagination/pagination.utils';
+import { cursorToStrings, fromCursor, PaginatedImp, toPaginated } from '../pagination/pagination.utils';
 import { SaleHistory } from '../saleHistory/saleHistory.dto';
 import { getCurrentPrice } from '../saleHistory/saleHistory.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import { BasicTokenPrice } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
-import {
-    MintSaleTransaction
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { Profit, Tier as TierDto } from '../tier/tier.dto';
 import { Tier } from '../tier/tier.entity';
 import { TierService } from '../tier/tier.service';
@@ -32,11 +26,24 @@ import { User } from '../user/user.entity';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    AggregatedVolume, Collection, CollectionActivities, CollectionActivityType,
-    CollectionAggregatedActivities, CollectionEarningsChartPaginated, CollectionPaginated,
-    CollectionSold, CollectionSoldPaginated, CollectionStat, CollectionStatus,
-    CreateCollectionInput, GrossEarnings, LandingPageCollection, SecondarySale, SevenDayVolume,
-    UpdateCollectionInput, ZeroAccount
+    AggregatedVolume,
+    Collection,
+    CollectionActivities,
+    CollectionActivityType,
+    CollectionAggregatedActivities,
+    CollectionEarningsChartPaginated,
+    CollectionPaginated,
+    CollectionSold,
+    CollectionSoldPaginated,
+    CollectionStat,
+    CollectionStatus,
+    CreateCollectionInput,
+    GrossEarnings,
+    LandingPageCollection,
+    SecondarySale,
+    SevenDayVolume,
+    UpdateCollectionInput,
+    ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
 
@@ -386,7 +393,7 @@ export class CollectionService {
             .addSelect('COUNT(*)', 'quantity')
             .addSelect('MIN(asset.txTime)', 'txTime')
             .addSelect('txn.price', 'price')
-            .addSelect('SUM(txn.price::REAL)', 'totalPrice')
+            .addSelect('SUM(txn.price::NUMERIC)', 'totalPrice')
             .where('asset.address = :address AND txn.tokenAddress = :address', {
                 address: contract.tokenAddress,
             })
@@ -771,12 +778,11 @@ export class CollectionService {
         const result = await this.mintSaleTransactionRepository
             .createQueryBuilder('txn')
             .select('txn.paymentToken', 'token')
-            .addSelect('SUM(txn.price::REAL)', 'total_price')
+            .addSelect('SUM(txn.price::NUMERIC)', 'total_price')
             .where('txn.txTime BETWEEN :startDate AND :endDate', { startDate, endDate })
             .andWhere('txn.address = :address', { address })
             .addGroupBy('txn.paymentToken')
             .getRawOne();
-
         if (result) {
             const coin = await this.coinService.getCoinByAddress(result.token);
             const quote = await this.coinService.getQuote(coin.symbol);
@@ -796,7 +802,7 @@ export class CollectionService {
         const builder = this.mintSaleTransactionRepository
             .createQueryBuilder('txn')
             .select('txn.paymentToken', 'token')
-            .addSelect('SUM(txn.price::REAL)', 'total_price')
+            .addSelect('SUM(txn.price::NUMERIC)', 'total_price')
             .andWhere('txn.address = :address', { address });
 
         if (between && between.length == 2) {
