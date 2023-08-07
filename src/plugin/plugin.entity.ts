@@ -30,17 +30,23 @@ export class Plugin extends BaseEntity {
     readonly author?: string;
 
     @Column({
+        default: 'rule-engine',
+        comment: 'The type of the plugin, can be `rule-engine` or `plugin`',
+    })
+    readonly type?: string;
+
+    @Column({ 
+        default: true,
+        comment: 'The status of the plugin, should not display when `isPublished` equals to false'
+    })
+    readonly isPublished: boolean;
+
+    @Column({
         default: {},
         type: 'jsonb',
         comment: 'Metadata template.'
     })
     readonly metadata: PluginMetadata;
-
-    @Column({ 
-        default: true,
-        comment: 'The status of the plugin, should not display when isPublish equals to false'
-    })
-    readonly isPublish: boolean;
 
     @CreateDateColumn()
     readonly createdAt: Date;

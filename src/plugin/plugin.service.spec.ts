@@ -1,11 +1,13 @@
 import { Repository } from 'typeorm';
+
 import { faker } from '@faker-js/faker';
+
+import { CollectionKind } from '../collection/collection.entity';
+import { CollectionService } from '../collection/collection.service';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import { TierService } from '../tier/tier.service';
 import { Plugin } from './plugin.entity';
 import { PluginService } from './plugin.service';
-import { CollectionKind } from '../collection/collection.entity';
-import { CoinService } from '../sync-chain/coin/coin.service';
-import { CollectionService } from '../collection/collection.service';
-import { TierService } from '../tier/tier.service';
 
 describe('PluginService', () => {
     let pluginRepository: Repository<Plugin>;
@@ -35,7 +37,7 @@ describe('PluginService', () => {
                 description: faker.commerce.productDescription(),
                 author: faker.commerce.department(),
                 version: faker.git.commitSha(),
-                isPublish: false,
+                isPublished: false,
             });
 
             const plugin2 = await pluginRepository.save({
@@ -74,7 +76,7 @@ describe('PluginService', () => {
                 description: faker.commerce.productDescription(),
                 author: faker.commerce.department(),
                 version: faker.git.commitSha(),
-                isPublish: false,
+                isPublished: false,
             });
 
             const result = await pluginService.getPlugin(plugin.id);

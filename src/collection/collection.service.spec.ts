@@ -371,8 +371,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -381,7 +381,7 @@ describe('CollectionService', () => {
             });
 
             await repository.save({
-                name: `${faker.company.name()}${faker.random.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric(5)}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -392,7 +392,7 @@ describe('CollectionService', () => {
             });
 
             await repository.save({
-                name: `${faker.company.name()}${faker.random.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric(5)}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -416,8 +416,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -429,8 +429,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -439,7 +439,7 @@ describe('CollectionService', () => {
             });
 
             await repository.save({
-                name: `${faker.company.name()}${faker.random.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric(5)}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -452,7 +452,7 @@ describe('CollectionService', () => {
 
             // don't belongs to this
             await repository.save({
-                name: `${faker.company.name()}${faker.random.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric(5)}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -465,7 +465,7 @@ describe('CollectionService', () => {
 
             // missing `beginSaleAt`
             await repository.save({
-                name: `${faker.company.name()}${faker.random.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric(5)}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -477,7 +477,7 @@ describe('CollectionService', () => {
 
             // missing `endSaleAt`
             await repository.save({
-                name: `${faker.company.name()}${faker.random.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric(5)}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -489,7 +489,7 @@ describe('CollectionService', () => {
 
             // `beginSaleAt` is the future time
             await repository.save({
-                name: `${faker.company.name()}${faker.random.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric(5)}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -502,7 +502,7 @@ describe('CollectionService', () => {
 
             // `endSaleAt` is the past time
             await repository.save({
-                name: `${faker.company.name()}${faker.random.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric(5)}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
