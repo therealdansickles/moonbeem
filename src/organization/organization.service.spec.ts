@@ -497,7 +497,7 @@ describe('OrganizationService', () => {
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
@@ -545,7 +545,7 @@ describe('OrganizationService', () => {
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
@@ -569,7 +569,7 @@ describe('OrganizationService', () => {
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
 

@@ -187,7 +187,7 @@ describe('TierResolver', () => {
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 collectionId: collection.id,
                 paymentToken: coin.address,
             });
@@ -870,7 +870,7 @@ describe('TierResolver', () => {
                 beginTime: Math.floor(faker.date.recent().getTime() / 1000),
                 endTime: Math.floor(faker.date.recent().getTime() / 1000),
                 tierId: 0,
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
                 startId: 1,
                 endId: 100,
@@ -913,7 +913,7 @@ describe('TierResolver', () => {
                 tierId: 0,
                 tokenAddress: tokenAddress,
                 tokenId: tokenId1,
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
@@ -927,7 +927,7 @@ describe('TierResolver', () => {
                 tierId: 0,
                 tokenAddress: tokenAddress,
                 tokenId: tokenId2,
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
         });

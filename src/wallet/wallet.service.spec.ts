@@ -360,7 +360,7 @@ describe('WalletService', () => {
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
@@ -409,7 +409,7 @@ describe('WalletService', () => {
                     tierId: tier.tierId,
                     tokenAddress: faker.finance.ethereumAddress(),
                     tokenId: faker.string.numeric(3),
-                    price: faker.string.numeric(19),
+                    price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                     paymentToken: faker.finance.ethereumAddress(),
                     createdAt,
                 });
@@ -508,7 +508,7 @@ describe('WalletService', () => {
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
@@ -601,7 +601,7 @@ describe('WalletService', () => {
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken,
             });
             await mintSaleTransactionService.createMintSaleTransaction({
@@ -614,7 +614,7 @@ describe('WalletService', () => {
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken,
             });
 
@@ -825,7 +825,7 @@ describe('WalletService', () => {
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken,
             });
             await mintSaleTransactionService.createMintSaleTransaction({
@@ -838,7 +838,7 @@ describe('WalletService', () => {
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken,
             });
 
@@ -850,7 +850,7 @@ describe('WalletService', () => {
 
     describe('getWalletProfit', () => {
         it.skip('should get wallet profits', async () => {
-            const price = faker.string.numeric(19);
+            const price = faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false });
             const sender1 = faker.finance.ethereumAddress();
             const paymentToken = faker.finance.ethereumAddress();
             const collectionAddress = faker.finance.ethereumAddress();
@@ -1000,7 +1000,7 @@ describe('WalletService', () => {
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
             await mintSaleTransactionService.createMintSaleTransaction({
@@ -1013,7 +1013,7 @@ describe('WalletService', () => {
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
@@ -1071,7 +1071,7 @@ describe('WalletService', () => {
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
             await mintSaleTransactionService.createMintSaleTransaction({
@@ -1084,7 +1084,7 @@ describe('WalletService', () => {
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
 

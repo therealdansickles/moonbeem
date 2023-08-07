@@ -1220,7 +1220,7 @@ describe('CollectionService', () => {
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 collectionId: collection.id,
                 paymentToken: faker.finance.ethereumAddress(),
             });
@@ -1521,7 +1521,7 @@ describe('CollectionService', () => {
                 beginTime: beginTime,
                 endTime: beginTime + 86400,
                 tierId: 0,
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
                 startId: 1,
                 endId: 100,
@@ -1754,7 +1754,7 @@ describe('CollectionService', () => {
 
     describe('getCollectionEarningsByTokenAddress', () => {
         it('should return correct sum of earnings for the given token address', async () => {
-            const price = faker.string.numeric(19);
+            const price = faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false });
             const paymentToken = faker.finance.ethereumAddress();
 
             const collection = await repository.save({
@@ -1855,7 +1855,7 @@ describe('CollectionService', () => {
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken,
             });
             await mintSaleTransactionService.createMintSaleTransaction({
@@ -1868,7 +1868,7 @@ describe('CollectionService', () => {
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken,
             });
 
@@ -1929,7 +1929,7 @@ describe('CollectionService', () => {
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
             await mintSaleTransactionService.createMintSaleTransaction({
@@ -1942,7 +1942,7 @@ describe('CollectionService', () => {
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
@@ -1974,7 +1974,7 @@ describe('CollectionService', () => {
                 tierId: 1,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
             await mintSaleTransactionService.createMintSaleTransaction({
@@ -1987,7 +1987,7 @@ describe('CollectionService', () => {
                 tierId: 1,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
@@ -2043,7 +2043,7 @@ describe('CollectionService', () => {
                 tierId: 1,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
             await mintSaleTransactionService.createMintSaleTransaction({
@@ -2056,7 +2056,7 @@ describe('CollectionService', () => {
                 tierId: 1,
                 tokenAddress: faker.finance.ethereumAddress(),
                 tokenId: faker.string.numeric(3),
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
 

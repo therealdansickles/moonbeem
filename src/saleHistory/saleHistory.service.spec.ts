@@ -71,7 +71,7 @@ export function generateAssetEvent(): Sale {
         transaction: generateTransasction(),
         nftName: faker.company.name(),
         nftPicture: faker.image.url(),
-        currentPrice: faker.string.numeric(19),
+        currentPrice: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
         rarity: faker.datatype.boolean(),
         quantity: faker.string.numeric(1),
         timeListed: `${faker.date.recent().getTime()}`,
