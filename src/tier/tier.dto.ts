@@ -203,6 +203,7 @@ export class UpdateTierInput {
     readonly id: string;
 
     @IsNumber()
+    @IsOptional()
     @Field(() => Int, { nullable: true, description: 'The total number of mints for this tier.' })
     readonly totalMints?: number;
 
@@ -212,6 +213,7 @@ export class UpdateTierInput {
 
     @IsNumber()
     @Field(() => Int, { nullable: true, description: 'The tier id/index of the NFTs in this tier.' })
+    @IsOptional()
     readonly tierId?: number;
 
     @IsString()

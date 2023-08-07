@@ -8,9 +8,7 @@ import { CollectionService } from '../collection/collection.service';
 import { OrganizationService } from '../organization/organization.service';
 import { Coin, CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { User } from '../user/user.dto';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
@@ -135,6 +133,43 @@ describe('UserResolver', () => {
                     expect(body.data.createUser.avatarUrl).toEqual(variables.input.avatarUrl);
                 });
         });
+
+        it('should throw an error if email is not valid', async () => {
+            const query = gql`
+                mutation CreateUser($input: CreateUserInput!) {
+                    createUser(input: $input) {
+                        id
+                        email
+                        username
+                        avatarUrl
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    username: faker.internet.userName(),
+                    email: faker.company.name(),
+                    avatarUrl: faker.internet.avatar(),
+                    password: 'password',
+                },
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.errors).toBeDefined();
+                    expect(body.errors.length).toBe(1);
+                    expect(body.errors[0].message).toBe('Bad Request Exception');
+                    expect(body.errors[0].extensions.response.message).toBeDefined();
+                    expect(body.errors[0].extensions.response.message.length).toBe(1);
+                    expect(body.errors[0].extensions.response.message[0]).toBe(
+                        'Invalid email address format for the email field.'
+                    );
+                });
+        });
     });
 
     describe('updateUser', () => {
@@ -247,7 +282,7 @@ describe('UserResolver', () => {
 
             const query = gql`
                 mutation sendPasswordResetLink($input: PasswordResetLinkInput!) {
-                    sendPasswordResetLink(input: $input) 
+                    sendPasswordResetLink(input: $input)
                 }
             `;
 

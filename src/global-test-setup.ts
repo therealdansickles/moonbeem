@@ -1,6 +1,7 @@
 import { ApolloDriver } from '@nestjs/apollo';
 import { HttpModule, HttpService } from '@nestjs/axios';
 import { CacheModule } from '@nestjs/cache-manager';
+import { ValidationPipe } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { GraphQLModule, Query, Resolver } from '@nestjs/graphql';
 import { JwtService } from '@nestjs/jwt';
@@ -58,15 +59,9 @@ import { FactoryService } from './sync-chain/factory/factory.service';
 import { History721Module } from './sync-chain/history721/history721.module';
 import { History721Service } from './sync-chain/history721/history721.service';
 import { MintSaleContractModule } from './sync-chain/mint-sale-contract/mint-sale-contract.module';
-import {
-    MintSaleContractService
-} from './sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransactionModule
-} from './sync-chain/mint-sale-transaction/mint-sale-transaction.module';
-import {
-    MintSaleTransactionService
-} from './sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleContractService } from './sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionModule } from './sync-chain/mint-sale-transaction/mint-sale-transaction.module';
+import { MintSaleTransactionService } from './sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { Record721Module } from './sync-chain/record721/record721.module';
 import { Record721Service } from './sync-chain/record721/record721.service';
 import { RoyaltyModule } from './sync-chain/royalty/royalty.module';
@@ -148,8 +143,8 @@ export default async () => {
                 autoSchemaFile: true,
             }),
             CacheModule.register({
-                isGlobal: true
-            })
+                isGlobal: true,
+            }),
         ],
         providers: [
             AWSAdapter,
@@ -231,7 +226,12 @@ export default async () => {
     process.env.MOONPAY_URL = 'https://mocked-url.com';
     process.env.MOONPAY_PK = 'mocked-public-key';
     process.env.MOONPAY_SK = 'mocked-secret-key';
-    global.app = module.createNestApplication();
+    global.app = module.createNestApplication().useGlobalPipes(
+        new ValidationPipe({
+            whitelist: true,
+            transform: true,
+        })
+    );
     await global.app.init();
 };
 

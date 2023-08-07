@@ -84,14 +84,17 @@ export class UpdateMembershipInput {
     readonly id: string;
 
     @IsBoolean()
+    @IsOptional()
     @Field(() => Boolean, { description: 'Whether or not this user can edit.', nullable: true })
     readonly canEdit?: boolean;
 
     @IsBoolean()
+    @IsOptional()
     @Field(() => Boolean, { description: 'Whether or not this user can manage.', nullable: true })
     readonly canManage?: boolean;
 
     @IsBoolean()
+    @IsOptional()
     @Field(() => Boolean, { description: 'Whether or not this user can deploy a collection.', nullable: true })
     readonly canDeploy?: boolean;
 }

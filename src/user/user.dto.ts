@@ -1,5 +1,5 @@
 import { Field, ObjectType, InputType, ID, PickType, OmitType, PartialType, Int } from '@nestjs/graphql';
-import { IsString, IsOptional, IsNumber, IsArray, IsObject, IsDateString } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsArray, IsObject, IsDateString, IsEmail } from 'class-validator';
 import { Collection } from '../collection/collection.dto';
 import Paginated from '../pagination/pagination.dto';
 
@@ -22,8 +22,8 @@ export class User {
     @IsOptional()
     readonly name?: string;
 
+    @IsEmail({}, { message: 'Invalid email address format for the email field.' })
     @Field({ description: 'The email of the user.' })
-    @IsString()
     readonly email: string;
 
     @Field({ description: 'The verification token for the user.', nullable: true })
@@ -80,13 +80,13 @@ export class CreateUserInput extends OmitType(User, ['id', 'wallets'] as const, 
     @IsString()
     @IsOptional()
     @IsString()
-        password?: string;
+    readonly password?: string;
 
     @Field({ description: "User provider: 'google' or 'local')", nullable: true })
     @IsString()
     @IsOptional()
     @IsString()
-        provider?: string;
+    readonly provider?: string;
 }
 
 @InputType()

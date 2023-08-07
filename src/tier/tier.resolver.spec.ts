@@ -9,12 +9,8 @@ import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import { TierService } from './tier.service';
@@ -545,6 +541,7 @@ describe('TierResolver', () => {
                     totalMints: 10,
                     paymentTokenAddress: coin.address,
                     tierId: 0,
+                    price: '1024',
                 },
             };
 
@@ -1007,7 +1004,7 @@ describe('TierResolver', () => {
                     expect(body.data.attributeOverview.plugins['vibexyz/creator_scoring']).toEqual(1);
                 });
         });
-        
+
         it('should search by keyword', async () => {
             const query = gql`
                 query SearchTier($input: TierSearchBarInput!) {
