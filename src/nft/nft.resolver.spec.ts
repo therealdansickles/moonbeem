@@ -246,9 +246,9 @@ describe('NftResolver', () => {
                 },
             });
 
-            const tokenId1 = +faker.string.numeric(1);
-            const tokenId2 = +faker.string.numeric(2);
-            const tokenId3 = +faker.string.numeric(4);
+            const tokenId1 = faker.number.int({ min: 1, max: 99 });
+            const tokenId2 = faker.number.int({ min: 100, max: 999});
+            const tokenId3 = faker.number.int({ min: 1000, max: 9999});
 
             const [nft1, , nft3] = await Promise.all([
                 service.createOrUpdateNftByTokenId({
