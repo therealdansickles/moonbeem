@@ -1,4 +1,4 @@
-import { startOfDay, startOfMonth, startOfWeek, subDays } from 'date-fns';
+import { addDays, startOfDay, startOfMonth, startOfWeek, subDays } from 'date-fns';
 import { ethers } from 'ethers';
 import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 
@@ -893,7 +893,9 @@ describe('CollectionService', () => {
                 address: faker.finance.ethereumAddress(),
             });
 
-            const result = await service.precheckCollection({
+            const startSaleAt = faker.date.future({ years: 1 });
+            const endSaleAt = addDays(startSaleAt, 365);
+            const payload = {
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -909,9 +911,10 @@ describe('CollectionService', () => {
                     id: organization.id,
                 },
                 creator: { id: wallet.id },
-                startSaleAt: Math.floor(faker.date.future({ years: 1 }).getTime() / 1000),
-                endSaleAt: Math.floor(faker.date.future({ years: 2 }).getTime() / 1000),
-            });
+                startSaleAt: Math.floor(startSaleAt.getTime() / 1000),
+                endSaleAt: Math.floor(endSaleAt.getTime() / 1000),
+            };
+            const result = await service.precheckCollection(payload);
             expect(result).toEqual(true);
         });
     });
