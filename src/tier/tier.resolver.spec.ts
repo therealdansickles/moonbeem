@@ -14,6 +14,14 @@ import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import { TierService } from './tier.service';
+import {
+    createAsset721,
+    createCoin,
+    createCollection,
+    createMintSaleContract,
+    createMintSaleTransaction,
+    createTier
+} from '../test-utils';
 
 export const gql = String.raw;
 
@@ -230,34 +238,13 @@ describe('TierResolver', () => {
         });
 
         it('should return a tier with metadata', async () => {
-            const coin = await coinService.createCoin({
-                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-                name: 'Wrapped Ether',
-                symbol: 'WETH',
-                decimals: 18,
-                derivedETH: 1,
-                derivedUSDC: 1,
-                enabled: true,
-                chainId: 1,
-            });
+            const coin = await createCoin(coinService);
 
-            const collection = await collectionService.createCollection({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                artists: [],
-                tags: [],
-                kind: CollectionKind.edition,
-                address: faker.finance.ethereumAddress(),
-            });
+            const collection = await createCollection(collectionService);
 
-            const tier = await service.createTier({
-                name: faker.company.name(),
+            const tier = await createTier(service, {
                 collection: { id: collection.id },
-                totalMints: 10,
                 paymentTokenAddress: coin.address,
-                tierId: 0,
-                metadata: {},
             });
 
             const query = gql`
@@ -289,33 +276,14 @@ describe('TierResolver', () => {
         });
 
         it('should works with metadata field', async () => {
-            const coin = await coinService.createCoin({
-                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-                name: 'Wrapped Ether',
-                symbol: 'WETH',
-                decimals: 18,
-                derivedETH: 1,
-                derivedUSDC: 1,
-                enabled: true,
-                chainId: 1,
-            });
+            const coin = await createCoin(coinService);
 
-            const collection = await collectionService.createCollection({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                artists: [],
-                tags: [],
-                kind: CollectionKind.edition,
-                address: faker.finance.ethereumAddress(),
-            });
+            const collection = await createCollection(collectionService);
 
-            const tier = await service.createTier({
-                name: faker.company.name(),
+            const tier = await createTier(service, {
                 collection: { id: collection.id },
                 totalMints: 10,
                 paymentTokenAddress: coin.address,
-                tierId: 0,
                 metadata: {
                     name: 'Token metadata',
                     uses: ['vibexyz/creator_scoring', 'vibexyz/royalty_level'],
@@ -409,26 +377,9 @@ describe('TierResolver', () => {
 
     describe('createTier', () => {
         it('should forbid if not signed in', async () => {
-            const coin = await coinService.createCoin({
-                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-                name: 'Wrapped Ether',
-                symbol: 'WETH',
-                decimals: 18,
-                derivedETH: 1,
-                derivedUSDC: 1,
-                enabled: true,
-                chainId: 1,
-            });
+            const coin = await createCoin(coinService);
 
-            const collection = await collectionService.createCollection({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                artists: [],
-                tags: [],
-                kind: CollectionKind.edition,
-                address: faker.finance.ethereumAddress(),
-            });
+            const collection = await createCollection(collectionService);
 
             const query = gql`
                 mutation CreateTier($input: CreateTierInput!) {
@@ -473,16 +424,8 @@ describe('TierResolver', () => {
                 password: 'password',
             });
 
-            const coin = await coinService.createCoin({
-                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-                name: 'Wrapped Ether',
-                symbol: 'WETH',
-                decimals: 18,
-                derivedETH: 1,
-                derivedUSDC: 1,
-                enabled: true,
-                chainId: 1,
-            });
+            const coin = await createCoin(coinService);
+            const collection = await createCollection(collectionService);
 
             const tokenQuery = gql`
                 mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
@@ -508,16 +451,6 @@ describe('TierResolver', () => {
                 .send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
-
-            const collection = await collectionService.createCollection({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                artists: [],
-                tags: [],
-                kind: CollectionKind.edition,
-                address: faker.finance.ethereumAddress(),
-            });
 
             const query = gql`
                 mutation CreateTier($input: CreateTierInput!) {
@@ -564,49 +497,12 @@ describe('TierResolver', () => {
                 password: 'password',
             });
 
-            const coin = await coinService.createCoin({
-                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-                name: 'Wrapped Ether',
-                symbol: 'WETH',
-                decimals: 18,
-                derivedETH: 1,
-                derivedUSDC: 1,
-                enabled: true,
-                chainId: 1,
-            });
+            const coin = await createCoin(coinService);
+            const collection = await createCollection(collectionService);
 
-            const collection = await collectionService.createCollection({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                artists: [],
-                tags: [],
-                kind: CollectionKind.edition,
-                address: faker.finance.ethereumAddress(),
-            });
-
-            const tier = await service.createTier({
-                name: faker.company.name(),
+            const tier = await createTier(service, {
                 collection: { id: collection.id },
-                totalMints: 10,
                 paymentTokenAddress: coin.address,
-                tierId: 0,
-                metadata: {
-                    properties: {
-                        level: {
-                            name: 'level',
-                            type: 'string',
-                            value: 'basic',
-                            display_value: 'Basic',
-                        },
-                        holding_days: {
-                            name: 'holding_days',
-                            type: 'integer',
-                            value: 125,
-                            display_value: 'Days of holding',
-                        },
-                    },
-                },
             });
 
             const tokenQuery = gql`
@@ -667,49 +563,12 @@ describe('TierResolver', () => {
                 password: 'password',
             });
 
-            const coin = await coinService.createCoin({
-                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-                name: 'Wrapped Ether',
-                symbol: 'WETH',
-                decimals: 18,
-                derivedETH: 1,
-                derivedUSDC: 1,
-                enabled: true,
-                chainId: 1,
-            });
+            const coin = await createCoin(coinService);
+            const collection = await createCollection(collectionService);
 
-            const collection = await collectionService.createCollection({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                artists: [],
-                tags: [],
-                kind: CollectionKind.edition,
-                address: faker.finance.ethereumAddress(),
-            });
-
-            const tier = await service.createTier({
-                name: faker.company.name(),
+            const tier = await createTier(service, {
                 collection: { id: collection.id },
-                totalMints: 10,
                 paymentTokenAddress: coin.address,
-                tierId: 0,
-                metadata: {
-                    properties: {
-                        level: {
-                            name: 'level',
-                            type: 'string',
-                            value: 'basic',
-                            display_value: 'Basic',
-                        },
-                        holding_days: {
-                            name: 'holding_days',
-                            type: 'integer',
-                            value: 125,
-                            display_value: 'Days of holding',
-                        },
-                    },
-                },
             });
 
             const tokenQuery = gql`
@@ -767,34 +626,17 @@ describe('TierResolver', () => {
 
         beforeEach(async () => {
             const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
-            const coin = await coinService.createCoin({
-                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-                name: 'Wrapped Ether',
-                symbol: 'WETH',
-                decimals: 18,
-                derivedETH: 1,
-                derivedUSDC: 1,
-                enabled: true,
-                chainId: 1,
-            });
+            const coin = await createCoin(coinService);
 
-            innerCollection = await collectionService.createCollection({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                artists: [],
-                tags: [],
-                kind: CollectionKind.edition,
+            innerCollection = await createCollection(collectionService, {
                 address: collectionAddress,
                 tokenAddress: tokenAddress,
             });
 
-            await service.createTier({
+            await createTier(service, {
                 name: tierName,
-                totalMints: 100,
                 collection: { id: innerCollection.id },
                 paymentTokenAddress: coin.address,
-                tierId: 0,
                 metadata: {
                     uses: ['vibexyz/creator_scoring', 'vibexyz/royalty_level'],
                     properties: {
@@ -854,77 +696,44 @@ describe('TierResolver', () => {
                 },
             });
 
-            await mintSaleContractService.createMintSaleContract({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(faker.date.recent().getTime() / 1000),
-                sender: faker.finance.ethereumAddress(),
+            await createMintSaleContract(mintSaleContractService, {
                 address: collectionAddress,
-                royaltyReceiver: faker.finance.ethereumAddress(),
-                royaltyRate: 10000,
-                derivativeRoyaltyRate: 1000,
-                isDerivativeAllowed: true,
-                beginTime: Math.floor(faker.date.recent().getTime() / 1000),
-                endTime: Math.floor(faker.date.recent().getTime() / 1000),
-                tierId: 0,
-                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
-                paymentToken: faker.finance.ethereumAddress(),
-                startId: 1,
-                endId: 100,
-                currentId: 1,
                 tokenAddress: tokenAddress,
                 collectionId: innerCollection.id,
             });
-            const owner1 = faker.finance.ethereumAddress().toLowerCase();
+
+            const owner1 = faker.finance.ethereumAddress();
             await walletService.createWallet({ address: owner1 });
             const tokenId1 = faker.string.numeric(5);
 
-            const owner2 = faker.finance.ethereumAddress().toLowerCase();
+            const owner2 = faker.finance.ethereumAddress();
             await walletService.createWallet({ address: owner2 });
             const tokenId2 = faker.string.numeric(5);
 
-            await asset721Service.createAsset721({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+            await createAsset721(asset721Service, {
                 address: tokenAddress,
                 tokenId: tokenId1,
                 owner: owner1,
             });
-            await asset721Service.createAsset721({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+            await createAsset721(asset721Service, {
                 address: tokenAddress,
                 tokenId: tokenId2,
                 owner: owner2,
             });
 
-            await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(faker.date.recent().getTime() / 1000),
-                sender: faker.finance.ethereumAddress(),
-                recipient: faker.finance.ethereumAddress(),
+            await createMintSaleTransaction(mintSaleTransactionService, {
                 address: collectionAddress,
-                tierId: 0,
                 tokenAddress: tokenAddress,
                 tokenId: tokenId1,
-                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
+                price: faker.string.numeric(19),
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
-            await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(faker.date.recent().getTime() / 1000),
-                sender: faker.finance.ethereumAddress(),
-                recipient: faker.finance.ethereumAddress(),
+            await createMintSaleTransaction(mintSaleTransactionService,{
                 address: collectionAddress,
-                tierId: 0,
                 tokenAddress: tokenAddress,
                 tokenId: tokenId2,
-                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
+                price: faker.string.numeric(19),
                 paymentToken: faker.finance.ethereumAddress(),
             });
         });

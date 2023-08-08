@@ -9,7 +9,13 @@ import { captureException } from '@sentry/node';
 
 import { Collection, CollectionKind } from '../collection/collection.entity';
 import { MetadataPropertySearchInput } from '../metadata/metadata.dto';
-import { fromCursor, PaginatedImp } from '../pagination/pagination.utils';
+import {
+    cursorToStrings,
+    fromCursor,
+    PaginatedImp,
+    stringsToCursor,
+    toPaginated
+} from '../pagination/pagination.utils';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
@@ -307,7 +313,7 @@ export class TierService {
             .select('txn.tierId', 'tierId')
             .addSelect('asset.owner', 'owner')
             .addSelect('MIN(asset.txTime)', 'txTime')
-            .addSelect('COUNT(*)', 'quantity')
+            .addSelect('COUNT(1) as quantity')
             .where('asset.address = :address', {
                 address: contract.tokenAddress,
             })
@@ -317,14 +323,26 @@ export class TierService {
 
 
         if (after) {
-            builder.andWhere('asset.txTime > :cursor', { cursor: new Date(fromCursor(after)).valueOf() / 1000 });
+            const [quantityString, owner] = cursorToStrings(after);
+            const quantity = parseInt(quantityString);
+            builder.andHaving('COUNT(1) < :quantity', { quantity })
+                .orHaving('COUNT(1) = :quantity AND owner < :owner', { quantity, owner })
+                .orderBy('quantity', 'DESC')
+                .addOrderBy('owner', 'DESC');
             builder.limit(first);
         } else if (before) {
-            builder.andWhere('asset.txTime < :cursor', { cursor: new Date(fromCursor(before)).valueOf() / 1000 });
+            const [quantityString, owner] = cursorToStrings(before);
+            const quantity = parseInt(quantityString);
+            builder.andHaving('COUNT(1) > :quantity', { quantity })
+                .orHaving('COUNT(1) = :quantity AND owner > :owner', { quantity, owner })
+                .orderBy('quantity', 'ASC')
+                .addOrderBy('owner', 'ASC');
             builder.limit(last);
         } else {
             const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
-            builder.limit(limit);
+            builder.orderBy('quantity', 'DESC')
+                .addOrderBy('owner', 'DESC')
+                .limit(limit);
         }
 
         const holders = await builder.getRawMany();
@@ -345,7 +363,7 @@ export class TierService {
         );
 
         const total = await this.getTotalHolders(id);
-        return PaginatedImp(data, total);
+        return toPaginated(data, total, (entity) => stringsToCursor(entity.quantity.toString(), entity.address));
     }
 
     async searchTier(

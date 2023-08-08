@@ -284,6 +284,7 @@ describe('TierService', () => {
 
     describe('getHoldersOfTier', () => {
         const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
+        const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
         const tierName = 'Test Tier';
         let tier: Tier;
         let draftTier: Tier;
@@ -292,7 +293,6 @@ describe('TierService', () => {
         let coin;
 
         beforeEach(async () => {
-            const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
             coin = await createCoin(coinService);
             innerCollection = await createCollection(collectionService, {
                 address: collectionAddress,
@@ -491,6 +491,47 @@ describe('TierService', () => {
             expect(tierHolders.edges[0].node.quantity + tierHolders.edges[1].node.quantity).toEqual(3);
             expect(tierHolders.edges[0].node.address).toBeDefined();
             expect(tierHolders.edges[1].node.address).toBeDefined();
+        });
+
+        it('should get aggregated holders of tier with pagination', async () => {
+            const firstTokenId = faker.number.int({ min: 10000, max: 99999 });
+            const createAt = faker.date.past().toISOString();
+            const txTime = Math.floor(faker.date.past().getTime()/1000);
+            for (let i = 0; i < 14; i++) {
+                const tokenId = firstTokenId + i;
+                const owner = faker.finance.ethereumAddress();
+                await walletService.createWallet({ address: owner });
+                await createAsset721(asset721Service, {
+                    address: tokenAddress,
+                    tokenId,
+                    owner,
+                    txTime,
+                });
+                await createMintSaleTransaction(mintSaleTransactionService, {
+                    recipient: owner,
+                    address: collectionAddress,
+                    tokenAddress,
+                    tokenId,
+                    createAt,
+                });
+            }
+            const all = await service.getHolders(tier.id, '', '', 20, 0);
+            // just created 14, and 2 more holders from the beforeAll block
+            expect(all.totalCount).toEqual(16);
+            expect(all.edges.length).toEqual(16);
+
+            const firstPage = await service.getHolders(tier.id, '', '', 10, 0);
+            expect(firstPage.totalCount).toEqual(16);
+            expect(firstPage.edges.length).toEqual(10);
+
+            const secondPage = await service.getHolders(tier.id, '', firstPage.pageInfo.endCursor, 10, 0);
+            expect(secondPage.edges.length).toEqual(6);
+            expect(secondPage.pageInfo.startCursor).not.toEqual(firstPage.pageInfo.endCursor);
+            expect(secondPage.pageInfo.endCursor).toEqual(all.pageInfo.endCursor);
+
+            const previousPage = await service.getHolders(tier.id, secondPage.pageInfo.startCursor, '', 0, 10);
+            expect(previousPage.edges.length).toEqual(10);
+            expect(previousPage.pageInfo.endCursor).toEqual(firstPage.pageInfo.startCursor);
         });
 
         it('should get attribute overview', async () => {
