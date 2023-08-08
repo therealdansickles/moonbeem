@@ -5,7 +5,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { CollectionService } from '../collection/collection.service';
-import { MetadataInput } from '../metadata/metadata.dto';
+import { MetadataCondition, MetadataInput } from '../metadata/metadata.dto';
 import { Tier as TierDto } from '../tier/tier.dto';
 import { TierService } from '../tier/tier.service';
 import { Plugin } from './plugin.entity';
@@ -42,16 +42,22 @@ export class PluginService {
      * @param payload
      * @returns
      */
-    async installOnTier(payload: { tier: TierDto, plugin: Plugin, metadata?: MetadataInput}) {
-        const { tier, plugin, metadata } = payload;
-        const { uses = [], properties = {}, conditions = {} } = tier.metadata;
+    async installOnTier(payload: { tier: TierDto, plugin: Plugin, customizedMetadataParameters?: MetadataInput}) {
+        const { tier, plugin, customizedMetadataParameters } = payload;
+        const { uses = [], properties = {}, conditions = {} as MetadataCondition } = tier.metadata;
         const metadataPayload = {
             // add plugin name on uses
             uses: uniq(uses.push(plugin.name)).sort(),
             // merge properties
-            properties: merge(properties, plugin.metadata.properties),
+            // `plugin.metadata.properties`: the properties data come from new installed plugin
+            // `properties`: the existed properties on the tier
+            properties: merge(plugin.metadata.properties, properties),
             // merge conditions
-            conditions: merge(conditions, plugin.metadata.conditions, metadata?.conditions)
+            // `plugin.metadata.conditions`: the conditions data come from new installed plugin
+            // `conditions`: the existed condition on the tier
+            // `metadata.conditions`: the customized conditions parameter by end user
+            // conditions: { rules, ...conditions },
+            conditions: merge(plugin.metadata.conditions, customizedMetadataParameters?.conditions, conditions)
         };
         await this.tierService.updateTier(tier.id, { metadata: metadataPayload });
         return this.tierService.getTier(tier.id);
