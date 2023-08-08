@@ -35,6 +35,7 @@ import {
     CollectionPaginated,
     CollectionSold,
     CollectionSoldPaginated,
+    CollectionSoldAggregated,
     CollectionStat,
     CollectionStatus,
     CreateCollectionInput,
@@ -68,7 +69,7 @@ export class CollectionService {
         private transactionService: MintSaleTransactionService,
         private openseaService: OpenseaService,
         private coinService: CoinService
-    ) {}
+    ) { }
 
     /**
      * Retrieves the collection associated with the given id.
@@ -516,40 +517,38 @@ export class CollectionService {
             .where('asset.address = :address', { address: tokenAddress })
             .getMany();
 
-        const collection = await this.getCollectionByAddress(collectionAddress);
+        if (!assets || assets.length === 0) {
+            return { total: 0, data: [] };
+        }
 
-        const txns = await this.transactionService.getAggregatedCollectionTransaction(collectionAddress);
-        const tierInfos = await Promise.all(
-            txns.map((txn) =>
-                this.tierService.getTiersByQuery({ collection: { id: collection.id }, tierId: txn.tierId })
-            )
-        );
+        const transactions = await this.transactionService.getAggregatedCollectionTransaction(collectionAddress);
+
+        if (!transactions || transactions.length == 0) {
+            return { total: 0, data: [] };
+        }
+
+        const paymentToken = await this.coinService.getCoinByAddress(transactions[0].paymentToken);
+
+        if (!paymentToken) {
+            throw new Error(`Failed to get token ${transactions[0].paymentToken}`);
+        }
+
+        // Get collection tiers as a map
+        const tiersMap = await this.getCollectionTiersMap(collectionAddress);
 
         const result = await Promise.all(
-            txns.map(async (txn) => {
-                // theoretically all token ids should belongs to the same recipient and transaction
-                // so we just use the first one as represent
+            transactions.map(async (txn) => {
                 const tokenId = txn.tokenIds[0];
                 const assetInfo = assets.find((asset) => asset.tokenId === tokenId);
 
-                // handle activity type
                 let type: CollectionActivityType = CollectionActivityType.Transfer;
                 if (assetInfo.owner == ZeroAccount) type = CollectionActivityType.Burn;
                 if (assetInfo.owner == txn.recipient) type = CollectionActivityType.Mint;
 
-                // bind tier info
-                const tiers = tierInfos.find((tierInfo) => tierInfo[0]?.tierId === txn.tierId);
-                txn.tier = tiers ? tiers[0] : null;
+                // Use tiers map to get tier info
+                txn.tier = tiersMap.get(txn.tierId);
 
-                // format cost to human readable given the payment token decimals
-                const token = await this.coinService.getCoinByAddress(txn.paymentToken);
-                if (!token) {
-                    throw new Error(`Failed to get token ${txn.paymentToken}`);
-                }
-
-                const tokenDecimals = token?.decimals || 18;
-                const base = BigInt(10);
-                const cost = (BigInt(txn.cost) / base ** BigInt(tokenDecimals)).toString();
+                const cost = this.getFormattedCost(txn.cost, paymentToken.decimals);
 
                 return {
                     ...txn,
@@ -1020,5 +1019,93 @@ export class CollectionService {
             };
         }
         return { inPaymentToken: '0', inUSDC: '0' };
+    }
+
+    /**
+     * get collection sold items aggregated by transaction hash
+     * @param address collection address
+     * @returns collection sold items aggregated by transaction hash
+     * */
+    public async getAggregatedCollectionSold(address: string, tokenAddress: string): Promise<CollectionSoldAggregated> {
+        const assets = await this.asset721Repository
+            .createQueryBuilder('asset')
+            .where('asset.address = :address', { address: tokenAddress })
+            .getMany();
+
+        if (!assets || assets.length === 0) {
+            return { total: 0, data: [] };
+        }
+
+        const transactions = await this.transactionService.getAggregatedCollectionTransaction(address);
+
+        if (!transactions || transactions.length === 0) {
+            return { total: 0, data: [] };
+        }
+
+        const paymentToken = await this.coinService.getCoinByAddress(transactions[0].paymentToken);
+
+        if (!paymentToken) {
+            throw new Error(`Failed to get token ${transactions[0].paymentToken}`);
+        }
+
+        const tiersMap = await this.getCollectionTiersMap(address);
+
+        // Prepare promises for all the processing and fetch operations
+        const promises = transactions.map(async (txn) => {
+            const tokenId = txn.tokenIds[0];
+            const asset = assets.find((asset) => asset.tokenId === tokenId);
+
+            // Only need mint transactions where the owner is the recipient
+            if (asset && asset.owner === txn.recipient) {
+                const tier = tiersMap.get(txn.tierId);
+                const cost = this.getFormattedCost(txn.cost, paymentToken.decimals);
+                return { ...txn, tier, cost };
+            }
+        });
+
+        // Execute all promises in parallel
+        const result = await Promise.all(promises);
+
+        // Filter out undefined values and sort by txTime desc
+        const filteredResult = result.filter(Boolean).sort((a, b) => b.txTime - a.txTime);
+
+        return { total: filteredResult.length, data: filteredResult };
+    }
+
+    /**
+     * get transaction cost in human readable format given the payment token decimals
+     * @param txn transaction
+     * @returns cost in human readable format
+     * */
+    private getFormattedCost(cost: number, decimals?: number): string {
+        const tokenDecimals = decimals || 18;
+        const base = BigInt(10);
+        const result = (BigInt(cost) / base ** BigInt(tokenDecimals)).toString();
+        return result;
+    }
+
+    /**
+     * helper method to get collection tiers and store as a map
+     * @param address collection address
+     * @returns collection tiers map
+     * */
+    private async getCollectionTiersMap(address: string): Promise<Map<number, Tier>> {
+        const result = new Map<number, Tier>();
+
+        const collectionTiers = await this.tierRepository.find({
+            where: {
+                collection: { address },
+            },
+        });
+
+        if (!collectionTiers || collectionTiers.length === 0) {
+            throw new Error(`No tiers found for collection ${address}`);
+        }
+
+        for (const tier of collectionTiers) {
+            result.set(tier.tierId, tier);
+        }
+
+        return result;
     }
 }

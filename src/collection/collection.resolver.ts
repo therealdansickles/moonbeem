@@ -18,6 +18,7 @@ import {
     CollectionInput,
     CollectionPaginated,
     CollectionSoldPaginated,
+    CollectionSoldAggregated,
     CollectionStat,
     CollectionStatus,
     CreateCollectionInput,
@@ -71,7 +72,7 @@ export class CollectionResolver {
 
     @Mutation(() => Boolean, { description: 'delete a unpublished collection' })
     async deleteCollection(@Args('input') input: CollectionInput): Promise<boolean> {
-        return await this.collectionService.deleteCollection(input.id);
+        return this.collectionService.deleteCollection(input.id);
     }
 
     @Public()
@@ -83,7 +84,7 @@ export class CollectionResolver {
     @Public()
     @ResolveField(() => MintSaleContract, { description: 'Returns the contract for the given collection' })
     async contract(@Parent() collection: Collection): Promise<MintSaleContract> {
-        return await this.MintSaleContractService.getMintSaleContractByCollection(collection.id);
+        return this.MintSaleContractService.getMintSaleContractByCollection(collection.id);
     }
 
     @Public()
@@ -168,6 +169,14 @@ export class CollectionResolver {
             @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
     ): Promise<CollectionSoldPaginated> {
         return this.collectionService.getCollectionSold(collection.address, before, after, first, last);
+    }
+
+    @Public()
+    @ResolveField(() => CollectionSoldAggregated, {
+        description: 'Returns the aggregated sale history for collection.',
+    })
+    async aggregatedSold(@Parent() collection: Collection): Promise<CollectionSoldAggregated> {
+        return this.collectionService.getAggregatedCollectionSold(collection.address, collection.tokenAddress);
     }
 
     @Public()

@@ -541,3 +541,33 @@ export class AggregatedVolume {
     @Field(() => Profit, { description: 'weekly volume in the aggregator' })
     readonly weekly: Profit;
 }
+
+@ObjectType('CollectionSoldAggregated')
+export class CollectionSoldAggregated {
+    @Field(() => Int)
+    @IsNumber()
+    readonly total: number;
+
+    @Field(() => [CollectionSoldAggregatedData])
+    @IsArray()
+    readonly data: CollectionSoldAggregatedData[];
+}
+
+@ObjectType('CollectionSoldAggregatedData')
+export class CollectionSoldAggregatedData extends PickType(
+    MintSaleTransaction,
+    ['txHash', 'txTime', 'recipient', 'sender', 'paymentToken', 'chainId'],
+    ObjectType
+) {
+    @IsString()
+    @Field(() => String, { description: 'Total cost for the aggregated transaction' })
+    readonly cost: string;
+
+    @IsArray()
+    @Field(() => [String], { description: 'The tokenIds in the aggregated transaction.' })
+    readonly tokenIds: Array<string>;
+
+    @IsObject()
+    @Field(() => Tier, { nullable: true, description: 'The tier info for the aggregated transaction.' })
+    readonly tier?: Tier;
+}
