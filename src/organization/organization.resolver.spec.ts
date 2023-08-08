@@ -1,6 +1,8 @@
 import * as request from 'supertest';
+
 import { faker } from '@faker-js/faker';
 import { INestApplication } from '@nestjs/common';
+
 import { UserService } from '../user/user.service';
 import { OrganizationService } from './organization.service';
 
@@ -33,8 +35,8 @@ describe('OrganizationResolver', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -100,8 +102,8 @@ describe('OrganizationResolver', () => {
                     name: faker.company.name(),
                     displayName: faker.company.name(),
                     about: faker.company.catchPhrase(),
-                    avatarUrl: faker.image.imageUrl(),
-                    backgroundUrl: faker.image.imageUrl(),
+                    avatarUrl: faker.image.url(),
+                    backgroundUrl: faker.image.url(),
                     websiteUrl: faker.internet.url(),
                     twitter: faker.internet.userName(),
                     instagram: faker.internet.userName(),
@@ -167,8 +169,8 @@ describe('OrganizationResolver', () => {
                     name: faker.company.name(),
                     displayName: faker.company.name(),
                     about: faker.company.catchPhrase(),
-                    avatarUrl: faker.image.imageUrl(),
-                    backgroundUrl: faker.image.imageUrl(),
+                    avatarUrl: faker.image.url(),
+                    backgroundUrl: faker.image.url(),
                     websiteUrl: faker.internet.url(),
                     twitter: faker.internet.userName(),
                     instagram: faker.internet.userName(),
@@ -201,8 +203,8 @@ describe('OrganizationResolver', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -272,8 +274,8 @@ describe('OrganizationResolver', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -345,8 +347,8 @@ describe('OrganizationResolver', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),

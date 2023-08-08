@@ -1,13 +1,18 @@
-import { Repository } from 'typeorm';
-import { faker } from '@faker-js/faker';
-import { OrganizationService } from './organization.service';
-import { UserService } from '../user/user.service';
-import { Membership } from '../membership/membership.entity';
-import { Collection } from '../collection/collection.entity';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import { CoinService } from '../sync-chain/coin/coin.service';
-import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { subSeconds } from 'date-fns';
+import { Repository } from 'typeorm';
+
+import { faker } from '@faker-js/faker';
+
+import { Collection } from '../collection/collection.entity';
+import { CollectionService } from '../collection/collection.service';
+import { Membership } from '../membership/membership.entity';
+import { CoinQuotes } from '../sync-chain/coin/coin.dto';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { UserService } from '../user/user.service';
+import { OrganizationService } from './organization.service';
 
 describe('OrganizationService', () => {
     let service: OrganizationService;
@@ -16,6 +21,7 @@ describe('OrganizationService', () => {
     let coinService: CoinService;
     let membershipRepository: Repository<Membership>;
     let collectionRepository: Repository<Collection>;
+    let collectionService: CollectionService;
 
     beforeAll(async () => {
         service = global.organizationService;
@@ -24,6 +30,7 @@ describe('OrganizationService', () => {
         transactionService = global.mintSaleTransactionService;
         membershipRepository = global.membershipRepository;
         collectionRepository = global.collectionRepository;
+        collectionService = global.collectionService;
     });
 
     afterEach(async () => {
@@ -42,8 +49,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -66,8 +73,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -105,8 +112,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -130,8 +137,8 @@ describe('OrganizationService', () => {
                 name,
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -144,8 +151,8 @@ describe('OrganizationService', () => {
                     name,
                     displayName: faker.company.name(),
                     about: faker.company.catchPhrase(),
-                    avatarUrl: faker.image.imageUrl(),
-                    backgroundUrl: faker.image.imageUrl(),
+                    avatarUrl: faker.image.url(),
+                    backgroundUrl: faker.image.url(),
                     websiteUrl: faker.internet.url(),
                     twitter: faker.internet.userName(),
                     instagram: faker.internet.userName(),
@@ -186,8 +193,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -214,8 +221,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -227,8 +234,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -257,8 +264,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -279,8 +286,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -314,8 +321,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -353,8 +360,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -376,8 +383,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -385,7 +392,7 @@ describe('OrganizationService', () => {
                 owner: owner,
             });
 
-            const randomUUID = faker.datatype.uuid();
+            const randomUUID = faker.string.uuid();
 
             try {
                 await service.transferOrganization(organization.id, randomUUID);
@@ -411,8 +418,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -424,8 +431,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -437,8 +444,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -462,8 +469,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -481,16 +488,16 @@ describe('OrganizationService', () => {
             });
 
             await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(new Date().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
+                tokenId: faker.string.numeric(3),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
@@ -510,8 +517,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -529,16 +536,16 @@ describe('OrganizationService', () => {
             });
 
             await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(new Date().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
+                tokenId: faker.string.numeric(3),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
@@ -553,16 +560,16 @@ describe('OrganizationService', () => {
             });
 
             await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(new Date().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection1.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
+                tokenId: faker.string.numeric(3),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
@@ -582,8 +589,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -620,8 +627,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -640,32 +647,32 @@ describe('OrganizationService', () => {
             });
 
             await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(new Date().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
+                tokenId: faker.string.numeric(3),
                 price: '1000000000000000000',
                 paymentToken: coin.address,
             });
             await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(new Date().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
+                tokenId: faker.string.numeric(3),
                 price: '1000000000000000000',
                 paymentToken: coin.address,
             });
-            const tokenPriceUSD = faker.datatype.number({ max: 1000 });
+            const tokenPriceUSD = faker.number.int({ max: 1000 });
             const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
                 USD: { price: tokenPriceUSD },
             });
@@ -699,8 +706,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -719,28 +726,28 @@ describe('OrganizationService', () => {
             });
 
             await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(new Date().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
+                tokenId: faker.string.numeric(3),
                 price: '1000000000000000000',
                 paymentToken: coin.address,
             });
             await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(new Date().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
+                tokenId: faker.string.numeric(3),
                 price: '1000000000000000000',
                 paymentToken: coin.address,
             });
@@ -755,20 +762,20 @@ describe('OrganizationService', () => {
                 organization: organization,
             });
             await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(new Date().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection2.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
+                tokenId: faker.string.numeric(3),
                 price: '1000000000000000000',
                 paymentToken: coin.address,
             });
 
-            const tokenPriceUSD = faker.datatype.number({ max: 1000 });
+            const tokenPriceUSD = faker.number.int({ max: 1000 });
             const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
                 USD: { price: tokenPriceUSD },
             });
@@ -804,8 +811,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -823,20 +830,20 @@ describe('OrganizationService', () => {
             });
 
             await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(new Date().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
+                tokenId: faker.string.numeric(3),
                 price: '1000000000000000000',
                 paymentToken: coin.address,
             });
 
-            const tokenPriceUSD = faker.datatype.number({ max: 1000 });
+            const tokenPriceUSD = faker.number.int({ max: 1000 });
             const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
                 USD: { price: tokenPriceUSD },
             });
@@ -882,8 +889,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -902,15 +909,15 @@ describe('OrganizationService', () => {
             });
 
             await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(new Date().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
+                tokenId: faker.string.numeric(3),
                 price: '1000000000000000000',
                 paymentToken: coin.address,
             });
@@ -926,20 +933,20 @@ describe('OrganizationService', () => {
             });
 
             await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(new Date().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection2.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
+                tokenId: faker.string.numeric(3),
                 price: '1000000000000000000',
                 paymentToken: coin2.address,
             });
 
-            const tokenPriceUSD = faker.datatype.number({ max: 1000 });
+            const tokenPriceUSD = faker.number.int({ max: 1000 });
             const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
                 USD: { price: tokenPriceUSD },
             });
@@ -989,8 +996,8 @@ describe('OrganizationService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -1008,34 +1015,34 @@ describe('OrganizationService', () => {
             });
 
             const tx1 = await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(new Date().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
+                tokenId: faker.string.numeric(3),
                 price: '1000000000000000000',
                 paymentToken: coin.address,
             });
 
             const tx2 = await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(subSeconds(new Date(), 100).getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
+                tokenId: faker.string.numeric(3),
                 price: '1000000000000000000',
                 paymentToken: coin.address,
             });
 
-            const tokenPriceUSD = faker.datatype.number({ max: 1000 });
+            const tokenPriceUSD = faker.number.int({ max: 1000 });
             const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
                 USD: { price: tokenPriceUSD },
             });
@@ -1049,6 +1056,102 @@ describe('OrganizationService', () => {
             expect(result.edges[0].node.txHash).toBe(tx1.txHash);
             expect(result.edges[1].node.txHash).toBe(tx2.txHash);
             expect(result.edges[0].node.txTime).toBeGreaterThan(result.edges[1].node.txTime);
+        });
+    });
+
+    describe('getOrganizationEarningsChart', () => {
+        it('should return the earnings chart', async () => {
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await service.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: user,
+            });
+            const collection = await collectionService.createCollectionWithTiers({
+                name: faker.commerce.productName(),
+                displayName: faker.commerce.productName(),
+                about: faker.commerce.productDescription(),
+                address: faker.commerce.productDescription(),
+                tags: [],
+                organization: { id: organization.id },
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: 200,
+                        paymentTokenAddress: coin.address,
+                        tierId: 0,
+                        price: '200',
+                        metadata: {
+                            uses: [],
+                            properties: {
+                                level: {
+                                    name: 'level',
+                                    type: 'string',
+                                    value: 'basic',
+                                    display_value: 'Basic',
+                                },
+                                holding_days: {
+                                    name: 'holding_days',
+                                    type: 'integer',
+                                    value: 125,
+                                    display_value: 'Days of holding',
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+
+            await transactionService.createMintSaleTransaction({
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
+                txTime: Math.floor(new Date().valueOf() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collection.address,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.string.numeric(3),
+                price: '1000000000000000000',
+                paymentToken: coin.address,
+            });
+
+            const tokenPriceUSD = faker.number.int({ max: 1000 });
+            const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+                USD: { price: tokenPriceUSD },
+            });
+
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
+
+            const result = await service.getOrganizationEarningsChart(organization.id, '', '', 10, 10);
+            expect(result.totalCount).toBe(1);
+            expect(result.edges).toBeDefined();
+            expect(result.edges.length).toBe(1);
+            expect(result.edges[0].node.volume).toEqual({
+                inUSDC: tokenPriceUSD.toString(),
+            });
         });
     });
 });

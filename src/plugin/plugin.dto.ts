@@ -35,7 +35,11 @@ export class Plugin {
 
     @IsBoolean()
     @Field({ description: 'Whether the plugin should be display or not.' })
-    readonly isPublish?: boolean;
+    readonly isPublished?: boolean;
+
+    @IsString()
+    @Field({ description: 'The type of the plugin.' })
+    readonly type: string;
 
     @IsObject()
     @Field(() => GraphQLJSONObject, { description: 'The properties of the NFT.' })

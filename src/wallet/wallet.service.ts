@@ -13,7 +13,7 @@ import { Collection } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
 import {
     cursorToStrings, fromCursor, PaginatedImp, toPaginated
-} from '../pagination/pagination.module';
+} from '../pagination/pagination.utils';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import {
@@ -318,7 +318,7 @@ export class WalletService {
             builder.addOrderBy('tx.id', 'ASC');
             builder.limit(first);
         } else if (before) {
-            const [createdAt, id] = cursorToStrings(after);
+            const [createdAt, id] = cursorToStrings(before);
             builder.andWhere('tx.createdAt < :createdAt', { createdAt });
             builder.orWhere('tx.createdAt = :createdAt AND tx.id < :id', { createdAt, id });
             builder.orderBy('tx.createdAt', 'DESC');
@@ -326,6 +326,8 @@ export class WalletService {
             builder.limit(last);
         } else {
             const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
+            builder.orderBy('tx.createdAt', 'ASC');
+            builder.addOrderBy('tx.id', 'ASC');
             builder.limit(limit);
         }
 

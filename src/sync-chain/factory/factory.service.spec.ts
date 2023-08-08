@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+
 import { ContractType } from './factory.entity';
 import { FactoryService } from './factory.service';
 
@@ -17,8 +18,8 @@ describe('FactoryService', () => {
     describe('getFactory', () => {
         it('should get an factory', async () => {
             const factory = await service.createFactory({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 address: faker.finance.ethereumAddress(),
@@ -34,8 +35,8 @@ describe('FactoryService', () => {
     describe('getFactories', () => {
         it('should get factory list', async () => {
             await service.createFactory({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 address: faker.finance.ethereumAddress(),
@@ -45,8 +46,8 @@ describe('FactoryService', () => {
             });
 
             await service.createFactory({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 address: faker.finance.ethereumAddress(),
@@ -64,8 +65,8 @@ describe('FactoryService', () => {
         it('should get a factory by address', async () => {
             const address = faker.finance.ethereumAddress();
             const factory = await service.createFactory({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 address: address,

@@ -1,9 +1,10 @@
 import { faker } from '@faker-js/faker';
-import { SearchService } from './search.service';
+
 import { CollectionService } from '../collection/collection.service';
-import { WalletService } from '../wallet/wallet.service';
-import { UserService } from '../user/user.service';
 import { OrganizationService } from '../organization/organization.service';
+import { UserService } from '../user/user.service';
+import { WalletService } from '../wallet/wallet.service';
+import { SearchService } from './search.service';
 
 describe('SearchService', () => {
     let service: SearchService;
@@ -27,7 +28,7 @@ describe('SearchService', () => {
 
     describe('search bar', () => {
         it('should perform search for all', async () => {
-            const name = faker.name.fullName();
+            const name = faker.person.fullName();
             const user = await userService.createUser({
                 name,
                 email: faker.internet.email(),
@@ -44,8 +45,8 @@ describe('SearchService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),

@@ -1,6 +1,8 @@
 import * as request from 'supertest';
+
 import { faker } from '@faker-js/faker';
 import { INestApplication } from '@nestjs/common';
+
 import { SystemConfigService } from './system-config.service';
 
 export const gql = String.raw;
@@ -23,7 +25,7 @@ describe('SystemConfigResolver', () => {
         it('should return config', async () => {
             const cfg = await service.createConfig({
                 name: faker.company.name(),
-                value: faker.random.numeric(5),
+                value: faker.string.numeric(5),
                 kind: 'string',
                 comment: 'The Config Comment',
             });
@@ -54,7 +56,7 @@ describe('SystemConfigResolver', () => {
         it('should be return config list', async () => {
             await service.createConfig({
                 name: faker.company.name(),
-                value: faker.random.numeric(5),
+                value: faker.string.numeric(5),
                 kind: 'string',
                 comment: 'The Config Comment',
             });

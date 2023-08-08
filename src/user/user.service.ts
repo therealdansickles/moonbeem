@@ -12,7 +12,7 @@ import { captureException } from '@sentry/node';
 import { Collection } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
 import { googleConfig } from '../lib/configs/app.config';
-import { fromCursor, PaginatedImp } from '../pagination/pagination.module';
+import { fromCursor, PaginatedImp } from '../pagination/pagination.utils';
 import { MailService } from '../mail/mail.service';
 import { OrganizationService } from '../organization/organization.service';
 import { CoinService } from '../sync-chain/coin/coin.service';

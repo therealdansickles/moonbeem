@@ -1,31 +1,33 @@
+import BigNumber from 'bignumber.js';
+import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
+import { GraphQLError } from 'graphql';
+import { generate as generateString } from 'randomstring';
+import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { captureException } from '@sentry/node';
-import { generate as generateString } from 'randomstring';
-import BigNumber from 'bignumber.js';
-import { Organization, OrganizationKind } from './organization.entity';
-import {
-    AggregatedBuyer,
-    AggregatedEarning,
-    CollectionStatFromOrganization,
-    CreateOrganizationInput,
-    OrganizationLatestSalePaginated,
-    OrganizationProfit,
-    UpdateOrganizationInput,
-} from './organization.dto';
-import { User } from '../user/user.entity';
-import { GraphQLError } from 'graphql';
-import { MembershipService } from '../membership/membership.service';
+
 import { CollectionService } from '../collection/collection.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MembershipService } from '../membership/membership.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
 import { BasicTokenPrice } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { Collection } from '../collection/collection.entity';
-import { fromCursor, PaginatedImp } from '../pagination/pagination.module';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { cursorToStrings, fromCursor, PaginatedImp } from '../pagination/pagination.utils';
 import { Tier } from '../tier/tier.entity';
+import { User } from '../user/user.entity';
+import {
+    AggregatedBuyer, AggregatedEarning, CollectionStatFromOrganization, CreateOrganizationInput,
+    OrganizationEarningsChartPaginated, OrganizationLatestSalePaginated, OrganizationProfit,
+    UpdateOrganizationInput
+} from './organization.dto';
+import { Organization, OrganizationKind } from './organization.entity';
 
 @Injectable()
 export class OrganizationService {
@@ -476,18 +478,92 @@ export class OrganizationService {
     async getCollectionStat(id: string): Promise<CollectionStatFromOrganization> {
         const current = Math.floor(new Date().valueOf() / 1000);
         const [total, live, closed] = await Promise.all([
-            this.collectionRepository.count({ where: { organization: { id } } }),
-            this.collectionRepository
-                .createQueryBuilder('collection')
-                .where('collection.organizationId = :id', { id })
-                .andWhere('collection.beginSaleAt <= :current AND collection.endSaleAt >= :current', { current })
-                .getCount(),
-            this.collectionRepository
-                .createQueryBuilder('collection')
-                .where('collection.organizationId = :id', { id })
-                .andWhere('collection.endSaleAt <= :current', { current })
-                .getCount(),
+            this.collectionService.countCollections({ organization: { id } }),
+            this.collectionService.countCollections({
+                organization: { id },
+                publishedAt: MoreThanOrEqual(new Date()),
+                beginSaleAt: LessThanOrEqual(current),
+                endSaleAt: MoreThanOrEqual(current)
+            }),
+            this.collectionService.countCollections({
+                organization: { id },
+                publishedAt: MoreThanOrEqual(new Date()),
+                endSaleAt: LessThanOrEqual(current)
+            }),
         ]);
         return { total, live, closed };
+    }
+
+    async getOrganizationEarningsChart(
+        id: string,
+        before: string,
+        after: string,
+        first: number,
+        last: number
+    ): Promise<OrganizationEarningsChartPaginated> {
+        const collections = await this.collectionService.getCollectionsByOrganizationId(id);
+        if (collections.length == 0) return PaginatedImp([], 0);
+        const addresses = collections.map((c) => {
+            if (c.address) return c.address;
+        });
+
+        const builder = this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .select(`EXTRACT(EPOCH FROM DATE(TO_TIMESTAMP("txTime")))`, 'time')
+            .addSelect('SUM(txn.price::NUMERIC)', 'totalPrice')
+            .addSelect('txn.paymentToken', 'paymentToken')
+            .where('txn.address IN (:...addresses)', { addresses })
+            .groupBy('time')
+            .addGroupBy('txn.paymentToken')
+            .orderBy('time', 'DESC');
+
+        if (after) {
+            const [_createdAt, id] = cursorToStrings(after);
+            builder.andWhere(`DATE_TRUNC('day', TO_TIMESTAMP(txn."txTime")) * 1000 > :cursorTime`, { id });
+            builder.limit(first);
+        } else if (before) {
+            const [_createdAt, id] = cursorToStrings(after);
+            builder.andWhere(`DATE_TRUNC('day', TO_TIMESTAMP(txn."txTime")) * 1000 < :cursorTime`, { id });
+            builder.limit(last);
+        } else {
+            const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
+            builder.limit(limit);
+        }
+
+        const subquery = this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .select(`EXTRACT(EPOCH FROM DATE(TO_TIMESTAMP("txTime")))`, 'time')
+            .addSelect('SUM(txn.price::NUMERIC)', 'totalPrice')
+            .addSelect('txn.paymentToken', 'paymentToken')
+            .where('txn.address IN (:...addresses)', { addresses })
+            .groupBy('time')
+            .addGroupBy('txn.paymentToken');
+
+        const [result, totalResult] = await Promise.all([
+            builder.getRawMany(),
+            this.mintSaleTransactionRepository.manager.query(
+                `SELECT COUNT(1) AS "total" FROM (${subquery.getSql()}) AS subquery`,
+                addresses
+            ),
+        ]);
+
+        const data = await Promise.all(
+            result.map(async (item) => {
+                const coin = await this.coinService.getCoinByAddress(item.paymentToken);
+                const quote = await this.coinService.getQuote(coin.symbol);
+                const totalTokenPrice = new BigNumber(item.totalPrice).div(new BigNumber(10).pow(coin.decimals));
+                const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(quote['USD'].price);
+                return {
+                    id: item.time.toString(),
+                    createdAt: new Date(item.time * 1000),
+                    time: item.time,
+                    volume: {
+                        inUSDC: totalUSDC.toString(),
+                    },
+                };
+            })
+        );
+        const total = totalResult.length > 0 ? parseInt(totalResult[0].total ?? 0) : 0;
+        return PaginatedImp(data, total);
     }
 }

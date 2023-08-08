@@ -15,6 +15,7 @@ import {
     CollectionStatFromOrganization,
     CreateOrganizationInput,
     Organization,
+    OrganizationEarningsChartPaginated,
     OrganizationInput,
     OrganizationLatestSalePaginated,
     OrganizationProfit,
@@ -146,5 +147,20 @@ export class OrganizationResolver {
     })
     async collectionStat(@Parent() organization: Organization): Promise<CollectionStatFromOrganization> {
         return await this.organizationService.getCollectionStat(organization.id);
+    }
+
+    @Public()
+    @ResolveField(() => OrganizationEarningsChartPaginated, {
+        description: 'Returns the earnings chart for given organization.',
+        nullable: true,
+    })
+    async earnings(
+        @Parent() organization: Organization,
+            @Args('before', { nullable: true }) before?: string,
+            @Args('after', { nullable: true }) after?: string,
+            @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+    ): Promise<OrganizationEarningsChartPaginated> {
+        return this.organizationService.getOrganizationEarningsChart(organization.id, before, after, first, last);
     }
 }

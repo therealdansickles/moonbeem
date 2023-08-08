@@ -1,6 +1,8 @@
-import { Repository } from 'typeorm';
 import { ethers } from 'ethers';
+import { Repository } from 'typeorm';
+
 import { faker } from '@faker-js/faker';
+
 import { Waitlist } from './waitlist.entity';
 import { WaitlistService } from './waitlist.service';
 
@@ -56,7 +58,7 @@ describe('CollectionService', () => {
             const randomWallet = ethers.Wallet.createRandom();
             const message = 'Hi from tests!';
             const signature = await randomWallet.signMessage(message);
-            const twitter = `@${faker.name.firstName()}`;
+            const twitter = `@${faker.person.firstName()}`;
 
             const waitlist = await service.createWaitlist({
                 email,
@@ -79,7 +81,7 @@ describe('CollectionService', () => {
             const randomWallet = ethers.Wallet.createRandom();
             const message = 'Hi from tests!';
             const signature = await randomWallet.signMessage(message);
-            const twitter = `@${faker.name.firstName()}`;
+            const twitter = `@${faker.person.firstName()}`;
 
             const waitlist = await service.createWaitlist({
                 email,
@@ -104,7 +106,7 @@ describe('CollectionService', () => {
             const message = 'YOOOO from tests!';
             const badMessage = 'im the wrong message to sign';
             const signature = await randomWallet.signMessage(message);
-            const twitter = `@${faker.name.firstName()}`;
+            const twitter = `@${faker.person.firstName()}`;
 
             const waitlist = await service.createWaitlist({
                 email,

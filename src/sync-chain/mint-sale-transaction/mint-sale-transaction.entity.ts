@@ -1,7 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, BaseEntity } from 'typeorm';
 import { Exclude } from 'class-transformer';
+import {
+    BaseEntity, Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn
+} from 'typeorm';
 
 @Entity({ name: 'MintSaleTransaction' })
+@Index(['txHash'])
 export class MintSaleTransaction extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     readonly id: string;

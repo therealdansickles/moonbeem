@@ -3,14 +3,13 @@ import { GraphQLError } from 'graphql';
 import { isEmpty, isNil, omitBy } from 'lodash';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { captureException } from '@sentry/node';
 
 import { Collection, CollectionKind } from '../collection/collection.entity';
 import { MetadataPropertySearchInput } from '../metadata/metadata.dto';
-import { fromCursor, PaginatedImp } from '../pagination/pagination.module';
+import { fromCursor, PaginatedImp } from '../pagination/pagination.utils';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
@@ -428,7 +427,7 @@ export class TierService {
         return PaginatedImp(tiers, total);
     }
 
-    async getArrtibutesOverview(collectionAddress: string): Promise<IOverview> {
+    async getAttributesOverview(collectionAddress: string): Promise<IOverview> {
         const tiers = await this.tierRepository
             .createQueryBuilder('tier')
             .leftJoinAndSelect('tier.collection', 'collection')
@@ -442,7 +441,7 @@ export class TierService {
         tiers.forEach((tier) => {
             if (tier.metadata) {
                 if (tier.metadata.properties) {
-                    Object.entries(tier.metadata.properties).forEach(([_, value]) => {
+                    Object.entries(tier.metadata.properties).forEach(([, value]) => {
                         if (!attributes[value.name]) attributes[value.name] = {};
                         attributes[value.name][value.value]
                             ? attributes[value.name][value.value]++

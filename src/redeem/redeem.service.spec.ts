@@ -1,5 +1,7 @@
 import { ethers } from 'ethers';
+
 import { faker } from '@faker-js/faker';
+
 import { CollectionService } from '../collection/collection.service';
 import { OrganizationService } from '../organization/organization.service';
 import { UserService } from '../user/user.service';
@@ -34,8 +36,8 @@ describe('RedeemService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -69,12 +71,12 @@ describe('RedeemService', () => {
 
             const redeem1 = await service.createRedeem({
                 collection: { id: collection1.id },
-                tokenId: parseInt(faker.random.numeric(2)),
-                deliveryAddress: faker.address.streetAddress(),
-                deliveryCity: faker.address.city(),
-                deliveryZipcode: faker.address.zipCode(),
-                deliveryState: faker.address.state(),
-                deliveryCountry: faker.address.country(),
+                tokenId: parseInt(faker.string.numeric(2)),
+                deliveryAddress: faker.location.streetAddress(),
+                deliveryCity: faker.location.city(),
+                deliveryZipcode: faker.location.zipCode(),
+                deliveryState: faker.location.state(),
+                deliveryCountry: faker.location.country(),
                 email: faker.internet.email(),
                 address: randomWallet.address,
                 message,
@@ -83,12 +85,12 @@ describe('RedeemService', () => {
 
             const redeem2 = await service.createRedeem({
                 collection: { id: collection2.id },
-                tokenId: parseInt(faker.random.numeric(1)),
-                deliveryAddress: faker.address.streetAddress(),
-                deliveryCity: faker.address.city(),
-                deliveryZipcode: faker.address.zipCode(),
-                deliveryState: faker.address.state(),
-                deliveryCountry: faker.address.country(),
+                tokenId: parseInt(faker.string.numeric(1)),
+                deliveryAddress: faker.location.streetAddress(),
+                deliveryCity: faker.location.city(),
+                deliveryZipcode: faker.location.zipCode(),
+                deliveryState: faker.location.state(),
+                deliveryCountry: faker.location.country(),
                 email: faker.internet.email(),
                 address: randomWallet.address,
                 message,
@@ -119,8 +121,8 @@ describe('RedeemService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -144,12 +146,12 @@ describe('RedeemService', () => {
 
             const result = await service.createRedeem({
                 collection: { id: collection.id },
-                tokenId: parseInt(faker.random.numeric(1)),
-                deliveryAddress: faker.address.streetAddress(),
-                deliveryCity: faker.address.city(),
-                deliveryZipcode: faker.address.zipCode(),
-                deliveryState: faker.address.state(),
-                deliveryCountry: faker.address.country(),
+                tokenId: parseInt(faker.string.numeric(1)),
+                deliveryAddress: faker.location.streetAddress(),
+                deliveryCity: faker.location.city(),
+                deliveryZipcode: faker.location.zipCode(),
+                deliveryState: faker.location.state(),
+                deliveryCountry: faker.location.country(),
                 email: faker.internet.email(),
                 address: randomWallet.address,
                 message,

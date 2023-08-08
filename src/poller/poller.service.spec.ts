@@ -1,11 +1,15 @@
-import { CollectionKind } from '../collection/collection.entity';
-import { PollerService } from './poller.service';
-import { CollectionService } from '../collection/collection.service';
-import { TierService } from '../tier/tier.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import { faker } from '@faker-js/faker';
-import { CoinService } from '../sync-chain/coin/coin.service';
 import { Coin } from 'src/sync-chain/coin/coin.dto';
+
+import { faker } from '@faker-js/faker';
+
+import { CollectionKind } from '../collection/collection.entity';
+import { CollectionService } from '../collection/collection.service';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { TierService } from '../tier/tier.service';
+import { PollerService } from './poller.service';
 
 describe('PollerService', () => {
     let service: PollerService;
@@ -80,16 +84,16 @@ describe('PollerService', () => {
             });
 
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
+                tokenId: faker.string.numeric(3),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 collectionId: collection.id,
                 paymentToken: faker.finance.ethereumAddress(),
             });
@@ -137,16 +141,16 @@ describe('PollerService', () => {
             });
 
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
+                tokenId: faker.string.numeric(3),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 collectionId: collection.id,
                 paymentToken: faker.finance.ethereumAddress(),
             });
@@ -194,16 +198,16 @@ describe('PollerService', () => {
             });
 
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
+                tokenId: faker.string.numeric(3),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 collectionId: collection.id,
                 paymentToken: faker.finance.ethereumAddress(),
             });

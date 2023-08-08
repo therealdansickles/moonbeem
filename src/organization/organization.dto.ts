@@ -232,3 +232,25 @@ export class CollectionStatFromOrganization {
     @IsNumber()
     readonly closed: number;
 }
+
+@ObjectType('OrganizationEarningChartVolume')
+export class OrganizationEarningChartVolume {
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'Profits converted to USDC', nullable: true })
+    readonly inUSDC?: string;
+}
+
+@ObjectType('OrganizationEarningsChart')
+export class OrganizationEarningsChart {
+    @IsString()
+    @Field({ description: 'Timing of the earnings chart.' })
+    readonly time: string;
+
+    @IsObject()
+    @Field(() => OrganizationEarningChartVolume, { description: 'Volume of the earnings chart' })
+    readonly volume: OrganizationEarningChartVolume;
+}
+
+@ObjectType('OrganizationEarningsChartPaginated')
+export class OrganizationEarningsChartPaginated extends Paginated(OrganizationEarningsChart) {}

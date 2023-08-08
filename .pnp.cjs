@@ -31,7 +31,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@aws-sdk/client-s3", "npm:3.354.0"],\
             ["@ethersproject/address", "npm:5.7.0"],\
             ["@ethersproject/providers", "npm:5.7.2"],\
-            ["@faker-js/faker", "npm:7.6.0"],\
+            ["@faker-js/faker", "npm:8.0.2"],\
             ["@nestjs/apollo", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:10.2.1"],\
             ["@nestjs/axios", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:2.0.0"],\
             ["@nestjs/cache-manager", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:2.1.0"],\
@@ -3047,10 +3047,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["@faker-js/faker", [\
-        ["npm:7.6.0", {\
-          "packageLocation": "./.yarn/cache/@faker-js-faker-npm-7.6.0-fa135883e9-942af62217.zip/node_modules/@faker-js/faker/",\
+        ["npm:8.0.2", {\
+          "packageLocation": "./.yarn/cache/@faker-js-faker-npm-8.0.2-093b9ec0b2-cf73daf9a5.zip/node_modules/@faker-js/faker/",\
           "packageDependencies": [\
-            ["@faker-js/faker", "npm:7.6.0"]\
+            ["@faker-js/faker", "npm:8.0.2"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -13752,7 +13752,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@aws-sdk/client-s3", "npm:3.354.0"],\
             ["@ethersproject/address", "npm:5.7.0"],\
             ["@ethersproject/providers", "npm:5.7.2"],\
-            ["@faker-js/faker", "npm:7.6.0"],\
+            ["@faker-js/faker", "npm:8.0.2"],\
             ["@nestjs/apollo", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:10.2.1"],\
             ["@nestjs/axios", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:2.0.0"],\
             ["@nestjs/cache-manager", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:2.1.0"],\

@@ -1,10 +1,26 @@
 import {
-    IsArray, IsDateString, IsEnum, IsNumber, IsObject, IsOptional, IsString, IsUrl, ValidateIf
+    IsArray,
+    IsDateString,
+    IsEnum,
+    IsNumber,
+    IsObject,
+    IsOptional,
+    IsString,
+    IsUrl,
+    ValidateIf,
 } from 'class-validator';
 import { GraphQLJSONObject } from 'graphql-type-json';
 
 import {
-    Field, Float, InputType, Int, ObjectType, OmitType, PartialType, PickType, registerEnumType
+    Field,
+    Float,
+    InputType,
+    Int,
+    ObjectType,
+    OmitType,
+    PartialType,
+    PickType,
+    registerEnumType,
 } from '@nestjs/graphql';
 
 import { Collaboration, CollaborationInput } from '../collaboration/collaboration.dto';
@@ -14,7 +30,7 @@ import Paginated from '../pagination/pagination.dto';
 import { Asset721 } from '../sync-chain/asset721/asset721.dto';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
-import { Tier } from '../tier/tier.dto';
+import { Profit, Tier } from '../tier/tier.dto';
 import { Wallet, WalletInput } from '../wallet/wallet.dto';
 import { CollectionKind } from './collection.entity';
 
@@ -60,7 +76,7 @@ export class Collection {
     })
     @IsOptional()
     readonly address?: string;
-    
+
     @Field({
         description: 'The token address of the collection',
         nullable: true,
@@ -401,16 +417,14 @@ export class CollectionAggregatedActivities {
 
 @ObjectType('CollectionAggregatedActivityData')
 export class CollectionAggregatedActivityData extends PickType(
-    MintSaleTransaction, 
-    [
-        'txHash', 'txTime', 'recipient', 'sender', 'paymentToken', 'chainId'
-    ], 
+    MintSaleTransaction,
+    ['txHash', 'txTime', 'recipient', 'sender', 'paymentToken', 'chainId'],
     ObjectType
 ) {
     @IsString()
     @Field(() => String, { description: 'Total cost for the aggregated transaction' })
     readonly cost: string;
-    
+
     @IsEnum(CollectionActivityType)
     @Field(() => CollectionActivityType, { description: 'The activity type for the aggregated transaction.' })
     readonly type: CollectionActivityType;
@@ -483,6 +497,11 @@ export class Volume {
     @IsOptional()
     @Field({ description: 'Profits converted to USDC', nullable: true })
     readonly inUSDC?: string;
+
+    @IsString()
+    @IsOptional()
+    @Field({ nullable: true, description: 'payment token for volume.' })
+    readonly paymentToken?: string;
 }
 
 @ObjectType('SevenDayVolume')
@@ -490,3 +509,35 @@ export class SevenDayVolume extends Volume {}
 
 @ObjectType('GrossEarnings')
 export class GrossEarnings extends Volume {}
+
+@ObjectType('EarningChartVolume')
+export class EarningChartVolume extends Volume {}
+
+@ObjectType('CollectionEarningsChart')
+export class CollectionEarningsChart {
+    @IsString()
+    @Field({ description: 'Timing of the earnings chart.' })
+    readonly time: string;
+
+    @IsObject()
+    @Field(() => EarningChartVolume, { description: 'Volume of the earnings chart' })
+    readonly volume: EarningChartVolume;
+}
+
+@ObjectType('CollectionEarningsChartPaginated')
+export class CollectionEarningsChartPaginated extends Paginated(CollectionEarningsChart) {}
+
+@ObjectType('AggregatedVolume')
+export class AggregatedVolume {
+    @IsNumber()
+    @Field(() => Profit, { description: 'total volume in the aggregator' })
+    readonly total: Profit;
+
+    @IsNumber()
+    @Field(() => Profit, { description: 'monthly volume in the aggregator' })
+    readonly monthly: Profit;
+
+    @IsNumber()
+    @Field(() => Profit, { description: 'weekly volume in the aggregator' })
+    readonly weekly: Profit;
+}

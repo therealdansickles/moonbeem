@@ -78,6 +78,7 @@ export class MembershipService {
     /**
      * Create a new membership.
      *
+     * @param email The email of the user to create the membership for.
      * @param data The data to create the membership with.
      * @returns The created membership.
      */
@@ -91,6 +92,8 @@ export class MembershipService {
         // and treat that as the source of truth.
         membership.user = await this.userRepository.findOneBy({ email });
         membership.email = email;
+        // The upsert won't trigger the `BeforeInsert` hook so we need to set the invite code here.
+        membership.setInviteCode();
         // use `upsert` to ignore the existed membership but not throw an error
         await this.membershipRepository.upsert(membership, ['email', 'organization.id']);
 

@@ -1,11 +1,15 @@
 import { ethers } from 'ethers';
 import * as request from 'supertest';
+
 import { faker } from '@faker-js/faker';
 import { INestApplication } from '@nestjs/common';
+
 import { CollectionService } from '../collection/collection.service';
 import { OrganizationService } from '../organization/organization.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { UserService } from '../user/user.service';
 import { RedeemService } from './redeem.service';
 
@@ -47,8 +51,8 @@ describe('RedeemResolver', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -67,11 +71,11 @@ describe('RedeemResolver', () => {
             });
 
             const ownerWallet = ethers.Wallet.createRandom();
-            const tokenId = faker.random.numeric(1);
+            const tokenId = faker.string.numeric(1);
 
             const mintSaleContract = await mintSaleContractService.createMintSaleContract({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress().toLowerCase(),
                 address: faker.finance.ethereumAddress().toLowerCase(),
@@ -82,7 +86,7 @@ describe('RedeemResolver', () => {
                 beginTime: Math.floor(faker.date.recent().getTime() / 1000),
                 endTime: Math.floor(faker.date.recent().getTime() / 1000),
                 tierId: 0,
-                price: faker.random.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress().toLowerCase(),
                 startId: 1,
                 endId: 100,
@@ -92,8 +96,8 @@ describe('RedeemResolver', () => {
             });
 
             await asset721Service.createAsset721({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: mintSaleContract.tokenAddress,
                 tokenId,
@@ -106,11 +110,11 @@ describe('RedeemResolver', () => {
             const createdRedeem = await redeemService.createRedeem({
                 collection: { id: collection.id },
                 tokenId: parseInt(tokenId),
-                deliveryAddress: faker.address.streetAddress(),
-                deliveryCity: faker.address.city(),
-                deliveryZipcode: faker.address.zipCode(),
-                deliveryState: faker.address.state(),
-                deliveryCountry: faker.address.country(),
+                deliveryAddress: faker.location.streetAddress(),
+                deliveryCity: faker.location.city(),
+                deliveryZipcode: faker.location.zipCode(),
+                deliveryState: faker.location.state(),
+                deliveryCountry: faker.location.country(),
                 email: faker.internet.email(),
                 address: ownerWallet.address,
                 message,
@@ -154,8 +158,8 @@ describe('RedeemResolver', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -193,14 +197,14 @@ describe('RedeemResolver', () => {
                     address: randomWallet.address,
                     message,
                     signature,
-                    deliveryAddress: faker.address.streetAddress(),
-                    deliveryCity: faker.address.city(),
-                    deliveryZipcode: faker.address.zipCode(),
-                    deliveryState: faker.address.state(),
-                    deliveryCountry: faker.address.country(),
+                    deliveryAddress: faker.location.streetAddress(),
+                    deliveryCity: faker.location.city(),
+                    deliveryZipcode: faker.location.zipCode(),
+                    deliveryState: faker.location.state(),
+                    deliveryCountry: faker.location.country(),
                     email: faker.internet.email(),
                     collection: { id: collection.id },
-                    tokenId: +faker.random.numeric(1),
+                    tokenId: +faker.string.numeric(1),
                 },
             };
 
@@ -224,8 +228,8 @@ describe('RedeemResolver', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -244,8 +248,8 @@ describe('RedeemResolver', () => {
             });
 
             const mintSaleContract = await mintSaleContractService.createMintSaleContract({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress().toLowerCase(),
                 address: faker.finance.ethereumAddress().toLowerCase(),
@@ -256,7 +260,7 @@ describe('RedeemResolver', () => {
                 beginTime: Math.floor(faker.date.recent().getTime() / 1000),
                 endTime: Math.floor(faker.date.recent().getTime() / 1000),
                 tierId: 0,
-                price: faker.random.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress().toLowerCase(),
                 startId: 1,
                 endId: 100,
@@ -267,11 +271,11 @@ describe('RedeemResolver', () => {
 
             const ownerWallet = ethers.Wallet.createRandom();
             const ownerWallet2 = ethers.Wallet.createRandom();
-            const tokenId = faker.random.numeric(1);
+            const tokenId = faker.string.numeric(1);
 
             await asset721Service.createAsset721({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: mintSaleContract.tokenAddress,
                 tokenId,
@@ -296,11 +300,11 @@ describe('RedeemResolver', () => {
                     address: ownerWallet.address,
                     message,
                     signature,
-                    deliveryAddress: faker.address.streetAddress(),
-                    deliveryCity: faker.address.city(),
-                    deliveryZipcode: faker.address.zipCode(),
-                    deliveryState: faker.address.state(),
-                    deliveryCountry: faker.address.country(),
+                    deliveryAddress: faker.location.streetAddress(),
+                    deliveryCity: faker.location.city(),
+                    deliveryZipcode: faker.location.zipCode(),
+                    deliveryState: faker.location.state(),
+                    deliveryCountry: faker.location.country(),
                     email: faker.internet.email(),
                     collection: { id: collection.id },
                     tokenId: +tokenId,
@@ -327,8 +331,8 @@ describe('RedeemResolver', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -347,11 +351,11 @@ describe('RedeemResolver', () => {
             });
 
             const ownerWallet = ethers.Wallet.createRandom();
-            const tokenId = faker.random.numeric(1);
+            const tokenId = faker.string.numeric(1);
 
             const mintSaleContract = await mintSaleContractService.createMintSaleContract({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress().toLowerCase(),
                 address: faker.finance.ethereumAddress().toLowerCase(),
@@ -362,7 +366,7 @@ describe('RedeemResolver', () => {
                 beginTime: Math.floor(faker.date.recent().getTime() / 1000),
                 endTime: Math.floor(faker.date.recent().getTime() / 1000),
                 tierId: 0,
-                price: faker.random.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress().toLowerCase(),
                 startId: 1,
                 endId: 100,
@@ -372,8 +376,8 @@ describe('RedeemResolver', () => {
             });
 
             await asset721Service.createAsset721({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: mintSaleContract.tokenAddress,
                 tokenId,
@@ -398,11 +402,11 @@ describe('RedeemResolver', () => {
                     address: ownerWallet.address,
                     message,
                     signature,
-                    deliveryAddress: faker.address.streetAddress(),
-                    deliveryCity: faker.address.city(),
-                    deliveryZipcode: faker.address.zipCode(),
-                    deliveryState: faker.address.state(),
-                    deliveryCountry: faker.address.country(),
+                    deliveryAddress: faker.location.streetAddress(),
+                    deliveryCity: faker.location.city(),
+                    deliveryZipcode: faker.location.zipCode(),
+                    deliveryState: faker.location.state(),
+                    deliveryCountry: faker.location.country(),
                     email: faker.internet.email(),
                     collection: { id: collection.id },
                     tokenId: +tokenId,

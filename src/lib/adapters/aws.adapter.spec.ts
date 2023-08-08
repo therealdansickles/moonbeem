@@ -1,9 +1,11 @@
-import { AWSAdapter, ResourceType } from './aws.adapter';
-import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
-import { faker } from '@faker-js/faker';
-import { v4 as uuidv4 } from 'uuid';
 import { URL } from 'url';
+import { v4 as uuidv4 } from 'uuid';
+
+import { faker } from '@faker-js/faker';
+import { HttpService } from '@nestjs/axios';
+
+import { AWSAdapter, ResourceType } from './aws.adapter';
 
 describe('AWSAdapter', () => {
     let requestService: HttpService;
@@ -16,7 +18,7 @@ describe('AWSAdapter', () => {
 
     // TODO: Fix this test to be better
     it.skip('s3PutData should upload successfully', async () => {
-        const imageUrl = faker.image.business();
+        const imageUrl = faker.image.urlLoremFlickr({ category: 'business' });
         const { data } = await firstValueFrom(requestService.get(imageUrl, { responseType: 'arraybuffer' }));
         const filename = `testing###${uuidv4()}`;
         // time track

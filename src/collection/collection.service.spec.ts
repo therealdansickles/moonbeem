@@ -1,12 +1,13 @@
-import { startOfDay, startOfMonth, startOfWeek, subDays } from 'date-fns';
+import { addDays, startOfDay, startOfMonth, startOfWeek, subDays } from 'date-fns';
 import { ethers } from 'ethers';
-import { Repository } from 'typeorm';
+import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 
 import { faker } from '@faker-js/faker';
 
 import { CollaborationService } from '../collaboration/collaboration.service';
 import { OrganizationService } from '../organization/organization.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
+import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
@@ -60,8 +61,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -111,8 +112,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -134,7 +135,7 @@ describe('CollectionService', () => {
                         address: faker.finance.ethereumAddress(),
                         role: faker.finance.accountName(),
                         name: faker.finance.accountName(),
-                        rate: parseInt(faker.random.numeric(2)),
+                        rate: parseInt(faker.string.numeric(2)),
                     },
                 ],
             });
@@ -198,8 +199,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -230,8 +231,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -264,8 +265,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -298,8 +299,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -332,8 +333,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -342,7 +343,7 @@ describe('CollectionService', () => {
             });
 
             const collection = await repository.save({
-                name: `${faker.company.name()}${faker.random.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric(5)}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -352,6 +353,168 @@ describe('CollectionService', () => {
             });
             const result = await service.getCollectionByQuery({ name: `${collection.name}+1` });
             expect(result).toBeNull();
+        });
+    });
+
+    describe('countCollections', () => {
+        it('should get total count for given publishedAt parameter', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            await repository.save({
+                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                displayName: faker.company.name(),
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+                publishedAt: faker.date.past(),
+            });
+
+            await repository.save({
+                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                displayName: faker.company.name(),
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+                publishedAt: faker.date.future(),
+            });
+
+            const result = await service.countCollections({ publishedAt: MoreThanOrEqual(new Date()) });
+            expect(result).toEqual(1);
+        });
+
+        it('should get total count for organizationId & beginSaleAt & endSaleAt', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const anotherOrganization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            await repository.save({
+                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                displayName: faker.company.name(),
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+                beginSaleAt: Math.floor(faker.date.past().getTime() / 1000),
+                endSaleAt: Math.floor(faker.date.future().getTime() / 1000),
+            });
+
+            // don't belongs to this
+            await repository.save({
+                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                displayName: faker.company.name(),
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: anotherOrganization,
+                beginSaleAt: Math.floor(faker.date.past().getTime() / 1000),
+                endSaleAt: Math.floor(faker.date.future().getTime() / 1000),
+            });
+
+            // missing `beginSaleAt`
+            await repository.save({
+                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                displayName: faker.company.name(),
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: anotherOrganization,
+                endSaleAt: Math.floor(faker.date.future().getTime() / 1000),
+            });
+
+            // missing `endSaleAt`
+            await repository.save({
+                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                displayName: faker.company.name(),
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: anotherOrganization,
+                startSaleAt: Math.floor(faker.date.past().getTime() / 1000),
+            });
+
+            // `beginSaleAt` is the future time
+            await repository.save({
+                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                displayName: faker.company.name(),
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+                beginSaleAt: Math.floor(faker.date.future().getTime() / 1000),
+                endSaleAt: Math.floor(faker.date.future().getTime() / 1000),
+            });
+
+            // `endSaleAt` is the past time
+            await repository.save({
+                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                displayName: faker.company.name(),
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: anotherOrganization,
+                beginSaleAt: Math.floor(faker.date.past().getTime() / 1000),
+                endSaleAt: Math.floor(faker.date.past().getTime() / 1000),
+            });
+
+            const result = await service.countCollections({
+                organization: { id: organization.id },
+                beginSaleAt: LessThanOrEqual(Math.floor(new Date().getTime() / 1000)),
+                endSaleAt: MoreThanOrEqual(Math.floor(new Date().getTime() / 1000)),
+            });
+            expect(result).toEqual(1);
         });
     });
 
@@ -366,8 +529,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -401,8 +564,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -445,8 +608,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -535,8 +698,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -580,8 +743,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -604,7 +767,7 @@ describe('CollectionService', () => {
                         tiers: [
                             {
                                 name: faker.company.name(),
-                                totalMints: parseInt(faker.random.numeric(5)),
+                                totalMints: parseInt(faker.string.numeric(5)),
                             },
                         ],
                         organization: {
@@ -627,8 +790,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -651,7 +814,7 @@ describe('CollectionService', () => {
                         tiers: [
                             {
                                 name: faker.company.name(),
-                                totalMints: parseInt(faker.random.numeric(5)),
+                                totalMints: parseInt(faker.string.numeric(5)),
                             },
                         ],
                         organization: {
@@ -673,8 +836,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -695,7 +858,7 @@ describe('CollectionService', () => {
                 tiers: [
                     {
                         name: faker.company.name(),
-                        totalMints: parseInt(faker.random.numeric(5)),
+                        totalMints: parseInt(faker.string.numeric(5)),
                     },
                 ],
                 organization: {
@@ -717,8 +880,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -730,7 +893,9 @@ describe('CollectionService', () => {
                 address: faker.finance.ethereumAddress(),
             });
 
-            const result = await service.precheckCollection({
+            const startSaleAt = faker.date.future({ years: 1 });
+            const endSaleAt = addDays(startSaleAt, 365);
+            const payload = {
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -739,16 +904,17 @@ describe('CollectionService', () => {
                 tiers: [
                     {
                         name: faker.company.name(),
-                        totalMints: parseInt(faker.random.numeric(5)),
+                        totalMints: parseInt(faker.string.numeric(5)),
                     },
                 ],
                 organization: {
                     id: organization.id,
                 },
                 creator: { id: wallet.id },
-                startSaleAt: Math.floor(faker.date.future(1).getTime() / 1000),
-                endSaleAt: Math.floor(faker.date.future(10).getTime() / 1000),
-            });
+                startSaleAt: Math.floor(startSaleAt.getTime() / 1000),
+                endSaleAt: Math.floor(endSaleAt.getTime() / 1000),
+            };
+            const result = await service.precheckCollection(payload);
             expect(result).toEqual(true);
         });
     });
@@ -764,8 +930,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -786,7 +952,7 @@ describe('CollectionService', () => {
                 tiers: [
                     {
                         name: faker.company.name(),
-                        totalMints: parseInt(faker.random.numeric(5)),
+                        totalMints: parseInt(faker.string.numeric(5)),
                     },
                 ],
                 organization: {
@@ -830,8 +996,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -862,7 +1028,7 @@ describe('CollectionService', () => {
                         address: faker.finance.ethereumAddress(),
                         role: faker.finance.accountName(),
                         name: faker.finance.accountName(),
-                        rate: parseInt(faker.random.numeric(2)),
+                        rate: parseInt(faker.string.numeric(2)),
                     },
                 ],
             });
@@ -1045,16 +1211,16 @@ describe('CollectionService', () => {
             });
 
             const txn = await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
+                tokenId: faker.string.numeric(3),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 collectionId: collection.id,
                 paymentToken: faker.finance.ethereumAddress(),
             });
@@ -1086,8 +1252,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -1164,8 +1330,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -1215,22 +1381,22 @@ describe('CollectionService', () => {
                 {
                     source: 'opensea',
                     data: {
-                        supply: faker.datatype.float(),
-                        floorPrice: faker.datatype.float(),
+                        supply: faker.number.float(),
+                        floorPrice: faker.number.float(),
                         volume: {
-                            hourly: faker.datatype.float(),
-                            daily: faker.datatype.float(),
-                            weekly: faker.datatype.float(),
-                            total: faker.datatype.float(),
+                            hourly: faker.number.float(),
+                            daily: faker.number.float(),
+                            weekly: faker.number.float(),
+                            total: faker.number.float(),
                         },
                         sales: {
-                            hourly: faker.datatype.float(),
-                            daily: faker.datatype.float(),
-                            weekly: faker.datatype.float(),
-                            total: faker.datatype.float(),
-                            monthly: faker.datatype.float(),
+                            hourly: faker.number.float(),
+                            daily: faker.number.float(),
+                            weekly: faker.number.float(),
+                            total: faker.number.float(),
+                            monthly: faker.number.float(),
                         },
-                        netGrossEarning: faker.datatype.float(),
+                        netGrossEarning: faker.number.float(),
                     },
                 },
             ] as CollectionStat[];
@@ -1246,10 +1412,10 @@ describe('CollectionService', () => {
         const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
         const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
         const owner1 = faker.finance.ethereumAddress().toLowerCase();
-        const tokenId1 = faker.random.numeric(5);
+        const tokenId1 = faker.string.numeric(5);
 
         const owner2 = faker.finance.ethereumAddress().toLowerCase();
-        const tokenId2 = faker.random.numeric(5);
+        const tokenId2 = faker.string.numeric(5);
 
         beforeEach(async () => {
             const beginTime = Math.floor(faker.date.recent().getTime() / 1000);
@@ -1274,8 +1440,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -1343,8 +1509,8 @@ describe('CollectionService', () => {
             });
 
             await mintSaleContractService.createMintSaleContract({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 address: collectionAddress,
@@ -1355,7 +1521,7 @@ describe('CollectionService', () => {
                 beginTime: beginTime,
                 endTime: beginTime + 86400,
                 tierId: 0,
-                price: faker.random.numeric(19),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
                 startId: 1,
                 endId: 100,
@@ -1365,16 +1531,16 @@ describe('CollectionService', () => {
             });
 
             await asset721Service.createAsset721({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: tokenAddress,
                 tokenId: tokenId1,
                 owner: owner1,
             });
             await asset721Service.createAsset721({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: tokenAddress,
                 tokenId: tokenId2,
@@ -1382,8 +1548,8 @@ describe('CollectionService', () => {
             });
 
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
@@ -1396,8 +1562,8 @@ describe('CollectionService', () => {
             });
 
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
@@ -1411,20 +1577,20 @@ describe('CollectionService', () => {
         });
 
         it('should get holders', async () => {
-            const tokenId3 = faker.random.numeric(5);
+            const tokenId3 = faker.string.numeric(5);
 
             // Total count won't include duplicates
             await asset721Service.createAsset721({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: tokenAddress,
                 tokenId: tokenId3,
                 owner: owner2,
             });
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
@@ -1447,30 +1613,30 @@ describe('CollectionService', () => {
             const holder1 = result.edges.find((edge) => edge.node.address === owner1)?.node;
             expect(holder1.quantity).toBe(1);
             expect(holder1.price).toBe('100');
-            expect(holder1.totalPrice).toBe(100);
+            expect(holder1.totalPrice).toBe('100');
             expect(holder1.address).toBe(owner1);
 
             const holder2 = result.edges.find((edge) => edge.node.address === owner2)?.node;
             expect(holder2.quantity).toBe(2);
             expect(holder2.price).toBe('100');
-            expect(holder2.totalPrice).toBe(200);
+            expect(holder2.totalPrice).toBe('200');
             // Assert the owner shows even it can't be find in the wallet repo
             expect(holder2.address).toBe(owner2);
         });
 
         it('should get unique holders', async () => {
-            const tokenId3 = faker.random.numeric(5);
+            const tokenId3 = faker.string.numeric(5);
             await asset721Service.createAsset721({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: tokenAddress,
                 tokenId: tokenId3,
                 owner: owner2,
             });
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
@@ -1519,8 +1685,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -1578,7 +1744,7 @@ describe('CollectionService', () => {
     describe('getSecondarySale', () => {
         it('should return Secondary Sale', async () => {
             const mockResponse = {
-                total: faker.datatype.float(),
+                total: faker.number.float(),
             };
             jest.spyOn(service, 'getSecondarySale').mockImplementation(async () => mockResponse);
             const result = await service.getSecondarySale(faker.finance.ethereumAddress());
@@ -1588,7 +1754,7 @@ describe('CollectionService', () => {
 
     describe('getCollectionEarningsByTokenAddress', () => {
         it('should return correct sum of earnings for the given token address', async () => {
-            const price = faker.random.numeric(19);
+            const price = faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false });
             const paymentToken = faker.finance.ethereumAddress();
 
             const collection = await repository.save({
@@ -1602,15 +1768,15 @@ describe('CollectionService', () => {
             });
 
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
+                tokenId: faker.string.numeric(3),
                 price,
                 collectionId: collection.id,
                 paymentToken,
@@ -1680,29 +1846,29 @@ describe('CollectionService', () => {
             });
 
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: sender1,
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
+                tokenId: faker.string.numeric(3),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken,
             });
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: sender1,
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
+                tokenId: faker.string.numeric(3),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken,
             });
 
@@ -1754,29 +1920,29 @@ describe('CollectionService', () => {
             });
 
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
+                tokenId: faker.string.numeric(3),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: tier.tierId,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
+                tokenId: faker.string.numeric(3),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
@@ -1799,29 +1965,29 @@ describe('CollectionService', () => {
             });
 
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: 1,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
+                tokenId: faker.string.numeric(3),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: 1,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
+                tokenId: faker.string.numeric(3),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
@@ -1868,29 +2034,29 @@ describe('CollectionService', () => {
             });
 
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: 1,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
+                tokenId: faker.string.numeric(3),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 recipient: faker.finance.ethereumAddress(),
                 address: collection.address,
                 tierId: 1,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.random.numeric(3),
-                price: faker.random.numeric(19),
+                tokenId: faker.string.numeric(3),
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
@@ -1916,8 +2082,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -1961,8 +2127,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -1986,8 +2152,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -2035,8 +2201,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -2059,8 +2225,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -2096,8 +2262,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -2171,8 +2337,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -2209,8 +2375,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -2245,8 +2411,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -2302,8 +2468,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -2351,8 +2517,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -2409,8 +2575,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -2446,8 +2612,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -2483,8 +2649,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -2516,8 +2682,8 @@ describe('CollectionService', () => {
         const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
         const walletAddress1 = faker.finance.ethereumAddress().toLowerCase();
         const walletAddress2 = faker.finance.ethereumAddress().toLowerCase();
-        const txHash1 = faker.datatype.hexadecimal({ length: 66, case: 'lower' });
-        const txHash2 = faker.datatype.hexadecimal({ length: 66, case: 'lower' });
+        const txHash1 = faker.string.hexadecimal({ length: 66, casing: 'lower' });
+        const txHash2 = faker.string.hexadecimal({ length: 66, casing: 'lower' });
         let collection;
 
         beforeEach(async () => {
@@ -2541,8 +2707,8 @@ describe('CollectionService', () => {
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.imageUrl(),
-                backgroundUrl: faker.image.imageUrl(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
                 websiteUrl: faker.internet.url(),
                 twitter: faker.internet.userName(),
                 instagram: faker.internet.userName(),
@@ -2586,7 +2752,7 @@ describe('CollectionService', () => {
             });
 
             const transactionContent = {
-                height: parseInt(faker.random.numeric(5)),
+                height: parseInt(faker.string.numeric(5)),
                 txHash: txHash1,
                 txTime: Math.floor(new Date().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -2598,14 +2764,14 @@ describe('CollectionService', () => {
             };
 
             const assetContent = {
-                height: parseInt(faker.random.numeric(5)),
-                txHash: faker.datatype.hexadecimal({ length: 66, case: 'lower' }),
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: tokenAddress,
             };
 
             // minted 3 in one transaction
-            const tokenId1 = faker.random.numeric(1);
+            const tokenId1 = faker.string.numeric(1);
             await mintSaleTransactionService.createMintSaleTransaction({
                 tokenId: tokenId1,
                 price: '1000000000000000000',
@@ -2617,7 +2783,7 @@ describe('CollectionService', () => {
                 ...assetContent,
             });
 
-            const tokenId2 = faker.random.numeric(2);
+            const tokenId2 = faker.string.numeric(2);
             await mintSaleTransactionService.createMintSaleTransaction({
                 tokenId: tokenId2,
                 price: '2000000000000000000',
@@ -2629,7 +2795,7 @@ describe('CollectionService', () => {
                 ...assetContent,
             });
 
-            const tokenId3 = faker.random.numeric(3);
+            const tokenId3 = faker.string.numeric(3);
             await mintSaleTransactionService.createMintSaleTransaction({
                 tokenId: tokenId3,
                 price: '3000000000000000000',
@@ -2642,12 +2808,12 @@ describe('CollectionService', () => {
             });
 
             // another transaction
-            const tokenId4 = faker.random.numeric(4);
+            const tokenId4 = faker.string.numeric(4);
             const anotherTransactionContent = Object.assign(transactionContent, {
                 tokenId: tokenId4,
                 price: '4000000000000000000',
                 recipient: walletAddress2,
-                height: parseInt(faker.random.numeric(5)),
+                height: parseInt(faker.string.numeric(5)),
                 txHash: txHash2,
                 txTime: Math.floor(new Date().getTime() / 1000),
             });
@@ -2668,6 +2834,177 @@ describe('CollectionService', () => {
             expect(aggregation1.tier.name).toEqual(collection.tiers[0].name);
             const aggregation2 = result.data.find((item) => item.txHash === txHash2);
             expect(aggregation2.tokenIds.length).toEqual(1);
+        });
+    });
+
+    describe('getCollectionEarningsChart', () => {
+        it('should return the earnings chart', async () => {
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: user,
+            });
+
+            const collection = await service.createCollectionWithTiers({
+                name: faker.commerce.productName(),
+                displayName: faker.commerce.productName(),
+                about: faker.commerce.productDescription(),
+                address: faker.commerce.productDescription(),
+                tags: [],
+                organization: { id: organization.id },
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: 200,
+                        paymentTokenAddress: coin.address,
+                        tierId: 0,
+                        price: '200',
+                        metadata: {
+                            uses: [],
+                            properties: {
+                                level: {
+                                    name: 'level',
+                                    type: 'string',
+                                    value: 'basic',
+                                    display_value: 'Basic',
+                                },
+                                holding_days: {
+                                    name: 'holding_days',
+                                    type: 'integer',
+                                    value: 125,
+                                    display_value: 'Days of holding',
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: parseInt(faker.string.numeric(5)),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
+                txTime: Math.floor(new Date().valueOf() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collection.address,
+                tierId: 0,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.string.numeric(3),
+                price: '1000000000000000000',
+                paymentToken: coin.address,
+            });
+
+            const tokenPriceUSD = faker.number.int({ max: 1000 });
+            const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+                USD: { price: tokenPriceUSD },
+            });
+
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
+
+            const result = await service.getCollectionEarningsChart(collection.address, '', '', 10, 10);
+            expect(result.totalCount).toBe(1);
+            expect(result.edges).toBeDefined();
+            expect(result.edges.length).toBe(1);
+            expect(result.edges[0].node.volume).toEqual({
+                paymentToken: coin.address,
+                inUSDC: tokenPriceUSD.toString(),
+                inPaymentToken: '1',
+            });
+        });
+    });
+
+    describe('getAggregatedVolumes', () => {
+        it('should get aggregated volumes', async () => {
+            const coin = await coinService.createCoin({
+                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+                name: 'Wrapped Ether',
+                symbol: 'WETH',
+                decimals: 18,
+                derivedETH: 1,
+                derivedUSDC: 1,
+                enabled: true,
+                chainId: 1,
+            });
+
+            const collection = await service.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                artists: [],
+                tags: [],
+                address: faker.finance.ethereumAddress(),
+            });
+
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: faker.number.int({ min: 10000, max: 99999 }),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collection.address,
+                tierId: 1,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.string.numeric(3),
+                price: '1000000000000000000',
+                paymentToken: coin.address,
+            });
+            await mintSaleTransactionService.createMintSaleTransaction({
+                height: faker.number.int({ min: 10000, max: 99999 }),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                recipient: faker.finance.ethereumAddress(),
+                address: collection.address,
+                tierId: 1,
+                tokenAddress: faker.finance.ethereumAddress(),
+                tokenId: faker.string.numeric(3),
+                price: '1000000000000000000',
+                paymentToken: coin.address,
+            });
+
+            const tokenPriceUSD = faker.number.int({ max: 1000 });
+            const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+                USD: { price: tokenPriceUSD },
+            });
+
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
+
+            const result = await service.getAggregatedVolumes(collection.address);
+            expect(result).toBeDefined();
+            expect(result.total).toBeDefined();
+            expect(result.total.inPaymentToken).toBe('2');
+            expect(result.total.inUSDC).toBe((tokenPriceUSD * 2).toString());
+
+            expect(result.monthly).toBeDefined();
+            expect(result.monthly.inPaymentToken).toBe('2');
+            expect(result.monthly.inUSDC).toBe((tokenPriceUSD * 2).toString());
+
+            expect(result.weekly).toBeDefined();
+            expect(result.weekly.inPaymentToken).toBe('2');
+            expect(result.weekly.inUSDC).toBe((tokenPriceUSD * 2).toString());
         });
     });
 });

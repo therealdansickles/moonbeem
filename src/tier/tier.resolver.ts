@@ -100,6 +100,6 @@ export class TierResolver {
     @Public()
     @Query(() => GraphQLJSONObject, { description: 'Returns attributes overview for collection/tier' })
     async attributeOverview(@Args('collectionAddress') collectionAddress: string): Promise<IOverview> {
-        return this.tierService.getArrtibutesOverview(collectionAddress);
+        return this.tierService.getAttributesOverview(collectionAddress);
     }
 }
