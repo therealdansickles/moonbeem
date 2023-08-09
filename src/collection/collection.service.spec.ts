@@ -2477,18 +2477,7 @@ describe('CollectionService', () => {
                 password: 'password',
             });
 
-            const organization = await organizationService.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: user,
-            });
+            const organization = await createOrganization(organizationService, { owner: user });
 
             collection = await service.createCollectionWithTiers({
                 name: faker.commerce.productName(),
@@ -2600,6 +2589,12 @@ describe('CollectionService', () => {
         });
 
         it('should work', async () => {
+            const tokenPriceUSD = faker.number.int({ max: 1000 });
+            const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+                USD: { price: tokenPriceUSD },
+            });
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
+
             const result = await service.getAggregatedCollectionActivities(collectionAddress, tokenAddress);
             expect(result.total).toEqual(2);
             expect(result.data.length).toEqual(2);
@@ -2608,6 +2603,27 @@ describe('CollectionService', () => {
             expect(aggregation1.tier.name).toEqual(collection.tiers[0].name);
             const aggregation2 = result.data.find((item) => item.txHash === txHash2);
             expect(aggregation2.tokenIds.length).toEqual(1);
+        });
+
+        it('should return cost object', async () => {
+            const tokenPriceUSD = faker.number.int({ max: 1000 });
+            const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+                USD: { price: tokenPriceUSD },
+            });
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
+
+            const result = await service.getAggregatedCollectionActivities(collectionAddress, tokenAddress);
+            expect(result.data.length).toEqual(2);
+
+            const aggregation1 = result.data.find((item) => item.txHash === txHash1);
+            expect(aggregation1.cost).toBeDefined();
+            expect(aggregation1.cost.inPaymentToken).toBe('6');
+            expect(aggregation1.cost.inUSDC).toBe((tokenPriceUSD * 6).toString());
+
+            const aggregation2 = result.data.find((item) => item.txHash === txHash2);
+            expect(aggregation2.cost).toBeDefined();
+            expect(aggregation2.cost.inPaymentToken).toBe('4');
+            expect(aggregation2.cost.inUSDC).toBe((tokenPriceUSD * 4).toString());
         });
     });
 

@@ -70,7 +70,7 @@ export class CollectionService {
         private transactionService: MintSaleTransactionService,
         private openseaService: OpenseaService,
         private coinService: CoinService
-    ) { }
+    ) {}
 
     /**
      * Retrieves the collection associated with the given id.
@@ -553,12 +553,18 @@ export class CollectionService {
                 // Use tiers map to get tier info
                 txn.tier = tiersMap.get(txn.tierId);
 
-                const cost = this.getFormattedCost(txn.cost, paymentToken.decimals);
+                const coin = await this.coinService.getCoinByAddress(txn.paymentToken);
+                const quote = await this.coinService.getQuote(coin.symbol);
+                const totalTokenPrice = new BigNumber(txn.cost).div(new BigNumber(10).pow(coin.decimals));
+                const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(quote['USD'].price);
 
                 return {
                     ...txn,
                     type,
-                    cost,
+                    cost: {
+                        inUSDC: totalUSDC.toString(),
+                        inPaymentToken: totalTokenPrice.toString(),
+                    },
                 };
             })
         );

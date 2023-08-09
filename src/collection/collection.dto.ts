@@ -425,9 +425,9 @@ export class CollectionAggregatedActivityData extends PickType(
     ['txHash', 'txTime', 'recipient', 'sender', 'paymentToken', 'chainId'],
     ObjectType
 ) {
-    @IsString()
-    @Field(() => String, { description: 'Total cost for the aggregated transaction' })
-    readonly cost: string;
+    @IsObject()
+    @Field(() => Profit, { description: 'Total cost object for the aggregated transaction' })
+    readonly cost: Profit;
 
     @IsEnum(CollectionActivityType)
     @Field(() => CollectionActivityType, { description: 'The activity type for the aggregated transaction.' })
