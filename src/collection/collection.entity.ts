@@ -31,6 +31,9 @@ export class Collection extends BaseEntity {
     @Column({ length: 64, unique: true, comment: 'The unique URL-friendly name of the collection.' })
     readonly name: string;
 
+    @Column({ length: 64, unique: true, comment: 'The slug to use in the URL', nullable: true })
+    readonly slug: string;
+
     @Column({
         type: 'enum',
         enum: CollectionKind,

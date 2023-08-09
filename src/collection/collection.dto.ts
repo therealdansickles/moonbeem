@@ -55,6 +55,10 @@ export class Collection {
     @Field({ description: 'The unique URL-friendly identifier for a collection.' })
     readonly name: string;
 
+    @IsString()
+    @Field({ description: 'The slug to use in the URL' })
+    readonly slug: string;
+
     @Field(() => CollectionKind, { description: 'The type of collection this is.' })
     readonly kind: CollectionKind;
 

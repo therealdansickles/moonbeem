@@ -19,6 +19,7 @@ import { WalletService } from '../wallet/wallet.service';
 import { CollectionStat, CollectionStatus } from './collection.dto';
 import { Collection, CollectionKind } from './collection.entity';
 import { CollectionService } from './collection.service';
+import { generateSlug } from './collection.utils';
 
 export const gql = String.raw;
 
@@ -712,7 +713,7 @@ describe('CollectionResolver', () => {
                     expect(body.data.createCollection.name).toEqual(variables.input.name);
                     expect(body.data.createCollection.displayName).toEqual(variables.input.displayName);
                 });
-                
+
             await request(app.getHttpServer())
                 .post('/graphql')
                 .auth(token, { type: 'bearer' })
@@ -786,15 +787,17 @@ describe('CollectionResolver', () => {
                 mutation CreateCollection($input: CreateCollectionInput!) {
                     createCollection(input: $input) {
                         name
+                        slug
                         displayName
                         kind
                     }
                 }
             `;
 
+            const name = faker.company.name();
             const variables = {
                 input: {
-                    name: faker.company.name(),
+                    name,
                     displayName: 'The best collection',
                     about: 'The best collection ever',
                     kind: CollectionKind.edition,
@@ -816,6 +819,7 @@ describe('CollectionResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.createCollection.name).toEqual(variables.input.name);
+                    expect(body.data.createCollection.slug).toEqual(generateSlug(name));
                     expect(body.data.createCollection.displayName).toEqual(variables.input.displayName);
                 });
         });
@@ -835,7 +839,6 @@ describe('CollectionResolver', () => {
                 address: faker.finance.ethereumAddress(),
                 artists: [],
                 tags: [],
-                owner,
             });
 
             const tokenQuery = gql`
@@ -975,7 +978,6 @@ describe('CollectionResolver', () => {
                 address: faker.finance.ethereumAddress(),
                 artists: [],
                 tags: [],
-                owner,
             });
 
             const tokenQuery = gql`

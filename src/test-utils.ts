@@ -7,6 +7,7 @@ import { TierService } from './tier/tier.service';
 import { Asset721Service } from './sync-chain/asset721/asset721.service';
 import { MintSaleContractService } from './sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { MintSaleTransactionService } from './sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { OrganizationService } from './organization/organization.service';
 
 export const createCoin = async (coinService: CoinService, coin?: any) =>
     coinService.createCoin({
@@ -25,7 +26,6 @@ export const createCollection = async (collectionService: CollectionService, col
         name: faker.company.name(),
         displayName: faker.company.name(),
         about: faker.company.name(),
-        artists: [],
         tags: [],
         kind: CollectionKind.edition,
         address: faker.finance.ethereumAddress(),
@@ -90,4 +90,19 @@ export const createMintSaleTransaction = async (transactionService: MintSaleTran
         collectionId: faker.string.uuid(),
         paymentToken: faker.finance.ethereumAddress(),
         ...transaction,
+    });
+
+export const createOrganization = async (organizationService: OrganizationService, organization?: any) =>
+    organizationService.createOrganization({
+        name: faker.company.name(),
+        displayName: faker.company.name(),
+        about: faker.company.catchPhrase(),
+        avatarUrl: faker.image.url(),
+        backgroundUrl: faker.image.url(),
+        websiteUrl: faker.internet.url(),
+        twitter: faker.internet.userName(),
+        instagram: faker.internet.userName(),
+        discord: faker.internet.userName(),
+        owner: faker.internet.userName(),
+        ...organization,
     });

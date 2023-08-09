@@ -23,6 +23,7 @@ import {
     createMintSaleTransaction,
     createTier,
     createCoin,
+    createOrganization,
 } from '../test-utils';
 
 describe('CollectionService', () => {
@@ -313,6 +314,25 @@ describe('CollectionService', () => {
             expect(result.id).toEqual(collection.id);
             expect(result.name).toEqual(collection.name);
             expect(result.organization.name).not.toBeNull();
+        });
+
+        it('should get collections by slug', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await createOrganization(organizationService, {
+                owner: owner,
+            });
+
+            const collection = await createCollection(service, {
+                organization: organization,
+            });
+            const result = await service.getCollectionByQuery({ slug: collection.slug });
+            expect(result.id).toEqual(collection.id);
+            expect(result.name).toEqual(collection.name);
+            expect(result.slug).toEqual(collection.slug);
         });
 
         it('should get nothing by an invalid name', async () => {
@@ -899,16 +919,7 @@ describe('CollectionService', () => {
                 password: 'password',
             });
 
-            const organization = await organizationService.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
+            const organization = await createOrganization(organizationService, {
                 owner: owner,
             });
 
@@ -919,6 +930,7 @@ describe('CollectionService', () => {
             const displayName = faker.company.name();
 
             const collection = await createCollection(service, {
+                name: '$Collection Name%',
                 tiers: [
                     {
                         name: faker.company.name(),
@@ -933,6 +945,7 @@ describe('CollectionService', () => {
             });
 
             expect(collection).toBeDefined();
+            expect(collection.slug).toEqual('collection-name');
             expect(collection.displayName).toEqual(displayName);
             expect(collection.organization.id).toEqual(organization.id);
             expect(collection.creator.id).toEqual(wallet.id);
@@ -943,6 +956,7 @@ describe('CollectionService', () => {
         it('should update a collection', async () => {
             const collection = await repository.save({
                 name: faker.company.name(),
+                slug: 'collection slug',
                 displayName: 'The best collection',
                 about: 'The best collection ever',
                 artists: [],
@@ -951,10 +965,14 @@ describe('CollectionService', () => {
             });
 
             const result = await service.updateCollection(collection.id, {
+                name: faker.company.name(),
                 displayName: 'The best collection ever',
             });
 
+            const updatedCollection = await service.getCollection(collection.id);
+
             expect(result).toBeTruthy();
+            expect(updatedCollection.slug).not.toEqual(collection.slug);
         });
 
         it('should update a collaboration in a collection', async () => {

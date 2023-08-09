@@ -66,6 +66,7 @@ export class SearchService {
             collections.push({
                 id: collection.id,
                 name: collection.name,
+                slug: collection.slug,
                 kind: collection.kind,
                 displayName: collection.displayName,
                 about: collection.about,

@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js';
 import { startOfDay, startOfMonth, startOfWeek, subDays } from 'date-fns';
 import { GraphQLError } from 'graphql';
 import { isEmpty, isNil, omitBy } from 'lodash';
-import { FindOptionsWhere, In, IsNull, Repository, UpdateResult } from 'typeorm';
+import { DeepPartial, FindOptionsWhere, In, IsNull, Repository, UpdateResult } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -47,8 +47,9 @@ import {
     ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
+import { generateSlug } from './collection.utils';
 
-type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name'>>;
+type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name' | 'slug'>>;
 
 @Injectable()
 export class CollectionService {
@@ -131,6 +132,7 @@ export class CollectionService {
 
         return collections;
     }
+
     /**
      * Retrieves the collection associated with the given address.
      *
@@ -255,9 +257,12 @@ export class CollectionService {
      * @param data The data to use when creating the collection.
      * @returns The newly created collection.
      */
-    async createCollection(data: any): Promise<Collection> {
+    async createCollection(data: DeepPartial<collectionEntity.Collection>): Promise<Collection> {
         try {
-            return this.collectionRepository.save(data);
+            return this.collectionRepository.save({
+                slug: generateSlug(data.name),
+                ...data,
+            });
         } catch (e) {
             Sentry.captureException(e);
             throw new GraphQLError('Failed to create new collection.', {
@@ -269,12 +274,14 @@ export class CollectionService {
     /**
      * Updates a collection.
      *
-     * @param params The id of the collection to update and the data to update it with.
+     * @param id The id of the collection to update.
+     * @param data The data to use when updating the collection.
      * @returns A boolean if it updated successfully.
      */
     async updateCollection(id: string, data: Partial<Omit<UpdateCollectionInput, 'id'>>): Promise<boolean> {
         try {
-            const result: UpdateResult = await this.collectionRepository.update(id, data);
+            const partialCollection = data.name ? { slug: generateSlug(data.name), ...data } : data;
+            const result: UpdateResult = await this.collectionRepository.update(id, partialCollection);
             return result.affected > 0;
         } catch (e) {
             Sentry.captureException(e);
@@ -341,8 +348,7 @@ export class CollectionService {
             });
         }
 
-        const dd = collection as Collection;
-        const createResult = await this.collectionRepository.save(dd);
+        const createResult = await this.createCollection(collection);
 
         if (tiers) {
             for (const tier of tiers) {
@@ -350,11 +356,10 @@ export class CollectionService {
             }
         }
 
-        const result = await this.collectionRepository.findOne({
+        return await this.collectionRepository.findOne({
             where: { id: createResult.id },
             relations: ['tiers', 'organization', 'collaboration'],
         });
-        return result;
     }
 
     /**
@@ -946,7 +951,8 @@ export class CollectionService {
         const [result, totalResult] = await Promise.all([
             builder.getRawMany(),
             this.mintSaleTransactionRepository.manager.query(
-                `SELECT COUNT(1) AS "total" FROM (${subquery.getSql()}) AS subquery`,
+                `SELECT COUNT(1) AS "total"
+                 FROM (${subquery.getSql()}) AS subquery`,
                 [address]
             ),
         ]);
