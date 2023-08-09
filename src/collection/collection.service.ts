@@ -246,8 +246,8 @@ export class CollectionService {
                 throw new Error(`The endSaleAt should be greater than startSaleAt.`);
             }
         }
-        const existedCollection = await this.collectionRepository.findOneBy({ name: data.name });
-        if (existedCollection) throw new Error(`The collection name ${data.name} already existed.`);
+        const existingCollection = await this.collectionRepository.findOneBy({ name: data.name });
+        if (existingCollection) throw new Error(`The collection name ${data.name} is already taken`);
         return true;
     }
 

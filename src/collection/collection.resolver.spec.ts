@@ -720,7 +720,7 @@ describe('CollectionResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.errors[0].message).toMatch(`The collection name ${variables.input.name} already existed`);
+                    expect(body.errors[0].message).toMatch(`The collection name ${variables.input.name} is already taken`);
                 });
         });
 
