@@ -20,6 +20,13 @@ import { CollectionStat, CollectionStatus } from './collection.dto';
 import { Collection, CollectionKind } from './collection.entity';
 import { CollectionService } from './collection.service';
 import { generateSlug } from './collection.utils';
+import {
+    createCoin,
+    createCollection,
+    createMintSaleContract,
+    createOrganization,
+    createTier,
+} from '../test-utils';
 
 export const gql = String.raw;
 
@@ -57,35 +64,25 @@ describe('CollectionResolver', () => {
     });
 
     describe('collection', () => {
-        it('should get a collection by id', async () => {
-            const owner = await userService.createUser({
+        let owner;
+        let organization;
+        let collection;
+
+        beforeEach(async () => {
+            owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',
             });
-
-            const organization = await organizationService.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
+            organization = await createOrganization(organizationService, {
                 owner,
             });
-
-            const collection = await service.createCollection({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                address: faker.finance.ethereumAddress(),
-                artists: [],
-                tags: [],
+            collection = await createCollection(service, {
                 organization: organization,
             });
 
+        });
+
+        it('should get a collection by id', async () => {
             const query = gql`
                 query GetCollection($id: String!) {
                     collection(id: $id) {
@@ -119,56 +116,12 @@ describe('CollectionResolver', () => {
         });
 
         it('should get a collection by id with contract details', async () => {
-            const owner = await userService.createUser({
-                email: faker.internet.email(),
-                password: 'password',
-            });
-
-            const organization = await organizationService.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner,
-            });
-
-            const collection = await service.createCollection({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                address: faker.finance.ethereumAddress(),
-                artists: [],
-                tags: [],
-                organization: organization,
-            });
-
             const beginTime = Math.floor(faker.date.recent().getTime() / 1000);
             const endTime = Math.floor(faker.date.recent().getTime() / 1000);
 
-            await mintSaleContractService.createMintSaleContract({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(faker.date.recent().getTime() / 1000),
-                sender: faker.finance.ethereumAddress(),
-                address: faker.finance.ethereumAddress(),
-                royaltyReceiver: faker.finance.ethereumAddress(),
-                royaltyRate: 10000,
-                derivativeRoyaltyRate: 1000,
-                isDerivativeAllowed: true,
+            await createMintSaleContract(mintSaleContractService, {
                 beginTime,
                 endTime,
-                tierId: 0,
-                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
-                paymentToken: faker.finance.ethereumAddress(),
-                startId: 1,
-                endId: 100,
-                currentId: 1,
-                tokenAddress: faker.finance.ethereumAddress(),
                 collectionId: collection.id,
             });
 
@@ -208,34 +161,6 @@ describe('CollectionResolver', () => {
         });
 
         it('should get a collection by id with no contract details, if contract doesn\'t exist', async () => {
-            const owner = await userService.createUser({
-                email: faker.internet.email(),
-                password: 'password',
-            });
-
-            const organization = await organizationService.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner,
-            });
-
-            const collection = await service.createCollection({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                address: faker.finance.ethereumAddress(),
-                artists: [],
-                tags: [],
-                organization: organization,
-            });
-
             const query = gql`
                 query GetCollection($id: String!) {
                     collection(id: $id) {
@@ -270,34 +195,6 @@ describe('CollectionResolver', () => {
         });
 
         it('should get a collection by address', async () => {
-            const owner = await userService.createUser({
-                email: faker.internet.email(),
-                password: 'password',
-            });
-
-            const organization = await organizationService.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner,
-            });
-
-            const collection = await service.createCollection({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                address: faker.finance.ethereumAddress(),
-                artists: [],
-                tags: [],
-                organization: organization,
-            });
-
             const query = gql`
                 query GetCollection($address: String!) {
                     collection(address: $address) {
@@ -325,93 +222,57 @@ describe('CollectionResolver', () => {
                 });
         });
 
+        it('should get a collection by slug', async () => {
+            const query = gql`
+                query GetCollection($slug: String!) {
+                    collection(slug: $slug) {
+                        name
+                        displayName
+                        kind
+                        slug
+                    }
+                }
+            `;
+
+            const variables = { slug: collection.slug };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.collection.name).toEqual(collection.name);
+                    expect(body.data.collection.slug).toEqual(collection.slug);
+                    expect(body.data.collection.displayName).toEqual(collection.displayName);
+                });
+        });
+
         it('should get a collection by id with tiers', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',
             });
 
-            const organization = await organizationService.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
+            const organization = await createOrganization(organizationService, {
                 owner,
             });
 
-            const collection = await service.createCollection({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                address: faker.finance.ethereumAddress(),
-                artists: [],
-                tags: [],
+            const collection = await createCollection(service, {
                 organization: organization,
             });
 
-            const coin = await coinService.createCoin({
-                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-                name: 'Wrapped Ether',
-                symbol: 'WETH',
-                decimals: 18,
-                derivedETH: 1,
-                derivedUSDC: 1,
-                enabled: true,
-                chainId: 1,
+            const coin = await createCoin(coinService);
+
+            await createTier(tierService, {
+                collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
             });
 
-            await tierService.createTier({
+            await createTier(tierService, {
+                collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
                 name: faker.company.name(),
                 totalMints: 100,
-                collection: { id: collection.id },
-                paymentTokenAddress: coin.address,
-                tierId: 0,
-                metadata: {
-                    uses: [],
-                    properties: {
-                        level: {
-                            name: 'level',
-                            type: 'string',
-                            value: 'basic',
-                            display_value: 'Basic',
-                        },
-                        holding_days: {
-                            name: 'holding_days',
-                            type: 'integer',
-                            value: 125,
-                            display_value: 'Days of holding',
-                        },
-                    },
-                },
-            });
-
-            await tierService.createTier({
-                name: faker.company.name(),
-                totalMints: 200,
-                collection: { id: collection.id },
-                paymentTokenAddress: coin.address,
-                tierId: 0,
-                metadata: {
-                    properties: {
-                        level: {
-                            name: 'level',
-                            type: 'string',
-                            value: 'basic',
-                            display_value: 'Basic',
-                        },
-                        holding_days: {
-                            name: 'holding_days',
-                            type: 'integer',
-                            value: 125,
-                            display_value: 'Days of holding',
-                        },
-                    },
-                },
             });
 
             const query = gql`

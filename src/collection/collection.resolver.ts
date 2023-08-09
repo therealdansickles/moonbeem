@@ -43,7 +43,7 @@ export class CollectionResolver {
         @Args({ name: 'id', nullable: true }) id: string,
             @Args({ name: 'address', nullable: true }) address: string,
             @Args({ name: 'name', nullable: true }) name: string,
-            @Args({ name: 'name', nullable: true }) slug: string
+            @Args({ name: 'slug', nullable: true }) slug: string
     ): Promise<Collection> {
         return this.collectionService.getCollectionByQuery({ id, address, name, slug });
     }
