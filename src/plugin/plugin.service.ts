@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { CollectionService } from '../collection/collection.service';
 import { MetadataCondition, MetadataInput } from '../metadata/metadata.dto';
 import { Tier as TierDto } from '../tier/tier.dto';
 import { TierService } from '../tier/tier.service';
@@ -15,7 +14,6 @@ export class PluginService {
     constructor(
         @InjectRepository(Plugin) private readonly pluginRepository: Repository<Plugin>,
         private tierService: TierService,
-        private collectionService: CollectionService,
     ) {}
 
     /**
@@ -57,7 +55,7 @@ export class PluginService {
             // `conditions`: the existed condition on the tier
             // `metadata.conditions`: the customized conditions parameter by end user
             // conditions: { rules, ...conditions },
-            conditions: merge(plugin.metadata.conditions, customizedMetadataParameters?.conditions, conditions)
+            conditions: merge(plugin.metadata.conditions, conditions, customizedMetadataParameters?.conditions)
         };
         await this.tierService.updateTier(tier.id, { metadata: metadataPayload });
         return this.tierService.getTier(tier.id);
