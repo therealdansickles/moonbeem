@@ -293,6 +293,11 @@ export class TierSearchInput {
     readonly collectionAddress?: string;
 
     @IsString()
+    @Field({ description: 'The slug of the collection', nullable: true })
+    @IsOptional()
+    readonly collectionSlug?: string;
+
+    @IsString()
     @Field({ nullable: true, description: 'The keyword for search tier.' })
     @IsOptional()
     readonly keyword?: string;
@@ -311,6 +316,19 @@ export class TierSearchInput {
     @Field(() => [String], { nullable: true, description: 'The upgrade properties of the tier.' })
     @IsOptional()
     readonly upgrades: string[];
+}
+
+@InputType('AttributeOverviewInput')
+export class AttributeOverviewInput {
+    @IsString()
+    @Field({ description: 'The address of the collection.', nullable: true })
+    @IsOptional()
+    readonly collectionAddress?: string;
+
+    @IsString()
+    @Field({ description: 'The slug of the collection', nullable: true })
+    @IsOptional()
+    readonly collectionSlug?: string;
 }
 
 export class IOverview {

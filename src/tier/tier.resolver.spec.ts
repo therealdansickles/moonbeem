@@ -795,7 +795,7 @@ describe('TierResolver', () => {
                 }
             `;
 
-            const variables = { collectionAddress: collectionAddress.toLowerCase() };
+            const variables = { collectionAddress: collectionAddress };
             return await request(app.getHttpServer())
                 .post('/graphql')
                 .send({ query, variables })
@@ -814,7 +814,67 @@ describe('TierResolver', () => {
                 });
         });
 
-        it('should search by keyword', async () => {
+        it('should get attribute overview by collectionAddress input', async () => {
+            const query = gql`
+                query overview($input: AttributeOverviewInput!) {
+                    attributeOverview(input: $input)
+                }
+            `;
+
+            const variables = {
+                input: {
+                    collectionAddress: collectionAddress
+                }
+            };
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.attributeOverview).toBeDefined();
+                    expect(body.data.attributeOverview.attributes).toBeDefined();
+                    expect(body.data.attributeOverview.attributes.level).toBeDefined();
+                    expect(body.data.attributeOverview.attributes.level.basic).toEqual(1);
+
+                    expect(body.data.attributeOverview.upgrades).toBeDefined();
+                    expect(body.data.attributeOverview.upgrades.level).toEqual(1);
+
+                    expect(body.data.attributeOverview.plugins).toBeDefined();
+                    expect(body.data.attributeOverview.plugins['vibexyz/creator_scoring']).toEqual(1);
+                });
+        });
+
+        it('should get attribute overview by collectionSlug input', async () => {
+            const query = gql`
+                query overview($input: AttributeOverviewInput!) {
+                    attributeOverview(input: $input)
+                }
+            `;
+
+            const variables = {
+                input: {
+                    collectionSlug: innerCollection.slug
+                }
+            };
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.attributeOverview).toBeDefined();
+                    expect(body.data.attributeOverview.attributes).toBeDefined();
+                    expect(body.data.attributeOverview.attributes.level).toBeDefined();
+                    expect(body.data.attributeOverview.attributes.level.basic).toEqual(1);
+
+                    expect(body.data.attributeOverview.upgrades).toBeDefined();
+                    expect(body.data.attributeOverview.upgrades.level).toEqual(1);
+
+                    expect(body.data.attributeOverview.plugins).toBeDefined();
+                    expect(body.data.attributeOverview.plugins['vibexyz/creator_scoring']).toEqual(1);
+                });
+        });
+
+        it('should search by keyword and collection address', async () => {
             const query = gql`
                 query SearchTier($input: TierSearchBarInput!) {
                     searchTierFromCollection(input: $input) {
@@ -834,6 +894,40 @@ describe('TierResolver', () => {
             `;
 
             const variables = { input: { collectionId: innerCollection.id, keyword: 'test' } };
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.searchTierFromCollection).toBeDefined();
+                    expect(body.data.searchTierFromCollection.totalCount).toEqual(1);
+                    expect(body.data.searchTierFromCollection.edges).toBeDefined();
+                    expect(body.data.searchTierFromCollection.edges[0]).toBeDefined();
+                    expect(body.data.searchTierFromCollection.edges[0].node).toBeDefined();
+                    expect(body.data.searchTierFromCollection.edges[0].node.name).toBe(tierName);
+                });
+        });
+
+        it('should search by keyword and collection slug', async () => {
+            const query = gql`
+                query SearchTier($input: TierSearchBarInput!) {
+                    searchTierFromCollection(input: $input) {
+                        edges {
+                            cursor
+                            node {
+                                id
+                                name
+                            }
+                        }
+                        pageInfo {
+                            endCursor
+                        }
+                        totalCount
+                    }
+                }
+            `;
+
+            const variables = { input: { collectionSlug: innerCollection.slug, keyword: 'test' } };
             return await request(app.getHttpServer())
                 .post('/graphql')
                 .send({ query, variables })
