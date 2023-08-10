@@ -10,15 +10,13 @@ import { RelationshipService } from '../relationship/relationship.service';
 import { SessionService } from '../session/session.service';
 import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from './wallet.service';
+import { createAsset721, createCollection, createMintSaleTransaction, createTier } from '../test-utils';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 
 export const gql = String.raw;
 
@@ -34,6 +32,7 @@ describe('WalletResolver', () => {
     let app: INestApplication;
     let address: string;
     let coinService: CoinService;
+    let asset721Service: Asset721Service;
 
     beforeAll(async () => {
         app = global.app;
@@ -46,6 +45,7 @@ describe('WalletResolver', () => {
         relationshipService = global.relationshipService;
         sessionService = global.sessionService;
         coinService = global.coinService;
+        asset721Service = global.asset721Service;
     });
 
     afterEach(async () => {
@@ -588,54 +588,17 @@ describe('WalletResolver', () => {
         it('should get minted NFTs', async () => {
             const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
 
-            const collection = await collectionService.createCollection({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                artists: [],
-                tags: [],
-                kind: CollectionKind.edition,
-                address: faker.finance.ethereumAddress(),
-            });
-
-            const tier = await tierService.createTier({
-                name: faker.company.name(),
-                totalMints: 100,
-                tierId: 1,
-                collection: { id: collection.id },
-                paymentTokenAddress: faker.finance.ethereumAddress(),
-                metadata: {
-                    uses: [],
-                    properties: {
-                        level: {
-                            name: 'level',
-                            type: 'string',
-                            value: 'basic',
-                            display_value: 'Basic',
-                        },
-                        holding_days: {
-                            name: 'holding_days',
-                            type: 'integer',
-                            value: 125,
-                            display_value: 'Days of holding',
-                        },
-                    },
-                },
-            });
-
-            const transaction = await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(faker.date.recent().getTime() / 1000),
-                sender: faker.finance.ethereumAddress(),
+            const collection = await createCollection(collectionService);
+            const tier = await createTier(tierService, { collection: { id: collection.id } });
+            const transaction = await createMintSaleTransaction(mintSaleTransactionService, {
                 recipient: wallet.address,
                 address: collection.address,
                 tierId: tier.tierId,
-                tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
-                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
-                paymentToken: faker.finance.ethereumAddress(),
-                chainId: faker.string.numeric(5),
+            });
+            await createAsset721(asset721Service, {
+                address: transaction.tokenAddress,
+                tokenId: transaction.tokenId,
+                owner: wallet.address,
             });
 
             const query = gql`

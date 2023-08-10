@@ -21,6 +21,7 @@ export const createCoin = async (coinService: CoinService, coin?: any) =>
         chainId: 1,
         ...coin,
     });
+
 export const createCollection = async (collectionService: CollectionService, collection?: any) =>
     collectionService.createCollection({
         name: faker.company.name(),
@@ -31,6 +32,7 @@ export const createCollection = async (collectionService: CollectionService, col
         address: faker.finance.ethereumAddress(),
         ...collection,
     });
+
 export const createTier = async (tierService: TierService, tier?: any) =>
     tierService.createTier({
         name: faker.company.name(),
@@ -42,6 +44,7 @@ export const createTier = async (tierService: TierService, tier?: any) =>
         metadata: {},
         ...tier,
     });
+
 export const createMintSaleContract = async (contractService: MintSaleContractService, contract?: any) =>
     contractService.createMintSaleContract({
         height: parseInt(faker.string.numeric(5)),
@@ -65,6 +68,7 @@ export const createMintSaleContract = async (contractService: MintSaleContractSe
         collectionId: faker.string.uuid(),
         ...contract,
     });
+
 export const createAsset721 = async (asset721Service: Asset721Service, asset721?: any) =>
     asset721Service.createAsset721({
         height: parseInt(faker.string.numeric(5)),
@@ -75,6 +79,7 @@ export const createAsset721 = async (asset721Service: Asset721Service, asset721?
         owner: faker.finance.ethereumAddress(),
         ...asset721,
     });
+
 export const createMintSaleTransaction = async (transactionService: MintSaleTransactionService, transaction?: any) =>
     transactionService.createMintSaleTransaction({
         height: parseInt(faker.string.numeric(5)),
