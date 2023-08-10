@@ -3,7 +3,7 @@ import { GraphQLError } from 'graphql';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { CollectionService } from '../collection/collection.service';
-import { Public } from '../session/session.decorator';
+import { AuthorizedCollectionOwner, Public } from '../session/session.decorator';
 import { Tier } from '../tier/tier.dto';
 import { TierService } from '../tier/tier.service';
 import { InstallOnCollectionInput, InstallOnTierInput, Plugin } from './plugin.dto';
@@ -29,7 +29,7 @@ export class PluginResolver {
         return await this.pluginService.getPlugin(id);
     }
 
-    @Public()
+    @AuthorizedCollectionOwner('collectionId')
     @Mutation(() => [Tier])
     async installOnCollection(@Args('input') input: InstallOnCollectionInput) {
         const collection = await this.collectionService.getCollection(input.collectionId);
@@ -44,8 +44,7 @@ export class PluginResolver {
         const promises = tiers.map(tier => this.pluginService.installOnTier({ tier, plugin, customizedMetadataParameters: input.metadata }));
         return Promise.all(promises);
     }
-
-    @Public()
+ 
     @Mutation(() => Tier)
     async installOnTier(@Args('input') input: InstallOnTierInput) {
         const tier = await this.tierService.getTier(input.tierId);

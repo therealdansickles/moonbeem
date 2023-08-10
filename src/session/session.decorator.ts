@@ -4,8 +4,8 @@ import {
 import { GqlExecutionContext } from '@nestjs/graphql';
 
 import {
-    AuthorizedOrganizationGuard, AuthorizedTokenGuard, AuthorizedUserGuard,
-    AuthorizedWalletAddressGuard, AuthorizedWalletGuard
+    AuthorizedCollectionOwnerGuard, AuthorizedOrganizationGuard, AuthorizedTokenGuard,
+    AuthorizedUserGuard, AuthorizedWalletAddressGuard, AuthorizedWalletGuard
 } from './session.guard';
 
 export const IS_PUBLIC_KEY = 'isPublic';
@@ -82,5 +82,12 @@ export function AuthorizedToken(parameter: { token: string, collection: string, 
         SetMetadata(COLLECTION_ID_PARAMETER, parameter.collection),
         SetMetadata(WALLET_ADDRESS_PARAMETER, parameter.owner),
         UseGuards(AuthorizedTokenGuard)
+    );
+}
+
+export function AuthorizedCollectionOwner(key: string) {
+    return applyDecorators(
+        SetMetadata(COLLECTION_ID_PARAMETER, key),
+        UseGuards(AuthorizedCollectionOwnerGuard)
     );
 }

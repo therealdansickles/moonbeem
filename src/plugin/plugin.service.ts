@@ -54,7 +54,6 @@ export class PluginService {
             // `plugin.metadata.conditions`: the conditions data come from new installed plugin
             // `conditions`: the existed condition on the tier
             // `metadata.conditions`: the customized conditions parameter by end user
-            // conditions: { rules, ...conditions },
             conditions: merge(plugin.metadata.conditions, conditions, customizedMetadataParameters?.conditions)
         };
         await this.tierService.updateTier(tier.id, { metadata: metadataPayload });
