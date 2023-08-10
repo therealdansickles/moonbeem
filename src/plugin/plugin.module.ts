@@ -1,5 +1,6 @@
 import { HttpModule } from '@nestjs/axios';
 import { forwardRef, Module } from '@nestjs/common';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CoinMarketCapModule } from '../coinmarketcap/coinmarketcap.module';
@@ -43,6 +44,7 @@ import { PluginService } from './plugin.service';
         forwardRef(() => CoinModule),
         forwardRef(() => MintSaleTransactionModule),
         HttpModule,
+        JwtModule,
     ],
     providers: [
         PluginService,
@@ -53,6 +55,7 @@ import { PluginService } from './plugin.service';
         OpenseaService,
         CoinMarketCapService,
         MintSaleTransactionService,
+        JwtService,
     ],
 })
 export class PluginModule {}

@@ -13,6 +13,8 @@ import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { Wallet } from './wallet.entity';
 import { WalletService } from './wallet.service';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
+import { createAsset721, createCollection, createMintSaleTransaction, createTier } from '../test-utils';
 
 describe('WalletService', () => {
     let address: string;
@@ -23,6 +25,7 @@ describe('WalletService', () => {
     let tierService: TierService;
     let userService: UserService;
     let coinService: CoinService;
+    let asset721Service: Asset721Service;
 
     beforeAll(async () => {
         address = faker.finance.ethereumAddress().toLowerCase();
@@ -33,6 +36,7 @@ describe('WalletService', () => {
         tierService = global.tierService;
         userService = global.userService;
         coinService = global.coinService;
+        asset721Service = global.asset721Service;
     });
 
     afterEach(async () => {
@@ -315,53 +319,17 @@ describe('WalletService', () => {
         it('should return minted transactions by address', async () => {
             const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
 
-            const collection = await collectionService.createCollection({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                artists: [],
-                tags: [],
-                kind: CollectionKind.edition,
-                address: faker.finance.ethereumAddress(),
-            });
-
-            const tier = await tierService.createTier({
-                name: faker.company.name(),
-                totalMints: 100,
-                tierId: 1,
-                collection: { id: collection.id },
-                paymentTokenAddress: faker.finance.ethereumAddress(),
-                metadata: {
-                    uses: [],
-                    properties: {
-                        level: {
-                            name: 'level',
-                            type: 'string',
-                            value: 'basic',
-                            display_value: 'Basic',
-                        },
-                        holding_days: {
-                            name: 'holding_days',
-                            type: 'integer',
-                            value: 125,
-                            display_value: 'Days of holding',
-                        },
-                    },
-                },
-            });
-
-            const transaction = await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(faker.date.recent().getTime() / 1000),
-                sender: faker.finance.ethereumAddress(),
+            const collection = await createCollection(collectionService);
+            const tier = await createTier(tierService, { collection: { id: collection.id } });
+            const transaction = await createMintSaleTransaction(mintSaleTransactionService, {
                 recipient: wallet.address,
                 address: collection.address,
                 tierId: tier.tierId,
-                tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
-                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
-                paymentToken: faker.finance.ethereumAddress(),
+            });
+            await createAsset721(asset721Service, {
+                address: transaction.tokenAddress,
+                tokenId: transaction.tokenId,
+                owner: wallet.address,
             });
 
             const result = await service.getMintedByAddress(wallet.address, '', '', 10, 10);
@@ -378,40 +346,21 @@ describe('WalletService', () => {
         it('should return minted transactions by address with pagination', async () => {
             const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
 
-            const collection = await collectionService.createCollection({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                artists: [],
-                tags: [],
-                kind: CollectionKind.edition,
-                address: faker.finance.ethereumAddress(),
-            });
-
-            const tier = await tierService.createTier({
-                name: faker.company.name(),
-                totalMints: 100,
-                tierId: 1,
-                collection: { id: collection.id },
-                paymentTokenAddress: faker.finance.ethereumAddress(),
-                metadata: {},
-            });
+            const collection = await createCollection(collectionService);
+            const tier = await createTier(tierService, { collection: { id: collection.id } });
 
             const createdAt = new Date();
             for (let i = 0; i < 15; i++) {
-                await mintSaleTransactionService.createMintSaleTransaction({
-                    height: parseInt(faker.string.numeric(5)),
-                    txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                    txTime: Math.floor(faker.date.recent().getTime() / 1000),
-                    sender: faker.finance.ethereumAddress(),
+                const txn = await createMintSaleTransaction(mintSaleTransactionService, {
                     recipient: wallet.address,
                     address: collection.address,
                     tierId: tier.tierId,
-                    tokenAddress: faker.finance.ethereumAddress(),
-                    tokenId: faker.string.numeric(3),
-                    price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
-                    paymentToken: faker.finance.ethereumAddress(),
                     createdAt,
+                });
+                await createAsset721(asset721Service, {
+                    address: txn.tokenAddress,
+                    tokenId: txn.tokenId,
+                    owner: wallet.address,
                 });
             }
 
@@ -430,7 +379,6 @@ describe('WalletService', () => {
             const previousPage = await service.getMintedByAddress(wallet.address, sendPageStartCursor, '', 0, 10);
             expect(previousPage.edges.length).toEqual(10);
             expect(previousPage.pageInfo.endCursor).toEqual(firstPageStartCursor);
-
         });
     });
 

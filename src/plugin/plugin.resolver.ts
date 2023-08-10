@@ -3,7 +3,8 @@ import { GraphQLError } from 'graphql';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { CollectionService } from '../collection/collection.service';
-import { Public } from '../session/session.decorator';
+import { AuthorizedCollectionOwner, Public } from '../session/session.decorator';
+import { Tier } from '../tier/tier.dto';
 import { TierService } from '../tier/tier.service';
 import { InstallOnCollectionInput, InstallOnTierInput, Plugin } from './plugin.dto';
 import { PluginService } from './plugin.service';
@@ -28,7 +29,8 @@ export class PluginResolver {
         return await this.pluginService.getPlugin(id);
     }
 
-    @Mutation(() => Plugin)
+    @AuthorizedCollectionOwner('collectionId')
+    @Mutation(() => [Tier])
     async installOnCollection(@Args('input') input: InstallOnCollectionInput) {
         const collection = await this.collectionService.getCollection(input.collectionId);
         if (!collection) throw new GraphQLError(`Collection ${input.collectionId} doesn't exsit.`);
@@ -39,11 +41,11 @@ export class PluginResolver {
         const plugin = await this.pluginService.getPlugin(input.pluginId);
         if (!plugin) throw new GraphQLError(`Plugin ${input.pluginId} doesn't exist.`);
 
-        const promises = tiers.map(tier => this.pluginService.installOnTier({ tier, plugin, metadata: input.metadata }));
+        const promises = tiers.map(tier => this.pluginService.installOnTier({ tier, plugin, customizedMetadataParameters: input.metadata }));
         return Promise.all(promises);
     }
-
-    @Mutation(() => Plugin)
+ 
+    @Mutation(() => Tier)
     async installOnTier(@Args('input') input: InstallOnTierInput) {
         const tier = await this.tierService.getTier(input.tierId);
         if (!tier) throw new GraphQLError(`Tier ${input.tierId} doesn't exist.`);
@@ -51,6 +53,6 @@ export class PluginResolver {
         const plugin = await this.pluginService.getPlugin(input.pluginId);
         if (!plugin) throw new GraphQLError(`Plugin ${input.pluginId} doesn't exist.`);
 
-        return await this.pluginService.installOnTier({ tier, plugin, metadata: input.metadata });
+        return this.pluginService.installOnTier({ tier, plugin, customizedMetadataParameters: input.metadata });
     }
 }

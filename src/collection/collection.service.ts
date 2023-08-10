@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js';
 import { startOfDay, startOfMonth, startOfWeek, subDays } from 'date-fns';
 import { GraphQLError } from 'graphql';
 import { isEmpty, isNil, omitBy } from 'lodash';
-import { FindOptionsWhere, In, IsNull, Repository, UpdateResult } from 'typeorm';
+import { DeepPartial, FindOptionsWhere, In, IsNull, Repository, UpdateResult } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -35,6 +35,7 @@ import {
     CollectionPaginated,
     CollectionSold,
     CollectionSoldPaginated,
+    CollectionSoldAggregated,
     CollectionStat,
     CollectionStatus,
     CreateCollectionInput,
@@ -46,8 +47,9 @@ import {
     ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
+import { generateSlug } from './collection.utils';
 
-type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name'>>;
+type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name' | 'slug'>>;
 
 @Injectable()
 export class CollectionService {
@@ -130,6 +132,7 @@ export class CollectionService {
 
         return collections;
     }
+
     /**
      * Retrieves the collection associated with the given address.
      *
@@ -243,8 +246,8 @@ export class CollectionService {
                 throw new Error(`The endSaleAt should be greater than startSaleAt.`);
             }
         }
-        const existedCollection = await this.collectionRepository.findOneBy({ name: data.name });
-        if (existedCollection) throw new Error(`The collection name ${data.name} already existed.`);
+        const existingCollection = await this.collectionRepository.findOneBy({ name: data.name });
+        if (existingCollection) throw new Error(`The collection name ${data.name} is already taken`);
         return true;
     }
 
@@ -254,9 +257,12 @@ export class CollectionService {
      * @param data The data to use when creating the collection.
      * @returns The newly created collection.
      */
-    async createCollection(data: any): Promise<Collection> {
+    async createCollection(data: DeepPartial<collectionEntity.Collection>): Promise<Collection> {
         try {
-            return this.collectionRepository.save(data);
+            return this.collectionRepository.save({
+                slug: generateSlug(data.name),
+                ...data,
+            });
         } catch (e) {
             Sentry.captureException(e);
             throw new GraphQLError('Failed to create new collection.', {
@@ -268,12 +274,14 @@ export class CollectionService {
     /**
      * Updates a collection.
      *
-     * @param params The id of the collection to update and the data to update it with.
+     * @param id The id of the collection to update.
+     * @param data The data to use when updating the collection.
      * @returns A boolean if it updated successfully.
      */
     async updateCollection(id: string, data: Partial<Omit<UpdateCollectionInput, 'id'>>): Promise<boolean> {
         try {
-            const result: UpdateResult = await this.collectionRepository.update(id, data);
+            const partialCollection = data.name ? { slug: generateSlug(data.name), ...data } : data;
+            const result: UpdateResult = await this.collectionRepository.update(id, partialCollection);
             return result.affected > 0;
         } catch (e) {
             Sentry.captureException(e);
@@ -340,8 +348,7 @@ export class CollectionService {
             });
         }
 
-        const dd = collection as Collection;
-        const createResult = await this.collectionRepository.save(dd);
+        const createResult = await this.createCollection(collection);
 
         if (tiers) {
             for (const tier of tiers) {
@@ -349,11 +356,10 @@ export class CollectionService {
             }
         }
 
-        const result = await this.collectionRepository.findOne({
+        return await this.collectionRepository.findOne({
             where: { id: createResult.id },
             relations: ['tiers', 'organization', 'collaboration'],
         });
-        return result;
     }
 
     /**
@@ -516,45 +522,49 @@ export class CollectionService {
             .where('asset.address = :address', { address: tokenAddress })
             .getMany();
 
-        const collection = await this.getCollectionByAddress(collectionAddress);
+        if (!assets || assets.length === 0) {
+            return { total: 0, data: [] };
+        }
 
-        const txns = await this.transactionService.getAggregatedCollectionTransaction(collectionAddress);
-        const tierInfos = await Promise.all(
-            txns.map((txn) =>
-                this.tierService.getTiersByQuery({ collection: { id: collection.id }, tierId: txn.tierId })
-            )
-        );
+        const transactions = await this.transactionService.getAggregatedCollectionTransaction(collectionAddress);
+
+        if (!transactions || transactions.length == 0) {
+            return { total: 0, data: [] };
+        }
+
+        const paymentToken = await this.coinService.getCoinByAddress(transactions[0].paymentToken);
+
+        if (!paymentToken) {
+            throw new Error(`Failed to get token ${transactions[0].paymentToken}`);
+        }
+
+        // Get collection tiers as a map
+        const tiersMap = await this.getCollectionTiersMap(collectionAddress);
 
         const result = await Promise.all(
-            txns.map(async (txn) => {
-                // theoretically all token ids should belongs to the same recipient and transaction
-                // so we just use the first one as represent
+            transactions.map(async (txn) => {
                 const tokenId = txn.tokenIds[0];
                 const assetInfo = assets.find((asset) => asset.tokenId === tokenId);
 
-                // handle activity type
                 let type: CollectionActivityType = CollectionActivityType.Transfer;
                 if (assetInfo.owner == ZeroAccount) type = CollectionActivityType.Burn;
                 if (assetInfo.owner == txn.recipient) type = CollectionActivityType.Mint;
 
-                // bind tier info
-                const tiers = tierInfos.find((tierInfo) => tierInfo[0]?.tierId === txn.tierId);
-                txn.tier = tiers ? tiers[0] : null;
+                // Use tiers map to get tier info
+                txn.tier = tiersMap.get(txn.tierId);
 
-                // format cost to human readable given the payment token decimals
-                const token = await this.coinService.getCoinByAddress(txn.paymentToken);
-                if (!token) {
-                    throw new Error(`Failed to get token ${txn.paymentToken}`);
-                }
-
-                const tokenDecimals = token?.decimals || 18;
-                const base = BigInt(10);
-                const cost = (BigInt(txn.cost) / base ** BigInt(tokenDecimals)).toString();
+                const coin = await this.coinService.getCoinByAddress(txn.paymentToken);
+                const quote = await this.coinService.getQuote(coin.symbol);
+                const totalTokenPrice = new BigNumber(txn.cost).div(new BigNumber(10).pow(coin.decimals));
+                const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(quote['USD'].price);
 
                 return {
                     ...txn,
                     type,
-                    cost,
+                    cost: {
+                        inUSDC: totalUSDC.toString(),
+                        inPaymentToken: totalTokenPrice.toString(),
+                    },
                 };
             })
         );
@@ -947,7 +957,8 @@ export class CollectionService {
         const [result, totalResult] = await Promise.all([
             builder.getRawMany(),
             this.mintSaleTransactionRepository.manager.query(
-                `SELECT COUNT(1) AS "total" FROM (${subquery.getSql()}) AS subquery`,
+                `SELECT COUNT(1) AS "total"
+                 FROM (${subquery.getSql()}) AS subquery`,
                 [address]
             ),
         ]);
@@ -1020,5 +1031,93 @@ export class CollectionService {
             };
         }
         return { inPaymentToken: '0', inUSDC: '0' };
+    }
+
+    /**
+     * get collection sold items aggregated by transaction hash
+     * @param address collection address
+     * @returns collection sold items aggregated by transaction hash
+     * */
+    public async getAggregatedCollectionSold(address: string, tokenAddress: string): Promise<CollectionSoldAggregated> {
+        const assets = await this.asset721Repository
+            .createQueryBuilder('asset')
+            .where('asset.address = :address', { address: tokenAddress })
+            .getMany();
+
+        if (!assets || assets.length === 0) {
+            return { total: 0, data: [] };
+        }
+
+        const transactions = await this.transactionService.getAggregatedCollectionTransaction(address);
+
+        if (!transactions || transactions.length === 0) {
+            return { total: 0, data: [] };
+        }
+
+        const paymentToken = await this.coinService.getCoinByAddress(transactions[0].paymentToken);
+
+        if (!paymentToken) {
+            throw new Error(`Failed to get token ${transactions[0].paymentToken}`);
+        }
+
+        const tiersMap = await this.getCollectionTiersMap(address);
+
+        // Prepare promises for all the processing and fetch operations
+        const promises = transactions.map(async (txn) => {
+            const tokenId = txn.tokenIds[0];
+            const asset = assets.find((asset) => asset.tokenId === tokenId);
+
+            // Only need mint transactions where the owner is the recipient
+            if (asset && asset.owner === txn.recipient) {
+                const tier = tiersMap.get(txn.tierId);
+                const cost = this.getFormattedCost(txn.cost, paymentToken.decimals);
+                return { ...txn, tier, cost };
+            }
+        });
+
+        // Execute all promises in parallel
+        const result = await Promise.all(promises);
+
+        // Filter out undefined values and sort by txTime desc
+        const filteredResult = result.filter(Boolean).sort((a, b) => b.txTime - a.txTime);
+
+        return { total: filteredResult.length, data: filteredResult };
+    }
+
+    /**
+     * get transaction cost in human readable format given the payment token decimals
+     * @param txn transaction
+     * @returns cost in human readable format
+     * */
+    private getFormattedCost(cost: number, decimals?: number): string {
+        const tokenDecimals = decimals || 18;
+        const base = BigInt(10);
+        const result = (BigInt(cost) / base ** BigInt(tokenDecimals)).toString();
+        return result;
+    }
+
+    /**
+     * helper method to get collection tiers and store as a map
+     * @param address collection address
+     * @returns collection tiers map
+     * */
+    private async getCollectionTiersMap(address: string): Promise<Map<number, Tier>> {
+        const result = new Map<number, Tier>();
+
+        const collectionTiers = await this.tierRepository.find({
+            where: {
+                collection: { address },
+            },
+        });
+
+        if (!collectionTiers || collectionTiers.length === 0) {
+            throw new Error(`No tiers found for collection ${address}`);
+        }
+
+        for (const tier of collectionTiers) {
+            result.set(tier.tierId, tier);
+        }
+
+        return result;
     }
 }

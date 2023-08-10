@@ -1,4 +1,4 @@
-import { IsBoolean, IsObject, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsObject, IsOptional, IsString, IsUrl } from 'class-validator';
 import { GraphQLJSONObject } from 'graphql-type-json';
 
 import { Field, InputType, ObjectType, PickType } from '@nestjs/graphql';
@@ -27,6 +27,11 @@ export class Plugin {
     @IsOptional()
     @Field({ description: 'The version of the plugin.' })
     readonly version?: string;
+
+    @IsUrl()
+    @IsOptional()
+    @Field({ description: 'The banner url of the plugin.' })
+    readonly bannerUrl?: string;
 
     @IsString()
     @IsOptional()
@@ -57,8 +62,9 @@ export class InstallOnCollectionInput {
     readonly pluginId: string;
 
     @IsObject()
-    @Field(() => GraphQLJSONObject, { description: 'The customized metadata need to be installed on chosen tier. '})
-    readonly metadata: MetadataInput;
+    @IsOptional()
+    @Field(() => GraphQLJSONObject, { nullable: true, description: 'The customized metadata need to be installed on chosen tier. '})
+    readonly metadata?: MetadataInput;
 }
 
 @InputType()
@@ -72,6 +78,7 @@ export class InstallOnTierInput {
     readonly pluginId: string;
 
     @IsObject()
-    @Field(() => GraphQLJSONObject, { description: 'The customized metadata need to be installed on chosen tier. '})
-    readonly metadata: MetadataInput;
+    @IsOptional()
+    @Field(() => GraphQLJSONObject, { nullable: true, description: 'The customized metadata need to be installed on chosen tier. '})
+    readonly metadata?: MetadataInput;
 }

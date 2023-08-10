@@ -19,4 +19,6 @@ export interface IPaginatedType<T> {
 export interface IEntity {
     id: string;
     createdAt: Date;
+    quantity: number;
+    address: string;
 }

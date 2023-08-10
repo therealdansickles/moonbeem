@@ -38,6 +38,11 @@ export class Nft extends BaseEntity {
     })
     readonly properties: MetadataProperties;
 
+    // @Column({
+    //     default: {}
+    // })
+    // readonly metadataConfig: { [key: string]: string };
+
     @CreateDateColumn()
     @Exclude()
     readonly createdAt: Date;

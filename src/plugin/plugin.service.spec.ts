@@ -132,7 +132,7 @@ describe('PluginService', () => {
             });
         });
 
-        it.skip('should work', async () => {
+        it('should work', async () => {
             const plugin = await pluginRepository.save({
                 name: faker.commerce.productName(),
                 displayName: faker.commerce.productName(),
@@ -195,6 +195,221 @@ describe('PluginService', () => {
             expect(result.metadata.conditions).toBeTruthy();
             expect(result.metadata.conditions.rules.length).toEqual(2);
             expect(result.metadata.conditions.trigger.length).toEqual(1);
+        });
+
+        it('should merge the properties of the metadata', async () => {
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '100',
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+                metadata: {
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'number',
+                            value: 10,
+                            display_value: '0',
+                        },
+                    },
+                },
+            });
+            const plugin = await pluginRepository.save({
+                name: faker.commerce.productName(),
+                displayName: faker.commerce.productName(),
+                description: faker.commerce.productDescription(),
+                author: faker.commerce.department(),
+                version: faker.git.commitSha(),
+                metadata: {
+                    properties: {
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'number',
+                            value: 0,
+                            display_value: '0',
+                        },
+                    },
+                    conditions: {
+                        operator: 'and',
+                        rules: [
+                            {
+                                property: 'holding_days',
+                                rule: 'greater_than',
+                                value: -1,
+                                update: [
+                                    {
+                                        property: 'holding_days',
+                                        action: 'increase',
+                                        value: 1,
+                                    },
+                                ],
+                            },
+                            {
+                                property: 'holding_days',
+                                rule: 'less_than',
+                                value: 999,
+                                update: [
+                                    {
+                                        property: 'holding_days',
+                                        action: 'increase',
+                                        value: 1,
+                                    },
+                                ],
+                            },
+                        ],
+                        trigger: [
+                            {
+                                type: 'schedule',
+                                updatedAt: new Date().toISOString(),
+                                config: {
+                                    startAt: new Date().toISOString(),
+                                    endAt: new Date().toISOString(),
+                                    every: 1,
+                                    unit: 'minutes',
+                                },
+                            },
+                        ],
+                    },
+                },
+            });
+            const result = await pluginService.installOnTier({ tier, plugin });
+            expect(result.metadata.properties.holding_days.value).toEqual(10);
+            expect(result.metadata.properties.level).toBeTruthy();
+        });
+
+        it('shouldn\'t update the existed conditions of the metadata', async () => {
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '100',
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+                metadata: {
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                    },
+                    conditions: {
+                        operator: 'and',
+                        rules: [
+                            {
+                                property: 'holding_days',
+                                rule: 'greater_than',
+                                value: -1,
+                                update: [
+                                    {
+                                        property: 'holding_days',
+                                        action: 'increase',
+                                        value: 99,
+                                    },
+                                ],
+                            },
+                            {
+                                property: 'holding_days',
+                                rule: 'less_than',
+                                value: 999,
+                                update: [
+                                    {
+                                        property: 'holding_days',
+                                        action: 'increase',
+                                        value: 99,
+                                    },
+                                ],
+                            },
+                        ],
+                        trigger: [
+                            {
+                                type: 'schedule',
+                                updatedAt: new Date().toISOString(),
+                                config: {
+                                    startAt: new Date().toISOString(),
+                                    endAt: new Date().toISOString(),
+                                    every: 99,
+                                    unit: 'minutes',
+                                },
+                            },
+                        ],
+                    },
+                },
+            });
+            const plugin = await pluginRepository.save({
+                name: faker.commerce.productName(),
+                displayName: faker.commerce.productName(),
+                description: faker.commerce.productDescription(),
+                author: faker.commerce.department(),
+                version: faker.git.commitSha(),
+                metadata: {
+                    properties: {
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'number',
+                            value: 0,
+                            display_value: '0',
+                        },
+                    },
+                    conditions: {
+                        operator: 'and',
+                        rules: [
+                            {
+                                property: 'holding_days',
+                                rule: 'greater_than',
+                                value: -1,
+                                update: [
+                                    {
+                                        property: 'holding_days',
+                                        action: 'increase',
+                                        value: 1,
+                                    },
+                                ],
+                            },
+                            {
+                                property: 'holding_days',
+                                rule: 'less_than',
+                                value: 999,
+                                update: [
+                                    {
+                                        property: 'holding_days',
+                                        action: 'increase',
+                                        value: 1,
+                                    },
+                                ],
+                            },
+                        ],
+                        trigger: [
+                            {
+                                type: 'schedule',
+                                updatedAt: new Date().toISOString(),
+                                config: {
+                                    startAt: new Date().toISOString(),
+                                    endAt: new Date().toISOString(),
+                                    every: 1,
+                                    unit: 'minutes',
+                                },
+                            },
+                        ],
+                    },
+                },
+            });
+            const result = await pluginService.installOnTier({ tier, plugin });
+            expect(result.metadata.conditions.rules.length).toEqual(2);
+            const rules = result.metadata.conditions.rules;
+            expect(rules.find(rule => rule.property === 'holding_days' && rule.rule === 'greater_than').update[0].value).toEqual(99);
+            expect(rules.find(rule => rule.property === 'holding_days' && rule.rule === 'less_than').update[0].value).toEqual(99);
+            const trigger = result.metadata.conditions.trigger;
+            expect(trigger[0].config.every).toEqual(99);
         });
     });
 });

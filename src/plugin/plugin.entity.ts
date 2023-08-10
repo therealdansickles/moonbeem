@@ -23,6 +23,9 @@ export class Plugin extends BaseEntity {
     @Column({ nullable: true, comment: 'The description of the plugin.' })
     readonly description?: string;
 
+    @Column({ nullable: true, comment: 'The banner url of the plugin.' })
+    readonly bannerUrl?: string;
+
     @Column({ nullable: true, comment: 'The version of the plugin.' })
     readonly version?: string;
 

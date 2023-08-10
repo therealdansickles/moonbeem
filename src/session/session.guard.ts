@@ -238,6 +238,39 @@ export class SignatureGuard implements CanActivate {
 }
 
 @Injectable()
+export class AuthorizedCollectionOwnerGuard implements CanActivate {
+    constructor(
+        private readonly reflector: Reflector,
+        private readonly jwtService: JwtService,
+        private readonly collectionService: CollectionService,
+    ) {}
+
+    async canActivate (context: ExecutionContext): Promise<boolean> {
+        const collectionIdParameter = this.reflector.get<string>(COLLECTION_ID_PARAMETER, context.getHandler());
+        if (!collectionIdParameter) return false;
+
+        const ctx = GqlExecutionContext.create(context);
+        const request: IGraphQLRequest = ctx.getContext().req;
+        const collectionIdFromParameter = get(request.body.variables?.input, collectionIdParameter);
+
+        const collection = await this.collectionService.getCollection(collectionIdFromParameter);
+        if (!collection) return false;
+
+        const walletAddressFromToken = this.getWalletAddressFromToken(request);
+        if (walletAddressFromToken != collection.creator.address) return false;
+
+        return true;
+    }
+
+    getWalletAddressFromToken(request): string | undefined {
+        const [type, token] = request.headers.authorization?.split(' ') ?? [];
+        if (type !== 'Bearer') return;
+        const payload = this.jwtService.verify(token, { secret: process.env.SESSION_SECRET });
+        return payload.walletAddress;
+    }
+}
+
+@Injectable()
 export class AuthorizedTokenGuard implements CanActivate {
     constructor(
         private readonly reflector: Reflector,

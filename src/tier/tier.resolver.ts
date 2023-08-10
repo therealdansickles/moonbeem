@@ -7,6 +7,7 @@ import { Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
 import { TierHoldersPaginated } from '../wallet/wallet.dto';
 import {
+    AttributeOverviewInput,
     CreateTierInput,
     DeleteTierInput,
     IOverview,
@@ -87,9 +88,9 @@ export class TierResolver {
             @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
             @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
     ): Promise<TierSearchPaginated> {
-        const { collectionId, collectionAddress, keyword, properties, plugins, upgrades } = input;
+        const { collectionId, collectionAddress, collectionSlug, keyword, properties, plugins, upgrades } = input;
         return this.tierService.searchTier(
-            { collectionId, collectionAddress, keyword, properties, plugins, upgrades },
+            { collectionId, collectionAddress, collectionSlug, keyword, properties, plugins, upgrades },
             before,
             after,
             first,
@@ -97,9 +98,22 @@ export class TierResolver {
         );
     }
 
+    /**
+     * attributeOverview for collection/tier
+     * @param collectionAddress @deprecated, use input instead
+     * @param input collectionAddress, collectionSlug
+     */
     @Public()
     @Query(() => GraphQLJSONObject, { description: 'Returns attributes overview for collection/tier' })
-    async attributeOverview(@Args('collectionAddress') collectionAddress: string): Promise<IOverview> {
-        return this.tierService.getAttributesOverview(collectionAddress);
+    async attributeOverview(
+        @Args('collectionAddress', { nullable: true }) collectionAddress: string,
+            @Args('input', { nullable: true }) input?: AttributeOverviewInput,
+    ): Promise<IOverview> {
+        const mergedCollectionAddress = input.collectionAddress || collectionAddress;
+        const collectionSlug = input.collectionSlug;
+        return this.tierService.getAttributesOverview({
+            collectionAddress: mergedCollectionAddress,
+            collectionSlug,
+        });
     }
 }

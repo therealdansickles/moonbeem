@@ -9,35 +9,53 @@ import { captureException } from '@sentry/node';
 
 import { Collection, CollectionKind } from '../collection/collection.entity';
 import { MetadataPropertySearchInput } from '../metadata/metadata.dto';
-import { fromCursor, PaginatedImp } from '../pagination/pagination.utils';
+import {
+    cursorToStrings,
+    fromCursor,
+    PaginatedImp,
+    stringsToCursor,
+    toPaginated,
+} from '../pagination/pagination.utils';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import {
-    MintSaleTransaction
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { TierHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    BasicPriceInfo, CreateTierInput, IAttributeOverview, IOverview, IPluginOverview,
-    IUpgradeOverview, Profit, Tier, TierSearchPaginated, UpdateTierInput
+    BasicPriceInfo,
+    CreateTierInput,
+    IAttributeOverview,
+    IOverview,
+    IPluginOverview,
+    IUpgradeOverview,
+    Profit,
+    Tier,
+    TierSearchPaginated,
+    UpdateTierInput,
 } from './tier.dto';
 import * as tierEntity from './tier.entity';
 
 interface ITierSearch {
     collectionId?: string;
     collectionAddress?: string;
+    collectionSlug?: string;
     keyword?: string;
     properties?: MetadataPropertySearchInput[];
     plugins?: string[];
     upgrades?: string[];
 }
 
+type AttributesOverviewQuery = {
+    collectionAddress?: string;
+    collectionSlug?: string;
+};
+
 export type ITierQuery = {
     name?: string;
     collection?: { id: string };
-    tierId?: number
+    tierId?: number;
 };
 
 @Injectable()
@@ -49,7 +67,6 @@ export class TierService {
         private readonly collectionRepository: Repository<Collection>,
         @InjectRepository(Wallet)
         private readonly walletRepository: Repository<Wallet>,
-
         @InjectRepository(Coin, 'sync_chain')
         private readonly coinRepository: Repository<Coin>,
         @InjectRepository(MintSaleContract, 'sync_chain')
@@ -273,7 +290,6 @@ export class TierService {
         }
     }
 
-
     /**
      * getHolders of a tier.
      * The holders definition is the unique owner of the assets
@@ -285,11 +301,13 @@ export class TierService {
      * @param first The number of items to return, work with after
      * @param last The number of items to return, work with before
      */
-    async getHolders(id: string,
+    async getHolders(
+        id: string,
         before: string,
         after: string,
         first: number,
-        last: number): Promise<TierHoldersPaginated>{
+        last: number
+    ): Promise<TierHoldersPaginated> {
         // get tier by tier's id, relate to collection
         const tier = await this.tierRepository.findOne({ where: { id: id }, relations: ['collection'] });
         if (!tier?.collection?.address) {
@@ -303,11 +321,15 @@ export class TierService {
 
         const builder = this.asset721Repository
             .createQueryBuilder('asset')
-            .innerJoinAndSelect(MintSaleTransaction, 'txn', 'asset.tokenId = txn.tokenId AND asset.address = txn.tokenAddress')
+            .innerJoinAndSelect(
+                MintSaleTransaction,
+                'txn',
+                'asset.tokenId = txn.tokenId AND asset.address = txn.tokenAddress'
+            )
             .select('txn.tierId', 'tierId')
             .addSelect('asset.owner', 'owner')
             .addSelect('MIN(asset.txTime)', 'txTime')
-            .addSelect('COUNT(*)', 'quantity')
+            .addSelect('COUNT(1) as quantity')
             .where('asset.address = :address', {
                 address: contract.tokenAddress,
             })
@@ -315,23 +337,34 @@ export class TierService {
             .groupBy('asset.owner')
             .addGroupBy('txn.tierId');
 
-
         if (after) {
-            builder.andWhere('asset.txTime > :cursor', { cursor: new Date(fromCursor(after)).valueOf() / 1000 });
+            const [quantityString, owner] = cursorToStrings(after);
+            const quantity = parseInt(quantityString);
+            builder
+                .andHaving('COUNT(1) < :quantity', { quantity })
+                .orHaving('COUNT(1) = :quantity AND owner < :owner', { quantity, owner })
+                .orderBy('quantity', 'DESC')
+                .addOrderBy('owner', 'DESC');
             builder.limit(first);
         } else if (before) {
-            builder.andWhere('asset.txTime < :cursor', { cursor: new Date(fromCursor(before)).valueOf() / 1000 });
+            const [quantityString, owner] = cursorToStrings(before);
+            const quantity = parseInt(quantityString);
+            builder
+                .andHaving('COUNT(1) > :quantity', { quantity })
+                .orHaving('COUNT(1) = :quantity AND owner > :owner', { quantity, owner })
+                .orderBy('quantity', 'ASC')
+                .addOrderBy('owner', 'ASC');
             builder.limit(last);
         } else {
             const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
-            builder.limit(limit);
+            builder.orderBy('quantity', 'DESC').addOrderBy('owner', 'DESC').limit(limit);
         }
 
         const holders = await builder.getRawMany();
 
         // ignore the transactions and assets until we are clear about the usage
         const data = await Promise.all(
-            holders.map(async holder => {
+            holders.map(async (holder) => {
                 const wallet = await this.walletRepository.findOneBy({ address: holder.owner });
                 // Will update his soon when we refactor the pagination
                 const createdAt = new Date(holder.txTime * 1000);
@@ -345,7 +378,7 @@ export class TierService {
         );
 
         const total = await this.getTotalHolders(id);
-        return PaginatedImp(data, total);
+        return toPaginated(data, total, (entity) => stringsToCursor(entity.quantity.toString(), entity.address));
     }
 
     async searchTier(
@@ -355,7 +388,7 @@ export class TierService {
         first: number,
         last: number
     ): Promise<TierSearchPaginated> {
-        if (!query.collectionAddress && !query.collectionId) return null;
+        if (!query.collectionAddress && !query.collectionId && !query.collectionSlug) return null;
         let builder = this.tierRepository.createQueryBuilder('tier').leftJoinAndSelect('tier.collection', 'collection');
 
         if (query.collectionAddress) {
@@ -364,6 +397,8 @@ export class TierService {
             });
         } else if (query.collectionId) {
             builder = builder.where('collection.id = :collectionId', { collectionId: query.collectionId });
+        } else if (query.collectionSlug) {
+            builder = builder.where('collection.slug = :collectionSlug', { collectionSlug: query.collectionSlug });
         }
 
         if (query.keyword) {
@@ -427,12 +462,17 @@ export class TierService {
         return PaginatedImp(tiers, total);
     }
 
-    async getAttributesOverview(collectionAddress: string): Promise<IOverview> {
-        const tiers = await this.tierRepository
+    async getAttributesOverview(query: AttributesOverviewQuery): Promise<IOverview> {
+        const { collectionAddress, collectionSlug } = query;
+        const builder = await this.tierRepository
             .createQueryBuilder('tier')
-            .leftJoinAndSelect('tier.collection', 'collection')
-            .where('collection.address = :collectionAddress', { collectionAddress })
-            .getMany();
+            .leftJoinAndSelect('tier.collection', 'collection');
+        if (collectionAddress) {
+            builder.where('collection.address = :collectionAddress', { collectionAddress });
+        } else {
+            builder.where('collection.slug = :collectionSlug', { collectionSlug });
+        }
+        const tiers = await builder.getMany();
 
         const attributes: IAttributeOverview = {};
         const upgrades: IUpgradeOverview = {};

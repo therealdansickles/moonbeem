@@ -1,12 +1,12 @@
 import { IEntity, IPaginatedType } from './pagination.interface';
 
-export function PaginatedImp<T extends IEntity>(result: T[], total: number): IPaginatedType<T> {
+export function PaginatedImp<T>(result: T[], total: number): IPaginatedType<T> {
     const hasPreviousPage = !!result;
     const hasNextPage = !!result;
 
     const edges = result.map((entity) => ({
         node: entity,
-        cursor: toCursor(entity),
+        cursor: toCursor(entity as IEntity),
     }));
 
     return {
@@ -27,8 +27,7 @@ export function toCursor(value: IEntity): string {
     const localTime = createdAt.getTime() - localOffset;
 
     const newCreatedAt = new Date(localTime);
-    const cursor = Buffer.from(newCreatedAt.toISOString()).toString('base64');
-    return cursor;
+    return Buffer.from(newCreatedAt.toISOString()).toString('base64');
 }
 
 const CURSOR_SPLITTER = '::';
@@ -50,18 +49,21 @@ export function fromCursor(cursor: string): string {
  * @param cursorGenerator The function to generate the cursor string from an item
  * @param total The total number of items
  */
-export const toPaginated = <T extends IEntity>(
+export const toPaginated = <T>(
     items: T[],
     total: number,
     cursorGenerator: CursorGenerator = entityCursorGenerator
-): IPaginatedType<T> => {
-    return items.length > 0
+): IPaginatedType<T> =>
+    items.length > 0
         ? {
-            edges: items.map((item) => ({ node: item })),
+            edges: items.map((item) => ({
+                node: item,
+                cursor: cursorGenerator(item as IEntity),
+            })),
             pageInfo: {
                 hasNextPage: !!items,
                 hasPreviousPage: !!items,
-                ...getCursors(items, cursorGenerator),
+                ...getCursors(items as IEntity[], cursorGenerator),
             },
             totalCount: total,
         }
@@ -73,7 +75,6 @@ export const toPaginated = <T extends IEntity>(
             },
             totalCount: total,
         };
-};
 
 /**
  * Function to get the cursors from an array of items
@@ -105,6 +106,12 @@ export const toISODateWithTimezone = (date: Date): string => new Date(
  */
 export const dateAndStringToCursor = (date: Date, string: string): string =>
     Buffer.from(`${toISODateWithTimezone(date)}${CURSOR_SPLITTER}${string}`).toString('base64');
+
+/**
+ * Convert the strings to a cursor
+ * @param strings The strings to be converted
+ */
+export const stringsToCursor = (...strings: string[]): string => Buffer.from(strings.join(CURSOR_SPLITTER)).toString('base64');
 
 /**
  * Convert a cursor back to a Date and a string
