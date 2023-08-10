@@ -1,12 +1,13 @@
+import { GraphQLError } from 'graphql';
+import { Repository } from 'typeorm';
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+
 import { WalletService } from '../wallet/wallet.service';
 import {
-    CreateRelationshipByAddressInput,
-    CreateRelationshipInput,
-    DeleteRelationshipByAddressInput,
-    DeleteRelationshipInput,
+    CreateRelationshipByAddressInput, CreateRelationshipInput, DeleteRelationshipByAddressInput,
+    DeleteRelationshipInput
 } from './relationship.dto';
 import { Relationship } from './relationship.entity';
 
@@ -113,6 +114,8 @@ export class RelationshipService {
      * @returns
      */
     async createRelationshipByAddress(input: CreateRelationshipByAddressInput): Promise<Relationship> {
+        if (input.followerAddress.toLowerCase() === input.followingAddress.toLowerCase())
+            throw new GraphQLError(`Sorry but you can't follow yourself.`);
         const followerWallet = await this.walletService.checkWalletExistence(input.followerAddress);
         const followingWallet = await this.walletService.checkWalletExistence(input.followingAddress);
         return this.createRelationship({

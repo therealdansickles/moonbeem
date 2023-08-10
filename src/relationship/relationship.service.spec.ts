@@ -1,6 +1,8 @@
-import { faker } from '@faker-js/faker';
-import { WalletService } from '../wallet/wallet.service';
 import { Repository } from 'typeorm';
+
+import { faker } from '@faker-js/faker';
+
+import { WalletService } from '../wallet/wallet.service';
 import { Relationship } from './relationship.entity';
 import { RelationshipService } from './relationship.service';
 
@@ -201,6 +203,18 @@ describe('RelationshipService', () => {
                 follower: { id: wallet2.id },
             });
             expect(relationships.length).toEqual(1);
+        });
+
+        it('should throw an error if following and follower are the same', async () => {
+            const wallet = await walletService.createWallet({ address: faker.finance.ethereumAddress() });
+            try {
+                await service.createRelationshipByAddress({
+                    followerAddress: wallet.address,
+                    followingAddress: wallet.address,
+                });
+            } catch (error) {
+                expect((error as Error).message).toBe('Sorry but you can\'t follow yourself.');
+            }
         });
     });
 
