@@ -216,6 +216,9 @@ describe('PluginService', () => {
                 },
             });
             const result = await pluginService.installOnTier({ tier, plugin });
+            expect(result.metadata.uses).toBeTruthy();
+            expect(result.metadata.uses.length).toEqual(1);
+            expect(result.metadata.uses[0]).toEqual(plugin.name);
             expect(result.metadata.conditions).toBeTruthy();
             expect(result.metadata.conditions.rules.length).toEqual(2);
             expect(result.metadata.conditions.trigger.length).toEqual(1);
@@ -436,5 +439,4 @@ describe('PluginService', () => {
             expect(trigger[0].config.every).toEqual(99);
         });
     });
-
 });

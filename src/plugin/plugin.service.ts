@@ -51,7 +51,7 @@ export class PluginService {
         const { uses = [], properties = {}, conditions = {} as MetadataCondition } = tier.metadata;
         const metadataPayload = {
             // add plugin name on uses
-            uses: uniq(uses.push(plugin.name)).sort(),
+            uses: uniq(uses.concat(plugin.name)).sort(),
             // merge properties
             // `plugin.metadata.properties`: the properties data come from new installed plugin
             // `properties`: the existed properties on the tier
