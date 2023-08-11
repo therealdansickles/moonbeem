@@ -59,9 +59,15 @@ import { FactoryService } from './sync-chain/factory/factory.service';
 import { History721Module } from './sync-chain/history721/history721.module';
 import { History721Service } from './sync-chain/history721/history721.service';
 import { MintSaleContractModule } from './sync-chain/mint-sale-contract/mint-sale-contract.module';
-import { MintSaleContractService } from './sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { MintSaleTransactionModule } from './sync-chain/mint-sale-transaction/mint-sale-transaction.module';
-import { MintSaleTransactionService } from './sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import {
+    MintSaleContractService
+} from './sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleTransactionModule
+} from './sync-chain/mint-sale-transaction/mint-sale-transaction.module';
+import {
+    MintSaleTransactionService
+} from './sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { Record721Module } from './sync-chain/record721/record721.module';
 import { Record721Service } from './sync-chain/record721/record721.service';
 import { RoyaltyModule } from './sync-chain/royalty/royalty.module';
@@ -247,6 +253,7 @@ async function clearDatabase() {
     await global.tierRepository.query('TRUNCATE TABLE "Tier" CASCADE;');
     await global.userRepository.query('TRUNCATE TABLE "User" CASCADE;');
     await global.walletRepository.query('TRUNCATE TABLE "Wallet" CASCADE;');
+    await global.pluginRepository.query('TRUNCATE TABLE "Plugin" CASCADE;');
 
     // sync chain database clear
     await global.asset721Repository.query('TRUNCATE TABLE "Asset721" CASCADE;');

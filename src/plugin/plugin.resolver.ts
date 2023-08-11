@@ -1,4 +1,6 @@
 import { GraphQLError } from 'graphql';
+import { concat, uniq } from 'lodash';
+import { In } from 'typeorm';
 
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
@@ -7,7 +9,7 @@ import { AuthorizedCollectionOwner, Public } from '../session/session.decorator'
 import { Tier } from '../tier/tier.dto';
 import { TierService } from '../tier/tier.service';
 import { InstallOnCollectionInput, InstallOnTierInput, Plugin } from './plugin.dto';
-import { PluginService } from './plugin.service';
+import { IPluginQuery, PluginService } from './plugin.service';
 
 @Resolver(() => Plugin)
 export class PluginResolver {
@@ -19,8 +21,17 @@ export class PluginResolver {
 
     @Public()
     @Query(() => [Plugin])
-    async plugins() {
-        return await this.pluginService.getPlugins();
+    async plugins(@Args({ name: 'collectionId', nullable: true }) collectionId?: string) {
+        const query: IPluginQuery = {};
+        if (collectionId) {
+            const tiers = await this.tierService.getTiersByQuery({ collection: { id: collectionId } });
+            const names = (tiers || []).reduce((accu, tier) => {
+                const uses = tier.metadata.uses || [];
+                return uniq(concat(accu, uses));
+            }, []);
+            query.name = In([...names]);
+        }
+        return await this.pluginService.getPlugins(query);
     }
 
     @Public()
