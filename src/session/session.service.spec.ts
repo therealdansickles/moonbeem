@@ -104,9 +104,11 @@ describe('SessionService', () => {
             const result = await service.createSessionFromGoogle('access_token');
             expect(result.token).toBeDefined();
             
-            await expect(
-                async () => await service.createSessionFromEmail(email, 'password')
-            ).rejects.toThrow(`This email has been used for Google sign in. Please sign in with Google.`);
+            try {
+                await expect(async () => await service.createSessionFromEmail(email, 'password'));
+            } catch (err) {
+                expect(err.message).toEqual('This email has been used for Google sign in. Please sign in with Google.');
+            }
         });
 
         it('should work after bound and password setup', async () => {
