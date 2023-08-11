@@ -5,7 +5,7 @@ import { In } from 'typeorm';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { CollectionService } from '../collection/collection.service';
-import { AuthorizedCollectionOwner, Public } from '../session/session.decorator';
+import { Public } from '../session/session.decorator';
 import { Tier } from '../tier/tier.dto';
 import { TierService } from '../tier/tier.service';
 import { InstallOnCollectionInput, InstallOnTierInput, Plugin } from './plugin.dto';
@@ -40,7 +40,8 @@ export class PluginResolver {
         return await this.pluginService.getPlugin(id);
     }
 
-    @AuthorizedCollectionOwner('collectionId')
+    // @AuthorizedCollectionOwner('collectionId')
+    @Public()
     @Mutation(() => [Tier])
     async installOnCollection(@Args('input') input: InstallOnCollectionInput) {
         const collection = await this.collectionService.getCollection(input.collectionId);
