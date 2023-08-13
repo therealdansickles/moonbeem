@@ -12,14 +12,18 @@ import { captureException } from '@sentry/node';
 import { Collection } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
 import { googleConfig } from '../lib/configs/app.config';
-import { fromCursor, PaginatedImp } from '../pagination/pagination.utils';
 import { MailService } from '../mail/mail.service';
 import { OrganizationService } from '../organization/organization.service';
+import { fromCursor, PaginatedImp } from '../pagination/pagination.utils';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Tier } from '../tier/tier.entity';
 import { Wallet } from '../wallet/wallet.entity';
-import { CreateUserInput, LatestSalePaginated, PriceInfo, ResetPasswordOutput, UserProfit } from './user.dto';
+import {
+    CreateUserInput, LatestSalePaginated, PriceInfo, ResetPasswordOutput, UserProfit
+} from './user.dto';
 import { User } from './user.entity';
 
 type IUserQuery = Partial<Pick<User, 'id' | 'username'>>;
@@ -180,7 +184,7 @@ export class UserService {
         // checking the email has been used for `Sign in with Google`
         const signedInByGmail = await this.userRepository.findOneBy({ gmail: email.toLowerCase(), password: IsNull() });
         if (signedInByGmail)
-            throw new Error(`This email has been used for Google sign in. Please sign in with Google.`);
+            throw new GraphQLError(`This email has been used for Google sign in. Please sign in with Google.`);
 
         const user = await this.userRepository.findOneBy({ email: email.toLowerCase() });
 

@@ -52,6 +52,30 @@ describe('PluginService', () => {
             expect(plugins.length).toEqual(1);
             expect(plugins[0].id).toEqual(plugin2.id);
         });
+
+        it('should get plugins by name', async () => {
+            await pluginRepository.save({
+                name: faker.commerce.productName(),
+                displayName: faker.commerce.productName(),
+                description: faker.commerce.productDescription(),
+                author: faker.commerce.department(),
+                version: faker.git.commitSha(),
+                isPublished: true,
+            });
+
+            const plugin2 = await pluginRepository.save({
+                name: faker.commerce.productName(),
+                displayName: faker.commerce.productName(),
+                description: faker.commerce.productDescription(),
+                author: faker.commerce.department(),
+                version: faker.git.commitSha(),
+                isPublished: true,
+            });
+
+            const result = await pluginService.getPlugins({ name: plugin2.name });
+            expect(result.length).toEqual(1);
+            expect(result[0].id).toEqual(plugin2.id);
+        });
     });
 
     describe('#getPluginById', () => {
@@ -192,6 +216,9 @@ describe('PluginService', () => {
                 },
             });
             const result = await pluginService.installOnTier({ tier, plugin });
+            expect(result.metadata.uses).toBeTruthy();
+            expect(result.metadata.uses.length).toEqual(1);
+            expect(result.metadata.uses[0]).toEqual(plugin.name);
             expect(result.metadata.conditions).toBeTruthy();
             expect(result.metadata.conditions.rules.length).toEqual(2);
             expect(result.metadata.conditions.trigger.length).toEqual(1);

@@ -9,6 +9,11 @@ import { Tier as TierDto } from '../tier/tier.dto';
 import { TierService } from '../tier/tier.service';
 import { Plugin } from './plugin.entity';
 
+export interface IPluginQuery {
+    isPublished?: boolean;
+    name?: any;
+}
+
 @Injectable()
 export class PluginService {
     constructor(
@@ -20,8 +25,9 @@ export class PluginService {
      * Retrieve all plugins
      * @returns
      */
-    async getPlugins(): Promise<Plugin[]> {
-        return await this.pluginRepository.findBy({ isPublished: true });
+    async getPlugins(query: IPluginQuery = {}): Promise<Plugin[]> {
+        query = { isPublished: true, ...query };
+        return await this.pluginRepository.findBy(query);
     }
 
     /**
@@ -45,7 +51,7 @@ export class PluginService {
         const { uses = [], properties = {}, conditions = {} as MetadataCondition } = tier.metadata;
         const metadataPayload = {
             // add plugin name on uses
-            uses: uniq(uses.push(plugin.name)).sort(),
+            uses: uniq(uses.concat(plugin.name)).sort(),
             // merge properties
             // `plugin.metadata.properties`: the properties data come from new installed plugin
             // `properties`: the existed properties on the tier

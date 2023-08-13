@@ -1,6 +1,7 @@
 import { addDays, startOfDay, startOfMonth, startOfWeek, subDays } from 'date-fns';
 import { ethers } from 'ethers';
 import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+
 import { faker } from '@faker-js/faker';
 
 import { CollaborationService } from '../collaboration/collaboration.service';
@@ -8,23 +9,22 @@ import { OrganizationService } from '../organization/organization.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import {
+    createAsset721, createCoin, createCollection, createMintSaleContract, createMintSaleTransaction,
+    createOrganization, createTier
+} from '../test-utils';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import { CollectionStat, CollectionStatus } from './collection.dto';
 import { Collection } from './collection.entity';
 import { CollectionService } from './collection.service';
-import {
-    createAsset721,
-    createCollection,
-    createMintSaleContract,
-    createMintSaleTransaction,
-    createTier,
-    createCoin,
-    createOrganization,
-} from '../test-utils';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
