@@ -108,6 +108,5 @@ export const createOrganization = async (organizationService: OrganizationServic
         twitter: faker.internet.userName(),
         instagram: faker.internet.userName(),
         discord: faker.internet.userName(),
-        owner: faker.internet.userName(),
         ...organization,
     });
