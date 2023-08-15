@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import { createRoyalty } from '../../test-utils';
 
 import { RoyaltyService } from './royalty.service';
 
@@ -28,6 +29,18 @@ describe('RoyaltyService', () => {
 
             const result = await service.getRoyalty(royalty.id);
             expect(result.id).toEqual(royalty.id);
+        });
+    });
+
+    describe('getRoyaltiesByAddress', () => {
+        it('should get royalties array', async () => {
+            const royaltyAddress = faker.finance.ethereumAddress();
+
+            await createRoyalty(service, { address: royaltyAddress });
+            await createRoyalty(service, { address: royaltyAddress });
+
+            const result = await service.getRoyaltiesByAddress(royaltyAddress);
+            expect(result.length).toBe(2);
         });
     });
 });

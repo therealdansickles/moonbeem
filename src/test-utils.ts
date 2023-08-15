@@ -1,16 +1,12 @@
 import { faker } from '@faker-js/faker';
-
 import { CollectionKind } from './collection/collection.entity';
 import { CollectionService } from './collection/collection.service';
 import { OrganizationService } from './organization/organization.service';
 import { Asset721Service } from './sync-chain/asset721/asset721.service';
 import { CoinService } from './sync-chain/coin/coin.service';
-import {
-    MintSaleContractService
-} from './sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransactionService
-} from './sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleContractService } from './sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from './sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { RoyaltyService } from './sync-chain/royalty/royalty.service';
 import { TierService } from './tier/tier.service';
 
 export const createCoin = async (coinService: CoinService, coin?: any) =>
@@ -113,4 +109,16 @@ export const createOrganization = async (organizationService: OrganizationServic
         instagram: faker.internet.userName(),
         discord: faker.internet.userName(),
         ...organization,
+    });
+
+export const createRoyalty = async (service: RoyaltyService, royalty?: any) =>
+    service.createRoyalty({
+        height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
+        txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
+        txTime: Math.floor(faker.date.recent().getTime() / 1000),
+        sender: faker.finance.ethereumAddress(),
+        address: faker.finance.ethereumAddress(),
+        userAddress: faker.finance.ethereumAddress(),
+        userRate: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
+        ...royalty,
     });

@@ -11,6 +11,8 @@ import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import { Collaboration } from './collaboration.entity';
 import { CollaborationService } from './collaboration.service';
+import { createCollection, createOrganization, createRoyalty } from '../test-utils';
+import { RoyaltyService } from '../sync-chain/royalty/royalty.service';
 
 export const gql = String.raw;
 
@@ -22,6 +24,7 @@ describe('CollaborationResolver', () => {
     let collectionService: CollectionService;
     let organizationService: OrganizationService;
     let walletService: WalletService;
+    let royaltyService: RoyaltyService;
 
     beforeAll(async () => {
         app = global.app;
@@ -31,6 +34,7 @@ describe('CollaborationResolver', () => {
         service = global.collaborationService;
         collectionService = global.collectionService;
         organizationService = global.organizationService;
+        royaltyService = global.royaltyService;
     });
 
     beforeEach(async () => {
@@ -138,9 +142,7 @@ describe('CollaborationResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -257,29 +259,9 @@ describe('CollaborationResolver', () => {
                 password: 'password',
             });
 
-            const organization = await organizationService.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: user,
-            });
+            const organization = await createOrganization(organizationService, { owner: user });
 
-            await collectionService.createCollection({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                chainId: 1,
-                address: faker.finance.ethereumAddress(),
-                artists: [],
-                tags: [],
-                organization,
-            });
+            createCollection(collectionService, { organization });
 
             const wallet = await walletService.createWallet({
                 address: `arb:${faker.finance.ethereumAddress()}`,
@@ -332,6 +314,82 @@ describe('CollaborationResolver', () => {
                     const [collab] = body.data.collaborations;
                     expect(collab.user.id).toEqual(variables.userId);
                     expect(collab.organization.id).toEqual(variables.organizationId);
+                });
+        });
+
+        it('should get royalties infos', async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await createOrganization(organizationService, { owner: user });
+
+            createCollection(collectionService, { organization });
+
+            const wallet = await walletService.createWallet({
+                address: `arb:${faker.finance.ethereumAddress()}`,
+                ownerId: user.id,
+            });
+
+            const collaboration = await service.createCollaboration({
+                address: faker.finance.ethereumAddress(),
+                walletId: wallet.id,
+                royaltyRate: 12,
+                userId: user.id,
+                organizationId: organization.id,
+                collaborators: [
+                    {
+                        address: faker.finance.ethereumAddress(),
+                        role: faker.finance.accountName(),
+                        name: faker.finance.accountName(),
+                        rate: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
+                    },
+                ],
+            });
+
+            const royalty1 = await createRoyalty(royaltyService, { address: collaboration.address.toLowerCase() });
+            const royalty2 = await createRoyalty(royaltyService, { address: collaboration.address.toLowerCase() });
+            const query = gql`
+                query Collaboration($userId: String!, $organizationId: String!) {
+                    collaborations(userId: $userId, organizationId: $organizationId) {
+                        id
+                        royaltyRate
+                        address
+                        royalties {
+                            id
+                            chainId
+                            address
+                        }
+                    }
+                }
+            `;
+
+            const variables = {
+                userId: user.id,
+                organizationId: organization.id,
+            };
+
+            // FIXME: This is flakey sometimes. Unique index contraint issues?
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    const [collab] = body.data.collaborations;
+                    expect(collab.address).toBe(collaboration.address);
+                    expect(collab.royalties.length).toBe(2);
+
+                    const result1 = collab.royalties.find((r) => {
+                        return r.id == royalty1.id;
+                    });
+                    const result2 = collab.royalties.find((r) => {
+                        return r.id == royalty2.id;
+                    });
+
+                    expect(result1).toBeDefined();
+                    expect(result2).toBeDefined();
                 });
         });
     });
