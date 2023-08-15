@@ -24,12 +24,12 @@ describe('MerkleTreeResolver', () => {
     describe('MerkleTree', () => {
         it('should get merkle proof', async () => {
             const address = faker.finance.ethereumAddress();
-            const amount = faker.string.numeric(2);
+            const amount = faker.string.numeric({ length: 2, allowLeadingZeros: false });
             const merkleTree = await service.createMerkleTree({
                 data: [
                     {
                         address: faker.finance.ethereumAddress(),
-                        amount: faker.string.numeric(2),
+                        amount: faker.string.numeric({ length: 2, allowLeadingZeros: false }),
                     },
                     {
                         address: address,

@@ -25,11 +25,11 @@ describe('History721Resolver', () => {
     describe('history721', () => {
         it('should get an nft history', async () => {
             const history = await service.createHistory721({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(5),
+                tokenId: faker.string.numeric({ length: 5, allowLeadingZeros: false }),
                 sender: faker.finance.ethereumAddress(),
                 receiver: faker.finance.ethereumAddress(),
                 kind: History721Type.unknown,

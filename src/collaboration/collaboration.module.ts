@@ -14,18 +14,23 @@ import { WalletModule } from '../wallet/wallet.module';
 import { Collaboration } from './collaboration.entity';
 import { CollaborationResolver } from './collaboration.resolver';
 import { CollaborationService } from './collaboration.service';
+import { RoyaltyModule } from '../sync-chain/royalty/royalty.module';
+import { Royalty } from '../sync-chain/royalty/royalty.entity';
+import { RoyaltyService } from '../sync-chain/royalty/royalty.service';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Collaboration, Collection, Organization, User, Wallet]),
+        TypeOrmModule.forFeature([Royalty], 'sync_chain'),
         forwardRef(() => CollectionModule),
         forwardRef(() => OrganizationModule),
         forwardRef(() => UserModule),
         forwardRef(() => WalletModule),
         forwardRef(() => CoinModule),
-        JwtModule
+        forwardRef(() => RoyaltyModule),
+        JwtModule,
     ],
-    providers: [JwtService, CollaborationService, CollaborationResolver],
+    providers: [JwtService, CollaborationService, CollaborationResolver, RoyaltyService],
     controllers: [],
     exports: [CollaborationModule, CollaborationService],
 })

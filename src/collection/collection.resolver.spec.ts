@@ -13,6 +13,9 @@ import {
 import {
     MintSaleTransactionService
 } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import {
+    createCoin, createCollection, createMintSaleContract, createOrganization, createTier
+} from '../test-utils';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
@@ -20,13 +23,6 @@ import { CollectionStat, CollectionStatus } from './collection.dto';
 import { Collection, CollectionKind } from './collection.entity';
 import { CollectionService } from './collection.service';
 import { generateSlug } from './collection.utils';
-import {
-    createCoin,
-    createCollection,
-    createMintSaleContract,
-    createOrganization,
-    createTier,
-} from '../test-utils';
 
 export const gql = String.raw;
 
@@ -334,7 +330,7 @@ describe('CollectionResolver', () => {
                         address: faker.finance.ethereumAddress(),
                         role: faker.finance.accountName(),
                         name: faker.finance.accountName(),
-                        rate: parseInt(faker.string.numeric(2)),
+                        rate: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
                     },
                 ],
             });
@@ -405,7 +401,7 @@ describe('CollectionResolver', () => {
                         address: faker.finance.ethereumAddress(),
                         role: faker.finance.accountName(),
                         name: faker.finance.accountName(),
-                        rate: parseInt(faker.string.numeric(2)),
+                        rate: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
                     },
                 ],
             });
@@ -495,7 +491,7 @@ describe('CollectionResolver', () => {
                         address: faker.finance.ethereumAddress(),
                         role: faker.finance.accountName(),
                         name: faker.finance.accountName(),
-                        rate: parseInt(faker.string.numeric(2)),
+                        rate: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
                     },
                 ],
             });
@@ -601,7 +597,7 @@ describe('CollectionResolver', () => {
                         address: faker.finance.ethereumAddress(),
                         role: faker.finance.accountName(),
                         name: faker.finance.accountName(),
-                        rate: parseInt(faker.string.numeric(2)),
+                        rate: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
                     },
                 ],
             });
@@ -900,7 +896,7 @@ describe('CollectionResolver', () => {
             });
 
             const transaction = await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -908,7 +904,7 @@ describe('CollectionResolver', () => {
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 collectionId: collection.id,
                 paymentToken: faker.finance.ethereumAddress(),
@@ -1292,7 +1288,7 @@ describe('CollectionResolver', () => {
             });
 
             await mintSaleContractService.createMintSaleContract({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -1314,13 +1310,13 @@ describe('CollectionResolver', () => {
             });
 
             const owner1 = faker.finance.ethereumAddress().toLowerCase();
-            const tokenId1 = faker.string.numeric(5);
+            const tokenId1 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
 
             const owner2 = faker.finance.ethereumAddress().toLowerCase();
-            const tokenId2 = faker.string.numeric(5);
+            const tokenId2 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
 
             await asset721Service.createAsset721({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: tokenAddress,
@@ -1328,7 +1324,7 @@ describe('CollectionResolver', () => {
                 owner: owner1,
             });
             await asset721Service.createAsset721({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: tokenAddress,
@@ -1337,7 +1333,7 @@ describe('CollectionResolver', () => {
             });
 
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -1351,7 +1347,7 @@ describe('CollectionResolver', () => {
             });
 
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),

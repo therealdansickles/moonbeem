@@ -14,4 +14,8 @@ export class RoyaltyService {
     async getRoyalty(id: string): Promise<Royalty> {
         return await this.royaltyRepository.findOneBy({ id });
     }
+
+    async getRoyaltiesByAddress(address: string): Promise<Royalty[]> {
+        return await this.royaltyRepository.findBy({ address });
+    }
 }

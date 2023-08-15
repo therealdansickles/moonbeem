@@ -34,8 +34,8 @@ import {
     CollectionEarningsChartPaginated,
     CollectionPaginated,
     CollectionSold,
-    CollectionSoldPaginated,
     CollectionSoldAggregated,
+    CollectionSoldPaginated,
     CollectionStat,
     CollectionStatus,
     CreateCollectionInput,
@@ -100,7 +100,7 @@ export class CollectionService {
         });
 
         if (collection) {
-            collection.tiers = (await this.tierService.getTiersByQuery({
+            collection.tiers = (await this.tierService.getTiers({
                 collection: { id: collection.id },
             })) as Tier[];
         }
@@ -343,8 +343,7 @@ export class CollectionService {
         const kind = collectionEntity.CollectionKind;
         if ([kind.whitelistEdition, kind.whitelistTiered, kind.whitelistBulk].indexOf(collection.kind) >= 0) {
             tiers.forEach((tier) => {
-                if (!tier.merkleRoot)
-                    throw new GraphQLError('Please provide merkleRoot for the whitelisting collection.');
+                if (!tier.merkleRoot) throw new GraphQLError('Please provide merkleRoot for the whitelisting collection.');
             });
         }
 
@@ -382,13 +381,7 @@ export class CollectionService {
         //return await this.walletRepository.find({ where: { address: In(result.map((r) => r.recipient)) } });
     }
 
-    async getHolders(
-        address: string,
-        before: string,
-        after: string,
-        first: number,
-        last: number
-    ): Promise<CollectionHoldersPaginated> {
+    async getHolders(address: string, before: string, after: string, first: number, last: number): Promise<CollectionHoldersPaginated> {
         const contract = await this.mintSaleContractRepository.findOneBy({ address });
 
         const builder = this.mintSaleTransactionRepository
@@ -513,10 +506,7 @@ export class CollectionService {
         return { data, total };
     }
 
-    async getAggregatedCollectionActivities(
-        collectionAddress: string,
-        tokenAddress: string
-    ): Promise<CollectionAggregatedActivities> {
+    async getAggregatedCollectionActivities(collectionAddress: string, tokenAddress: string): Promise<CollectionAggregatedActivities> {
         const assets = await this.asset721Repository
             .createQueryBuilder('asset')
             .where('asset.address = :address', { address: tokenAddress })
@@ -575,11 +565,7 @@ export class CollectionService {
         return { total: result.length, data: result };
     }
 
-    async getLandingPageCollections(
-        status: CollectionStatus,
-        offset: number,
-        limit: number
-    ): Promise<LandingPageCollection> {
+    async getLandingPageCollections(status: CollectionStatus, offset: number, limit: number): Promise<LandingPageCollection> {
         const currentTimestamp = Math.round(new Date().valueOf() / 1000);
 
         let inWhere = '';
@@ -626,7 +612,7 @@ export class CollectionService {
 
         const data = await Promise.all(
             collections.map(async (collection) => {
-                collection.tiers = (await this.tierService.getTiersByQuery({
+                collection.tiers = (await this.tierService.getTiers({
                     collection: { id: collection.id },
                 })) as Tier[];
                 return { ...collection };
@@ -720,18 +706,10 @@ export class CollectionService {
         return result;
     }
 
-    public async getCollectionSold(
-        address: string,
-        before: string,
-        after: string,
-        first: number,
-        last: number
-    ): Promise<CollectionSoldPaginated> {
+    public async getCollectionSold(address: string, before: string, after: string, first: number, last: number): Promise<CollectionSoldPaginated> {
         if (!address) return PaginatedImp([], 0);
 
-        const builder = this.mintSaleTransactionRepository
-            .createQueryBuilder('txn')
-            .where('txn.address = :address', { address });
+        const builder = this.mintSaleTransactionRepository.createQueryBuilder('txn').where('txn.address = :address', { address });
         const countBuilder = builder.clone();
 
         if (after) {
@@ -803,6 +781,7 @@ export class CollectionService {
             return {
                 inPaymentToken: tokenPrice.toString(),
                 inUSDC: volume.toString(),
+                paymentToken: coin.address,
             };
         }
         return { inPaymentToken: '0', inUSDC: '0' };
@@ -835,6 +814,7 @@ export class CollectionService {
             return {
                 inPaymentToken: tokenPrice.toString(),
                 inUSDC: volume.toString(),
+                paymentToken: coin.address,
             };
         }
         return { inPaymentToken: '0', inUSDC: '0' };
@@ -1055,6 +1035,7 @@ export class CollectionService {
         }
 
         const paymentToken = await this.coinService.getCoinByAddress(transactions[0].paymentToken);
+        const quote = await this.coinService.getQuote(paymentToken.symbol);
 
         if (!paymentToken) {
             throw new Error(`Failed to get token ${transactions[0].paymentToken}`);
@@ -1070,8 +1051,18 @@ export class CollectionService {
             // Only need mint transactions where the owner is the recipient
             if (asset && asset.owner === txn.recipient) {
                 const tier = tiersMap.get(txn.tierId);
-                const cost = this.getFormattedCost(txn.cost, paymentToken.decimals);
-                return { ...txn, tier, cost };
+
+                const totalTokenPrice = new BigNumber(txn.cost).div(new BigNumber(10).pow(paymentToken.decimals));
+                const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(quote['USD'].price);
+
+                return {
+                    ...txn,
+                    tier,
+                    cost: {
+                        inUSDC: totalUSDC.toString(),
+                        inPaymentToken: totalTokenPrice.toString(),
+                    },
+                };
             }
         });
 

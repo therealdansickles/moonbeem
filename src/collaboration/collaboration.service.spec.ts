@@ -72,7 +72,7 @@ describe('CollaborationService', () => {
                         address: faker.finance.ethereumAddress(),
                         role: faker.finance.accountName(),
                         name: faker.finance.accountName(),
-                        rate: parseInt(faker.string.numeric(2)),
+                        rate: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
                     },
                 ],
             });
@@ -107,7 +107,7 @@ describe('CollaborationService', () => {
                         address: faker.finance.ethereumAddress(),
                         role: faker.finance.accountName(),
                         name: faker.finance.accountName(),
-                        rate: parseInt(faker.string.numeric(2)),
+                        rate: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
                     },
                 ],
             });
@@ -120,7 +120,7 @@ describe('CollaborationService', () => {
                         address: faker.finance.ethereumAddress(),
                         role: faker.finance.accountName(),
                         name: faker.finance.accountName(),
-                        rate: parseInt(faker.string.numeric(2)),
+                        rate: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
                     },
                 ],
             });
@@ -142,7 +142,7 @@ describe('CollaborationService', () => {
                         address: faker.finance.ethereumAddress(),
                         role: faker.finance.accountName(),
                         name: faker.finance.accountName(),
-                        rate: parseInt(faker.string.numeric(2)),
+                        rate: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
                     },
                 ],
             });
@@ -162,7 +162,7 @@ describe('CollaborationService', () => {
                         address: faker.finance.ethereumAddress(),
                         role: faker.finance.accountName(),
                         name: faker.finance.accountName(),
-                        rate: parseInt(faker.string.numeric(2)),
+                        rate: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
                     },
                 ],
             });
@@ -187,7 +187,7 @@ describe('CollaborationService', () => {
                         address: faker.finance.ethereumAddress(),
                         role: faker.finance.accountName(),
                         name: faker.finance.accountName(),
-                        rate: parseInt(faker.string.numeric(2)),
+                        rate: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
                     },
                 ],
             });
@@ -237,7 +237,7 @@ describe('CollaborationService', () => {
                         address: faker.finance.ethereumAddress(),
                         role: faker.finance.accountName(),
                         name: faker.finance.accountName(),
-                        rate: parseInt(faker.string.numeric(2)),
+                        rate: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
                     },
                 ],
             });
@@ -290,7 +290,7 @@ describe('CollaborationService', () => {
                         address: faker.finance.ethereumAddress(),
                         role: faker.finance.accountName(),
                         name: faker.finance.accountName(),
-                        rate: parseInt(faker.string.numeric(2)),
+                        rate: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
                     },
                 ],
             });
@@ -521,7 +521,7 @@ describe('CollaborationService', () => {
             });
 
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -529,7 +529,7 @@ describe('CollaborationService', () => {
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 collectionId: collection.id,
                 paymentToken: coin.address,

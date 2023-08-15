@@ -4,7 +4,7 @@ import { GraphQLJSONObject } from 'graphql-type-json';
 import { Field, InputType, ObjectType, PickType } from '@nestjs/graphql';
 
 import { Collection } from '../collection/collection.dto';
-import { MetadataProperties } from '../metadata/metadata.dto';
+import { Metadata, MetadataProperties } from '../metadata/metadata.dto';
 import { Tier } from '../tier/tier.dto';
 
 @ObjectType('Nft')
@@ -27,8 +27,12 @@ export class Nft {
     readonly tokenId: string;
 
     @IsObject()
-    @Field(() => GraphQLJSONObject, { description:  'The properties of the NFT.' })
+    @Field(() => GraphQLJSONObject, { description:  'The properties of the NFT.', nullable: true })
     readonly properties: MetadataProperties;
+
+    @IsObject()
+    @Field(() => GraphQLJSONObject, { description: 'The full rendered metadata of the NFT', nullable: true })
+    public metadata?: Metadata;
 }
 
 @InputType()

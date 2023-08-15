@@ -14,14 +14,7 @@ import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import { TierService } from './tier.service';
-import {
-    createAsset721,
-    createCoin,
-    createCollection,
-    createMintSaleContract,
-    createMintSaleTransaction,
-    createTier
-} from '../test-utils';
+import { createAsset721, createCoin, createCollection, createMintSaleContract, createMintSaleTransaction, createTier } from '../test-utils';
 
 export const gql = String.raw;
 
@@ -182,7 +175,7 @@ describe('TierResolver', () => {
             });
 
             const transaction = await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -190,7 +183,7 @@ describe('TierResolver', () => {
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
                 collectionId: collection.id,
                 paymentToken: coin.address,
@@ -227,13 +220,9 @@ describe('TierResolver', () => {
                     expect(body.data.tier.coin.address).toEqual(coin.address);
                     expect(body.data.tier.profit).toBeDefined();
 
-                    const totalProfitsInToken = new BigNumber(transaction.price)
-                        .div(new BigNumber(10).pow(coin.decimals))
-                        .toString();
+                    const totalProfitsInToken = new BigNumber(transaction.price).div(new BigNumber(10).pow(coin.decimals)).toString();
                     expect(body.data.tier.profit.inPaymentToken).toEqual(totalProfitsInToken);
-                    expect(body.data.tier.profit.inUSDC).toEqual(
-                        new BigNumber(totalProfitsInToken).multipliedBy(coin.derivedUSDC).toString()
-                    );
+                    expect(body.data.tier.profit.inUSDC).toEqual(new BigNumber(totalProfitsInToken).multipliedBy(coin.derivedUSDC).toString());
                 });
         });
 
@@ -446,9 +435,7 @@ describe('TierResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -502,7 +489,7 @@ describe('TierResolver', () => {
 
             const tier = await createTier(service, {
                 collection: { id: collection.id },
-                paymentTokenAddress: coin.address,
+                paymentTokenAddress: faker.finance.ethereumAddress(),
             });
 
             const tokenQuery = gql`
@@ -524,9 +511,7 @@ describe('TierResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -541,10 +526,11 @@ describe('TierResolver', () => {
                     id: tier.id,
                     name: faker.company.name(),
                     price: '1024',
+                    paymentTokenAddress: coin.address,
                 },
             };
 
-            return request(app.getHttpServer())
+            await request(app.getHttpServer())
                 .post('/graphql')
                 .auth(token, { type: 'bearer' })
                 .send({ query, variables })
@@ -552,6 +538,9 @@ describe('TierResolver', () => {
                 .expect(({ body }) => {
                     expect(body.data.updateTier).toBeTruthy();
                 });
+
+            const result = await service.getTier(tier.id);
+            expect(result.paymentTokenAddress).toBe(coin.address);
         });
     });
 
@@ -590,9 +579,7 @@ describe('TierResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -704,11 +691,11 @@ describe('TierResolver', () => {
 
             const owner1 = faker.finance.ethereumAddress();
             await walletService.createWallet({ address: owner1 });
-            const tokenId1 = faker.string.numeric(5);
+            const tokenId1 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
 
             const owner2 = faker.finance.ethereumAddress();
             await walletService.createWallet({ address: owner2 });
-            const tokenId2 = faker.string.numeric(5);
+            const tokenId2 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
 
             await createAsset721(asset721Service, {
                 address: tokenAddress,
@@ -725,15 +712,15 @@ describe('TierResolver', () => {
                 address: collectionAddress,
                 tokenAddress: tokenAddress,
                 tokenId: tokenId1,
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: 19, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
 
-            await createMintSaleTransaction(mintSaleTransactionService,{
+            await createMintSaleTransaction(mintSaleTransactionService, {
                 address: collectionAddress,
                 tokenAddress: tokenAddress,
                 tokenId: tokenId2,
-                price: faker.string.numeric(19),
+                price: faker.string.numeric({ length: 19, allowLeadingZeros: false }),
                 paymentToken: faker.finance.ethereumAddress(),
             });
         });
@@ -823,8 +810,8 @@ describe('TierResolver', () => {
 
             const variables = {
                 input: {
-                    collectionAddress: collectionAddress
-                }
+                    collectionAddress: collectionAddress,
+                },
             };
             return await request(app.getHttpServer())
                 .post('/graphql')
@@ -853,8 +840,8 @@ describe('TierResolver', () => {
 
             const variables = {
                 input: {
-                    collectionSlug: innerCollection.slug
-                }
+                    collectionSlug: innerCollection.slug,
+                },
             };
             return await request(app.getHttpServer())
                 .post('/graphql')

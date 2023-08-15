@@ -9,15 +9,16 @@ import { OrganizationService } from '../organization/organization.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import {
-    createAsset721, createCoin, createCollection, createMintSaleContract, createMintSaleTransaction,
-    createOrganization, createTier
+    createAsset721,
+    createCoin,
+    createCollection,
+    createMintSaleContract,
+    createMintSaleTransaction,
+    createOrganization,
+    createTier,
 } from '../test-utils';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
@@ -128,7 +129,7 @@ describe('CollectionService', () => {
                         address: faker.finance.ethereumAddress(),
                         role: faker.finance.accountName(),
                         name: faker.finance.accountName(),
-                        rate: parseInt(faker.string.numeric(2)),
+                        rate: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
                     },
                 ],
             });
@@ -355,7 +356,7 @@ describe('CollectionService', () => {
             });
 
             const collection = await repository.save({
-                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric({ length: 5, allowLeadingZeros: false })}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -389,7 +390,7 @@ describe('CollectionService', () => {
             });
 
             await repository.save({
-                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric({ length: 5, allowLeadingZeros: false })}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -400,7 +401,7 @@ describe('CollectionService', () => {
             });
 
             await repository.save({
-                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric({ length: 5, allowLeadingZeros: false })}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -447,7 +448,7 @@ describe('CollectionService', () => {
             });
 
             await repository.save({
-                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric({ length: 5, allowLeadingZeros: false })}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -460,7 +461,7 @@ describe('CollectionService', () => {
 
             // don't belongs to this
             await repository.save({
-                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric({ length: 5, allowLeadingZeros: false })}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -473,7 +474,7 @@ describe('CollectionService', () => {
 
             // missing `beginSaleAt`
             await repository.save({
-                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric({ length: 5, allowLeadingZeros: false })}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -485,7 +486,7 @@ describe('CollectionService', () => {
 
             // missing `endSaleAt`
             await repository.save({
-                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric({ length: 5, allowLeadingZeros: false })}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -497,7 +498,7 @@ describe('CollectionService', () => {
 
             // `beginSaleAt` is the future time
             await repository.save({
-                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric({ length: 5, allowLeadingZeros: false })}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -510,7 +511,7 @@ describe('CollectionService', () => {
 
             // `endSaleAt` is the past time
             await repository.save({
-                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric({ length: 5, allowLeadingZeros: false })}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -760,7 +761,7 @@ describe('CollectionService', () => {
                         tiers: [
                             {
                                 name: faker.company.name(),
-                                totalMints: parseInt(faker.string.numeric(5)),
+                                totalMints: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                             },
                         ],
                         organization: {
@@ -807,7 +808,7 @@ describe('CollectionService', () => {
                         tiers: [
                             {
                                 name: faker.company.name(),
-                                totalMints: parseInt(faker.string.numeric(5)),
+                                totalMints: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                             },
                         ],
                         organization: {
@@ -851,7 +852,7 @@ describe('CollectionService', () => {
                 tiers: [
                     {
                         name: faker.company.name(),
-                        totalMints: parseInt(faker.string.numeric(5)),
+                        totalMints: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                     },
                 ],
                 organization: {
@@ -897,7 +898,7 @@ describe('CollectionService', () => {
                 tiers: [
                     {
                         name: faker.company.name(),
-                        totalMints: parseInt(faker.string.numeric(5)),
+                        totalMints: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                     },
                 ],
                 organization: {
@@ -934,7 +935,7 @@ describe('CollectionService', () => {
                 tiers: [
                     {
                         name: faker.company.name(),
-                        totalMints: parseInt(faker.string.numeric(5)),
+                        totalMints: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                     },
                 ],
                 organization: {
@@ -1017,7 +1018,7 @@ describe('CollectionService', () => {
                         address: faker.finance.ethereumAddress(),
                         role: faker.finance.accountName(),
                         name: faker.finance.accountName(),
-                        rate: parseInt(faker.string.numeric(2)),
+                        rate: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
                     },
                 ],
             });
@@ -1362,10 +1363,10 @@ describe('CollectionService', () => {
         const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
         const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
         const owner1 = faker.finance.ethereumAddress().toLowerCase();
-        const tokenId1 = faker.string.numeric(5);
+        const tokenId1 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
 
         const owner2 = faker.finance.ethereumAddress().toLowerCase();
-        const tokenId2 = faker.string.numeric(5);
+        const tokenId2 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
 
         beforeEach(async () => {
             const beginTime = Math.floor(faker.date.recent().getTime() / 1000);
@@ -1484,7 +1485,7 @@ describe('CollectionService', () => {
         });
 
         it('should get holders', async () => {
-            const tokenId3 = faker.string.numeric(5);
+            const tokenId3 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
 
             // Total count won't include duplicates
             await createAsset721(asset721Service, {
@@ -1522,7 +1523,7 @@ describe('CollectionService', () => {
         });
 
         it('should get unique holders', async () => {
-            const tokenId3 = faker.string.numeric(5);
+            const tokenId3 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
             await createAsset721(asset721Service, {
                 address: tokenAddress,
                 tokenId: tokenId3,
@@ -1805,6 +1806,7 @@ describe('CollectionService', () => {
             const mockResponse = {
                 inUSDC: '100',
                 inPaymentToken: '100',
+                paymentToken: faker.finance.ethereumAddress(),
             };
 
             jest.spyOn(service, 'getSevenDayVolume').mockImplementation(async () => mockResponse);
@@ -1812,6 +1814,7 @@ describe('CollectionService', () => {
 
             expect(result).toBeDefined();
             expect(result.inUSDC).toBe('100');
+            expect(result.paymentToken).toBe(mockResponse.paymentToken);
         });
     });
 
@@ -1846,11 +1849,13 @@ describe('CollectionService', () => {
             const mockResponse = {
                 inUSDC: '100',
                 inPaymentToken: '100',
+                paymentToken: faker.finance.ethereumAddress(),
             };
             jest.spyOn(service, 'getGrossEarnings').mockImplementation(async () => mockResponse);
             const result1 = await service.getGrossEarnings(collectionAddress);
             expect(result1).toBeDefined();
             expect(result1.inUSDC).toBe('100');
+            expect(result1.paymentToken).toBe(mockResponse.paymentToken);
         });
     });
 
@@ -2378,10 +2383,7 @@ describe('CollectionService', () => {
                 createdAt: startOfDay(new Date()),
             });
 
-            const result = await service.getCollectionsByOrganizationIdAndBeginTime(
-                organization.id,
-                startOfDay(new Date())
-            );
+            const result = await service.getCollectionsByOrganizationIdAndBeginTime(organization.id, startOfDay(new Date()));
             expect(result).toBe(1);
         });
 
@@ -2415,10 +2417,7 @@ describe('CollectionService', () => {
                 createdAt: startOfWeek(new Date()),
             });
 
-            const result1 = await service.getCollectionsByOrganizationIdAndBeginTime(
-                organization.id,
-                startOfWeek(new Date())
-            );
+            const result1 = await service.getCollectionsByOrganizationIdAndBeginTime(organization.id, startOfWeek(new Date()));
             expect(result1).toBe(1);
         });
 
@@ -2452,10 +2451,7 @@ describe('CollectionService', () => {
                 createdAt: startOfMonth(new Date()),
             });
 
-            const result2 = await service.getCollectionsByOrganizationIdAndBeginTime(
-                organization.id,
-                startOfMonth(new Date())
-            );
+            const result2 = await service.getCollectionsByOrganizationIdAndBeginTime(organization.id, startOfMonth(new Date()));
             expect(result2).toBe(1);
         });
     });
@@ -2515,7 +2511,7 @@ describe('CollectionService', () => {
             });
 
             const transactionContent = {
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: txHash1,
                 txTime: Math.floor(new Date().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -2527,14 +2523,14 @@ describe('CollectionService', () => {
             };
 
             const assetContent = {
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: tokenAddress,
             };
 
             // minted 3 in one transaction
-            const tokenId1 = faker.string.numeric(1);
+            const tokenId1 = faker.string.numeric({ length: 1, allowLeadingZeros: false });
             await createMintSaleTransaction(mintSaleTransactionService, {
                 tokenId: tokenId1,
                 price: '1000000000000000000',
@@ -2546,7 +2542,7 @@ describe('CollectionService', () => {
                 ...assetContent,
             });
 
-            const tokenId2 = faker.string.numeric(2);
+            const tokenId2 = faker.string.numeric({ length: 2, allowLeadingZeros: false });
             await createMintSaleTransaction(mintSaleTransactionService, {
                 tokenId: tokenId2,
                 price: '2000000000000000000',
@@ -2558,7 +2554,7 @@ describe('CollectionService', () => {
                 ...assetContent,
             });
 
-            const tokenId3 = faker.string.numeric(3);
+            const tokenId3 = faker.string.numeric({ length: 3, allowLeadingZeros: false });
             await createMintSaleTransaction(mintSaleTransactionService, {
                 tokenId: tokenId3,
                 price: '3000000000000000000',
@@ -2571,12 +2567,12 @@ describe('CollectionService', () => {
             });
 
             // another transaction
-            const tokenId4 = faker.string.numeric(4);
+            const tokenId4 = faker.string.numeric({ length: 4, allowLeadingZeros: false });
             const anotherTransactionContent = Object.assign(transactionContent, {
                 tokenId: tokenId4,
                 price: '4000000000000000000',
                 recipient: walletAddress2,
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: txHash2,
                 txTime: Math.floor(new Date().getTime() / 1000),
             });
@@ -2762,7 +2758,7 @@ describe('CollectionService', () => {
         let collection;
 
         beforeEach(async () => {
-            jest.resetAllMocks();
+            // jest.resetAllMocks();
 
             const coin = await createCoin(coinService);
 
@@ -2771,19 +2767,7 @@ describe('CollectionService', () => {
                 password: 'password',
             });
 
-            const organization = await organizationService.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: user,
-            });
-
+            const organization = await createOrganization(organizationService, { owner: user });
             collection = await service.createCollectionWithTiers({
                 name: faker.commerce.productName(),
                 displayName: faker.commerce.productName(),
@@ -2820,7 +2804,7 @@ describe('CollectionService', () => {
             });
 
             const transactionContent = {
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: txHash1,
                 txTime: Math.floor(new Date().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -2832,14 +2816,14 @@ describe('CollectionService', () => {
             };
 
             const assetContent = {
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: tokenAddress,
             };
 
             // minted 3 in one transaction
-            const tokenId1 = faker.string.numeric(1);
+            const tokenId1 = faker.string.numeric({ length: 1, allowLeadingZeros: false });
             await createMintSaleTransaction(mintSaleTransactionService, {
                 tokenId: tokenId1,
                 price: '1000000000000000000',
@@ -2851,7 +2835,7 @@ describe('CollectionService', () => {
                 ...assetContent,
             });
 
-            const tokenId2 = faker.string.numeric(2);
+            const tokenId2 = faker.string.numeric({ length: 2, allowLeadingZeros: false });
             await createMintSaleTransaction(mintSaleTransactionService, {
                 tokenId: tokenId2,
                 price: '2000000000000000000',
@@ -2863,7 +2847,7 @@ describe('CollectionService', () => {
                 ...assetContent,
             });
 
-            const tokenId3 = faker.string.numeric(3);
+            const tokenId3 = faker.string.numeric({ length: 3, allowLeadingZeros: false });
             await createMintSaleTransaction(mintSaleTransactionService, {
                 tokenId: tokenId3,
                 price: '3000000000000000000',
@@ -2876,12 +2860,12 @@ describe('CollectionService', () => {
             });
 
             // another transaction
-            const tokenId4 = faker.string.numeric(4);
+            const tokenId4 = faker.string.numeric({ length: 4, allowLeadingZeros: false });
             const anotherTransactionContent = Object.assign(transactionContent, {
                 tokenId: tokenId4,
                 price: '4000000000000000000',
                 recipient: walletAddress2,
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: txHash2,
                 txTime: Math.floor(new Date().getTime() / 1000),
             });
@@ -2893,7 +2877,18 @@ describe('CollectionService', () => {
             });
         });
 
+        afterAll(async () => {
+            jest.resetAllMocks();
+        });
+
         it('should retrieve the aggregated collection sold', async () => {
+            const tokenPriceUSD = faker.number.int({ max: 1000 });
+            const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+                USD: { price: tokenPriceUSD },
+            });
+
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
+
             const result = await service.getAggregatedCollectionSold(collectionAddress, tokenAddress);
             expect(result.total).toEqual(2);
             expect(result.data.length).toEqual(2);
@@ -2904,7 +2899,34 @@ describe('CollectionService', () => {
             expect(aggregation2.tokenIds.length).toEqual(1);
         });
 
+        it('should return cost object', async () => {
+            const tokenPriceUSD = faker.number.int({ max: 1000 });
+            const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+                USD: { price: tokenPriceUSD },
+            });
+
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
+
+            const result = await service.getAggregatedCollectionSold(collectionAddress, tokenAddress);
+            expect(result.total).toEqual(2);
+            expect(result.data.length).toEqual(2);
+            const aggregation1 = result.data.find((item) => item.txHash === txHash1);
+            expect(aggregation1.tokenIds.length).toEqual(3);
+            expect(aggregation1.tier.name).toEqual(collection.tiers[0].name);
+            expect(aggregation1.cost.inPaymentToken).toBe('6');
+            expect(aggregation1.cost.inUSDC).toBe((tokenPriceUSD * 6).toString());
+            const aggregation2 = result.data.find((item) => item.txHash === txHash2);
+            expect(aggregation2.tokenIds.length).toEqual(1);
+        });
+
         it('should sort results by txTime in descending order', async () => {
+            const tokenPriceUSD = faker.number.int({ max: 1000 });
+            const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+                USD: { price: tokenPriceUSD },
+            });
+
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
+
             const result = await service.getAggregatedCollectionSold(collectionAddress, tokenAddress);
             for (let i = 0; i < result.data.length - 1; i++) {
                 expect(result.data[i].txTime).toBeGreaterThanOrEqual(result.data[i + 1].txTime);

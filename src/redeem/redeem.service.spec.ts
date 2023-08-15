@@ -71,7 +71,7 @@ describe('RedeemService', () => {
 
             const redeem1 = await service.createRedeem({
                 collection: { id: collection1.id },
-                tokenId: parseInt(faker.string.numeric(2)),
+                tokenId: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
                 deliveryAddress: faker.location.streetAddress(),
                 deliveryCity: faker.location.city(),
                 deliveryZipcode: faker.location.zipCode(),
@@ -85,7 +85,7 @@ describe('RedeemService', () => {
 
             const redeem2 = await service.createRedeem({
                 collection: { id: collection2.id },
-                tokenId: parseInt(faker.string.numeric(1)),
+                tokenId: parseInt(faker.string.numeric({ length: 1, allowLeadingZeros: false })),
                 deliveryAddress: faker.location.streetAddress(),
                 deliveryCity: faker.location.city(),
                 deliveryZipcode: faker.location.zipCode(),
@@ -146,7 +146,7 @@ describe('RedeemService', () => {
 
             const result = await service.createRedeem({
                 collection: { id: collection.id },
-                tokenId: parseInt(faker.string.numeric(1)),
+                tokenId: parseInt(faker.string.numeric({ length: 1, allowLeadingZeros: false })),
                 deliveryAddress: faker.location.streetAddress(),
                 deliveryCity: faker.location.city(),
                 deliveryZipcode: faker.location.zipCode(),

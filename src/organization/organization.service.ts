@@ -475,19 +475,24 @@ export class OrganizationService {
         return PaginatedImp([], 0);
     }
 
+    /**
+     * get collection stat for the given organization
+     * @param id organization id
+     * @returns collection stat
+     */
     async getCollectionStat(id: string): Promise<CollectionStatFromOrganization> {
         const current = Math.floor(new Date().valueOf() / 1000);
         const [total, live, closed] = await Promise.all([
             this.collectionService.countCollections({ organization: { id } }),
             this.collectionService.countCollections({
                 organization: { id },
-                publishedAt: MoreThanOrEqual(new Date()),
+                publishedAt: LessThanOrEqual(new Date()),
                 beginSaleAt: LessThanOrEqual(current),
                 endSaleAt: MoreThanOrEqual(current)
             }),
             this.collectionService.countCollections({
                 organization: { id },
-                publishedAt: MoreThanOrEqual(new Date()),
+                publishedAt: LessThanOrEqual(new Date()),
                 endSaleAt: LessThanOrEqual(current)
             }),
         ]);

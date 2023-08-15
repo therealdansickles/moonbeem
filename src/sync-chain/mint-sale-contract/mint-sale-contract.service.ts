@@ -3,7 +3,6 @@ import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import * as MintSaleContractEntity from './mint-sale-contract.entity';
 import { MintSaleContract } from './mint-sale-contract.dto';
-import { MongoAdapter } from '../../lib/adapters/mongo.adapter';
 import { FactoryService } from '../factory/factory.service';
 import { MintSaleTransaction } from '../mint-sale-transaction/mint-sale-transaction.entity';
 
@@ -15,7 +14,6 @@ export class MintSaleContractService {
         @InjectRepository(MintSaleTransaction, 'sync_chain')
         private readonly transactionRepository: Repository<MintSaleTransaction>,
         private factoreService: FactoryService,
-        private readonly mongoRepository: MongoAdapter
     ) {}
 
     async createMintSaleContract(data: any): Promise<MintSaleContract> {

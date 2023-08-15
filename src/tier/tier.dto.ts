@@ -97,6 +97,10 @@ export class Tier {
     @Field(() => Collection, { description: 'The collection associated with this tier.' })
     readonly collection: Collection;
 
+    @Field({ description: 'the tier selected coin id', nullable: true })
+    @IsString()
+    readonly paymentTokenAddress?: string;
+
     @IsString()
     @Field({ description: 'The description of the tier.', nullable: true })
     readonly description?: string;
@@ -219,6 +223,10 @@ export class UpdateTierInput {
     @IsString()
     @Field({ nullable: true, description: 'The name of the tier.' })
     readonly name?: string;
+
+    @Field({ description: 'the tier selected coin id', nullable: true })
+    @IsString()
+    readonly paymentTokenAddress?: string;
 
     @IsString()
     @Field({ nullable: true, description: 'The description of the tier.' })

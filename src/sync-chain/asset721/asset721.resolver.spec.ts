@@ -24,11 +24,11 @@ describe('Asset721Resolver', () => {
     describe('asset721', () => {
         it('should return an factory', async () => {
             const asset721 = await service.createAsset721({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(5),
+                tokenId: faker.string.numeric({ length: 5, allowLeadingZeros: false }),
                 owner: faker.finance.ethereumAddress(),
             });
             const query = gql`

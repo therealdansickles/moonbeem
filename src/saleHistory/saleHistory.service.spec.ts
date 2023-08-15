@@ -73,7 +73,7 @@ export function generateAssetEvent(): Sale {
         nftPicture: faker.image.url(),
         currentPrice: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
         rarity: faker.datatype.boolean(),
-        quantity: faker.string.numeric(1),
+        quantity: faker.string.numeric({ length: 1, allowLeadingZeros: false }),
         timeListed: `${faker.date.recent().getTime()}`,
         from: faker.finance.ethereumAddress(),
         to: faker.finance.ethereumAddress(),

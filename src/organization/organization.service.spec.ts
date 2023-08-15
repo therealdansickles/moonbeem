@@ -1,9 +1,8 @@
-import { subSeconds } from 'date-fns';
+import { addSeconds, subSeconds } from 'date-fns';
 import { Repository } from 'typeorm';
 
 import { faker } from '@faker-js/faker';
 
-import { Collection } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
 import { Membership } from '../membership/membership.entity';
 import { CoinQuotes } from '../sync-chain/coin/coin.dto';
@@ -11,6 +10,9 @@ import { CoinService } from '../sync-chain/coin/coin.service';
 import {
     MintSaleTransactionService
 } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import {
+    createCoin, createCollection, createMintSaleTransaction, createOrganization
+} from '../test-utils';
 import { UserService } from '../user/user.service';
 import { OrganizationService } from './organization.service';
 
@@ -20,7 +22,6 @@ describe('OrganizationService', () => {
     let transactionService: MintSaleTransactionService;
     let coinService: CoinService;
     let membershipRepository: Repository<Membership>;
-    let collectionRepository: Repository<Collection>;
     let collectionService: CollectionService;
 
     beforeAll(async () => {
@@ -29,7 +30,6 @@ describe('OrganizationService', () => {
         coinService = global.coinService;
         transactionService = global.mintSaleTransactionService;
         membershipRepository = global.membershipRepository;
-        collectionRepository = global.collectionRepository;
         collectionService = global.collectionService;
     });
 
@@ -45,18 +45,7 @@ describe('OrganizationService', () => {
                 password: 'password',
             });
 
-            const organization = await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
+            const organization = await createOrganization(service, { owner });
 
             const result = await service.getOrganization(organization.id);
             expect(result.id).toEqual(organization.id);
@@ -69,18 +58,7 @@ describe('OrganizationService', () => {
                 email: faker.internet.email(),
                 password: 'password',
             });
-            const organization = await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
+            const organization = await createOrganization(service, { owner });
 
             expect(organization.id).toBeDefined();
             expect(organization.owner.id).toEqual(owner.id);
@@ -108,18 +86,7 @@ describe('OrganizationService', () => {
                 password: 'password',
             });
 
-            const organization = await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
+            const organization = await createOrganization(service, { owner });
 
             expect(organization.id).toBeDefined();
             expect(organization.owner.id).toEqual(owner.id);
@@ -133,32 +100,11 @@ describe('OrganizationService', () => {
             });
 
             const name = faker.company.name();
-            await service.createOrganization({
-                name,
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
+
+            await createOrganization(service, { name, owner });
 
             try {
-                await service.createOrganization({
-                    name,
-                    displayName: faker.company.name(),
-                    about: faker.company.catchPhrase(),
-                    avatarUrl: faker.image.url(),
-                    backgroundUrl: faker.image.url(),
-                    websiteUrl: faker.internet.url(),
-                    twitter: faker.internet.userName(),
-                    instagram: faker.internet.userName(),
-                    discord: faker.internet.userName(),
-                    owner: owner,
-                });
+                await createOrganization(service, { name, owner });
             } catch (error) {
                 expect((error as Error).message).toBe(`Organization with name ${name} already existed.`);
             }
@@ -189,18 +135,7 @@ describe('OrganizationService', () => {
                 password: 'password',
             });
 
-            const organization = await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
+            const organization = await createOrganization(service, { owner });
 
             const result = await service.updateOrganization(organization.id, {
                 displayName: 'The best organization',
@@ -217,31 +152,8 @@ describe('OrganizationService', () => {
                 password: 'password',
             });
 
-            const organization = await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
-
-            const anotherOrganization = await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
+            const organization = await createOrganization(service, { owner });
+            const anotherOrganization = await service.createPersonalOrganization(owner);
 
             try {
                 await service.updateOrganization(anotherOrganization.id, {
@@ -260,18 +172,7 @@ describe('OrganizationService', () => {
                 password: 'password',
             });
 
-            const organization = await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
+            const organization = await createOrganization(service, { owner });
 
             const result = await service.deleteOrganization(organization.id);
             expect(result).toBeTruthy();
@@ -282,18 +183,7 @@ describe('OrganizationService', () => {
                 password: faker.internet.password(),
             });
 
-            const organization = await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
+            const organization = await createOrganization(service, { owner });
 
             const result = await service.deleteOrganization(organization.id);
             expect(result).toBeTruthy();
@@ -317,18 +207,7 @@ describe('OrganizationService', () => {
                 password: faker.internet.password(),
             });
 
-            const organization = await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
+            const organization = await createOrganization(service, { owner });
             await membershipRepository.create({
                 canEdit: true,
                 canDeploy: true,
@@ -356,18 +235,7 @@ describe('OrganizationService', () => {
                 password: 'password',
             });
 
-            const organization = await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
+            const organization = await createOrganization(service, { owner });
 
             const result = await service.transferOrganization(organization.id, user.id);
             expect(result.owner.id).toEqual(user.id);
@@ -379,18 +247,7 @@ describe('OrganizationService', () => {
                 password: 'password',
             });
 
-            const organization = await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
+            const organization = await createOrganization(service, { owner });
 
             const randomUUID = faker.string.uuid();
 
@@ -414,44 +271,9 @@ describe('OrganizationService', () => {
                 password: 'password',
             });
 
-            await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
-
-            await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
-
-            await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: differentOwner,
-            });
+            await createOrganization(service, { owner });
+            await createOrganization(service, { owner });
+            await createOrganization(service, { owner: differentOwner });
 
             const result = await service.getOrganizationsByOwnerId(owner.id);
             expect(result.length).toEqual(2);
@@ -465,40 +287,11 @@ describe('OrganizationService', () => {
                 password: 'password',
             });
 
-            const organization = await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
-            const collection = await collectionRepository.save({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                address: faker.finance.ethereumAddress(),
-                artists: [],
-                tags: [],
-                organization: organization,
-            });
-
-            await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(new Date().getTime() / 1000),
-                sender: faker.finance.ethereumAddress(),
-                recipient: faker.finance.ethereumAddress(),
+            const organization = await createOrganization(service, { owner });
+            const collection = await createCollection(collectionService, { organization });
+            await createMintSaleTransaction(transactionService, {
                 address: collection.address,
-                tierId: 0,
-                tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
-                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
-                paymentToken: faker.finance.ethereumAddress(),
+                txTime: Math.floor(new Date().getTime() / 1000),
             });
 
             const result = await service.getAggregatedBuyers(organization.id);
@@ -513,64 +306,17 @@ describe('OrganizationService', () => {
                 password: 'password',
             });
 
-            const organization = await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
-            const collection = await collectionRepository.save({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                address: faker.finance.ethereumAddress(),
-                artists: [],
-                tags: [],
-                organization: organization,
-            });
-
-            await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(new Date().getTime() / 1000),
-                sender: faker.finance.ethereumAddress(),
-                recipient: faker.finance.ethereumAddress(),
+            const organization = await createOrganization(service, { owner });
+            const collection = await createCollection(collectionService, { organization });
+            await createMintSaleTransaction(transactionService, {
                 address: collection.address,
-                tierId: 0,
-                tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
-                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
-                paymentToken: faker.finance.ethereumAddress(),
-            });
-
-            const collection1 = await collectionRepository.save({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                address: faker.finance.ethereumAddress(),
-                artists: [],
-                tags: [],
-                organization: organization,
-            });
-
-            await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(new Date().getTime() / 1000),
-                sender: faker.finance.ethereumAddress(),
-                recipient: faker.finance.ethereumAddress(),
+            });
+
+            const collection1 = await createCollection(collectionService, { organization });
+            await createMintSaleTransaction(transactionService, {
                 address: collection1.address,
-                tierId: 0,
-                tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
-                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
-                paymentToken: faker.finance.ethereumAddress(),
+                txTime: Math.floor(new Date().getTime() / 1000),
             });
 
             const result = await service.getAggregatedBuyers(organization.id);
@@ -585,18 +331,7 @@ describe('OrganizationService', () => {
                 password: 'password',
             });
 
-            const organization = await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
+            const organization = await createOrganization(service, { owner });
 
             const result = await service.getAggregatedBuyers(organization.id);
             expect(result.monthly).toBe(0);
@@ -607,71 +342,28 @@ describe('OrganizationService', () => {
 
     describe('getAggregatedEarnings', () => {
         it('should return the number of aggregated earning', async () => {
-            const coin = await coinService.createCoin({
-                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-                name: 'Wrapped Ether',
-                symbol: 'WETH',
-                decimals: 18,
-                derivedETH: 1,
-                derivedUSDC: 1,
-                enabled: true,
-                chainId: 1,
-            });
+            const coin = await createCoin(coinService);
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',
             });
 
-            const organization = await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
+            const organization = await createOrganization(service, { owner });
+            const collection = await createCollection(collectionService, { organization });
+            await createMintSaleTransaction(transactionService, {
+                address: collection.address,
+                paymentToken: coin.address,
+                txTime: Math.floor(new Date().getTime() / 1000),
+                price: '1000000000000000000',
+            });
+            await createMintSaleTransaction(transactionService, {
+                address: collection.address,
+                paymentToken: coin.address,
+                txTime: Math.floor(new Date().getTime() / 1000),
+                price: '1000000000000000000',
             });
 
-            const collection = await collectionRepository.save({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                address: faker.finance.ethereumAddress(),
-                artists: [],
-                tags: [],
-                organization: organization,
-            });
-
-            await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(new Date().getTime() / 1000),
-                sender: faker.finance.ethereumAddress(),
-                recipient: faker.finance.ethereumAddress(),
-                address: collection.address,
-                tierId: 0,
-                tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
-                price: '1000000000000000000',
-                paymentToken: coin.address,
-            });
-            await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(new Date().getTime() / 1000),
-                sender: faker.finance.ethereumAddress(),
-                recipient: faker.finance.ethereumAddress(),
-                address: collection.address,
-                tierId: 0,
-                tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
-                price: '1000000000000000000',
-                paymentToken: coin.address,
-            });
             const tokenPriceUSD = faker.number.int({ max: 1000 });
             const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
                 USD: { price: tokenPriceUSD },
@@ -685,92 +377,32 @@ describe('OrganizationService', () => {
             expect(result.daily).toBe(tokenPriceUSD * 2);
         });
 
-        it('should return the number of aggregated data for earning, miltuple collections', async () => {
-            const coin = await coinService.createCoin({
-                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-                name: 'Wrapped Ether',
-                symbol: 'WETH',
-                decimals: 18,
-                derivedETH: 1,
-                derivedUSDC: 1,
-                enabled: true,
-                chainId: 1,
-            });
+        it('should return the number of aggregated data for earning, multiple collections', async () => {
+            const coin = await createCoin(coinService);
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',
             });
 
-            const organization = await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
-
-            const collection = await collectionRepository.save({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                address: faker.finance.ethereumAddress(),
-                artists: [],
-                tags: [],
-                organization: organization,
-            });
-
-            await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(new Date().getTime() / 1000),
-                sender: faker.finance.ethereumAddress(),
-                recipient: faker.finance.ethereumAddress(),
+            const organization = await createOrganization(service, { owner });
+            const collection = await createCollection(collectionService, { organization });
+            await createMintSaleTransaction(transactionService, {
                 address: collection.address,
-                tierId: 0,
-                tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                paymentToken: coin.address,
+                txTime: Math.floor(new Date().getTime() / 1000),
+                price: '1000000000000000000',
+            });
+            await createMintSaleTransaction(transactionService, {
+                address: collection.address,
+                txTime: Math.floor(new Date().getTime() / 1000),
                 price: '1000000000000000000',
                 paymentToken: coin.address,
             });
-            await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(new Date().getTime() / 1000),
-                sender: faker.finance.ethereumAddress(),
-                recipient: faker.finance.ethereumAddress(),
-                address: collection.address,
-                tierId: 0,
-                tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
-                price: '1000000000000000000',
-                paymentToken: coin.address,
-            });
-
-            const collection2 = await collectionRepository.save({
-                name: faker.company.name(),
-                displayName: 'The best collection2',
-                about: 'The best collection ever2',
-                address: faker.finance.ethereumAddress(),
-                artists: [],
-                tags: [],
-                organization: organization,
-            });
-            await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(new Date().getTime() / 1000),
-                sender: faker.finance.ethereumAddress(),
-                recipient: faker.finance.ethereumAddress(),
+            const collection2 = await createCollection(collectionService, { organization });
+            await createMintSaleTransaction(transactionService, {
                 address: collection2.address,
-                tierId: 0,
-                tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                txTime: Math.floor(new Date().getTime() / 1000),
                 price: '1000000000000000000',
                 paymentToken: coin.address,
             });
@@ -791,56 +423,19 @@ describe('OrganizationService', () => {
 
     describe('getOrganizationProfit', () => {
         it('should get profit by organization', async () => {
-            const coin = await coinService.createCoin({
-                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-                name: 'Wrapped Ether',
-                symbol: 'WETH',
-                decimals: 18,
-                derivedETH: 1,
-                derivedUSDC: 1,
-                enabled: true,
-                chainId: 1,
-            });
+            const coin = await createCoin(coinService);
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',
             });
 
-            const organization = await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
-            const collection = await collectionRepository.save({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                address: faker.finance.ethereumAddress(),
-                artists: [],
-                tags: [],
-                organization: organization,
-            });
-
-            await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(new Date().getTime() / 1000),
-                sender: faker.finance.ethereumAddress(),
-                recipient: faker.finance.ethereumAddress(),
+            const organization = await createOrganization(service, { owner });
+            const collection = await createCollection(collectionService, { organization });
+            await createMintSaleTransaction(transactionService, {
                 address: collection.address,
-                tierId: 0,
-                tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
-                price: '1000000000000000000',
                 paymentToken: coin.address,
+                price: '1000000000000000000',
             });
 
             const tokenPriceUSD = faker.number.int({ max: 1000 });
@@ -858,26 +453,12 @@ describe('OrganizationService', () => {
         });
 
         it('should get profit by organization, multiple collections and multiple payment tokens', async () => {
-            const coin = await coinService.createCoin({
-                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-                name: 'Wrapped Ether',
-                symbol: 'WETH',
-                decimals: 18,
-                derivedETH: 1,
-                derivedUSDC: 1,
-                enabled: true,
-                chainId: 1,
-            });
-
-            const coin2 = await coinService.createCoin({
+            const coin = await createCoin(coinService);
+            const coin2 = await createCoin(coinService, {
                 address: faker.finance.ethereumAddress(),
                 name: 'Wrapped Ether2',
                 symbol: 'WETH2',
-                decimals: 18,
-                derivedETH: 1,
                 derivedUSDC: 1,
-                enabled: true,
-                chainId: 1,
             });
 
             const owner = await userService.createUser({
@@ -885,65 +466,18 @@ describe('OrganizationService', () => {
                 password: 'password',
             });
 
-            const organization = await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
-
-            const collection = await collectionRepository.save({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                address: faker.finance.ethereumAddress(),
-                artists: [],
-                tags: [],
-                organization: organization,
-            });
-
-            await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(new Date().getTime() / 1000),
-                sender: faker.finance.ethereumAddress(),
-                recipient: faker.finance.ethereumAddress(),
+            const organization = await createOrganization(service, { owner });
+            const collection = await createCollection(collectionService, { organization });
+            await createMintSaleTransaction(transactionService, {
                 address: collection.address,
-                tierId: 0,
-                tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
-                price: '1000000000000000000',
                 paymentToken: coin.address,
-            });
-
-            const collection2 = await collectionRepository.save({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                address: faker.finance.ethereumAddress(),
-                artists: [],
-                tags: [],
-                organization: organization,
-            });
-
-            await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(new Date().getTime() / 1000),
-                sender: faker.finance.ethereumAddress(),
-                recipient: faker.finance.ethereumAddress(),
-                address: collection2.address,
-                tierId: 0,
-                tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
                 price: '1000000000000000000',
+            });
+            const collection2 = await createCollection(collectionService, { organization });
+            await createMintSaleTransaction(transactionService, {
+                address: collection2.address,
                 paymentToken: coin2.address,
+                price: '1000000000000000000',
             });
 
             const tokenPriceUSD = faker.number.int({ max: 1000 });
@@ -976,70 +510,26 @@ describe('OrganizationService', () => {
 
     describe('getLatestSales', () => {
         it('should be return latest slaes', async () => {
-            const coin = await coinService.createCoin({
-                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-                name: 'Wrapped Ether',
-                symbol: 'WETH',
-                decimals: 18,
-                derivedETH: 1,
-                derivedUSDC: 1,
-                enabled: true,
-                chainId: 1,
-            });
+            const coin = await createCoin(coinService);
 
             const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',
             });
 
-            const organization = await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
-            const collection = await collectionRepository.save({
-                name: faker.company.name(),
-                displayName: 'The best collection',
-                about: 'The best collection ever',
-                address: faker.finance.ethereumAddress(),
-                artists: [],
-                tags: [],
-                organization: organization,
-            });
-
-            const tx1 = await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
+            const organization = await createOrganization(service, { owner });
+            const collection = await createCollection(collectionService, { organization, address: faker.finance.ethereumAddress() });
+            const tx1 = await createMintSaleTransaction(transactionService, {
+                address: collection.address,
+                paymentToken: coin.address,
+                price: '1000000000000000000',
                 txTime: Math.floor(new Date().getTime() / 1000),
-                sender: faker.finance.ethereumAddress(),
-                recipient: faker.finance.ethereumAddress(),
-                address: collection.address,
-                tierId: 0,
-                tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
-                price: '1000000000000000000',
-                paymentToken: coin.address,
             });
-
-            const tx2 = await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(subSeconds(new Date(), 100).getTime() / 1000),
-                sender: faker.finance.ethereumAddress(),
-                recipient: faker.finance.ethereumAddress(),
+            const tx2 = await createMintSaleTransaction(transactionService, {
                 address: collection.address,
-                tierId: 0,
-                tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
-                price: '1000000000000000000',
                 paymentToken: coin.address,
+                price: '1000000000000000000',
+                txTime: Math.floor(subSeconds(new Date(), 100).getTime() / 1000),
             });
 
             const tokenPriceUSD = faker.number.int({ max: 1000 });
@@ -1059,83 +549,74 @@ describe('OrganizationService', () => {
         });
     });
 
-    describe('getOrganizationEarningsChart', () => {
-        it('should return the earnings chart', async () => {
-            const coin = await coinService.createCoin({
-                address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-                name: 'Wrapped Ether',
-                symbol: 'WETH',
-                decimals: 18,
-                derivedETH: 1,
-                derivedUSDC: 1,
-                enabled: true,
-                chainId: 1,
-            });
-
-            const user = await userService.createUser({
+    describe('getCollectionStat', () => {
+        it('should return right collection stats for total, live, closed', async () => {
+            const owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',
             });
 
-            const organization = await service.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: user,
+            const organization = await createOrganization(service, { owner });
+            // closed collection: endSaleAt is in the past
+            const earlierPastTimestamp = Math.floor(subSeconds(new Date(), 200).getTime() / 1000);
+            const pastTimestamp = Math.floor(subSeconds(new Date(), 100).getTime() / 1000);
+            const futureTimestamp = Math.floor(addSeconds(new Date(), 200).getTime() / 1000);
+            await createCollection(collectionService, {
+                organization,
+                address: faker.finance.ethereumAddress(),
+                publishedAt: new Date(earlierPastTimestamp * 1000),
+                beginSaleAt: earlierPastTimestamp,
+                endSaleAt: pastTimestamp,
             });
-            const collection = await collectionService.createCollectionWithTiers({
-                name: faker.commerce.productName(),
-                displayName: faker.commerce.productName(),
-                about: faker.commerce.productDescription(),
-                address: faker.commerce.productDescription(),
-                tags: [],
-                organization: { id: organization.id },
-                tiers: [
-                    {
-                        name: faker.company.name(),
-                        totalMints: 200,
-                        paymentTokenAddress: coin.address,
-                        tierId: 0,
-                        price: '200',
-                        metadata: {
-                            uses: [],
-                            properties: {
-                                level: {
-                                    name: 'level',
-                                    type: 'string',
-                                    value: 'basic',
-                                    display_value: 'Basic',
-                                },
-                                holding_days: {
-                                    name: 'holding_days',
-                                    type: 'integer',
-                                    value: 125,
-                                    display_value: 'Days of holding',
-                                },
-                            },
-                        },
-                    },
-                ],
+            // live collection: it's within the [begin,end] time range and published already
+            await createCollection(collectionService, {
+                organization,
+                address: faker.finance.ethereumAddress(),
+                publishedAt: new Date(pastTimestamp * 1000),
+                beginSaleAt: pastTimestamp,
+                endSaleAt: futureTimestamp,
+            });
+            // draft collection, it's within the [begin,end] time range but not published yet
+            await createCollection(collectionService, {
+                organization,
+                address: faker.finance.ethereumAddress(),
+                beginSaleAt: pastTimestamp,
+                endSaleAt: futureTimestamp,
+            });
+            const stats = await service.getCollectionStat(organization.id);
+            expect(stats.total).toBe(3);
+            expect(stats.live).toBe(1);
+            expect(stats.closed).toBe(1);
+        });
+
+        it('should return 0 for collection stats if no collection', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
             });
 
-            await transactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(new Date().valueOf() / 1000),
-                sender: faker.finance.ethereumAddress(),
-                recipient: faker.finance.ethereumAddress(),
+            const organization = await createOrganization(service, { owner });
+            const stats = await service.getCollectionStat(organization.id);
+            expect(stats.total).toBe(0);
+            expect(stats.live).toBe(0);
+            expect(stats.closed).toBe(0);
+        });
+    });
+
+    describe('getOrganizationEarningsChart', () => {
+        it('should return the earnings chart', async () => {
+            const coin = await createCoin(coinService);
+
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+            const organization = await createOrganization(service, { owner });
+            const collection = await createCollection(collectionService, { organization });
+            await createMintSaleTransaction(transactionService, {
                 address: collection.address,
-                tierId: 0,
-                tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
-                price: '1000000000000000000',
                 paymentToken: coin.address,
+                price: '1000000000000000000',
             });
 
             const tokenPriceUSD = faker.number.int({ max: 1000 });

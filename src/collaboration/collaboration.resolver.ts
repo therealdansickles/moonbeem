@@ -7,20 +7,20 @@ import { Collaboration, CreateCollaborationInput, CollaborationWithEarnings } fr
 import { CollaborationService } from './collaboration.service';
 import { Collection } from '../collection/collection.dto';
 import { CollectionService } from '../collection/collection.service';
+import { Royalty } from '../sync-chain/royalty/royalty.dto';
+import { RoyaltyService } from '../sync-chain/royalty/royalty.service';
 
 @Resolver(() => Collaboration)
 export class CollaborationResolver {
     constructor(
         private readonly collaborationService: CollaborationService,
-        private readonly collectionService: CollectionService
+        private readonly collectionService: CollectionService,
+        private readonly royaltyService: RoyaltyService
     ) {}
 
     @Public()
     @Query(() => CollaborationWithEarnings, { description: 'returns a collaboration for a given uuid', nullable: true })
-    async collaboration(
-        @Args('id') id: string,
-            @Args('collectionId', { nullable: true }) collectionId?: string
-    ): Promise<CollaborationWithEarnings> {
+    async collaboration(@Args('id') id: string, @Args('collectionId', { nullable: true }) collectionId?: string): Promise<CollaborationWithEarnings> {
         return await this.collaborationService.getCollaborationWithEarnings(id, collectionId);
     }
 
@@ -31,10 +31,7 @@ export class CollaborationResolver {
 
     @Public()
     @Query(() => [Collaboration], { description: 'returns all collaborations for a given user and organization' })
-    async collaborations(
-        @Args('userId') userId: string,
-            @Args('organizationId') organizationId: string
-    ): Promise<Collaboration[]> {
+    async collaborations(@Args('userId') userId: string, @Args('organizationId') organizationId: string): Promise<Collaboration[]> {
         return await this.collaborationService.getCollaborationsByUserIdAndOrganizationId(userId, organizationId);
     }
 
@@ -42,5 +39,11 @@ export class CollaborationResolver {
     @Mutation(() => Collaboration, { description: 'create a collaboration' })
     async createCollaboration(@Args('input') input: CreateCollaborationInput): Promise<Collaboration> {
         return await this.collaborationService.createCollaboration(input);
+    }
+
+    @Public()
+    @ResolveField(() => [Royalty], { description: '' })
+    async royalties(@Parent() collaboration: Collaboration): Promise<Royalty[]> {
+        return await this.royaltyService.getRoyaltiesByAddress(collaboration.address);
     }
 }

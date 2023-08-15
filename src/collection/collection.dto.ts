@@ -564,8 +564,8 @@ export class CollectionSoldAggregatedData extends PickType(
     ObjectType
 ) {
     @IsString()
-    @Field(() => String, { description: 'Total cost for the aggregated transaction' })
-    readonly cost: string;
+    @Field(() => Profit, { description: 'Total cost object for the aggregated transaction' })
+    readonly cost: Profit;
 
     @IsArray()
     @Field(() => [String], { description: 'The tokenIds in the aggregated transaction.' })
