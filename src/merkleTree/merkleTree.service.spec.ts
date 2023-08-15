@@ -20,7 +20,7 @@ describe('MerkleTreeService', () => {
                 data: [
                     {
                         address: faker.finance.ethereumAddress(),
-                        amount: faker.string.numeric(2),
+                        amount: faker.string.numeric({ length: 2, allowLeadingZeros: false }),
                     },
                 ],
             });
@@ -34,7 +34,7 @@ describe('MerkleTreeService', () => {
 
         it('should return the same merkle tree, if data is the same.', async () => {
             const address = faker.finance.ethereumAddress();
-            const amount = faker.string.numeric(2);
+            const amount = faker.string.numeric({ length: 2, allowLeadingZeros: false });
             const merkleTree = await service.createMerkleTree({
                 data: [{ address, amount }],
             });
@@ -58,7 +58,7 @@ describe('MerkleTreeService', () => {
     describe('getMerkleProof', () => {
         it('should get merkle proof, single address', async () => {
             const address = faker.finance.ethereumAddress();
-            const amount = faker.string.numeric(2);
+            const amount = faker.string.numeric({ length: 2, allowLeadingZeros: false });
             const merkleTree = await service.createMerkleTree({
                 data: [{ address, amount }],
             });
@@ -72,10 +72,10 @@ describe('MerkleTreeService', () => {
 
         it('should get merkle proof, multiple addresses', async () => {
             const address = faker.finance.ethereumAddress();
-            const amount = faker.string.numeric(2);
+            const amount = faker.string.numeric({ length: 2, allowLeadingZeros: false });
 
             const address1 = faker.finance.ethereumAddress();
-            const amount1 = faker.string.numeric(2);
+            const amount1 = faker.string.numeric({ length: 2, allowLeadingZeros: false });
 
             const merkleTree = await service.createMerkleTree({
                 data: [
@@ -105,7 +105,7 @@ describe('MerkleTreeService', () => {
 
         it('should return null, if you are not allowlist', async () => {
             const address = faker.finance.ethereumAddress();
-            const amount = faker.string.numeric(2);
+            const amount = faker.string.numeric({ length: 2, allowLeadingZeros: false });
             const merkleTree = await service.createMerkleTree({
                 data: [{ address, amount }],
             });
@@ -116,10 +116,10 @@ describe('MerkleTreeService', () => {
 
         it('should return usable equal -1', async () => {
             const address = faker.finance.ethereumAddress();
-            const amount = faker.string.numeric(2);
+            const amount = faker.string.numeric({ length: 2, allowLeadingZeros: false });
 
             const address1 = faker.finance.ethereumAddress();
-            const amount1 = faker.string.numeric(2);
+            const amount1 = faker.string.numeric({ length: 2, allowLeadingZeros: false });
 
             const merkleTree = await service.createMerkleTree({
                 data: [

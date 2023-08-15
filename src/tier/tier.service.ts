@@ -10,30 +10,20 @@ import { captureException } from '@sentry/node';
 import { Collection, CollectionKind } from '../collection/collection.entity';
 import { MetadataPropertySearchInput } from '../metadata/metadata.dto';
 import {
-    cursorToStrings,
-    fromCursor,
-    PaginatedImp,
-    stringsToCursor,
-    toPaginated,
+    cursorToStrings, fromCursor, PaginatedImp, stringsToCursor, toPaginated
 } from '../pagination/pagination.utils';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import {
+    MintSaleTransaction
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { TierHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    BasicPriceInfo,
-    CreateTierInput,
-    IAttributeOverview,
-    IOverview,
-    IPluginOverview,
-    IUpgradeOverview,
-    Profit,
-    Tier,
-    TierSearchPaginated,
-    UpdateTierInput,
+    BasicPriceInfo, CreateTierInput, IAttributeOverview, IOverview, IPluginOverview,
+    IUpgradeOverview, Profit, Tier, TierSearchPaginated, UpdateTierInput
 } from './tier.dto';
 import * as tierEntity from './tier.entity';
 
@@ -55,7 +45,7 @@ type AttributesOverviewQuery = {
 export type ITierQuery = {
     name?: string;
     collection?: { id: string };
-    tierId?: number;
+    pluginName?: string;
 };
 
 @Injectable()
@@ -100,15 +90,17 @@ export class TierService {
      * @param query The query of the search
      * @returns Array of tiers
      */
-    async getTiersByQuery(query: ITierQuery) {
+    async getTiers(query: ITierQuery) {
         query = omitBy(query, isNil);
         if (isEmpty(query)) return null;
 
+        const builder = this.tierRepository.createQueryBuilder('tier').leftJoinAndSelect('tier.collection', 'collection');
+        if (query.name) builder.andWhere('tier.name = :name', { name: query.name });
+        if (query.collection) builder.andWhere('collection.id = :collectionId', { collectionId: query.collection.id });
+        if (query.pluginName) builder.andWhere("(tier.metadata->>'uses')::jsonb @> :uses", { uses: JSON.stringify([query.pluginName]) });
+
         const result: Tier[] = [];
-        const tiers = await this.tierRepository.find({
-            where: query,
-            relations: { collection: true },
-        });
+        const tiers = await builder.getMany();
 
         for (const tier of tiers) {
             const coin = await this.coinService.getCoinByAddress(tier.paymentTokenAddress.toLowerCase());

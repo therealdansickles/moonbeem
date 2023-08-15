@@ -23,8 +23,8 @@ describe('CoinService', () => {
                 decimals: 6,
                 native: false,
                 enable: true,
-                derivedETH: faker.string.numeric(5),
-                derivedUSDC: faker.string.numeric(5),
+                derivedETH: faker.string.numeric({ length: 5, allowLeadingZeros: false }),
+                derivedUSDC: faker.string.numeric({ length: 5, allowLeadingZeros: false }),
             });
 
             const result = await service.getCoin(coin.id);
@@ -40,8 +40,8 @@ describe('CoinService', () => {
                 decimals: 6,
                 native: false,
                 enable: true,
-                derivedETH: faker.string.numeric(5),
-                derivedUSDC: faker.string.numeric(5),
+                derivedETH: faker.string.numeric({ length: 5, allowLeadingZeros: false }),
+                derivedUSDC: faker.string.numeric({ length: 5, allowLeadingZeros: false }),
             });
             const result = await service.getCoinByAddress(coin.address);
             expect(result.address).toEqual(coin.address);
@@ -56,8 +56,8 @@ describe('CoinService', () => {
                 chainId: 1,
                 native: false,
                 enable: true,
-                derivedETH: faker.string.numeric(5),
-                derivedUSDC: faker.string.numeric(5),
+                derivedETH: faker.string.numeric({ length: 5, allowLeadingZeros: false }),
+                derivedUSDC: faker.string.numeric({ length: 5, allowLeadingZeros: false }),
             });
             await service.createCoin({
                 address: faker.finance.ethereumAddress(),
@@ -67,8 +67,8 @@ describe('CoinService', () => {
                 chainId: 42161,
                 native: false,
                 enable: true,
-                derivedETH: faker.string.numeric(5),
-                derivedUSDC: faker.string.numeric(5),
+                derivedETH: faker.string.numeric({ length: 5, allowLeadingZeros: false }),
+                derivedUSDC: faker.string.numeric({ length: 5, allowLeadingZeros: false }),
             });
 
             // Should return all coins if chainid is 0 or null.

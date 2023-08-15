@@ -355,7 +355,7 @@ describe('UserService', () => {
                 creator: { id: wallet.id },
             });
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -363,7 +363,7 @@ describe('UserService', () => {
                 address: collection2.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 collectionId: collection2.id,
                 paymentToken: coin.address,
@@ -384,7 +384,7 @@ describe('UserService', () => {
 
         it("should calculate the user's profit", async () => {
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -392,7 +392,7 @@ describe('UserService', () => {
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 collectionId: collection.id,
                 paymentToken: coin.address,
@@ -569,7 +569,7 @@ describe('UserService', () => {
 
             const recipient1 = faker.finance.ethereumAddress();
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -577,14 +577,14 @@ describe('UserService', () => {
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 collectionId: collection.id,
                 paymentToken: faker.finance.ethereumAddress(),
             });
             // same recipient, should be 1
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -592,7 +592,7 @@ describe('UserService', () => {
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 collectionId: collection.id,
                 paymentToken: faker.finance.ethereumAddress(),
@@ -611,7 +611,7 @@ describe('UserService', () => {
             });
             // the same recipient
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -619,7 +619,7 @@ describe('UserService', () => {
                 address: collection2.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 collectionId: collection2.id,
                 paymentToken: faker.finance.ethereumAddress(),
@@ -630,7 +630,7 @@ describe('UserService', () => {
 
             // added another transaction
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -638,7 +638,7 @@ describe('UserService', () => {
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 collectionId: collection.id,
                 paymentToken: faker.finance.ethereumAddress(),
@@ -682,7 +682,7 @@ describe('UserService', () => {
 
             const recipient1 = faker.finance.ethereumAddress();
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -690,14 +690,14 @@ describe('UserService', () => {
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 collectionId: collection.id,
                 paymentToken: faker.finance.ethereumAddress(),
             });
             // same recipient, should be 1
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -705,7 +705,7 @@ describe('UserService', () => {
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 collectionId: collection.id,
                 paymentToken: faker.finance.ethereumAddress(),
@@ -716,7 +716,7 @@ describe('UserService', () => {
 
             // added another transaction
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -724,7 +724,7 @@ describe('UserService', () => {
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 collectionId: collection.id,
                 paymentToken: faker.finance.ethereumAddress(),
@@ -832,7 +832,7 @@ describe('UserService', () => {
             });
 
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -840,7 +840,7 @@ describe('UserService', () => {
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 collectionId: collection.id,
                 paymentToken: faker.finance.ethereumAddress(),
@@ -848,7 +848,7 @@ describe('UserService', () => {
 
             // Records that do not match current collection
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -856,7 +856,7 @@ describe('UserService', () => {
                 address: faker.finance.ethereumAddress(),
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 collectionId: collection.id,
                 paymentToken: faker.finance.ethereumAddress(),
@@ -874,7 +874,7 @@ describe('UserService', () => {
                 creator: { id: wallet.id },
             });
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -882,7 +882,7 @@ describe('UserService', () => {
                 address: collection1.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 collectionId: collection1.id,
                 paymentToken: faker.finance.ethereumAddress(),
@@ -925,7 +925,7 @@ describe('UserService', () => {
             });
 
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -933,7 +933,7 @@ describe('UserService', () => {
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 collectionId: collection.id,
                 paymentToken: faker.finance.ethereumAddress(),
@@ -941,7 +941,7 @@ describe('UserService', () => {
 
             // Records that do not match current collection
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -949,7 +949,7 @@ describe('UserService', () => {
                 address: faker.finance.ethereumAddress(),
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 collectionId: collection.id,
                 paymentToken: faker.finance.ethereumAddress(),
@@ -1071,7 +1071,7 @@ describe('UserService', () => {
             const txHash = faker.string.hexadecimal({ length: 66, casing: 'lower' });
             const txTime = Math.floor(faker.date.recent().getTime() / 1000);
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: txHash,
                 txTime: txTime,
                 sender: faker.finance.ethereumAddress(),
@@ -1079,7 +1079,7 @@ describe('UserService', () => {
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 collectionId: collection.id,
                 paymentToken: coin.address,
@@ -1087,7 +1087,7 @@ describe('UserService', () => {
 
             // Records that do not match current collection
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: txHash,
                 txTime: txTime,
                 sender: faker.finance.ethereumAddress(),
@@ -1095,7 +1095,7 @@ describe('UserService', () => {
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 collectionId: collection.id,
                 paymentToken: coin.address,
@@ -1115,7 +1115,7 @@ describe('UserService', () => {
 
             // the other minter
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: txHash,
                 txTime: txTime,
                 sender: faker.finance.ethereumAddress(),
@@ -1123,7 +1123,7 @@ describe('UserService', () => {
                 address: collection1.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 collectionId: collection1.id,
                 paymentToken: coin.address,
@@ -1131,7 +1131,7 @@ describe('UserService', () => {
 
             // the same minter
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: txHash,
                 txTime: txTime,
                 sender: faker.finance.ethereumAddress(),
@@ -1139,7 +1139,7 @@ describe('UserService', () => {
                 address: collection1.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 collectionId: collection1.id,
                 paymentToken: coin.address,
@@ -1205,7 +1205,7 @@ describe('UserService', () => {
             const txHash = faker.string.hexadecimal({ length: 66, casing: 'lower' });
             const txTime = Math.floor(faker.date.recent().getTime() / 1000);
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: txHash,
                 txTime: txTime,
                 sender: faker.finance.ethereumAddress(),
@@ -1213,7 +1213,7 @@ describe('UserService', () => {
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 collectionId: collection.id,
                 paymentToken: coin.address,
@@ -1221,7 +1221,7 @@ describe('UserService', () => {
 
             // Records that do not match current collection
             await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: txHash,
                 txTime: txTime,
                 sender: faker.finance.ethereumAddress(),
@@ -1229,7 +1229,7 @@ describe('UserService', () => {
                 address: collection.address,
                 tierId: 0,
                 tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric(3),
+                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 collectionId: collection.id,
                 paymentToken: coin.address,

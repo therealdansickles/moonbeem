@@ -25,7 +25,7 @@ describe('FactoryResolver', () => {
     describe('factory', () => {
         it('should return an factory', async () => {
             const factory = await service.createFactory({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -61,7 +61,7 @@ describe('FactoryResolver', () => {
     describe('factories', () => {
         it('should get factory list', async () => {
             await service.createFactory({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),

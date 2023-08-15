@@ -1,6 +1,6 @@
 import { isNil, omitBy } from 'lodash';
 
-import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { Public } from '../session/session.decorator';
 import { CreateOrUpdateNftInput, Nft } from './nft.dto';
@@ -18,13 +18,11 @@ export class NftResolver {
         @Args({ name: 'id', nullable: true }) id: string,
             @Args({ name: 'collectionId', nullable: true }) collectionId: string,
             @Args({ name: 'tierId', nullable: true }) tierId: string,
-            @Args({ name: 'tokenId', nullable: true, type: () => Int }) tokenId: string,
+            @Args({ name: 'tokenId', nullable: true, type: () => String }) tokenId: string,
     ): Promise<Nft> {
-        let query: INftQuery = { id, tokenId };
+        let query: INftQuery = { id, tokenId, collection: { id: collectionId }, tier: { id: tierId } };
         query = omitBy(query, isNil);
-        if (collectionId) query.collection = { id: collectionId };
-        if (tierId) query.tier = { id: tierId };
-        return await this.nftService.getNftByQuery(query);
+        return await this.nftService.getNft(query);
     }
 
     @Public()
@@ -32,13 +30,11 @@ export class NftResolver {
     async nfts(
         @Args({ name: 'collectionId', nullable: true }) collectionId: string,
             @Args({ name: 'tierId', nullable: true }) tierId: string,
-            @Args({ name: 'tokenIds', nullable: true, type: () => [Int] }) tokenIds: number[]
+            @Args({ name: 'tokenIds', nullable: true, type: () => [String] }) tokenIds?: string[]
     ): Promise<Nft[]> {
-        let query: INftListQuery = { tokenIds };
+        let query: INftListQuery = { collection: { id: collectionId }, tier: { id: tierId }, tokenIds };
         query = omitBy(query, isNil);
-        if (collectionId) query.collection = { id: collectionId };
-        if (tierId) query.tier = { id: tierId };
-        return await this.nftService.getNftListByQuery(query);
+        return await this.nftService.getNfts(query);
     }
 
     @Mutation(() => Nft, { description: 'Mutate a NFT for the given data.' })

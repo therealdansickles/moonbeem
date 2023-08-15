@@ -1,28 +1,56 @@
-import { omit } from 'lodash';
+import { pick } from 'lodash';
+import { render } from 'mustache';
 import { In, Repository } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
+import { Nft as NftDto } from './nft.dto';
 import { Nft } from './nft.entity';
 
-export type INftQuery = {
-    id?: string;
-    collection?: { id: string };
-    tier?: { id: string };
-    tokenId?: string;
-};
+export type INftQuery = 
+    | { id: string }
+    | { collection: { id: string }, tokenId: string; }
+    | { tier: { id: string }, tokenId: string };
 
-export type INftListQuery = {
-    collection?: { id: string };
-    tier?: { id: string };
-    tokenIds?: number[];
-    tokenId?: any;
-};
+interface INftListQueryWithIds {
+    ids: string[];
+}
+
+interface INftListQueryWithCollection {
+    collection: { id: string };
+    tokenIds?: string[];
+}
+
+interface INftListQueryWithTier {
+    tier: { id: string };
+    tokenIds?: string[];
+}
+
+
+export type INftListQuery = 
+    | INftListQueryWithIds
+    | INftListQueryWithCollection
+    | INftListQueryWithTier
 
 @Injectable()
 export class NftService {
     constructor(@InjectRepository(Nft) private readonly nftRepository: Repository<Nft>) {}
+
+    /**
+     * render metadata
+     * 
+     * @param id
+     * @param tier
+     */
+    renderMetadata(nft: Nft) {
+        const result: NftDto = Object.assign({}, nft);
+        if (nft.properties && nft.tier.metadata) {
+            const metadata = render(JSON.stringify(nft.tier.metadata), nft.properties, {}, ['{{', '}}']);
+            result.metadata = JSON.parse(metadata);
+        }
+        return result;
+    }
 
     /**
      * get NFT info by the id
@@ -30,12 +58,14 @@ export class NftService {
      * @param id
      * @returns
      */
-    async getNft(id: string) {
-        return await this.nftRepository.findOneBy({ id });
+    async getNft(query: INftQuery) {
+        const nft = await this.nftRepository.findOne({ where: query, relations: ['collection', 'tier'] });
+        return this.renderMetadata(nft);
     }
 
     /**
-     * get NFT info by criteria
+     * @deprecated
+     * get NFT info by criteria, just use `getNft` function
      *
      * @param query
      * @returns
@@ -49,13 +79,12 @@ export class NftService {
      * @param query
      * @returns
      */
-    async getNftListByQuery(query: INftListQuery) {
-        if (query.tokenIds) {
-            query.tokenId = In([...query.tokenIds]);
-            query = omit(query, 'tokenIds');
-        }
+    async getNfts(query: INftListQuery) {
+        const where = pick(query, ['collection', 'tier']);
+        if ((query as INftListQueryWithIds).ids) where.id = In([...(query as INftListQueryWithIds).ids]);
+        if ((query as INftListQueryWithCollection | INftListQueryWithTier).tokenIds) where.tokenId = In([...(query as INftListQueryWithCollection | INftListQueryWithTier).tokenIds]);
 
-        return await this.nftRepository.findBy(query);
+        return await this.nftRepository.findBy(where);
     }
 
     /**

@@ -26,25 +26,9 @@ import { User } from '../user/user.entity';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    AggregatedVolume,
-    Collection,
-    CollectionActivities,
-    CollectionActivityType,
-    CollectionAggregatedActivities,
-    CollectionEarningsChartPaginated,
-    CollectionPaginated,
-    CollectionSold,
-    CollectionSoldPaginated,
-    CollectionSoldAggregated,
-    CollectionStat,
-    CollectionStatus,
-    CreateCollectionInput,
-    GrossEarnings,
-    LandingPageCollection,
-    SecondarySale,
-    SevenDayVolume,
-    UpdateCollectionInput,
-    ZeroAccount,
+    AggregatedVolume, Collection, CollectionActivities, CollectionActivityType, CollectionAggregatedActivities, CollectionEarningsChartPaginated,
+    CollectionPaginated, CollectionSold, CollectionSoldAggregated, CollectionSoldPaginated, CollectionStat, CollectionStatus, CreateCollectionInput,
+    GrossEarnings, LandingPageCollection, SecondarySale, SevenDayVolume, UpdateCollectionInput, ZeroAccount
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
 import { generateSlug } from './collection.utils';
@@ -100,7 +84,7 @@ export class CollectionService {
         });
 
         if (collection) {
-            collection.tiers = (await this.tierService.getTiersByQuery({
+            collection.tiers = (await this.tierService.getTiers({
                 collection: { id: collection.id },
             })) as Tier[];
         }
@@ -626,7 +610,7 @@ export class CollectionService {
 
         const data = await Promise.all(
             collections.map(async (collection) => {
-                collection.tiers = (await this.tierService.getTiersByQuery({
+                collection.tiers = (await this.tierService.getTiers({
                     collection: { id: collection.id },
                 })) as Tier[];
                 return { ...collection };

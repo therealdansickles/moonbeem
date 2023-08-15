@@ -71,10 +71,10 @@ describe('RedeemResolver', () => {
             });
 
             const ownerWallet = ethers.Wallet.createRandom();
-            const tokenId = faker.string.numeric(1);
+            const tokenId = faker.string.numeric({ length: 1, allowLeadingZeros: false });
 
             const mintSaleContract = await mintSaleContractService.createMintSaleContract({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress().toLowerCase(),
@@ -96,7 +96,7 @@ describe('RedeemResolver', () => {
             });
 
             await asset721Service.createAsset721({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: mintSaleContract.tokenAddress,
@@ -204,7 +204,7 @@ describe('RedeemResolver', () => {
                     deliveryCountry: faker.location.country(),
                     email: faker.internet.email(),
                     collection: { id: collection.id },
-                    tokenId: +faker.string.numeric(1),
+                    tokenId: +faker.string.numeric({ length: 1, allowLeadingZeros: false }),
                 },
             };
 
@@ -248,7 +248,7 @@ describe('RedeemResolver', () => {
             });
 
             const mintSaleContract = await mintSaleContractService.createMintSaleContract({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress().toLowerCase(),
@@ -271,10 +271,10 @@ describe('RedeemResolver', () => {
 
             const ownerWallet = ethers.Wallet.createRandom();
             const ownerWallet2 = ethers.Wallet.createRandom();
-            const tokenId = faker.string.numeric(1);
+            const tokenId = faker.string.numeric({ length: 1, allowLeadingZeros: false });
 
             await asset721Service.createAsset721({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: mintSaleContract.tokenAddress,
@@ -351,10 +351,10 @@ describe('RedeemResolver', () => {
             });
 
             const ownerWallet = ethers.Wallet.createRandom();
-            const tokenId = faker.string.numeric(1);
+            const tokenId = faker.string.numeric({ length: 1, allowLeadingZeros: false });
 
             const mintSaleContract = await mintSaleContractService.createMintSaleContract({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress().toLowerCase(),
@@ -376,7 +376,7 @@ describe('RedeemResolver', () => {
             });
 
             await asset721Service.createAsset721({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: mintSaleContract.tokenAddress,

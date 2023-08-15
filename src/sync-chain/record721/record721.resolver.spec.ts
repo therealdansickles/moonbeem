@@ -24,7 +24,7 @@ describe('Record721Resolver', () => {
     describe('erc721 record', () => {
         it('should return contract info', async () => {
             const record = await service.createRecord721({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: faker.finance.ethereumAddress(),

@@ -30,8 +30,8 @@ describe('CoinResolver', () => {
                 decimals: 6,
                 native: false,
                 enable: true,
-                derivedETH: faker.string.numeric(5),
-                derivedUSDC: faker.string.numeric(5),
+                derivedETH: faker.string.numeric({ length: 5, allowLeadingZeros: false }),
+                derivedUSDC: faker.string.numeric({ length: 5, allowLeadingZeros: false }),
             });
 
             const query = gql`
@@ -65,8 +65,8 @@ describe('CoinResolver', () => {
                 chainId: 1,
                 native: false,
                 enable: true,
-                derivedETH: faker.string.numeric(5),
-                derivedUSDC: faker.string.numeric(5),
+                derivedETH: faker.string.numeric({ length: 5, allowLeadingZeros: false }),
+                derivedUSDC: faker.string.numeric({ length: 5, allowLeadingZeros: false }),
             });
 
             const query = gql`

@@ -7,19 +7,19 @@ import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import {
+    MintSaleContractService
+} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import {
+    createAsset721, createCoin, createCollection, createMintSaleContract, createMintSaleTransaction,
+    createTier
+} from '../test-utils';
 import { WalletService } from '../wallet/wallet.service';
 import { Tier } from './tier.dto';
 import { TierService } from './tier.service';
-import {
-    createAsset721,
-    createCollection,
-    createMintSaleContract,
-    createMintSaleTransaction,
-    createTier,
-    createCoin,
-} from '../test-utils';
 
 describe('TierService', () => {
     let service: TierService;
@@ -164,18 +164,19 @@ describe('TierService', () => {
         });
     });
 
-    describe('getTiersByQuery', () => {
+    describe('getTiers', () => {
         it('should return null if none query provided', async () => {
-            const tiers = await service.getTiersByQuery({});
+            const tiers = await service.getTiers({});
             expect(tiers).toBeNull();
         });
 
         it('should get tiers based on collection id', async () => {
             const coin = await createCoin(coinService);
             const collection = await createCollection(collectionService);
+            const anotherCollection = await createCollection(collectionService);
 
             await createTier(service, {
-                collection: { id: collection.id },
+                collection: { id: anotherCollection.id },
                 paymentTokenAddress: coin.address,
             });
 
@@ -185,8 +186,8 @@ describe('TierService', () => {
                 paymentTokenAddress: coin.address,
             });
 
-            const result = await service.getTiersByQuery({ collection: { id: collection.id } });
-            expect(result.length).toBe(2);
+            const result = await service.getTiers({ collection: { id: collection.id } });
+            expect(result.length).toBe(1);
 
             const specificTier = result.find((tier) => tier.totalMints === 200);
             expect(specificTier).toBeDefined();
@@ -207,11 +208,48 @@ describe('TierService', () => {
                 paymentTokenAddress: coin.address,
             });
 
-            const result = await service.getTiersByQuery({ name: anotherTier.name });
+            const result = await service.getTiers({ name: anotherTier.name });
             expect(result.length).toBe(1);
 
             const specificTier = result.find((tier) => tier.totalMints === 200);
             expect(specificTier).toBeDefined();
+        });
+
+        it('should get tiers based on tier metadata plugin', async () => {
+            const coin = await createCoin(coinService);
+            const collection = await createCollection(collectionService);
+            
+            const tierName = faker.commerce.productName();
+            const pluginName1 = faker.lorem.word();
+            const pluginName2 = faker.lorem.word();
+
+            await createTier(service, {
+                name: tierName,
+                collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
+                metadata: {
+                    uses: [ pluginName1 ]
+                },
+            });
+
+            await createTier(service, {
+                name: faker.commerce.productName(),
+                collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
+                metadata: {
+                    uses: [ pluginName1, pluginName2 ]
+                },
+            });
+
+            const result1 = await service.getTiers({ pluginName: pluginName1 });
+            const result2 = await service.getTiers({ pluginName: pluginName2 });
+
+            expect(result1.length).toEqual(2);
+            expect(result2.length).toEqual(1);
+
+            // let's try to combine some conditions
+            const result3 = await service.getTiers({ pluginName: pluginName1, name: tierName });
+            expect(result3.length).toEqual(1);
         });
     });
 
@@ -348,7 +386,7 @@ describe('TierService', () => {
                                 config: {
                                     startAt: faker.date.past().toISOString(),
                                     endAt: faker.date.future().toISOString(),
-                                    every: +faker.string.numeric(1),
+                                    every: +faker.string.numeric({ length: 1, allowLeadingZeros: false }),
                                     unit: 'minute',
                                 },
                             },
@@ -386,12 +424,12 @@ describe('TierService', () => {
 
             const owner1 = faker.finance.ethereumAddress().toLowerCase();
             await walletService.createWallet({ address: owner1 });
-            const tokenId1 = faker.string.numeric(5);
+            const tokenId1 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
 
             const owner2 = faker.finance.ethereumAddress().toLowerCase();
             await walletService.createWallet({ address: owner2 });
-            const tokenId2 = faker.string.numeric(5);
-            const tokenId3 = faker.string.numeric(5);
+            const tokenId2 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
+            const tokenId3 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
 
             await createAsset721(asset721Service, {
                 address: tokenAddress,
@@ -445,8 +483,8 @@ describe('TierService', () => {
         it('should not include other collection holders', async () => {
             const anotherCollectionAddress = faker.finance.ethereumAddress().toLowerCase();
             const anotherTokenAddress = faker.finance.ethereumAddress().toLowerCase();
-            const tokenId = faker.string.numeric(5);
-            const tokenId2 = faker.string.numeric(4);
+            const tokenId = faker.string.numeric({ length: 5, allowLeadingZeros: false });
+            const tokenId2 = faker.string.numeric({ length: 4, allowLeadingZeros: false });
             const owner = faker.finance.ethereumAddress().toLowerCase();
             const owner2 = faker.finance.ethereumAddress().toLowerCase();
             const anotherCollection = await createCollection(collectionService, {

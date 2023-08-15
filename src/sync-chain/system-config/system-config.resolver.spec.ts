@@ -25,7 +25,7 @@ describe('SystemConfigResolver', () => {
         it('should return config', async () => {
             const cfg = await service.createConfig({
                 name: faker.company.name(),
-                value: faker.string.numeric(5),
+                value: faker.string.numeric({ length: 5, allowLeadingZeros: false }),
                 kind: 'string',
                 comment: 'The Config Comment',
             });
@@ -56,7 +56,7 @@ describe('SystemConfigResolver', () => {
         it('should be return config list', async () => {
             await service.createConfig({
                 name: faker.company.name(),
-                value: faker.string.numeric(5),
+                value: faker.string.numeric({ length: 5, allowLeadingZeros: false }),
                 kind: 'string',
                 comment: 'The Config Comment',
             });

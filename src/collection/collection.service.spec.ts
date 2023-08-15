@@ -128,7 +128,7 @@ describe('CollectionService', () => {
                         address: faker.finance.ethereumAddress(),
                         role: faker.finance.accountName(),
                         name: faker.finance.accountName(),
-                        rate: parseInt(faker.string.numeric(2)),
+                        rate: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
                     },
                 ],
             });
@@ -355,7 +355,7 @@ describe('CollectionService', () => {
             });
 
             const collection = await repository.save({
-                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric({ length: 5, allowLeadingZeros: false })}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -389,7 +389,7 @@ describe('CollectionService', () => {
             });
 
             await repository.save({
-                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric({ length: 5, allowLeadingZeros: false })}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -400,7 +400,7 @@ describe('CollectionService', () => {
             });
 
             await repository.save({
-                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric({ length: 5, allowLeadingZeros: false })}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -447,7 +447,7 @@ describe('CollectionService', () => {
             });
 
             await repository.save({
-                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric({ length: 5, allowLeadingZeros: false })}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -460,7 +460,7 @@ describe('CollectionService', () => {
 
             // don't belongs to this
             await repository.save({
-                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric({ length: 5, allowLeadingZeros: false })}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -473,7 +473,7 @@ describe('CollectionService', () => {
 
             // missing `beginSaleAt`
             await repository.save({
-                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric({ length: 5, allowLeadingZeros: false })}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -485,7 +485,7 @@ describe('CollectionService', () => {
 
             // missing `endSaleAt`
             await repository.save({
-                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric({ length: 5, allowLeadingZeros: false })}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -497,7 +497,7 @@ describe('CollectionService', () => {
 
             // `beginSaleAt` is the future time
             await repository.save({
-                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric({ length: 5, allowLeadingZeros: false })}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -510,7 +510,7 @@ describe('CollectionService', () => {
 
             // `endSaleAt` is the past time
             await repository.save({
-                name: `${faker.company.name()}${faker.string.numeric(5)}`,
+                name: `${faker.company.name()}${faker.string.numeric({ length: 5, allowLeadingZeros: false })}`,
                 displayName: faker.company.name(),
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -760,7 +760,7 @@ describe('CollectionService', () => {
                         tiers: [
                             {
                                 name: faker.company.name(),
-                                totalMints: parseInt(faker.string.numeric(5)),
+                                totalMints: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                             },
                         ],
                         organization: {
@@ -807,7 +807,7 @@ describe('CollectionService', () => {
                         tiers: [
                             {
                                 name: faker.company.name(),
-                                totalMints: parseInt(faker.string.numeric(5)),
+                                totalMints: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                             },
                         ],
                         organization: {
@@ -851,7 +851,7 @@ describe('CollectionService', () => {
                 tiers: [
                     {
                         name: faker.company.name(),
-                        totalMints: parseInt(faker.string.numeric(5)),
+                        totalMints: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                     },
                 ],
                 organization: {
@@ -897,7 +897,7 @@ describe('CollectionService', () => {
                 tiers: [
                     {
                         name: faker.company.name(),
-                        totalMints: parseInt(faker.string.numeric(5)),
+                        totalMints: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                     },
                 ],
                 organization: {
@@ -934,7 +934,7 @@ describe('CollectionService', () => {
                 tiers: [
                     {
                         name: faker.company.name(),
-                        totalMints: parseInt(faker.string.numeric(5)),
+                        totalMints: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                     },
                 ],
                 organization: {
@@ -1017,7 +1017,7 @@ describe('CollectionService', () => {
                         address: faker.finance.ethereumAddress(),
                         role: faker.finance.accountName(),
                         name: faker.finance.accountName(),
-                        rate: parseInt(faker.string.numeric(2)),
+                        rate: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
                     },
                 ],
             });
@@ -1362,10 +1362,10 @@ describe('CollectionService', () => {
         const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
         const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
         const owner1 = faker.finance.ethereumAddress().toLowerCase();
-        const tokenId1 = faker.string.numeric(5);
+        const tokenId1 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
 
         const owner2 = faker.finance.ethereumAddress().toLowerCase();
-        const tokenId2 = faker.string.numeric(5);
+        const tokenId2 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
 
         beforeEach(async () => {
             const beginTime = Math.floor(faker.date.recent().getTime() / 1000);
@@ -1484,7 +1484,7 @@ describe('CollectionService', () => {
         });
 
         it('should get holders', async () => {
-            const tokenId3 = faker.string.numeric(5);
+            const tokenId3 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
 
             // Total count won't include duplicates
             await createAsset721(asset721Service, {
@@ -1522,7 +1522,7 @@ describe('CollectionService', () => {
         });
 
         it('should get unique holders', async () => {
-            const tokenId3 = faker.string.numeric(5);
+            const tokenId3 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
             await createAsset721(asset721Service, {
                 address: tokenAddress,
                 tokenId: tokenId3,
@@ -2515,7 +2515,7 @@ describe('CollectionService', () => {
             });
 
             const transactionContent = {
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: txHash1,
                 txTime: Math.floor(new Date().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -2527,14 +2527,14 @@ describe('CollectionService', () => {
             };
 
             const assetContent = {
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: tokenAddress,
             };
 
             // minted 3 in one transaction
-            const tokenId1 = faker.string.numeric(1);
+            const tokenId1 = faker.string.numeric({ length: 1, allowLeadingZeros: false });
             await createMintSaleTransaction(mintSaleTransactionService, {
                 tokenId: tokenId1,
                 price: '1000000000000000000',
@@ -2546,7 +2546,7 @@ describe('CollectionService', () => {
                 ...assetContent,
             });
 
-            const tokenId2 = faker.string.numeric(2);
+            const tokenId2 = faker.string.numeric({ length: 2, allowLeadingZeros: false });
             await createMintSaleTransaction(mintSaleTransactionService, {
                 tokenId: tokenId2,
                 price: '2000000000000000000',
@@ -2558,7 +2558,7 @@ describe('CollectionService', () => {
                 ...assetContent,
             });
 
-            const tokenId3 = faker.string.numeric(3);
+            const tokenId3 = faker.string.numeric({ length: 3, allowLeadingZeros: false });
             await createMintSaleTransaction(mintSaleTransactionService, {
                 tokenId: tokenId3,
                 price: '3000000000000000000',
@@ -2571,12 +2571,12 @@ describe('CollectionService', () => {
             });
 
             // another transaction
-            const tokenId4 = faker.string.numeric(4);
+            const tokenId4 = faker.string.numeric({ length: 4, allowLeadingZeros: false });
             const anotherTransactionContent = Object.assign(transactionContent, {
                 tokenId: tokenId4,
                 price: '4000000000000000000',
                 recipient: walletAddress2,
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: txHash2,
                 txTime: Math.floor(new Date().getTime() / 1000),
             });
@@ -2820,7 +2820,7 @@ describe('CollectionService', () => {
             });
 
             const transactionContent = {
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: txHash1,
                 txTime: Math.floor(new Date().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
@@ -2832,14 +2832,14 @@ describe('CollectionService', () => {
             };
 
             const assetContent = {
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 address: tokenAddress,
             };
 
             // minted 3 in one transaction
-            const tokenId1 = faker.string.numeric(1);
+            const tokenId1 = faker.string.numeric({ length: 1, allowLeadingZeros: false });
             await createMintSaleTransaction(mintSaleTransactionService, {
                 tokenId: tokenId1,
                 price: '1000000000000000000',
@@ -2851,7 +2851,7 @@ describe('CollectionService', () => {
                 ...assetContent,
             });
 
-            const tokenId2 = faker.string.numeric(2);
+            const tokenId2 = faker.string.numeric({ length: 2, allowLeadingZeros: false });
             await createMintSaleTransaction(mintSaleTransactionService, {
                 tokenId: tokenId2,
                 price: '2000000000000000000',
@@ -2863,7 +2863,7 @@ describe('CollectionService', () => {
                 ...assetContent,
             });
 
-            const tokenId3 = faker.string.numeric(3);
+            const tokenId3 = faker.string.numeric({ length: 3, allowLeadingZeros: false });
             await createMintSaleTransaction(mintSaleTransactionService, {
                 tokenId: tokenId3,
                 price: '3000000000000000000',
@@ -2876,12 +2876,12 @@ describe('CollectionService', () => {
             });
 
             // another transaction
-            const tokenId4 = faker.string.numeric(4);
+            const tokenId4 = faker.string.numeric({ length: 4, allowLeadingZeros: false });
             const anotherTransactionContent = Object.assign(transactionContent, {
                 tokenId: tokenId4,
                 price: '4000000000000000000',
                 recipient: walletAddress2,
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: txHash2,
                 txTime: Math.floor(new Date().getTime() / 1000),
             });

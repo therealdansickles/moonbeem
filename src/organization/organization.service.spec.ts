@@ -1,4 +1,4 @@
-import { subSeconds, addSeconds } from 'date-fns';
+import { addSeconds, subSeconds } from 'date-fns';
 import { Repository } from 'typeorm';
 
 import { faker } from '@faker-js/faker';
@@ -7,10 +7,14 @@ import { CollectionService } from '../collection/collection.service';
 import { Membership } from '../membership/membership.entity';
 import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import {
+    MintSaleTransactionService
+} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import {
+    createCoin, createCollection, createMintSaleTransaction, createOrganization
+} from '../test-utils';
 import { UserService } from '../user/user.service';
 import { OrganizationService } from './organization.service';
-import { createCoin, createCollection, createMintSaleTransaction, createOrganization } from '../test-utils';
 
 describe('OrganizationService', () => {
     let service: OrganizationService;

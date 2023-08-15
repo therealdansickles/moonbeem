@@ -24,7 +24,7 @@ describe('MintSaleContractResolver', () => {
     describe('MintSaleContract', () => {
         it('should return an contract', async () => {
             const contract = await service.createMintSaleContract({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),

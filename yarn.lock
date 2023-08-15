@@ -3976,6 +3976,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/mustache@npm:^4.2.2":
+  version: 4.2.2
+  resolution: "@types/mustache@npm:4.2.2"
+  checksum: 1fa67a519f4302c96615524be4c8248067da02ca047bae9d4c4bb79977135ac7c15dcc388e7c70b8a817b9497004d5ca5c77a155dcb096bea16d53d4cdbe75d2
+  languageName: node
+  linkType: hard
+
 "@types/node@npm:*":
   version: 20.3.1
   resolution: "@types/node@npm:20.3.1"
@@ -11057,6 +11064,7 @@ __metadata:
     "@types/express": ^4.17.13
     "@types/jest": 29.5.0
     "@types/multer": ^1.4.7
+    "@types/mustache": ^4.2.2
     "@types/node": ^16.0.0
     "@types/passport-jwt": ^3.0.8
     "@types/passport-local": ^1.0.34

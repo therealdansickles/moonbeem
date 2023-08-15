@@ -7,15 +7,8 @@ import { Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
 import { TierHoldersPaginated } from '../wallet/wallet.dto';
 import {
-    AttributeOverviewInput,
-    CreateTierInput,
-    DeleteTierInput,
-    IOverview,
-    Profit,
-    Tier,
-    TierSearchInput,
-    TierSearchPaginated,
-    UpdateTierInput,
+    AttributeOverviewInput, CreateTierInput, DeleteTierInput, IOverview, Profit, Tier,
+    TierSearchInput, TierSearchPaginated, UpdateTierInput
 } from './tier.dto';
 import { ITierQuery, TierService } from './tier.service';
 
@@ -31,10 +24,14 @@ export class TierResolver {
 
     @Public()
     @Query(() => [Tier], { description: 'Get tiers by collection id', nullable: true })
-    async tiers(@Args('collectionId') collectionId: string, @Args('name') name: string): Promise<Tier[]> {
-        const query: ITierQuery = { name };
+    async tiers(
+        @Args({ name: 'collectionId', nullable: true }) collectionId?: string,
+            @Args({ name: 'name', nullable: true }) name?: string,
+            @Args({ name: 'pluginName', nullable: true }) pluginName?: string,
+    ): Promise<Tier[]> {
+        const query: ITierQuery = { name, pluginName };
         if (collectionId) query.collection = { id: collectionId };
-        return await this.tierService.getTiersByQuery(query);
+        return await this.tierService.getTiers(query);
     }
 
     @UseGuards(SigninByEmailGuard)

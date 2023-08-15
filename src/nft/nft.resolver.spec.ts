@@ -35,7 +35,7 @@ describe('NftResolver', () => {
     });
 
     describe('getNft', () => {
-        it('query by id should work', async () => {
+        it('query by tokenId should work', async () => {
             await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',
@@ -83,7 +83,7 @@ describe('NftResolver', () => {
             const nft = await service.createOrUpdateNftByTokenId({
                 collectionId: collection.id,
                 tierId: tier.id,
-                tokenId: faker.string.numeric(1),
+                tokenId: faker.string.numeric({ length: 1, allowLeadingZeros: false }),
                 properties: {
                     foo: 'bar',
                 },
@@ -164,14 +164,14 @@ describe('NftResolver', () => {
             const nft = await service.createOrUpdateNftByTokenId({
                 collectionId: collection.id,
                 tierId: tier.id,
-                tokenId: +faker.string.numeric(1),
+                tokenId: faker.string.numeric({ length: 2, allowLeadingZeros: false }),
                 properties: {
                     foo: 'baraaa',
                 },
             });
 
             const query = gql`
-                query Nft($collectionId: String!, $tierId: String, $tokenId: Int) {
+                query Nft($collectionId: String!, $tierId: String, $tokenId: String) {
                     nft(collectionId: $collectionId, tierId: $tierId, tokenId: $tokenId) {
                         id
                         collection {
@@ -201,7 +201,7 @@ describe('NftResolver', () => {
     });
 
     describe('getNftListByQuery', () => {
-        it('query by id should work', async () => {
+        it('query by tokenIds should work', async () => {
             await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',
@@ -246,9 +246,9 @@ describe('NftResolver', () => {
                 },
             });
 
-            const tokenId1 = faker.number.int({ min: 1, max: 99 });
-            const tokenId2 = faker.number.int({ min: 100, max: 999});
-            const tokenId3 = faker.number.int({ min: 1000, max: 9999});
+            const tokenId1 = faker.string.numeric({ length: 1, allowLeadingZeros: false });
+            const tokenId2 = faker.string.numeric({ length: 3, allowLeadingZeros: false });
+            const tokenId3 = faker.string.numeric({ length: 4, allowLeadingZeros: false });
 
             const [nft1, , nft3] = await Promise.all([
                 service.createOrUpdateNftByTokenId({
@@ -278,7 +278,7 @@ describe('NftResolver', () => {
             ]);
 
             const query = gql`
-                query Nfts($collectionId: String, $tierId: String, $tokenIds: [Int!]) {
+                query Nfts($collectionId: String, $tierId: String, $tokenIds: [String!]) {
                     nfts(collectionId: $collectionId, tierId: $tierId, tokenIds: $tokenIds) {
                         id
                         collection {
@@ -395,7 +395,7 @@ describe('NftResolver', () => {
                 input: {
                     collectionId: collection.id,
                     tierId: tier.id,
-                    tokenId: faker.string.numeric(2),
+                    tokenId: faker.string.numeric({ length: 2, allowLeadingZeros: false }),
                     properties: {
                         foo: 'bar',
                     },

@@ -17,13 +17,13 @@ describe('RoyaltyService', () => {
     describe('getRoyalty', () => {
         it('should get an royalty', async () => {
             const royalty = await service.createRoyalty({
-                height: parseInt(faker.string.numeric(5)),
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
                 txTime: Math.floor(faker.date.recent().getTime() / 1000),
                 sender: faker.finance.ethereumAddress(),
                 address: faker.finance.ethereumAddress(),
                 userAddress: faker.finance.ethereumAddress(),
-                userRate: faker.string.numeric(3),
+                userRate: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
             });
 
             const result = await service.getRoyalty(royalty.id);
