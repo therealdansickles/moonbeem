@@ -9,15 +9,16 @@ import { OrganizationService } from '../organization/organization.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import {
-    createAsset721, createCoin, createCollection, createMintSaleContract, createMintSaleTransaction,
-    createOrganization, createTier
+    createAsset721,
+    createCoin,
+    createCollection,
+    createMintSaleContract,
+    createMintSaleTransaction,
+    createOrganization,
+    createTier,
 } from '../test-utils';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
@@ -2378,10 +2379,7 @@ describe('CollectionService', () => {
                 createdAt: startOfDay(new Date()),
             });
 
-            const result = await service.getCollectionsByOrganizationIdAndBeginTime(
-                organization.id,
-                startOfDay(new Date())
-            );
+            const result = await service.getCollectionsByOrganizationIdAndBeginTime(organization.id, startOfDay(new Date()));
             expect(result).toBe(1);
         });
 
@@ -2415,10 +2413,7 @@ describe('CollectionService', () => {
                 createdAt: startOfWeek(new Date()),
             });
 
-            const result1 = await service.getCollectionsByOrganizationIdAndBeginTime(
-                organization.id,
-                startOfWeek(new Date())
-            );
+            const result1 = await service.getCollectionsByOrganizationIdAndBeginTime(organization.id, startOfWeek(new Date()));
             expect(result1).toBe(1);
         });
 
@@ -2452,10 +2447,7 @@ describe('CollectionService', () => {
                 createdAt: startOfMonth(new Date()),
             });
 
-            const result2 = await service.getCollectionsByOrganizationIdAndBeginTime(
-                organization.id,
-                startOfMonth(new Date())
-            );
+            const result2 = await service.getCollectionsByOrganizationIdAndBeginTime(organization.id, startOfMonth(new Date()));
             expect(result2).toBe(1);
         });
     });
@@ -2762,7 +2754,7 @@ describe('CollectionService', () => {
         let collection;
 
         beforeEach(async () => {
-            jest.resetAllMocks();
+            // jest.resetAllMocks();
 
             const coin = await createCoin(coinService);
 
@@ -2771,19 +2763,7 @@ describe('CollectionService', () => {
                 password: 'password',
             });
 
-            const organization = await organizationService.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: user,
-            });
-
+            const organization = await createOrganization(organizationService, { owner: user });
             collection = await service.createCollectionWithTiers({
                 name: faker.commerce.productName(),
                 displayName: faker.commerce.productName(),
@@ -2893,7 +2873,18 @@ describe('CollectionService', () => {
             });
         });
 
+        afterAll(async () => {
+            jest.resetAllMocks();
+        });
+
         it('should retrieve the aggregated collection sold', async () => {
+            const tokenPriceUSD = faker.number.int({ max: 1000 });
+            const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+                USD: { price: tokenPriceUSD },
+            });
+
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
+
             const result = await service.getAggregatedCollectionSold(collectionAddress, tokenAddress);
             expect(result.total).toEqual(2);
             expect(result.data.length).toEqual(2);
@@ -2904,7 +2895,34 @@ describe('CollectionService', () => {
             expect(aggregation2.tokenIds.length).toEqual(1);
         });
 
+        it('should return cost object', async () => {
+            const tokenPriceUSD = faker.number.int({ max: 1000 });
+            const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+                USD: { price: tokenPriceUSD },
+            });
+
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
+
+            const result = await service.getAggregatedCollectionSold(collectionAddress, tokenAddress);
+            expect(result.total).toEqual(2);
+            expect(result.data.length).toEqual(2);
+            const aggregation1 = result.data.find((item) => item.txHash === txHash1);
+            expect(aggregation1.tokenIds.length).toEqual(3);
+            expect(aggregation1.tier.name).toEqual(collection.tiers[0].name);
+            expect(aggregation1.cost.inPaymentToken).toBe('6');
+            expect(aggregation1.cost.inUSDC).toBe((tokenPriceUSD * 6).toString());
+            const aggregation2 = result.data.find((item) => item.txHash === txHash2);
+            expect(aggregation2.tokenIds.length).toEqual(1);
+        });
+
         it('should sort results by txTime in descending order', async () => {
+            const tokenPriceUSD = faker.number.int({ max: 1000 });
+            const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+                USD: { price: tokenPriceUSD },
+            });
+
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
+
             const result = await service.getAggregatedCollectionSold(collectionAddress, tokenAddress);
             for (let i = 0; i < result.data.length - 1; i++) {
                 expect(result.data[i].txTime).toBeGreaterThanOrEqual(result.data[i + 1].txTime);
