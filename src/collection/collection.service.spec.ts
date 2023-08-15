@@ -1806,6 +1806,7 @@ describe('CollectionService', () => {
             const mockResponse = {
                 inUSDC: '100',
                 inPaymentToken: '100',
+                paymentToken: faker.finance.ethereumAddress(),
             };
 
             jest.spyOn(service, 'getSevenDayVolume').mockImplementation(async () => mockResponse);
@@ -1813,6 +1814,7 @@ describe('CollectionService', () => {
 
             expect(result).toBeDefined();
             expect(result.inUSDC).toBe('100');
+            expect(result.paymentToken).toBe(mockResponse.paymentToken);
         });
     });
 
@@ -1847,11 +1849,13 @@ describe('CollectionService', () => {
             const mockResponse = {
                 inUSDC: '100',
                 inPaymentToken: '100',
+                paymentToken: faker.finance.ethereumAddress(),
             };
             jest.spyOn(service, 'getGrossEarnings').mockImplementation(async () => mockResponse);
             const result1 = await service.getGrossEarnings(collectionAddress);
             expect(result1).toBeDefined();
             expect(result1.inUSDC).toBe('100');
+            expect(result1.paymentToken).toBe(mockResponse.paymentToken);
         });
     });
 

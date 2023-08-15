@@ -781,6 +781,7 @@ export class CollectionService {
             return {
                 inPaymentToken: tokenPrice.toString(),
                 inUSDC: volume.toString(),
+                paymentToken: coin.address,
             };
         }
         return { inPaymentToken: '0', inUSDC: '0' };
@@ -813,6 +814,7 @@ export class CollectionService {
             return {
                 inPaymentToken: tokenPrice.toString(),
                 inUSDC: volume.toString(),
+                paymentToken: coin.address,
             };
         }
         return { inPaymentToken: '0', inUSDC: '0' };
