@@ -97,11 +97,12 @@ export class NftService {
      * @returns
      */
     async createOrUpdateNftByTokenId({ collectionId, tierId, tokenId, properties }) {
-        return await this.nftRepository.save({
+        await this.nftRepository.upsert({
             tokenId,
             collection: { id: collectionId },
             tier: { id: tierId },
             properties,
-        });
+        }, ['collection.id', 'tier.id', 'tokenId']);
+        return this.nftRepository.findOneBy({ collection: { id: collectionId }, tier: { id: tierId }, tokenId });
     }
 }
