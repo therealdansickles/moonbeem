@@ -2,7 +2,8 @@ export class MetadataProperty {
     name: string;
     type: string;
     value: any;
-    display_value: string;
+    display_value?: string;
+    class?: string;
 }
 
 export class MetadataProperties {

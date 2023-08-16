@@ -97,13 +97,18 @@ export class MetadataProperty {
     @Field({ description: 'The type of the property.' })
     readonly type: string;
 
+    @Field(() => String, { description: 'The value of the property.' })
+    readonly value: string | number;
+
     @IsString()
     @IsOptional()
     @Field({ nullable: true, description: 'The display value of the property.' })
     readonly display_value?: string;
 
-    @Field(() => String, { description: 'The value of the property.' })
-    readonly value: string | number;
+    @IsString()
+    @IsOptional()
+    @Field({ nullable: true, description: 'Mark if this property is upgradable.' })
+    readonly class?: string;
 }
 
 @ObjectType()

@@ -148,9 +148,9 @@ describe('PluginService', () => {
                         level: {
                             name: 'level',
                             type: 'string',
-                            value: 'basic',
-                            display_value: 'Basic',
-                        },
+                            value: '{{level}}',
+                            display_value: 'Basic'
+                        }
                     },
                 },
             });
@@ -170,6 +170,7 @@ describe('PluginService', () => {
                             type: 'number',
                             value: 0,
                             display_value: '0',
+                            class: 'upgradable'
                         },
                     },
                     conditions: {
@@ -237,13 +238,13 @@ describe('PluginService', () => {
                         level: {
                             name: 'level',
                             type: 'string',
-                            value: 'basic',
+                            value: '{{basic}}',
                             display_value: 'Basic',
                         },
                         holding_days: {
                             name: 'holding_days',
                             type: 'number',
-                            value: 10,
+                            value: '{{holding_days}}',
                             display_value: '0',
                         },
                     },
@@ -262,6 +263,7 @@ describe('PluginService', () => {
                             type: 'number',
                             value: 0,
                             display_value: '0',
+                            class: 'upgradable'
                         },
                     },
                     conditions: {
@@ -308,7 +310,8 @@ describe('PluginService', () => {
                 },
             });
             const result = await pluginService.installOnTier({ tier, plugin });
-            expect(result.metadata.properties.holding_days.value).toEqual(10);
+            expect(result.metadata.properties.holding_days.value).toEqual('{{holding_days}}');
+            expect(result.metadata.properties.holding_days.class).toEqual('upgradable');
             expect(result.metadata.properties.level).toBeTruthy();
         });
 
