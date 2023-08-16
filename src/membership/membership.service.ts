@@ -7,12 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { MailService } from '../mail/mail.service';
 import { Organization } from '../organization/organization.entity';
 import { User } from '../user/user.entity';
-import {
-    CreateMembershipInput,
-    ICreateMembership,
-    MembershipRequestInput,
-    UpdateMembershipInput,
-} from './membership.dto';
+import { CreateMembershipInput, ICreateMembership, MembershipRequestInput, UpdateMembershipInput } from './membership.dto';
 import { Membership } from './membership.entity';
 
 @Injectable()
@@ -113,12 +108,7 @@ export class MembershipService {
             });
         }
 
-        const result = await Promise.all(
-            emails.map((email) => {
-                return this.createMembership(email, { organization, ...rest });
-            })
-        );
-        return result;
+        return Promise.all(emails.filter((email) => !!email).map((email) => this.createMembership(email, { organization, ...rest })));
     }
 
     /**
@@ -166,12 +156,9 @@ export class MembershipService {
             },
         });
         if (!membership) {
-            throw new GraphQLError(
-                `We couldn't find a membership request for ${input.email} to organization ${input.organizationId}.`,
-                {
-                    extensions: { code: 'BAD_REQUEST' },
-                }
-            );
+            throw new GraphQLError(`We couldn't find a membership request for ${input.email} to organization ${input.organizationId}.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
         }
 
         membership.acceptedAt = new Date();
@@ -201,12 +188,9 @@ export class MembershipService {
         });
 
         if (!membership) {
-            throw new GraphQLError(
-                `We couldn't find a membership request for ${input.email} to organization ${input.organizationId}.`,
-                {
-                    extensions: { code: 'BAD_REQUEST' },
-                }
-            );
+            throw new GraphQLError(`We couldn't find a membership request for ${input.email} to organization ${input.organizationId}.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
         }
 
         membership.declinedAt = new Date();

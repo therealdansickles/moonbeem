@@ -153,7 +153,7 @@ describe('MembershipService', () => {
         let user;
         let owner;
         let organization;
-        beforeAll(async () => {
+        beforeEach(async () => {
             user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
@@ -188,6 +188,16 @@ describe('MembershipService', () => {
             expect(result[0].organization.id).toEqual(organization.id);
             expect(result[0].organization.owner.id).not.toBeNull();
             expect(result[0].user.id).toEqual(user.id);
+        });
+
+        it('should skip if the email is empty', async () => {
+            const result = await service.createMemberships({
+                organizationId: organization.id,
+                emails: ['', null, undefined],
+                canDeploy: true,
+            });
+            expect(result).toBeDefined();
+            expect(result.length).toBe(0);
         });
 
         it('should go through if membership exist', async () => {
