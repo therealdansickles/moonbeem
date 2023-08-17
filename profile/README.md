@@ -3,9 +3,8 @@
 </p>
 
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/24772/236905323-56a92437-367d-44e8-b03f-6bbf71fff568.png" alt="We're Hiring!">
+  <img src="https://github.com/vibexyz/.github/assets/24772/e7f87532-c697-46c7-bdeb-cd1ed7e62309" alt="We're Hiring!">
 </p>
-
 
 ---
 
