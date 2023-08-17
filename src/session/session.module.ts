@@ -59,7 +59,7 @@ import { SessionService } from './session.service';
         forwardRef(() => MintSaleTransactionModule),
         JwtModule.register({
             secret: process.env.SESSION_SECRET,
-            signOptions: { expiresIn: '1d' },
+            signOptions: { expiresIn: '7d' },
         }),
         SessionModule,
     ],
