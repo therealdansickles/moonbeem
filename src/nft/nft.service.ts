@@ -45,7 +45,7 @@ export class NftService {
      */
     renderMetadata(nft: Nft) {
         const result: NftDto = Object.assign({}, nft);
-        if (nft.properties && nft.tier.metadata) {
+        if (nft?.properties && nft?.tier?.metadata) {
             const properties = Object.keys(nft.properties).reduce((accu, key) => { 
                 accu[key] = nft.properties[key]?.value;
                 return accu;
