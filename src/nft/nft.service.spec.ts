@@ -427,8 +427,8 @@ describe('NftService', () => {
                 tierId: tier.id,
                 tokenId,
                 properties: {
-                    level: '1',
-                    holding_days: 10
+                    level: { value: '1' },
+                    holding_days: { value: 10 }
                 },
             });
 
@@ -498,8 +498,8 @@ describe('NftService', () => {
                 tierId: tier.id,
                 tokenId,
                 properties: {
-                    level: '1',
-                    holding_days: 10,
+                    level: { value: '1' },
+                    holding_days: { value: 10 },
                 },
             });
 
@@ -562,8 +562,8 @@ describe('NftService', () => {
                 tierId: tier.id,
                 tokenId,
                 properties: {
-                    level: '1',
-                    holding_days: 10,
+                    level: { value: '1' },
+                    holding_days: { value: 10 },
                 },
             });
 
