@@ -13,7 +13,6 @@ import {
     AggregatedVolume,
     Collection,
     CollectionActivities,
-    CollectionAggregatedActivities,
     CollectionEarningsChartPaginated,
     CollectionInput,
     CollectionPaginated,
@@ -26,6 +25,7 @@ import {
     LandingPageCollection,
     SevenDayVolume,
     UpdateCollectionInput,
+    CollectionAggregatedActivityPaginated,
 } from './collection.dto';
 import { CollectionService } from './collection.service';
 
@@ -126,11 +126,17 @@ export class CollectionResolver {
     }
 
     @Public()
-    @ResolveField(() => CollectionAggregatedActivities, {
+    @ResolveField(() => CollectionAggregatedActivityPaginated, {
         description: 'Returns the aggregated activities for collection.',
     })
-    async aggregatedActivities(@Parent() collection: Collection): Promise<CollectionAggregatedActivities> {
-        return this.collectionService.getAggregatedCollectionActivities(collection.address, collection.tokenAddress);
+    async aggregatedActivities(
+        @Parent() collection: Collection,
+            @Args('before', { nullable: true }) before?: string,
+            @Args('after', { nullable: true }) after?: string,
+            @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+    ): Promise<CollectionAggregatedActivityPaginated> {
+        return this.collectionService.getAggregatedCollectionActivities(collection.address, collection.tokenAddress, before, after, first, last);
     }
 
     @Public()

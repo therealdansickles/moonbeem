@@ -15,6 +15,7 @@ import {
     createAsset721,
     createCoin,
     createCollection,
+    createHistory721,
     createMintSaleContract,
     createMintSaleTransaction,
     createOrganization,
@@ -23,9 +24,11 @@ import {
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
-import { CollectionStat, CollectionStatus } from './collection.dto';
+import { CollectionActivityType, CollectionStat, CollectionStatus } from './collection.dto';
 import { Collection } from './collection.entity';
 import { CollectionService } from './collection.service';
+import { History721Service } from '../sync-chain/history721/history721.service';
+import { History721Type } from '../sync-chain/history721/history721.entity';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
@@ -34,6 +37,7 @@ describe('CollectionService', () => {
     let mintSaleTransactionService: MintSaleTransactionService;
     let mintSaleContractService: MintSaleContractService;
     let asset721Service: Asset721Service;
+    let history721Service: History721Service;
     let organizationService: OrganizationService;
     let tierService: TierService;
     let userService: UserService;
@@ -52,6 +56,7 @@ describe('CollectionService', () => {
         mintSaleContractService = global.mintSaleContractService;
         asset721Service = global.asset721Service;
         walletService = global.walletService;
+        history721Service = global.history721Service;
     });
 
     afterEach(async () => {
@@ -2460,10 +2465,10 @@ describe('CollectionService', () => {
         const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
         const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
         const walletAddress1 = faker.finance.ethereumAddress().toLowerCase();
-        const walletAddress2 = faker.finance.ethereumAddress().toLowerCase();
         const txHash1 = faker.string.hexadecimal({ length: 66, casing: 'lower' });
-        const txHash2 = faker.string.hexadecimal({ length: 66, casing: 'lower' });
-        let collection;
+        const tokenId1 = faker.string.numeric({ length: 1, allowLeadingZeros: false });
+        const tokenId2 = faker.string.numeric({ length: 2, allowLeadingZeros: false });
+        const tokenId3 = faker.string.numeric({ length: 3, allowLeadingZeros: false });
 
         beforeEach(async () => {
             const coin = await createCoin(coinService);
@@ -2475,7 +2480,7 @@ describe('CollectionService', () => {
 
             const organization = await createOrganization(organizationService, { owner: user });
 
-            collection = await service.createCollectionWithTiers({
+            await service.createCollectionWithTiers({
                 name: faker.commerce.productName(),
                 displayName: faker.commerce.productName(),
                 about: faker.commerce.productDescription(),
@@ -2522,65 +2527,45 @@ describe('CollectionService', () => {
                 paymentToken: coin.address,
             };
 
-            const assetContent = {
-                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(faker.date.recent().getTime() / 1000),
-                address: tokenAddress,
-            };
-
             // minted 3 in one transaction
-            const tokenId1 = faker.string.numeric({ length: 1, allowLeadingZeros: false });
             await createMintSaleTransaction(mintSaleTransactionService, {
                 tokenId: tokenId1,
                 price: '1000000000000000000',
                 ...transactionContent,
             });
-            await createAsset721(asset721Service, {
+            await createHistory721(history721Service, {
+                address: tokenAddress,
                 tokenId: tokenId1,
-                owner: walletAddress1,
-                ...assetContent,
+                kind: History721Type.mint,
             });
 
-            const tokenId2 = faker.string.numeric({ length: 2, allowLeadingZeros: false });
             await createMintSaleTransaction(mintSaleTransactionService, {
                 tokenId: tokenId2,
                 price: '2000000000000000000',
                 ...transactionContent,
             });
-            await createAsset721(asset721Service, {
+            await createHistory721(history721Service, {
+                address: tokenAddress,
                 tokenId: tokenId2,
-                owner: walletAddress1,
-                ...assetContent,
+                kind: History721Type.mint,
             });
 
-            const tokenId3 = faker.string.numeric({ length: 3, allowLeadingZeros: false });
             await createMintSaleTransaction(mintSaleTransactionService, {
                 tokenId: tokenId3,
                 price: '3000000000000000000',
                 ...transactionContent,
             });
-            await createAsset721(asset721Service, {
+            await createHistory721(history721Service, {
+                address: tokenAddress,
                 tokenId: tokenId3,
-                owner: walletAddress1,
-                ...assetContent,
+                kind: History721Type.mint,
             });
 
-            // another transaction
-            const tokenId4 = faker.string.numeric({ length: 4, allowLeadingZeros: false });
-            const anotherTransactionContent = Object.assign(transactionContent, {
-                tokenId: tokenId4,
-                price: '4000000000000000000',
-                recipient: walletAddress2,
-                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
-                txHash: txHash2,
-                txTime: Math.floor(new Date().getTime() / 1000),
-            });
-            await createMintSaleTransaction(mintSaleTransactionService, anotherTransactionContent);
-            await createAsset721(asset721Service, {
-                tokenId: tokenId4,
-                owner: walletAddress2,
-                ...assetContent,
+            // another transaction -> transfer
+            await createHistory721(history721Service, {
+                address: tokenAddress,
+                tokenId: tokenId3,
+                kind: History721Type.transfer,
             });
         });
 
@@ -2591,35 +2576,46 @@ describe('CollectionService', () => {
             });
             jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
 
-            const result = await service.getAggregatedCollectionActivities(collectionAddress, tokenAddress);
-            expect(result.total).toEqual(2);
-            expect(result.data.length).toEqual(2);
-            const aggregation1 = result.data.find((item) => item.txHash === txHash1);
-            expect(aggregation1.tokenIds.length).toEqual(3);
-            expect(aggregation1.tier.name).toEqual(collection.tiers[0].name);
-            const aggregation2 = result.data.find((item) => item.txHash === txHash2);
-            expect(aggregation2.tokenIds.length).toEqual(1);
-        });
+            const result = await service.getAggregatedCollectionActivities(collectionAddress, tokenAddress, '', '', 10, 10);
+            expect(result.totalCount).toEqual(4);
+            expect(result.edges.length).toEqual(4);
 
-        it('should return cost object', async () => {
-            const tokenPriceUSD = faker.number.int({ max: 1000 });
-            const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
-                USD: { price: tokenPriceUSD },
+            const mintEvent = result.edges.filter((data) => {
+                return data.node.type == CollectionActivityType.Mint;
             });
-            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
+            expect(mintEvent.length).toBe(3);
 
-            const result = await service.getAggregatedCollectionActivities(collectionAddress, tokenAddress);
-            expect(result.data.length).toEqual(2);
+            const tokenId1Mint = mintEvent.find((data) => {
+                return data.node.tokenId == tokenId1;
+            });
+            expect(tokenId1Mint).toBeDefined();
+            expect(tokenId1Mint.node.type).toBe(CollectionActivityType.Mint);
+            expect(tokenId1Mint.node.cost.inPaymentToken).toBe('1');
+            expect(tokenId1Mint.node.cost.inUSDC).toBe((tokenPriceUSD * 1).toString());
 
-            const aggregation1 = result.data.find((item) => item.txHash === txHash1);
-            expect(aggregation1.cost).toBeDefined();
-            expect(aggregation1.cost.inPaymentToken).toBe('6');
-            expect(aggregation1.cost.inUSDC).toBe((tokenPriceUSD * 6).toString());
+            const tokenId2Mint = mintEvent.find((data) => {
+                return data.node.tokenId == tokenId2;
+            });
+            expect(tokenId2Mint).toBeDefined();
+            expect(tokenId2Mint.node.type).toBe(CollectionActivityType.Mint);
+            expect(tokenId2Mint.node.cost.inPaymentToken).toBe('2');
+            expect(tokenId2Mint.node.cost.inUSDC).toBe((tokenPriceUSD * 2).toString());
 
-            const aggregation2 = result.data.find((item) => item.txHash === txHash2);
-            expect(aggregation2.cost).toBeDefined();
-            expect(aggregation2.cost.inPaymentToken).toBe('4');
-            expect(aggregation2.cost.inUSDC).toBe((tokenPriceUSD * 4).toString());
+            const tokenId3Mint = mintEvent.find((data) => {
+                return data.node.tokenId == tokenId3;
+            });
+            expect(tokenId3Mint).toBeDefined();
+            expect(tokenId3Mint.node.type).toBe(CollectionActivityType.Mint);
+            expect(tokenId3Mint.node.cost.inPaymentToken).toBe('3');
+            expect(tokenId3Mint.node.cost.inUSDC).toBe((tokenPriceUSD * 3).toString());
+
+            const transferEvent = result.edges.filter((data) => {
+                return data.node.type == CollectionActivityType.Transfer;
+            });
+            expect(transferEvent.length).toBe(1);
+            expect(transferEvent[0].node.cost.inPaymentToken).toBe('0');
+            expect(transferEvent[0].node.tokenId).toBe(tokenId3);
+            expect(transferEvent[0].node.type).toBe(CollectionActivityType.Transfer);
         });
     });
 

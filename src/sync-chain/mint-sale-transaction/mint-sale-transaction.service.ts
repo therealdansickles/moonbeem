@@ -47,6 +47,10 @@ export class MintSaleTransactionService {
         return await this.transactionRepository.findOneBy(input);
     }
 
+    async getMintSaleTransactions(input: any): Promise<MintSaleTransaction[]> {
+        return await this.transactionRepository.findBy(input);
+    }
+
     async getLeaderboard(address: string): Promise<LeaderboardRanking[]> {
         const result = await this.transactionRepository
             .createQueryBuilder('tx')
@@ -91,10 +95,7 @@ export class MintSaleTransactionService {
      * @param beginDate start time
      * @returns total earnings list
      */
-    async getEarningsByCollectionAddressesAndBeginTime(
-        addresses: string[],
-        beginDate: Date
-    ): Promise<BasicTokenPrice[]> {
+    async getEarningsByCollectionAddressesAndBeginTime(addresses: string[], beginDate: Date): Promise<BasicTokenPrice[]> {
         if (addresses.length == 0) return [];
 
         const result: BasicTokenPrice[] = await this.transactionRepository
@@ -161,10 +162,10 @@ export class MintSaleTransactionService {
 
         return parseInt(total ?? '0');
     }
-    
+
     /* Get aggregation transactions by address
      * multi NFTs can be minted in one transaction but will stored as multiple records in MintSaleTransaction
-     * 
+     *
      * @param address
      * @param offset
      * @param limit
@@ -185,7 +186,7 @@ export class MintSaleTransactionService {
             .where('txn.address = :address', { address })
             .addGroupBy('txn.txHash')
             .getRawMany();
-            
+
         return aggregatedTxns;
     }
 }

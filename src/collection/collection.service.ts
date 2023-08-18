@@ -30,7 +30,6 @@ import {
     Collection,
     CollectionActivities,
     CollectionActivityType,
-    CollectionAggregatedActivities,
     CollectionEarningsChartPaginated,
     CollectionPaginated,
     CollectionSold,
@@ -45,9 +44,11 @@ import {
     SevenDayVolume,
     UpdateCollectionInput,
     ZeroAccount,
+    CollectionAggregatedActivityPaginated,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
 import { generateSlug } from './collection.utils';
+import { History721, History721Type } from '../sync-chain/history721/history721.entity';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name' | 'slug'>>;
 
@@ -66,6 +67,7 @@ export class CollectionService {
         private readonly mintSaleTransactionRepository: Repository<MintSaleTransaction>,
         @InjectRepository(Asset721, 'sync_chain')
         private readonly asset721Repository: Repository<Asset721>,
+        @InjectRepository(History721, 'sync_chain') private readonly history721Repository: Repository<History721>,
         private tierService: TierService,
         private transactionService: MintSaleTransactionService,
         private openseaService: OpenseaService,
@@ -506,63 +508,102 @@ export class CollectionService {
         return { data, total };
     }
 
-    async getAggregatedCollectionActivities(collectionAddress: string, tokenAddress: string): Promise<CollectionAggregatedActivities> {
-        const assets = await this.asset721Repository
-            .createQueryBuilder('asset')
-            .where('asset.address = :address', { address: tokenAddress })
-            .getMany();
-
-        if (!assets || assets.length === 0) {
-            return { total: 0, data: [] };
+    async getAggregatedCollectionActivities(
+        collectionAddress: string,
+        tokenAddress: string,
+        before: string,
+        after: string,
+        first: number,
+        last: number
+    ): Promise<CollectionAggregatedActivityPaginated> {
+        const builder = await this.history721Repository
+            .createQueryBuilder('history')
+            .where('history.address = :address', { address: tokenAddress })
+            .orderBy('history.txTime', 'DESC');
+        const countBuilder = builder.clone();
+        if (after) {
+            const [_createdAt, id] = cursorToStrings(after);
+            builder.andWhere(`DATE_TRUNC('day', TO_TIMESTAMP(history."txTime")) * 1000 > :cursorTime`, { id });
+            builder.limit(first);
+        } else if (before) {
+            const [_createdAt, id] = cursorToStrings(after);
+            builder.andWhere(`DATE_TRUNC('day', TO_TIMESTAMP(history."txTime")) * 1000 < :cursorTime`, { id });
+            builder.limit(last);
+        } else {
+            const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
+            builder.limit(limit);
         }
 
-        const transactions = await this.transactionService.getAggregatedCollectionTransaction(collectionAddress);
-
-        if (!transactions || transactions.length == 0) {
-            return { total: 0, data: [] };
+        const [histories, count] = await Promise.all([builder.getMany(), countBuilder.getCount()]);
+        if (!histories || histories.length == 0) {
+            return toPaginated([], 0);
         }
 
-        const paymentToken = await this.coinService.getCoinByAddress(transactions[0].paymentToken);
+        const tokenIds = histories.map((h) => {
+            return h.tokenId;
+        });
 
-        if (!paymentToken) {
-            throw new Error(`Failed to get token ${transactions[0].paymentToken}`);
-        }
+        const transactions = await this.transactionService.getMintSaleTransactions({
+            address: collectionAddress,
+            tokenAddress: tokenAddress,
+            tokenId: In(tokenIds),
+        });
 
-        // Get collection tiers as a map
         const tiersMap = await this.getCollectionTiersMap(collectionAddress);
 
-        const result = await Promise.all(
-            transactions.map(async (txn) => {
-                const tokenId = txn.tokenIds[0];
-                const assetInfo = assets.find((asset) => asset.tokenId === tokenId);
+        const res = await Promise.all(
+            histories.map(async (history) => {
+                const txn = transactions.find((transaction) => {
+                    return transaction.tokenId == history.tokenId;
+                });
+                const tier = tiersMap.get(txn.tierId);
 
-                let type: CollectionActivityType = CollectionActivityType.Transfer;
-                if (assetInfo.owner == ZeroAccount) type = CollectionActivityType.Burn;
-                if (assetInfo.owner == txn.recipient) type = CollectionActivityType.Mint;
+                let cost: Profit = {
+                    inPaymentToken: '0',
+                    inUSDC: '0',
+                };
+                if (history.kind == History721Type.mint) {
+                    const coin = await this.coinService.getCoinByAddress(txn.paymentToken);
+                    const quote = await this.coinService.getQuote(coin.symbol);
+                    const totalTokenPrice = new BigNumber(txn.price).div(new BigNumber(10).pow(coin.decimals));
+                    const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(quote['USD'].price);
 
-                // Use tiers map to get tier info
-                txn.tier = tiersMap.get(txn.tierId);
-
-                const coin = await this.coinService.getCoinByAddress(txn.paymentToken);
-                const quote = await this.coinService.getQuote(coin.symbol);
-                const totalTokenPrice = new BigNumber(txn.cost).div(new BigNumber(10).pow(coin.decimals));
-                const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(quote['USD'].price);
-
-                return {
-                    ...txn,
-                    type,
-                    cost: {
+                    cost = {
                         inUSDC: totalUSDC.toString(),
                         inPaymentToken: totalTokenPrice.toString(),
-                    },
+                    };
+                }
+                return {
+                    txHash: history.txHash,
+                    txTime: history.txTime,
+                    sender: history.sender,
+                    recipient: history.receiver,
+                    cost: cost,
+                    paymentToken: txn.paymentToken,
+                    type: this.transactionTypeConversion(history.kind),
+                    tokenId: history.tokenId,
+                    tier,
+                    chainId: history.chainId,
+                    id: history.id,
+                    createdAt: new Date(history.txTime * 1000),
                 };
             })
         );
 
-        // sort by txTime desc
-        result.sort((a, b) => b.txTime - a.txTime);
+        return toPaginated(res, count);
+    }
 
-        return { total: result.length, data: result };
+    private transactionTypeConversion(t: History721Type): CollectionActivityType {
+        switch (t) {
+            case History721Type.burn:
+                return CollectionActivityType.Burn;
+            case History721Type.mint:
+                return CollectionActivityType.Mint;
+            case History721Type.transfer:
+                return CollectionActivityType.Transfer;
+            default:
+                return CollectionActivityType.Unknown;
+        }
     }
 
     async getLandingPageCollections(status: CollectionStatus, offset: number, limit: number): Promise<LandingPageCollection> {
