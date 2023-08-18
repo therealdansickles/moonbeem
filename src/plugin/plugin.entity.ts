@@ -1,6 +1,4 @@
-import {
-    BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn
-} from 'typeorm';
+import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 import { MetadataCondition, MetadataProperties } from '../metadata/metadata.entity';
 

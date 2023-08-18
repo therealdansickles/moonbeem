@@ -117,6 +117,16 @@ export class MetadataProperties {
 }
 
 @ObjectType()
+export class MetadataConfigAlias{
+    readonly [key: string]: string;
+}
+
+@ObjectType()
+export class MetadataConfigs {
+    readonly alias: MetadataConfigAlias;
+}
+
+@ObjectType()
 export class Metadata {
     @IsArray()
     @IsOptional()
@@ -161,6 +171,11 @@ export class Metadata {
     @IsObject()
     @Field(() => GraphQLJSONObject, { nullable: true, description: 'The properties of the metadata.' })
     readonly properties?: MetadataProperties;
+
+    @IsObject()
+    @IsOptional()
+    @Field(() => MetadataConfigs, { nullable: true, description: 'The configs of the metadata.' })
+    readonly configs?: MetadataConfigs;
 }
 
 @InputType('MetadataInput')
