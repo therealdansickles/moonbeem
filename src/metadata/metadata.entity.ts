@@ -42,6 +42,14 @@ export class MetadataCondition {
     trigger: Array<MetadataTrigger>;
 }
 
+export class MetadataConfigAlias {
+    [key: string]: string;
+}
+
+export class MetadataConfigs {
+    alias?: MetadataConfigAlias;
+}
+
 export class Metadata {
     uses?: string[];
     title?: string;
@@ -52,4 +60,5 @@ export class Metadata {
     image_url?: string;
     properties?: MetadataProperties;
     conditions?: MetadataCondition;
+    configs?: MetadataConfigs;
 }

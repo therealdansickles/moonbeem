@@ -257,9 +257,9 @@ describe('PluginResolver', () => {
                 metadata: {
                     properties: {
                         level: {
-                            name: 'level',
+                            name: '{{level_name}}',
                             type: 'string',
-                            value: 'basic',
+                            value: '{{basic}}',
                             display_value: 'Basic',
                         },
                     },
@@ -391,9 +391,9 @@ describe('PluginResolver', () => {
                 metadata: {
                     properties: {
                         level: {
-                            name: 'level',
+                            name: '{{level_name}}',
                             type: 'string',
-                            value: 'basic',
+                            value: '{{basic}}',
                             display_value: 'Basic',
                         },
                     },

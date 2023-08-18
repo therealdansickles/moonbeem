@@ -5,6 +5,7 @@ import { In, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
+import { Metadata } from '../metadata/metadata.dto';
 import { Nft as NftDto } from './nft.dto';
 import { Nft } from './nft.entity';
 
@@ -50,8 +51,14 @@ export class NftService {
                 accu[key] = nft.properties[key]?.value;
                 return accu;
             }, {});
-            const metadata = render(JSON.stringify(nft.tier.metadata), properties, {}, ['{{', '}}']);
-            result.metadata = JSON.parse(metadata);
+            const alias = nft.tier.metadata.configs?.alias || {};
+            const allValues = Object.assign(alias, properties);
+            const metadata = JSON.parse(render(JSON.stringify(nft.tier.metadata), allValues));
+            // if some property.name is empty, then use the key as default
+            for (const key in (metadata as Metadata).properties) {
+                if (metadata.properties[key].name === '') metadata.properties[key].name = key;
+            }
+            result.metadata = metadata;
         }
         return result;
     }

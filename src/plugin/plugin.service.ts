@@ -48,7 +48,7 @@ export class PluginService {
      */
     async installOnTier(payload: { tier: TierDto, plugin: Plugin, customizedMetadataParameters?: MetadataInput}) {
         const { tier, plugin, customizedMetadataParameters } = payload;
-        const { uses = [], properties = {}, conditions = {} as MetadataCondition } = tier.metadata;
+        const { uses = [], properties = {}, conditions = {} as MetadataCondition, configs = {} } = tier.metadata;
         const metadataPayload = {
             // add plugin name on uses
             uses: uniq(uses.concat(plugin.name)).sort(),
@@ -59,8 +59,12 @@ export class PluginService {
             // merge conditions
             // `plugin.metadata.conditions`: the conditions data come from new installed plugin
             // `conditions`: the existed condition on the tier
-            // `metadata.conditions`: the customized conditions parameter by end user
-            conditions: merge(plugin.metadata.conditions, conditions, customizedMetadataParameters?.conditions)
+            // `customizedMetadataParameters.conditions`: the customized conditions parameter by end user
+            conditions: merge(plugin.metadata.conditions, conditions, customizedMetadataParameters?.conditions),
+            // merge configs
+            // `configs`: the existed config on the tier
+            // ``customizedMetadataParameters.configs`: the customized configs parameter by end user`
+            configs: merge(configs, customizedMetadataParameters?.configs),
         };
         await this.tierService.updateTier(tier.id, { metadata: metadataPayload });
         return this.tierService.getTier(tier.id);

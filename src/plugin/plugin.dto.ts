@@ -6,7 +6,7 @@ import { Field, InputType, ObjectType, PickType } from '@nestjs/graphql';
 import { Metadata, MetadataInput } from '../metadata/metadata.dto';
 
 @ObjectType()
-export class PluginMetadata extends PickType(Metadata, ['conditions', 'properties']) {}
+export class PluginMetadata extends PickType(Metadata, ['conditions', 'properties', 'configs']) {}
 
 @ObjectType('Plugin')
 export class Plugin {
