@@ -46,7 +46,7 @@ export class MetadataConfigAlias {
     [key: string]: string;
 }
 
-export class MetadataConfig {
+export class MetadataConfigs {
     alias?: MetadataConfigAlias;
 }
 
@@ -60,5 +60,5 @@ export class Metadata {
     image_url?: string;
     properties?: MetadataProperties;
     conditions?: MetadataCondition;
-    configs?: MetadataConfig;
+    configs?: MetadataConfigs;
 }

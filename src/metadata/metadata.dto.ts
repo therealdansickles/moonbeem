@@ -117,13 +117,16 @@ export class MetadataProperties {
 }
 
 @ObjectType()
-export class MetadataConfigAlias{
+export class MetadataConfigAlias {
     readonly [key: string]: string;
 }
 
 @ObjectType()
 export class MetadataConfigs {
-    readonly alias: MetadataConfigAlias;
+    @IsObject()
+    @IsOptional()
+    @Field(() => GraphQLJSONObject, { nullable: true, description: 'The alias for each property.' })
+    readonly alias?: MetadataConfigAlias;
 }
 
 @ObjectType()
