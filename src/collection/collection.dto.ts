@@ -1,27 +1,7 @@
-import {
-    IsArray,
-    IsDateString,
-    IsEnum,
-    IsNumber,
-    IsObject,
-    IsOptional,
-    IsString,
-    IsUrl,
-    ValidateIf,
-} from 'class-validator';
+import { IsArray, IsDateString, IsEnum, IsNumber, IsObject, IsOptional, IsString, IsUrl, ValidateIf } from 'class-validator';
 import { GraphQLJSONObject } from 'graphql-type-json';
 
-import {
-    Field,
-    Float,
-    InputType,
-    Int,
-    ObjectType,
-    OmitType,
-    PartialType,
-    PickType,
-    registerEnumType,
-} from '@nestjs/graphql';
+import { Field, Float, InputType, Int, ObjectType, OmitType, PartialType, PickType, registerEnumType } from '@nestjs/graphql';
 
 import { Collaboration, CollaborationInput } from '../collaboration/collaboration.dto';
 import { Metadata } from '../metadata/metadata.dto';
@@ -127,8 +107,7 @@ export class Collection {
 
     @Field(() => String, {
         nullable: true,
-        description:
-            "Temporary field for store collection name in Opensea, while we can't retrieve collection stat by address",
+        description: "Temporary field for store collection name in Opensea, while we can't retrieve collection stat by address",
     })
     @IsString()
     readonly nameOnOpensea?: string;
@@ -378,6 +357,7 @@ export enum CollectionActivityType {
     Mint = 'Mint',
     Transfer = 'Transfer',
     Burn = 'Burn',
+    Unknown = 'Unknown',
 }
 
 registerEnumType(CollectionActivityType, { name: 'CollectionActivityType' });
@@ -434,13 +414,16 @@ export class CollectionAggregatedActivityData extends PickType(
     readonly type: CollectionActivityType;
 
     @IsArray()
-    @Field(() => [String], { description: 'The tokenIds in the aggregated transaction.' })
-    readonly tokenIds: Array<string>;
+    @Field(() => String, { description: 'The tokenId in the aggregated transaction.' })
+    readonly tokenId: string;
 
     @IsObject()
     @Field(() => Tier, { nullable: true, description: 'The tier info for the aggregated transaction.' })
     readonly tier?: Tier;
 }
+
+@ObjectType('CollectionAggregatedActivities')
+export class CollectionAggregatedActivityPaginated extends Paginated(CollectionAggregatedActivityData) {}
 
 @ObjectType('SecondarySale')
 export class SecondarySale {
@@ -466,20 +449,7 @@ export class CollectionPaginated extends Paginated(Collection) {}
 @ObjectType('CollectionSold')
 export class CollectionSold extends PickType(
     MintSaleTransaction,
-    [
-        'id',
-        'address',
-        'tokenAddress',
-        'paymentToken',
-        'tokenId',
-        'price',
-        'txTime',
-        'txHash',
-        'chainId',
-        'createdAt',
-        'sender',
-        'recipient',
-    ] as const,
+    ['id', 'address', 'tokenAddress', 'paymentToken', 'tokenId', 'price', 'txTime', 'txHash', 'chainId', 'createdAt', 'sender', 'recipient'] as const,
     ObjectType
 ) {
     @Field(() => Tier)
