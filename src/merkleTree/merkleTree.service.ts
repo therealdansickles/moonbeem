@@ -40,15 +40,11 @@ export class MerkleTreeService {
     }
 
     async getMerkleTree(merkleRoot: string): Promise<MerkleTree> {
+        if (!merkleRoot) return;
         return await this.repository.findOneBy({ merkleRoot });
     }
 
-    async getMerkleProof(
-        address: string,
-        merkleRoot: string,
-        collectionAddress?: string,
-        tierId?: number
-    ): Promise<MerkleProofOutput> {
+    async getMerkleProof(address: string, merkleRoot: string, collectionAddress?: string, tierId?: number): Promise<MerkleProofOutput> {
         const merkleTree = await this.repository.findOneBy({ merkleRoot });
         if (!merkleTree) return;
 
