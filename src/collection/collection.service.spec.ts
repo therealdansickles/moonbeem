@@ -2713,12 +2713,14 @@ describe('CollectionService', () => {
                 tierId: 1,
                 price: '1000000000000000000',
                 paymentToken: coin.address,
+                txTime: Math.floor(new Date().getTime() / 1000),
             });
             await createMintSaleTransaction(mintSaleTransactionService, {
                 address: collection.address,
                 tierId: 1,
                 price: '1000000000000000000',
                 paymentToken: coin.address,
+                txTime: Math.floor(new Date().getTime() / 1000),
             });
 
             const tokenPriceUSD = faker.number.int({ max: 1000 });
