@@ -9,7 +9,6 @@ import { HttpService } from '@nestjs/axios';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
 
-import { CollectionStatData } from '../collection/collection.dto';
 import { openseaConfig } from '../lib/configs/opensea.config';
 import { SaleHistory } from '../saleHistory/saleHistory.dto';
 
@@ -54,7 +53,7 @@ export class OpenseaService {
         const { data } = await firstValueFrom(
             this.httpRequest.get(url, params).pipe(
                 catchError((error: AxiosError) => {
-                    throw new Error(`Bad response from opensea: ${error.response.status}/${error.response.statusText}/${JSON.stringify(params)}`);
+                    throw new Error(`Bad response from opensea: ${error.response.status}/${error.response.statusText}`);
                 })
             )
         );
@@ -110,42 +109,10 @@ export class OpenseaService {
             floorPrice: get(data, 'collection.stats.floor_price'),
             netGrossEarning: get(data, 'collection.stats.total_volume'),
         };
-        // ttl is in milliseconds
-        await this.cacheManager.set(url, JSON.stringify(rs), 60 * 1000);
+        // set the cache longevity ttl to 5 minutes
+        // PS. ttl is in milliseconds
+        await this.cacheManager.set(url, JSON.stringify(rs), 5 * 60 * 1000);
         return rs;
-    }
-
-    // as very similar to `/api/v1/collection/${slug}`,
-    // this function could be replaced
-    async getCollectionStat(slug: string): Promise<CollectionStatData> {
-        const endpoint = join('/api/v1/collection', slug, '/stats');
-        const url = new URL(endpoint, openseaConfig.url).toString();
-        const headers = {
-            'X-API-KEY': openseaConfig.apiKey,
-            'Content-Type': 'application/json',
-        };
-
-        const data = await this.callOpenSea<any>(url, { headers });
-
-        return {
-            volume: {
-                total: data.stats?.total_volume,
-                hourly: data.stats?.one_hour_volume,
-                daily: data.stats?.one_day_volume,
-                weekly: data.stats?.seven_day_volume,
-                monthly: data.stats?.thirty_day_volume,
-            },
-            sales: {
-                total: data.stats?.total_sales,
-                hourly: data.stats?.one_hour_sales,
-                daily: data.stats?.one_day_sales,
-                weekly: data.stats?.seven_day_sales,
-                monthly: data.stats?.thirty_day_sales,
-            },
-            supply: data.stats?.total_supply,
-            floorPrice: data.stats?.floor_price,
-            netGrossEarning: data.stats?.total_volume,
-        };
     }
 
     async getCollectionEventOld(addresContract: string = '', cursor: string = ''): Promise<SaleHistory> {

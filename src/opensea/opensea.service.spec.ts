@@ -10,33 +10,6 @@ describe('OpenseaService', () => {
         service = global.openseaService;
     });
 
-    describe('#getCollectionStat', () => {
-        it('should return the right response', async () => {
-            const mockResponse = {
-                supply: faker.number.float(),
-                floorPrice: faker.number.float(),
-                volume: {
-                    hourly: faker.number.float(),
-                    daily: faker.number.float(),
-                    weekly: faker.number.float(),
-                    total: faker.number.float(),
-                },
-                sales: {
-                    hourly: faker.number.float(),
-                    daily: faker.number.float(),
-                    weekly: faker.number.float(),
-                    total: faker.number.float(),
-                    thirtyDayAvg: faker.number.float(),
-                },
-                netGrossEarning: faker.number.float(),
-            };
-            jest.spyOn(service, 'getCollectionStat').mockImplementation(async () => mockResponse);
-            const result = await service.getCollectionStat('vibe-season-1-vibe-check');
-            expect(result.supply).toBeTruthy();
-            expect(result.floorPrice).toBeTruthy();
-        });
-    });
-
     describe('#getCollection', () => {
         it('should return the right response', async () => {
             const mockResponse = {
