@@ -4,7 +4,7 @@ import { UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { OpenseaService } from '../opensea/opensea.service';
-import { AuthorizedCollectionViewer, AuthorizedOrganization, Public } from '../session/session.decorator';
+import { AuthorizedOrganization, Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
@@ -39,7 +39,6 @@ export class CollectionResolver {
     ) {}
 
     @Public()
-    @AuthorizedCollectionViewer()
     @Query(() => Collection, { description: 'returns a collection for a given uuid', nullable: true })
     async collection(
         @Args({ name: 'id', nullable: true }) id: string,
