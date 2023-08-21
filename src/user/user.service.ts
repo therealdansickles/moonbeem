@@ -16,15 +16,12 @@ import { MailService } from '../mail/mail.service';
 import { OrganizationService } from '../organization/organization.service';
 import { fromCursor, PaginatedImp } from '../pagination/pagination.utils';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleTransaction
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { Tier } from '../tier/tier.entity';
 import { Wallet } from '../wallet/wallet.entity';
-import {
-    CreateUserInput, LatestSalePaginated, PriceInfo, ResetPasswordOutput, UserProfit
-} from './user.dto';
+import { CreateUserInput, LatestSalePaginated, PriceInfo, ResetPasswordOutput, UserProfit } from './user.dto';
 import { User } from './user.entity';
+import { generateRandomPassword } from './user.utils';
 
 type IUserQuery = Partial<Pick<User, 'id' | 'username'>>;
 
@@ -77,6 +74,21 @@ export class UserService {
     }
 
     /**
+     * Onboard users with the given emails.
+     * @param emails
+     */
+    async onboardUsers(emails: string[]): Promise<User[]> {
+        return Promise.all(
+            emails.map(async (email) => {
+                const user = await this.createUser({ email, name: email, password: generateRandomPassword(12) });
+                await this.organizationService.createPersonalOrganization(user);
+                this.sendPasswordResetLink(email);
+                return user;
+            })
+        );
+    }
+
+    /**
      * Creates a new user with the given data.
      *
      * @param payload
@@ -122,9 +134,10 @@ export class UserService {
      */
     async sendPasswordResetLink(email: string): Promise<boolean> {
         const user = await this.userRepository.findOneBy({ email });
-        if (!user) throw new GraphQLError(`No user registered with this email.`, {
-            extensions: { code: 'NO_USER_FOUND' },
-        });
+        if (!user)
+            throw new GraphQLError(`No user registered with this email.`, {
+                extensions: { code: 'NO_USER_FOUND' },
+            });
         const verificationToken = user.generateVerificationToken();
         await this.userRepository.save({ ...user, verificationToken });
         this.mailService.sendPasswordResetEmail(user.email, verificationToken);
@@ -140,9 +153,10 @@ export class UserService {
      */
     async resetUserPassword(email: string, verificationToken: string, password: string): Promise<ResetPasswordOutput> {
         const user = await this.userRepository.findOneBy({ email, verificationToken });
-        if (!user) throw new GraphQLError(`Invalid verification token.`, {
-            extensions: { code: 'INVALID_VERIFICATION_TOKEN' },
-        });
+        if (!user)
+            throw new GraphQLError(`Invalid verification token.`, {
+                extensions: { code: 'INVALID_VERIFICATION_TOKEN' },
+            });
         await this.userRepository.save({ ...user, password: user.hashPassword(password), verificationToken: null });
         // TODO: It's the legacy behavior, we can update it according to the current design
         return { code: 'SUCCESS' };
@@ -183,8 +197,7 @@ export class UserService {
     async authenticateUser(email: string, password: string): Promise<User | null> {
         // checking the email has been used for `Sign in with Google`
         const signedInByGmail = await this.userRepository.findOneBy({ gmail: email.toLowerCase(), password: IsNull() });
-        if (signedInByGmail)
-            throw new GraphQLError(`This email has been used for Google sign in. Please sign in with Google.`);
+        if (signedInByGmail) throw new GraphQLError(`This email has been used for Google sign in. Please sign in with Google.`);
 
         const user = await this.userRepository.findOneBy({ email: email.toLowerCase() });
 
@@ -200,9 +213,7 @@ export class UserService {
      * @param accessToken user access token
      * @returns The user if credentials are valid.
      */
-    private async authenticateFromGoogle(
-        accessToken: string
-    ): Promise<{ gmail: string; name: string; avatarUrl?: string }> {
+    private async authenticateFromGoogle(accessToken: string): Promise<{ gmail: string; name: string; avatarUrl?: string }> {
         try {
             const googleClient = new google.auth.OAuth2({ clientId: googleConfig.clientId });
             const tokenInfo = await googleClient.getTokenInfo(accessToken);
@@ -362,13 +373,7 @@ export class UserService {
      * @param last limit
      * @returns LatestSalePaginated object
      */
-    async getLatestSales(
-        id: string,
-        before: string,
-        after: string,
-        first: number,
-        last: number
-    ): Promise<LatestSalePaginated> {
+    async getLatestSales(id: string, before: string, after: string, first: number, last: number): Promise<LatestSalePaginated> {
         const collections = await this.collectionService.getCollectionsByUserId(id);
         if (collections.length == 0) return PaginatedImp([], 0);
 
@@ -417,7 +422,8 @@ export class UserService {
             const [result, totalResult] = await Promise.all([
                 builder.getRawMany(),
                 this.mintSaleTransactionRepository.manager.query(
-                    `SELECT COUNT(1) AS "total" FROM (${subquery.getSql()}) AS subquery`,
+                    `SELECT COUNT(1) AS "total"
+                     FROM (${subquery.getSql()}) AS subquery`,
                     addresses
                 ),
             ]);

@@ -38,6 +38,7 @@ describe('UserService', () => {
 
         jest.spyOn(global.mailService, 'sendWelcomeEmail').mockImplementation(async () => {});
         jest.spyOn(global.mailService, 'sendInviteEmail').mockImplementation(async () => {});
+        jest.spyOn(global.mailService, 'sendPasswordResetEmail').mockImplementation(async () => {});
 
         basicUser = await service.createUser({
             username: faker.internet.userName(),
@@ -1350,6 +1351,23 @@ describe('UserService', () => {
             const result = await service.getLatestSales(owner.id, '', '', 10, 10);
             expect(result.edges.length).toBe(0);
             expect(result.totalCount).toBe(0);
+        });
+    });
+
+    describe('onboardUsers', function () {
+        it('should onboard users', async () => {
+            const email = faker.internet.email().toLowerCase();
+            const emails = [email];
+            await service.onboardUsers(emails);
+
+
+            const user = await repository.findOneBy({ email });
+            expect(user.verificationToken).toBeDefined();
+
+            const organization = await organizationService.getOrganizationsByOwnerId(user.id);
+            expect(organization).toBeDefined();
+            expect(organization.length).toEqual(1);
+            expect(organization[0].owner.email).toEqual(email);
         });
     });
 });
