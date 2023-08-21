@@ -4,7 +4,7 @@ import { UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { OpenseaService } from '../opensea/opensea.service';
-import { AuthorizedOrganization, Public } from '../session/session.decorator';
+import { AuthorizedCollectionViewer, AuthorizedOrganization, Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
@@ -28,16 +28,18 @@ import {
     CollectionAggregatedActivityPaginated,
 } from './collection.dto';
 import { CollectionService } from './collection.service';
+import { Tier } from '../tier/tier.dto';
 
 @Resolver(() => Collection)
 export class CollectionResolver {
     constructor(
         private readonly collectionService: CollectionService,
-        private readonly MintSaleContractService: MintSaleContractService,
+        private readonly mintSaleContractService: MintSaleContractService,
         private readonly openseaService: OpenseaService
     ) {}
 
     @Public()
+    @AuthorizedCollectionViewer()
     @Query(() => Collection, { description: 'returns a collection for a given uuid', nullable: true })
     async collection(
         @Args({ name: 'id', nullable: true }) id: string,
@@ -46,6 +48,12 @@ export class CollectionResolver {
             @Args({ name: 'slug', nullable: true }) slug: string
     ): Promise<Collection> {
         return this.collectionService.getCollectionByQuery({ id, address, name, slug });
+    }
+
+    @Public()
+    @ResolveField('tiers', () => [Tier], { description: 'Get tiers by collection id', nullable: true })
+    async collectionTiers(@Parent() collection: Collection): Promise<Tier[]> {
+        return await this.collectionService.getCollectionTiers(collection.id);
     }
 
     @AuthorizedOrganization('organization.id')
@@ -85,7 +93,7 @@ export class CollectionResolver {
     @Public()
     @ResolveField(() => MintSaleContract, { description: 'Returns the contract for the given collection' })
     async contract(@Parent() collection: Collection): Promise<MintSaleContract> {
-        return this.MintSaleContractService.getMintSaleContractByCollection(collection.id);
+        return this.mintSaleContractService.getMintSaleContractByCollection(collection.id);
     }
 
     @Public()

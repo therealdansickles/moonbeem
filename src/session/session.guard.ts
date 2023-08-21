@@ -11,15 +11,19 @@ import { captureException } from '@sentry/node';
 import { CollectionService } from '../collection/collection.service';
 import { MembershipService } from '../membership/membership.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import {
-    COLLECTION_ID_PARAMETER, ORGANIZATION_ID_PARAMETER, TOKEN_ID_PARAMETER, USER_PARAMETER,
-    WALLET_ADDRESS_PARAMETER, WALLET_PARAMETER
+    COLLECTION_ID_PARAMETER,
+    ORGANIZATION_ID_PARAMETER,
+    TOKEN_ID_PARAMETER,
+    USER_PARAMETER,
+    WALLET_ADDRESS_PARAMETER,
+    WALLET_PARAMETER,
 } from './session.decorator';
+import { IGraphQLRequest } from './session.types';
+import { getUserIdFromToken } from './session.utils';
 
 const extractToken = (request) => {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
@@ -141,14 +145,6 @@ export class SigninByEmailGuard implements CanActivate {
     }
 }
 
-interface IGraphQLRequest {
-    headers: any;
-    body: {
-        query: string,
-        variables?: any
-    }
-}
-
 @Injectable()
 export class AuthorizedWalletGuard implements CanActivate {
     constructor(private readonly reflector: Reflector, private readonly jwtService: JwtService) {}
@@ -210,17 +206,9 @@ export class AuthorizedUserGuard implements CanActivate {
         const ctx = GqlExecutionContext.create(context);
         const request: IGraphQLRequest = ctx.getContext().req;
         const userIdFromParameter = get(request.body.variables?.input, userParameter);
-        const userIdFromToken = this.getUserIdFromToken(request);
-
+        const userIdFromToken = getUserIdFromToken(request, this.jwtService, process.env.SESSION_SECRET);
         if (!userIdFromParameter || !userIdFromToken) return false;
         return userIdFromParameter === userIdFromToken;
-    }
-
-    getUserIdFromToken(request): string | undefined {
-        const [type, token] = request.headers.authorization?.split(' ') ?? [];
-        if (type !== 'Bearer') return;
-        const payload = this.jwtService.verify(token, { secret: process.env.SESSION_SECRET });
-        return payload.userId;
     }
 }
 
@@ -257,9 +245,7 @@ export class AuthorizedCollectionOwnerGuard implements CanActivate {
         if (!collection) return false;
 
         const walletAddressFromToken = this.getWalletAddressFromToken(request);
-        if (walletAddressFromToken != collection.creator.address) return false;
-
-        return true;
+        return walletAddressFromToken == collection.creator.address;
     }
 
     getWalletAddressFromToken(request): string | undefined {
@@ -298,9 +284,7 @@ export class AuthorizedTokenGuard implements CanActivate {
         if (!mintSaleContract) return false;
 
         const asset = await this.asset721Service.getAsset721ByQuery({ tokenId: tokenIdFromParameter.toString(), address: mintSaleContract.tokenAddress });
-        if (!asset) return false;
-        if (asset?.owner?.toLowerCase() === ownerAddress.toLowerCase()) return true;
-        return false;
+        return asset && asset?.owner?.toLowerCase() === ownerAddress.toLowerCase();
     }
 }
 
@@ -319,17 +303,42 @@ export class AuthorizedOrganizationGuard implements CanActivate {
         const ctx = GqlExecutionContext.create(context);
         const request: IGraphQLRequest = ctx.getContext().req;
         const organizationIdFromParameter = get(request.body.variables?.input, organizationIdParameter);
-        const userIdFromToken = this.getUserIdFromToken(request);
+        const userIdFromToken = getUserIdFromToken(request, this.jwtService, process.env.SESSION_SECRET);
         if (!userIdFromToken) return false;
 
-        const isUserReallyBelongsOrganization = await this.membershipService.checkMembershipByOrganizationIdAndUserId(organizationIdFromParameter, userIdFromToken);
-        return isUserReallyBelongsOrganization;
+        return await this.membershipService.checkMembershipByOrganizationIdAndUserId(
+            organizationIdFromParameter, userIdFromToken);
     }
+}
 
-    getUserIdFromToken(request): string | undefined {
-        const [type, token] = request.headers.authorization?.split(' ') ?? [];
-        if (type !== 'Bearer') return;
-        const payload = this.jwtService.verify(token, { secret: process.env.SESSION_SECRET });
-        return payload.userId;
+
+
+@Injectable()
+export class AuthorizedCollectionViewerGuard implements CanActivate {
+    constructor(
+        private readonly reflector: Reflector,
+        private readonly jwtService: JwtService,
+        private readonly collectionService: CollectionService,
+        private readonly membershipService: MembershipService,
+    ) {}
+
+    async canActivate (context: ExecutionContext): Promise<boolean> {
+        const ctx = GqlExecutionContext.create(context);
+        const request: IGraphQLRequest = ctx.getContext().req;
+        const userId = getUserIdFromToken(request, this.jwtService, process.env.SESSION_SECRET);
+        if (!userId) return false;
+
+        const variables = request.body.variables;
+        const id = get(variables, 'id');
+        const name = get(variables, 'name');
+        const address = get(variables, 'address');
+        const slug = get(variables, 'slug');
+
+        const collection = await this.collectionService.getCollectionByQuery({ id, name, address, slug });
+
+        const organizationId = collection?.organization?.id;
+        if (!organizationId) return false;
+
+        return await this.membershipService.checkMembershipByOrganizationIdAndUserId(organizationId, userId);
     }
 }

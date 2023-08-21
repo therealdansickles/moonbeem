@@ -1205,28 +1205,23 @@ describe('CollectionService', () => {
     });
 
     describe('getCollectionByQuery', () => {
-        it('should return tier info and the coin info contained in the tier', async () => {
-            const coin = await createCoin(coinService);
+        let coin;
+        let owner;
+        let organization;
+        let collection;
 
-            const owner = await userService.createUser({
+        beforeEach(async () => {
+            coin = await createCoin(coinService);
+            owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',
             });
 
-            const organization = await organizationService.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
+            organization = await createOrganization(organizationService, {
+                owner,
             });
 
-            const collection = await service.createCollectionWithTiers({
+            collection = await service.createCollectionWithTiers({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -1235,9 +1230,9 @@ describe('CollectionService', () => {
                 organization: { id: organization.id },
                 tiers: [
                     {
+                        paymentTokenAddress: coin.address,
                         name: faker.company.name(),
                         totalMints: 200,
-                        paymentTokenAddress: coin.address,
                         tierId: 0,
                         price: '200',
                         metadata: {
@@ -1260,14 +1255,20 @@ describe('CollectionService', () => {
                     },
                 ],
             });
+        });
 
+        it('should return collection with organization info', async () => {
             const result = await service.getCollectionByQuery({ id: collection.id });
             expect(result.id).toEqual(collection.id);
             expect(result.address).toEqual(collection.address);
             expect(result.organization.name).not.toBeNull();
-            expect(result.tiers).not.toBeNull();
-            expect(result.tiers[0].coin).not.toBeNull();
-            expect(result.tiers[0].coin.address).toEqual(coin.address);
+        });
+
+        it('should get tiers by collection id', async () => {
+            const result = await service.getCollectionTiers(collection.id);
+            expect(result.length).toEqual(1);
+            expect(result[0].coin).toBeDefined();
+            expect(result[0].coin.address).toEqual(coin.address);
         });
     });
 

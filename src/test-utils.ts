@@ -10,6 +10,8 @@ import { MintSaleContractService } from './sync-chain/mint-sale-contract/mint-sa
 import { MintSaleTransactionService } from './sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { RoyaltyService } from './sync-chain/royalty/royalty.service';
 import { TierService } from './tier/tier.service';
+import { MembershipService } from './membership/membership.service';
+import { CreateMembershipInput } from './membership/membership.dto';
 
 export const createCoin = async (coinService: CoinService, coin?: any) =>
     coinService.createCoin({
@@ -111,6 +113,16 @@ export const createOrganization = async (organizationService: OrganizationServic
         instagram: faker.internet.userName(),
         discord: faker.internet.userName(),
         ...organization,
+    });
+
+export const createMemberships = async (membershipService: MembershipService, membershipInput?: CreateMembershipInput) =>
+    membershipService.createMemberships({
+        emails: [faker.internet.email()],
+        organizationId: faker.string.uuid(),
+        canEdit: true,
+        canDeploy: true,
+        canManage: true,
+        ...membershipInput,
     });
 
 export const createRoyalty = async (service: RoyaltyService, royalty?: any) =>

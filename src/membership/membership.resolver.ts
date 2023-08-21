@@ -9,17 +9,13 @@ import {
     MembershipRequestInput,
 } from './membership.dto';
 import { MembershipService } from './membership.service';
-import { OrganizationService } from '../organization/organization.service';
-import { MailService } from '../mail/mail.service';
 import { SigninByEmailGuard } from '../session/session.guard';
 import { UseGuards } from '@nestjs/common';
 
 @Resolver(() => Membership)
 export class MembershipResolver {
     constructor(
-        private readonly membershipService: MembershipService,
-        private readonly organizationService: OrganizationService,
-        private mailService: MailService
+        private readonly membershipService: MembershipService
     ) {}
 
     @Public()

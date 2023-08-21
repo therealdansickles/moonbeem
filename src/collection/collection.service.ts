@@ -96,18 +96,10 @@ export class CollectionService {
     async getCollectionByQuery(query: ICollectionQuery): Promise<Collection | null> {
         query = omitBy(query, isNil);
         if (isEmpty(query)) return null;
-        const collection = await this.collectionRepository.findOne({
+        return await this.collectionRepository.findOne({
             where: query,
             relations: ['organization', 'creator', 'collaboration'],
         });
-
-        if (collection) {
-            collection.tiers = (await this.tierService.getTiers({
-                collection: { id: collection.id },
-            })) as Tier[];
-        }
-
-        return collection;
     }
 
     /**
@@ -127,12 +119,16 @@ export class CollectionService {
      * @returns The collections related to the given collaboration.
      */
     async getCollectionsByCollaborationId(collaborationId: string): Promise<Collection[]> {
-        const collections = await this.collectionRepository.find({
+        return await this.collectionRepository.find({
             where: { collaboration: { id: collaborationId } },
             relations: ['organization', 'creator', 'collaboration'],
         });
+    }
 
-        return collections;
+    async getCollectionTiers(collectionId: string): Promise<TierDto[] | null> {
+        return await this.tierService.getTiers({
+            collection: { id: collectionId },
+        });
     }
 
     /**

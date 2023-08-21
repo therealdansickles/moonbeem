@@ -90,7 +90,7 @@ export class TierService {
      * @param query The query of the search
      * @returns Array of tiers
      */
-    async getTiers(query: ITierQuery) {
+    async getTiers(query: ITierQuery): Promise<Tier[] | null> {
         query = omitBy(query, isNil);
         if (isEmpty(query)) return null;
 
