@@ -146,6 +146,18 @@ export class UserService {
         return true;
     }
 
+    async sendOnboardLink(email: string): Promise<boolean> {
+        const user = await this.userRepository.findOneBy({ email });
+        if (!user)
+            throw new GraphQLError(`No user registered with this email.`, {
+                extensions: { code: 'NO_USER_FOUND' },
+            });
+        const verificationToken = user.generateVerificationToken();
+        await this.userRepository.save({ ...user, verificationToken });
+        this.mailService.sendOnboardEmail(user.email, verificationToken);
+        return true;
+    }
+
     /**
      * Reset user password.
      * @param email The email of the user to redeem password reset token.
