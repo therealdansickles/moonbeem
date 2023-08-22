@@ -31,6 +31,11 @@ export class MetadataRule {
     @Field(() => String, { description: 'The real value of the rule.' })
     readonly value: string | number;
 
+    @IsString()
+    @IsOptional()
+    @Field(() => String, { nullable: true, description: 'The unit of the rule.' })
+    readonly update_unit?: string;
+
     @IsArray()
     @Field(() => [MetadataRuleUpdate], { description: 'The update detail of the rule.' })
     readonly update: MetadataRuleUpdate[];
@@ -109,6 +114,11 @@ export class MetadataProperty {
     @IsOptional()
     @Field({ nullable: true, description: 'Mark if this property is upgradable.' })
     readonly class?: string;
+
+    @IsNumber()
+    @IsOptional()
+    @Field({ nullable: true, description: 'The last time the property has been updated.' })
+    readonly updated_at?: number;
 }
 
 @ObjectType()

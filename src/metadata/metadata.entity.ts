@@ -4,6 +4,7 @@ export class MetadataProperty {
     value: any;
     display_value?: string;
     class?: string;
+    updated_at?: number;
 }
 
 export class MetadataProperties {
@@ -20,6 +21,7 @@ export class MetadataRule {
     property: string;
     rule: string;
     value: any;
+    update_unit?: string;
     update: MetadataRuleUpdate[];
 }
 
