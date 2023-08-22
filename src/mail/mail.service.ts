@@ -97,6 +97,16 @@ export class MailService {
     }
 
     /**
+     * Send an onboard email to a user
+     * @param emailAddress
+     * @param token
+     */
+    async sendOnboardEmail(emailAddress: string, token: string): Promise<void> {
+        const content = await this.renderTemplate('onboard.mjml', {ctaUrl: this.generatePasswordResetUrl(emailAddress, token)});
+        await this.sendEmail(emailAddress, 'You Are Invited', content);
+    }
+
+    /**
      * Generates the dashboard verification url.
      *
      * @param emailAddress - The email address to send the email to
