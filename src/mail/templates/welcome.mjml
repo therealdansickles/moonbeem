@@ -3,9 +3,9 @@
     <!-- Header -->
     <mj-section>
       <mj-column>
-        <mj-image height="60px" width="100px" src="https://media.vibe.xyz/email/Primary%20Logo.png"></mj-image>
+        <mj-image margin-bottom="60px" height="80px" width="80px" src="https://media.vibe.xyz/email/Logo.png"></mj-image>
 
-        <mj-text align="center" font-size="40px" font-family="Trebuchet MS" color="#080808">
+        <mj-text margin-top="60px" align="center" font-size="40px" font-family="Trebuchet MS" color="#080808">
           Welcome to Vibe.xyz
         </mj-text>
         <mj-text align="center" font-size="16px" font-family="Trebuchet MS" color="#5B5F5F">

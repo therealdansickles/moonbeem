@@ -96,6 +96,11 @@ export class MailService {
         await this.sendEmail(emailAddress, 'Your Password Reset Code on Vibe', content);
     }
 
+    async sendOnboardEmail(emailAddress: string, token: string): Promise<void> {
+        const content = await this.renderTemplate('onboard.mjml', {ctaUrl: this.generatePasswordResetUrl(emailAddress, token)});
+        await this.sendEmail(emailAddress, 'You Are Invited', content);
+    }
+
     /**
      * Generates the dashboard verification url.
      *

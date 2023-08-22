@@ -1,0 +1,72 @@
+<mjml>
+  <mj-body background-color="#DDE3E3">
+    <!-- Header -->
+    <mj-section>
+      <mj-column>
+      </mj-column>
+    </mj-section>
+
+    <mj-section>
+      <mj-column align="center">
+        <mj-image height="80px" width="80px" src="https://media.vibe.xyz/email/Logo.png"></mj-image>
+        <mj-text margin-top="60px" align="center" font-size="36px">
+          🤙
+        </mj-text>
+
+        <mj-text align="center" font-size="40px" font-family="Trebuchet MS" color="#080808">
+          You Are Invited
+        </mj-text>
+        <mj-text align="center" font-size="16px" font-family="Trebuchet MS" color="#5B5F5F">
+          Please follow below steps
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Content -->
+    <mj-section background-color="#F7F8FC">
+      <mj-column>
+        <mj-text align="left" font-size="24px">
+          Hi,
+        </mj-text>
+
+        <mj-text align="left" font-size="16px" font-family="Trebuchet MS" color="#5B5F5F" line-height="24px">
+         You’re invited to register to Vibe. Please click the button below to set your password and get started.
+        </mj-text>
+        <mj-text align="left" font-size="16px" font-family="Trebuchet MS" color="#5B5F5F" line-height="24px">
+         Your enthusiasm and passion for digital creativity have not gone unnoticed, and we are excited you are joining us in spreading the good vibes. Here at Vibe, we are on a mission to take NFT from pictures to products, and to empower creators like you to reshape the experiences of digital content.
+        </mj-text>
+
+        <mj-text background-color="#DDE3E3" line-height="30px">
+          <strong>GETTING STARTED:</strong>
+          <ul line-height="30px">
+              <li line-height="30px" font-size="16px" font-family="Trebuchet MS" color="#080808"><strong>Set up Your Account:</strong> Use this link to set up your account: {{ ctaUrl }}</li>
+              <li line-height="30px" font-size="16px" font-family="Trebuchet MS" color="#080808"><strong>Explore the Dashboard:</strong> Dive into your personalized dashboard to explore tools and resources to help bring your creative ideas to life.</li>
+              <li line-height="30px" font-size="16px" font-family="Trebuchet MS" color="#080808"><strong>Create Your Masterpiece:</strong> Whether you're an artist, designer, developer, or dreamer, Vibe offers the canvas and brushes for your creativity. Start by transforming your NFTs into interactive applications and products on the dashboard. </li>
+              <li line-height="30px" font-size="16px" font-family="Trebuchet MS" color="#080808"><strong>Quick Start Guide:</strong> Here’s a guide to help you launch your first collection: Launching on Vibe. For more detailed documentation, go to docs.vibe.xyz</li>
+              <li line-height="30px" font-size="16px" font-family="Trebuchet MS" color="#080808"><strong>Come to Vibe Happy Hour</strong> If you’d like to speak directly with someone on our team, you can schedule a 15 minute chat during our office hours here: https://calendar.app.google/Jrhh1DVmegtar4db9 </li>
+              <li line-height="30px" font-size="16px" font-family="Trebuchet MS" color="#080808"><strong>Contact Us</strong> Have questions? We're here to assist. Reach out to our dedicated support team through our feedback form. Just want to say hi? You can find us at hello@vibe.xyz</li>
+          </ul>
+        </mj-text>
+
+        <!-- Verify CTA -->
+        <mj-button align="left" href="{{ ctaUrl }}" target="_blank">
+          Set Password
+        </mj-button>
+
+        <mj-text>
+          Vibe with us,
+        </mj-text>
+
+        <mj-text>
+          <strong>
+            Your friends at Vibe.xyz
+          </strong>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+
+    <!-- Footer -->
+
+  </mj-body>
+</mjml>
