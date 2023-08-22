@@ -142,7 +142,7 @@ export class UserService {
             });
         const verificationToken = user.generateVerificationToken();
         await this.userRepository.save({ ...user, verificationToken });
-        this.mailService.sendPasswordResetEmail(user.email, verificationToken);
+        await this.mailService.sendPasswordResetEmail(user.email, verificationToken);
         return true;
     }
 
@@ -154,7 +154,7 @@ export class UserService {
             });
         const verificationToken = user.generateVerificationToken();
         await this.userRepository.save({ ...user, verificationToken });
-        this.mailService.sendOnboardEmail(user.email, verificationToken);
+        await this.mailService.sendOnboardEmail(user.email, verificationToken);
         return true;
     }
 
