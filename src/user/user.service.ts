@@ -83,8 +83,7 @@ export class UserService {
             emails.map(async (email) => {
                 const user = await this.createUser({ email, name: email, password: generateRandomPassword(12) });
                 await this.organizationService.createPersonalOrganization(user);
-                this.sendPasswordResetLink(email);
-                // TODO: update isClaimed to true
+                this.sendOnboardLink(email);
                 return user;
             })
         );
