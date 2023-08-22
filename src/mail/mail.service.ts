@@ -4,6 +4,7 @@ import * as fsPromise from 'fs/promises';
 import * as mjml from 'mjml';
 import { Injectable } from '@nestjs/common';
 import { MailgunService, EmailOptions } from '@nextnm/nestjs-mailgun';
+import { resolve } from 'path';
 
 dotenv.config();
 
@@ -42,7 +43,7 @@ export class MailService {
      * @returns The rendered template
      */
     async renderTemplate(templateName: string, data: any): Promise<string> {
-        const template = await fsPromise.readFile(`./src/mail/templates/${templateName}`, 'utf8');
+        const template = await fsPromise.readFile(resolve(__dirname, `./templates/${templateName}`), 'utf8');
         const rendered = await Mustache.render(template, data);
         return mjml(rendered).html;
     }
