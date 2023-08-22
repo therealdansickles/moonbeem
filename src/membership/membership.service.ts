@@ -92,10 +92,7 @@ export class MembershipService {
         // use `upsert` to ignore the existed membership but not throw an error
         await this.membershipRepository.upsert(membership, ['email', 'organization.id']);
 
-        const result = await this.membershipRepository.findOneBy({ id: membership.id });
-        await this.mailService.sendInviteEmail(email, result.inviteCode); // FIXME: Move to a queue
-
-        return result;
+        return await this.membershipRepository.findOneBy({ id: membership.id });
     }
 
     async createMemberships(data: CreateMembershipInput): Promise<Membership[]> {
@@ -108,7 +105,16 @@ export class MembershipService {
             });
         }
 
-        return Promise.all(emails.filter((email) => !!email).map((email) => this.createMembership(email, { organization, ...rest })));
+        return Promise.all(
+            emails
+                .filter((email) => !!email)
+                .map((email) =>
+                    this.createMembership(email, { organization, ...rest }).then((membership) => {
+                        this.mailService.sendInviteEmail(email, membership.inviteCode);
+                        return membership;
+                    })
+                )
+        );
     }
 
     /**

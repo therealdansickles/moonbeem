@@ -83,8 +83,7 @@ export class UserService {
             emails.map(async (email) => {
                 const user = await this.createUser({ email, name: email, password: generateRandomPassword(12) });
                 await this.organizationService.createPersonalOrganization(user);
-                this.sendPasswordResetLink(email);
-                // TODO: update isClaimed to true
+                this.sendOnboardLink(email);
                 return user;
             })
         );
@@ -143,6 +142,18 @@ export class UserService {
         const verificationToken = user.generateVerificationToken();
         await this.userRepository.save({ ...user, verificationToken });
         this.mailService.sendPasswordResetEmail(user.email, verificationToken);
+        return true;
+    }
+
+    async sendOnboardLink(email: string): Promise<boolean> {
+        const user = await this.userRepository.findOneBy({ email });
+        if (!user)
+            throw new GraphQLError(`No user registered with this email.`, {
+                extensions: { code: 'NO_USER_FOUND' },
+            });
+        const verificationToken = user.generateVerificationToken();
+        await this.userRepository.save({ ...user, verificationToken });
+        this.mailService.sendOnboardEmail(user.email, verificationToken);
         return true;
     }
 
