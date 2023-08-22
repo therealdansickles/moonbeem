@@ -412,10 +412,10 @@ export class OrganizationService {
                 .orderBy('txn.txTime', 'DESC');
 
             if (after) {
-                builder.andWhere('asset.txTime > :cursor', { cursor: new Date(fromCursor(after)).valueOf() / 1000 });
+                builder.andWhere('txn.txTime > :cursor', { cursor: new Date(fromCursor(after)).valueOf() / 1000 });
                 builder.limit(first);
             } else if (before) {
-                builder.andWhere('asset.txTime < :cursor', { cursor: fromCursor(before) });
+                builder.andWhere('txn.txTime < :cursor', { cursor: fromCursor(before) });
                 builder.limit(last);
             } else {
                 const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
