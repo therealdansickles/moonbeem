@@ -93,6 +93,10 @@ export class TestResolver {
 }
 
 export default async () => {
+    // Should abort if it's not a local database
+    if (!postgresConfig.url.includes('localhost') || !postgresConfig.syncChain.url.includes('localhost') ) {
+        throw new Error('You are not running tests on a local database. Aborting.');
+    }
     const module = await Test.createTestingModule({
         imports: [
             TypeOrmModule.forRoot({
