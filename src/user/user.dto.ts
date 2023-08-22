@@ -109,12 +109,15 @@ export class ResetPasswordInput extends PickType(User, ['email', 'verificationTo
 @InputType()
 export class UpdateUserInput extends PartialType(OmitType(User, ['password', 'wallets'] as const), InputType) {}
 
+@InputType('OnboardUsersInput')
+export class OnboardUsersInput {
+    @Field(() => [String!]!)
+    @IsArray()
+    readonly emails: string[];
+}
+
 @ObjectType()
-export class UserOutput extends OmitType(
-    User,
-    ['password', 'websiteUrl', 'twitter', 'instagram', 'discord', 'wallets'],
-    ObjectType
-) {}
+export class UserOutput extends OmitType(User, ['password', 'websiteUrl', 'twitter', 'instagram', 'discord', 'wallets'], ObjectType) {}
 
 @ObjectType()
 export class ResetPasswordOutput {

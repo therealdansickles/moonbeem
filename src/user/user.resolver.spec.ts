@@ -14,6 +14,7 @@ import {
 import { User } from '../user/user.dto';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
+import { getToken } from '../test-utils';
 
 export const gql = String.raw;
 
@@ -844,6 +845,91 @@ describe('UserResolver', () => {
                     expect(body.data.user.latestSales.edges[0].node.quantity).toBe(2);
                     expect(body.data.user.latestSales.edges[0].node.recipient).toBe(recipient1);
                     expect(body.data.user.latestSales.edges[0].node.collection.id).toBe(collection.id);
+                });
+        });
+    });
+
+    describe('onboardUsers', function () {
+        it('should onboard user successfully', async () => {
+            const tokenEmail = 'any-user@vibe.xyz';
+            await service.createUser({
+                email: tokenEmail,
+                password: 'password',
+            });
+            const token = await getToken(app, tokenEmail);
+            const email = faker.internet.email().toLowerCase();
+            const query = gql`
+                mutation OnboardUsers($input: OnboardUsersInput!) {
+                    onboardUsers(input: $input) {
+                        email
+                    } 
+                }
+            `;
+
+            const variables = {
+                input: {
+                    emails: [email],
+                },
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.onboardUsers[0].email).toEqual(email);
+                });
+        });
+
+        it('should return 403 if it is not vibe email', async () => {
+            const email = faker.internet.email().toLowerCase();
+            await service.createUser({
+                email,
+                password: 'password',
+            });
+            const token = await getToken(app, email);
+
+            const query = gql`
+                mutation OnboardUsers($input: OnboardUsersInput!) {
+                    onboardUsers(input: $input) {
+                        email
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    emails: [email],
+                },
+            };
+
+            /* For anyone that wants to know the error response
+                {
+                    "errors": [
+                        {
+                            "message": "Forbidden resource",
+                            "extensions": {
+                                "code": "FORBIDDEN",
+                                "response": {
+                                    "statusCode": 403,
+                                    "message": "Forbidden resource",
+                                    "error": "Forbidden"
+                                }
+                            }
+                        }
+                    ],
+                    "data": null
+                }
+             */
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.errors[0].message).toEqual('Forbidden resource');
+                    expect(body.errors[0].extensions.response.statusCode).toEqual(403);
                 });
         });
     });

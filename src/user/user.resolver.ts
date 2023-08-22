@@ -1,5 +1,5 @@
 import { Resolver, Args, Query, Mutation, ResolveField, Parent, Int } from '@nestjs/graphql';
-import { Public } from '../session/session.decorator';
+import { Public, AuthorizedUser } from '../session/session.decorator';
 import { UserService } from './user.service';
 import {
     User,
@@ -10,13 +10,15 @@ import {
     LatestSalePaginated,
     PasswordResetLinkInput,
     ResetPasswordInput,
-    ResetPasswordOutput
+    ResetPasswordOutput,
+    OnboardUsersInput,
 } from './user.dto';
 import { Membership } from '../membership/membership.dto';
 import { MembershipService } from '../membership/membership.service';
 import { Organization } from '../organization/organization.dto';
 import { OrganizationService } from '../organization/organization.service';
-import { AuthorizedUser } from '../session/session.decorator';
+import { VibeEmailGuard } from '../session/session.guard';
+import { UseGuards } from '@nestjs/common';
 
 @Resolver(() => User)
 export class UserResolver {
@@ -28,10 +30,7 @@ export class UserResolver {
 
     @Public()
     @Query(() => User, { description: 'Returns an user for the given id or username', nullable: true })
-    async user(
-        @Args({ name: 'id', nullable: true }) id: string,
-            @Args({ name: 'username', nullable: true }) username: string
-    ): Promise<User> {
+    async user(@Args({ name: 'id', nullable: true }) id: string, @Args({ name: 'username', nullable: true }) username: string): Promise<User> {
         return await this.userService.getUserByQuery({ id, username });
     }
 
@@ -58,6 +57,12 @@ export class UserResolver {
     @Mutation(() => Boolean, { description: 'Send the reset password link to the user' })
     async sendPasswordResetLink(@Args('input') input: PasswordResetLinkInput): Promise<boolean> {
         return this.userService.sendPasswordResetLink(input.email);
+    }
+
+    @UseGuards(VibeEmailGuard)
+    @Mutation(() => [User], { description: 'Onboard users' })
+    async onboardUsers(@Args('input') input: OnboardUsersInput): Promise<User[]> {
+        return this.userService.onboardUsers(input.emails);
     }
 
     @Public()

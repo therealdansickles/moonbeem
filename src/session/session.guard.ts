@@ -25,6 +25,8 @@ import {
 import { IGraphQLRequest } from './session.types';
 import { getUserIdFromToken } from './session.utils';
 
+const VIBE_EMAIL_SUFFIX = '@vibe.xyz';
+
 const extractToken = (request) => {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : null;
@@ -340,5 +342,50 @@ export class AuthorizedCollectionViewerGuard implements CanActivate {
         if (!organizationId) return false;
 
         return await this.membershipService.checkMembershipByOrganizationIdAndUserId(organizationId, userId);
+    }
+}
+
+@Injectable()
+export class VibeEmailGuard implements CanActivate {
+    constructor(
+        private reflector: Reflector,
+        private readonly jwtService: JwtService,
+        private readonly userService: UserService
+    ) {}
+
+    /**
+     * Checks if the user is authenticated via the JWT token that registered with vibe email.
+     *
+     * @param context The execution context.
+     * @returns {Promise<boolean>}
+     */
+    async canActivate(context: ExecutionContext): Promise<boolean> {
+        const ctx = GqlExecutionContext.create(context);
+        const request = ctx.getContext().req;
+        const token = extractToken(request);
+        const isPublic = this.reflector.get<boolean>('isPublic', context.getHandler());
+
+        if (isPublic) return true;
+
+        try {
+            const userId = getUserIdFromToken(request, this.jwtService, process.env.SESSION_SECRET);
+            const user = await this.userService.getUserByQuery({ id: userId });
+            request.user = user;
+            request.userId = userId;
+            return user.email.endsWith(VIBE_EMAIL_SUFFIX);
+        } catch (e) {
+            switch (e) {
+                case 'TokenExpiredError':
+                    throw new UnauthorizedException('Token expired');
+                default:
+                    captureException(e, {
+                        tags: {
+                            authentication: 'user',
+                            token: token,
+                        },
+                    });
+            }
+            return false;
+        }
     }
 }

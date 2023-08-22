@@ -12,6 +12,9 @@ import { RoyaltyService } from './sync-chain/royalty/royalty.service';
 import { TierService } from './tier/tier.service';
 import { MembershipService } from './membership/membership.service';
 import { CreateMembershipInput } from './membership/membership.dto';
+import { gql } from './user/user.resolver.spec';
+import * as request from 'supertest';
+import { INestApplication } from '@nestjs/common';
 
 export const createCoin = async (coinService: CoinService, coin?: any) =>
     coinService.createCoin({
@@ -149,3 +152,34 @@ export const createHistory721 = async (service: History721Service, history?: any
         kind: History721Type.unknown,
         ...history,
     });
+
+/**
+ * Get token from email, the user must be created before
+ * @param app
+ * @param email
+ */
+export const getToken = async (app: INestApplication, email: string) => {
+    const tokenQuery = gql`
+        mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+            createSessionFromEmail(input: $input) {
+                token
+                user {
+                    id
+                    email
+                }
+            }
+        }
+    `;
+
+    const tokenVariables = {
+        input: {
+            email,
+            password: 'password',
+        },
+    };
+
+    const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
+
+    const { token } = tokenRs.body.data.createSessionFromEmail;
+    return token;
+};

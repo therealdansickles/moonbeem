@@ -78,11 +78,13 @@ export class UserService {
      * @param emails
      */
     async onboardUsers(emails: string[]): Promise<User[]> {
-        return Promise.all(
+        // TODO: check if it's in the waitlist and isClaimed is false
+        return await Promise.all(
             emails.map(async (email) => {
                 const user = await this.createUser({ email, name: email, password: generateRandomPassword(12) });
                 await this.organizationService.createPersonalOrganization(user);
                 this.sendPasswordResetLink(email);
+                // TODO: update isClaimed to true
                 return user;
             })
         );
