@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-
 import * as fsPromise from 'fs/promises';
 import * as mjml from 'mjml';
 import { Injectable } from '@nestjs/common';
-import { MailgunService, EmailOptions } from '@nextnm/nestjs-mailgun';
+import { EmailOptions, MailgunService } from '@nextnm/nestjs-mailgun';
 
 dotenv.config();
 
@@ -67,10 +67,9 @@ export class MailService {
      * @returns
      */
     async sendVerificationEmail(emailAddress: string, token: string): Promise<void> {
-        const content = await this.renderTemplate('verification.mjml', {ctaUrl: this.generateVerificationUrl(emailAddress, token)});
+        const content = await this.renderTemplate('verification.mjml', { ctaUrl: this.generateVerificationUrl(emailAddress, token) });
         await this.sendEmail(emailAddress, 'Your Signup Verification Code on Vibe', content);
     }
-
 
     /**
      * Send an invite email to a user
@@ -80,7 +79,7 @@ export class MailService {
      * @returns
      */
     async sendInviteEmail(emailAddress: string, token: string): Promise<void> {
-        const content = await this.renderTemplate('invite.mjml', {ctaUrl: this.generateInviteUrl(emailAddress, token)});
+        const content = await this.renderTemplate('invite.mjml', { ctaUrl: this.generateInviteUrl(emailAddress, token) });
         await this.sendEmail(emailAddress, 'You have been invited into a workspace on Vibe', content);
     }
 
@@ -92,7 +91,7 @@ export class MailService {
      * @returns
      */
     async sendPasswordResetEmail(emailAddress: string, token: string): Promise<void> {
-        const content = await this.renderTemplate('reset.mjml', {ctaUrl: this.generatePasswordResetUrl(emailAddress, token)});
+        const content = await this.renderTemplate('reset.mjml', { ctaUrl: this.generatePasswordResetUrl(emailAddress, token) });
         await this.sendEmail(emailAddress, 'Your Password Reset Code on Vibe', content);
     }
 
