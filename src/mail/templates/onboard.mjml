@@ -8,13 +8,15 @@
 
     <mj-section>
       <mj-column align="center">
-        <mj-image height="80px" width="80px" src="https://media.vibe.xyz/email/Logo.png"></mj-image>
+        <mj-image margin-bottom="60px" height="80px" width="80px" src="https://media.vibe.xyz/email/Logo.png"></mj-image>
+        <mj-text font-size="36px" line-height="60px">
+        </mj-text>
         <mj-text margin-top="60px" align="center" font-size="36px">
           🤙
         </mj-text>
 
         <mj-text align="center" font-size="40px" font-family="Trebuchet MS" color="#080808">
-          You Are Invited
+          You Are Invited To Vibe Dashboard
         </mj-text>
         <mj-text align="center" font-size="16px" font-family="Trebuchet MS" color="#5B5F5F">
           Please follow below steps
