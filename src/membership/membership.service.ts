@@ -7,12 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { MailService } from '../mail/mail.service';
 import { Organization } from '../organization/organization.entity';
 import { User } from '../user/user.entity';
-import {
-    CreateMembershipInput,
-    ICreateMembership,
-    MembershipRequestInput,
-    UpdateMembershipInput,
-} from './membership.dto';
+import { CreateMembershipInput, ICreateMembership, MembershipRequestInput, UpdateMembershipInput } from './membership.dto';
 import { Membership } from './membership.entity';
 
 @Injectable()
@@ -97,10 +92,7 @@ export class MembershipService {
         // use `upsert` to ignore the existed membership but not throw an error
         await this.membershipRepository.upsert(membership, ['email', 'organization.id']);
 
-        const result = await this.membershipRepository.findOneBy({ id: membership.id });
-        await this.mailService.sendInviteEmail(email, result.inviteCode); // FIXME: Move to a queue
-
-        return result;
+        return await this.membershipRepository.findOneBy({ id: membership.id });
     }
 
     async createMemberships(data: CreateMembershipInput): Promise<Membership[]> {
@@ -113,12 +105,16 @@ export class MembershipService {
             });
         }
 
-        const result = await Promise.all(
-            emails.map((email) => {
-                return this.createMembership(email, { organization, ...rest });
-            })
+        return Promise.all(
+            emails
+                .filter((email) => !!email)
+                .map((email) =>
+                    this.createMembership(email, { organization, ...rest }).then((membership) => {
+                        this.mailService.sendInviteEmail(email, membership.inviteCode);
+                        return membership;
+                    })
+                )
         );
-        return result;
     }
 
     /**
@@ -166,12 +162,9 @@ export class MembershipService {
             },
         });
         if (!membership) {
-            throw new GraphQLError(
-                `We couldn't find a membership request for ${input.email} to organization ${input.organizationId}.`,
-                {
-                    extensions: { code: 'BAD_REQUEST' },
-                }
-            );
+            throw new GraphQLError(`We couldn't find a membership request for ${input.email} to organization ${input.organizationId}.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
         }
 
         membership.acceptedAt = new Date();
@@ -201,12 +194,9 @@ export class MembershipService {
         });
 
         if (!membership) {
-            throw new GraphQLError(
-                `We couldn't find a membership request for ${input.email} to organization ${input.organizationId}.`,
-                {
-                    extensions: { code: 'BAD_REQUEST' },
-                }
-            );
+            throw new GraphQLError(`We couldn't find a membership request for ${input.email} to organization ${input.organizationId}.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
         }
 
         membership.declinedAt = new Date();

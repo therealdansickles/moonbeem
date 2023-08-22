@@ -3,5 +3,6 @@ beforeEach(() => {
     jest.spyOn(global.mailService, 'sendInviteEmail').mockImplementation(async () => {});
     jest.spyOn(global.mailService, 'sendVerificationEmail').mockImplementation(async () => {});
     jest.spyOn(global.mailService, 'sendPasswordResetEmail').mockImplementation(async () => {});
+    jest.spyOn(global.mailService, 'sendOnboardEmail').mockImplementation(async () => {});
 });
 

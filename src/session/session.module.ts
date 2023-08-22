@@ -21,16 +21,12 @@ import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinModule } from '../sync-chain/coin/coin.module';
 import { CoinService } from '../sync-chain/coin/coin.service';
+import { History721 } from '../sync-chain/history721/history721.entity';
+import { History721Module } from '../sync-chain/history721/history721.module';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import {
-    MintSaleTransaction
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import {
-    MintSaleTransactionModule
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { Tier } from '../tier/tier.entity';
 import { TierModule } from '../tier/tier.module';
 import { TierService } from '../tier/tier.service';
@@ -44,7 +40,7 @@ import { SessionService } from './session.service';
 @Module({
     imports: [
         TypeOrmModule.forFeature([Wallet, User, Collection, Membership, Organization, Tier]),
-        TypeOrmModule.forFeature([Asset721, Coin, MintSaleContract, MintSaleTransaction], 'sync_chain'),
+        TypeOrmModule.forFeature([Asset721, Coin, MintSaleContract, MintSaleTransaction, History721], 'sync_chain'),
         forwardRef(() => Asset721Module),
         forwardRef(() => CoinMarketCapModule),
         forwardRef(() => CoinModule),
@@ -57,9 +53,10 @@ import { SessionService } from './session.service';
         forwardRef(() => UserModule),
         forwardRef(() => WalletModule),
         forwardRef(() => MintSaleTransactionModule),
+        forwardRef(() => History721Module),
         JwtModule.register({
             secret: process.env.SESSION_SECRET,
-            signOptions: { expiresIn: '1d' },
+            signOptions: { expiresIn: '7d' },
         }),
         SessionModule,
     ],

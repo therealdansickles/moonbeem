@@ -4,7 +4,7 @@ import {
 import { GqlExecutionContext } from '@nestjs/graphql';
 
 import {
-    AuthorizedCollectionOwnerGuard, AuthorizedOrganizationGuard, AuthorizedTokenGuard,
+    AuthorizedCollectionOwnerGuard, AuthorizedCollectionViewerGuard, AuthorizedOrganizationGuard, AuthorizedTokenGuard,
     AuthorizedUserGuard, AuthorizedWalletAddressGuard, AuthorizedWalletGuard
 } from './session.guard';
 
@@ -73,6 +73,12 @@ export function AuthorizedOrganization(key: string) {
     return applyDecorators(
         SetMetadata(ORGANIZATION_ID_PARAMETER, key),
         UseGuards(AuthorizedOrganizationGuard)
+    );
+}
+
+export function AuthorizedCollectionViewer() {
+    return applyDecorators(
+        UseGuards(AuthorizedCollectionViewerGuard)
     );
 }
 

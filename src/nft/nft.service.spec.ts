@@ -427,8 +427,8 @@ describe('NftService', () => {
                 tierId: tier.id,
                 tokenId,
                 properties: {
-                    level: '1',
-                    holding_days: 10
+                    level: { value: '1' },
+                    holding_days: { value: 10 }
                 },
             });
 
@@ -498,8 +498,8 @@ describe('NftService', () => {
                 tierId: tier.id,
                 tokenId,
                 properties: {
-                    level: '1',
-                    holding_days: 10,
+                    level: { value: '1' },
+                    holding_days: { value: 10 },
                 },
             });
 
@@ -562,8 +562,8 @@ describe('NftService', () => {
                 tierId: tier.id,
                 tokenId,
                 properties: {
-                    level: '1',
-                    holding_days: 10,
+                    level: { value: '1' },
+                    holding_days: { value: 10 },
                 },
             });
 
@@ -573,6 +573,78 @@ describe('NftService', () => {
             const renderedProperties = result.metadata.properties;
             expect(renderedProperties['level'].value).toEqual('1');
             expect(renderedProperties['holding_days'].value).toEqual('10');
+        });
+
+        it('should render `name` as expected', async () => {
+            await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                creator: { id: wallet.id },
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '100',
+                tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: '{{level_name}}',
+                            type: 'string',
+                            value: '{{level}}',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: '{{holding_days_name}}',
+                            type: 'integer',
+                            value: '{{holding_days}}',
+                            display_value: 'Days of holding',
+                        },
+                    },
+                    configs: {
+                        alias: {
+                            level_name: 'real_level_name'
+                        }
+                    }
+                },
+            });
+
+            const tokenId = faker.string.numeric({ length: 1, allowLeadingZeros: false });
+
+            const nft = await nftService.createOrUpdateNftByTokenId({
+                collectionId: collection.id,
+                tierId: tier.id,
+                tokenId,
+                properties: {
+                    level: { value: '1' },
+                    holding_days: { value: 10 }
+                },
+            });
+
+            const nftInfo = await nftRepository.findOne({ where: { id: nft.id }, relations: ['tier'] });
+
+            const result = await nftService.renderMetadata(nftInfo);
+            const renderedProperties = result.metadata.properties;
+            expect(renderedProperties['level'].value).toEqual('1');
+            expect(renderedProperties['level'].name).toEqual('real_level_name');
+            expect(renderedProperties['holding_days'].value).toEqual('10');
+            expect(renderedProperties['holding_days'].name).toEqual('holding_days');
         });
     });
 });

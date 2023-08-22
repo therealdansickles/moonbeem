@@ -22,17 +22,13 @@ import { Asset721Module } from '../sync-chain/asset721/asset721.module';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinModule } from '../sync-chain/coin/coin.module';
 import { CoinService } from '../sync-chain/coin/coin.service';
+import { History721 } from '../sync-chain/history721/history721.entity';
+import { History721Module } from '../sync-chain/history721/history721.module';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import { MintSaleContractModule } from '../sync-chain/mint-sale-contract/mint-sale-contract.module';
-import {
-    MintSaleTransaction
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import {
-    MintSaleTransactionModule
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { Tier } from '../tier/tier.entity';
 import { TierModule } from '../tier/tier.module';
 import { TierService } from '../tier/tier.service';
@@ -48,18 +44,8 @@ import { CollectionService } from './collection.service';
 @Module({
     imports: [
         HttpModule,
-        TypeOrmModule.forFeature([
-            Collaboration,
-            Collection,
-            Organization,
-            Membership,
-            Tier,
-            Nft,
-            Wallet,
-            User,
-            Redeem,
-        ]),
-        TypeOrmModule.forFeature([Coin, MintSaleContract, MintSaleTransaction, Asset721], 'sync_chain'),
+        TypeOrmModule.forFeature([Collaboration, Collection, Organization, Membership, Tier, Nft, Wallet, User, Redeem]),
+        TypeOrmModule.forFeature([Coin, MintSaleContract, MintSaleTransaction, Asset721, History721], 'sync_chain'),
         forwardRef(() => Asset721Module),
         forwardRef(() => CoinMarketCapModule),
         forwardRef(() => CoinModule),
@@ -73,6 +59,7 @@ import { CollectionService } from './collection.service';
         forwardRef(() => TierModule),
         forwardRef(() => UserModule),
         forwardRef(() => WalletModule),
+        forwardRef(() => History721Module),
         JwtModule,
     ],
     exports: [CollectionModule, CollectionService],

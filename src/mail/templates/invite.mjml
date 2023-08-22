@@ -3,9 +3,9 @@
     <!-- Header -->
     <mj-section>
       <mj-column>
-        <mj-image height="60px" width="100px" src="https://vibe-platform-static-assets.s3.us-east-1.amazonaws.com/email/Primary%20Logo.png?response-content-disposition=inline&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEDAaCXVzLXdlc3QtMSJIMEYCIQD5%2BMzmJPtM%2BF3ped5%2FNH1p%2BA6n1IekqPI2Azjruk%2FKrQIhAKIybCEysWn7LTGAYlwWT%2BGjKD%2BFNCHOgR8m7vno5IC8KoQDCLn%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQABoMMjI0ODg1MDUxNTQ3IgxyOyh9rDaOSbL6PFIq2AIF0byjpGYwMTcxHCtGo0RAO5euBiU5leg01dSFan5GeCnwppfhOjtcYPb04molkpvvP1Xkt%2BvyOdQEd81IAg73ihMtdb2dcMCSkA%2BNIRhbDs%2Bp5cP1tnxM6NZUvb2G8csbm7FjJ4%2BAISsXrmCoEt6C0twFysR8pAix3leY%2Bfh6o1IYlc%2BGBVrqoQK5aSbcB9DNc3V3i42xWaR0aRvZNUyVpARpOxeK5ntDwbYExkayxAioWVAzsb4%2BxfEaOuexqULUg8fdOePNsGT7MDxrBwiI12o4c5It1qMM2GVllMvffEEVvx95EK1f0AhZiMlGMDAsFQiPIb268OqhfSl2n39Cji0EljmjrF4Pg%2FkcmTf3zqN%2FuWV1FAsHbsUyNCoYDiUtn7EA2Z0HKXKJLrHEl8C0FOtsEsxKZGjtmXcO%2FDQ4yAaYqKkSeJgXLyyPMiuvjiAy%2FwHGkoV9bTDi%2B%2BilBjqyAjERv8QcaJ%2BQj1zZcjxlQQCDC52y962RkT3hSPVgUayLFg4KP3mTY0AoFk1Wl5WFVLdvym7Vk4fTW9AZPleZHzXWnJ5j3WYwxIZ5n52jGsa3YviG1Kk5WR4OBnnYt8SejcuRdisHqnwFqFwFBMamdEUdZsJ7bifAJDOhLFXIJmXZ%2FksFbNs1heUdJB2l0oZipbeATxf9vLf%2FyO2xCj16a161mnfBbrMky%2BmKTCuGgqHFgv3g9wSvNKV1rYQumxUnAT%2BpKjOcgf8PKEclNllebRnJRWs3L0lth3Rka2aKfxQIGTPxsyO8xQT%2F2U9vUe5o%2Fj87%2BM2tyeLYnkmqxjKXzGlNJl12na%2FJQM6pp3HKOwH6PoPnSIuZvLpBTLln65WkPaEczPxqipRyEdlCj4mz2zwiWg%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20230721T082430Z&X-Amz-SignedHeaders=host&X-Amz-Expires=43200&X-Amz-Credential=ASIATIXBRSCNTIJBWDFE%2F20230721%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=ae9f4584cd48acf62c8ca866be995ddfbd60a5a14abe35fe9552712d5554d195"></mj-image>
+        <mj-image margin-bottom="60px" height="80px" width="80px" src="https://media.vibe.xyz/email/Logo.png"></mj-image>
 
-        <mj-text align="center" font-size="40px" font-family="Trebuchet MS" color="#080808">
+        <mj-text  margin-top="60px" align="center" font-size="40px" font-family="Trebuchet MS" color="#080808">
           Welcome to Vibe.xyz
         </mj-text>
         <mj-text align="center" font-size="16px" font-family="Trebuchet MS" color="#5B5F5F">

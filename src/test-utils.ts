@@ -4,10 +4,17 @@ import { CollectionService } from './collection/collection.service';
 import { OrganizationService } from './organization/organization.service';
 import { Asset721Service } from './sync-chain/asset721/asset721.service';
 import { CoinService } from './sync-chain/coin/coin.service';
+import { History721Type } from './sync-chain/history721/history721.entity';
+import { History721Service } from './sync-chain/history721/history721.service';
 import { MintSaleContractService } from './sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { MintSaleTransactionService } from './sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { RoyaltyService } from './sync-chain/royalty/royalty.service';
 import { TierService } from './tier/tier.service';
+import { MembershipService } from './membership/membership.service';
+import { CreateMembershipInput } from './membership/membership.dto';
+import { gql } from './user/user.resolver.spec';
+import * as request from 'supertest';
+import { INestApplication } from '@nestjs/common';
 
 export const createCoin = async (coinService: CoinService, coin?: any) =>
     coinService.createCoin({
@@ -111,6 +118,16 @@ export const createOrganization = async (organizationService: OrganizationServic
         ...organization,
     });
 
+export const createMemberships = async (membershipService: MembershipService, membershipInput?: CreateMembershipInput) =>
+    membershipService.createMemberships({
+        emails: [faker.internet.email()],
+        organizationId: faker.string.uuid(),
+        canEdit: true,
+        canDeploy: true,
+        canManage: true,
+        ...membershipInput,
+    });
+
 export const createRoyalty = async (service: RoyaltyService, royalty?: any) =>
     service.createRoyalty({
         height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
@@ -122,3 +139,47 @@ export const createRoyalty = async (service: RoyaltyService, royalty?: any) =>
         userRate: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
         ...royalty,
     });
+
+export const createHistory721 = async (service: History721Service, history?: any) =>
+    service.createHistory721({
+        height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
+        txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
+        txTime: Math.floor(faker.date.recent().getTime() / 1000),
+        address: faker.finance.ethereumAddress(),
+        tokenId: faker.string.numeric({ length: 5, allowLeadingZeros: false }),
+        sender: faker.finance.ethereumAddress(),
+        receiver: faker.finance.ethereumAddress(),
+        kind: History721Type.unknown,
+        ...history,
+    });
+
+/**
+ * Get token from email, the user must be created before
+ * @param app
+ * @param email
+ */
+export const getToken = async (app: INestApplication, email: string) => {
+    const tokenQuery = gql`
+        mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+            createSessionFromEmail(input: $input) {
+                token
+                user {
+                    id
+                    email
+                }
+            }
+        }
+    `;
+
+    const tokenVariables = {
+        input: {
+            email,
+            password: 'password',
+        },
+    };
+
+    const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
+
+    const { token } = tokenRs.body.data.createSessionFromEmail;
+    return token;
+};

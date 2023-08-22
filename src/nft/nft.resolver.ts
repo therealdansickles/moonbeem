@@ -37,6 +37,7 @@ export class NftResolver {
         return await this.nftService.getNfts(query);
     }
 
+    @Public()
     @Mutation(() => Nft, { description: 'Mutate a NFT for the given data.' })
     async createOrUpdateNft(@Args('input') input: CreateOrUpdateNftInput): Promise<Nft> {
         return await this.nftService.createOrUpdateNftByTokenId(input);

@@ -1,12 +1,12 @@
-import {
-    BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn
-} from 'typeorm';
+import { MetadataConfigs } from 'src/metadata/metadata.dto';
+import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 import { MetadataCondition, MetadataProperties } from '../metadata/metadata.entity';
 
 class PluginMetadata {
     properties: MetadataProperties;
     conditions: MetadataCondition;
+    configs: MetadataConfigs;
 }
 
 @Entity({ name: 'Plugin' })

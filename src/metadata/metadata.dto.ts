@@ -31,6 +31,11 @@ export class MetadataRule {
     @Field(() => String, { description: 'The real value of the rule.' })
     readonly value: string | number;
 
+    @IsString()
+    @IsOptional()
+    @Field(() => String, { nullable: true, description: 'The unit of the rule.' })
+    readonly update_unit?: string;
+
     @IsArray()
     @Field(() => [MetadataRuleUpdate], { description: 'The update detail of the rule.' })
     readonly update: MetadataRuleUpdate[];
@@ -97,18 +102,41 @@ export class MetadataProperty {
     @Field({ description: 'The type of the property.' })
     readonly type: string;
 
+    @Field(() => String, { description: 'The value of the property.' })
+    readonly value: string | number;
+
     @IsString()
     @IsOptional()
     @Field({ nullable: true, description: 'The display value of the property.' })
     readonly display_value?: string;
 
-    @Field(() => String, { description: 'The value of the property.' })
-    readonly value: string | number;
+    @IsString()
+    @IsOptional()
+    @Field({ nullable: true, description: 'Mark if this property is upgradable.' })
+    readonly class?: string;
+
+    @IsNumber()
+    @IsOptional()
+    @Field({ nullable: true, description: 'The last time the property has been updated.' })
+    readonly updated_at?: number;
 }
 
 @ObjectType()
 export class MetadataProperties {
     readonly [key: string]: MetadataProperty;
+}
+
+@ObjectType()
+export class MetadataConfigAlias {
+    readonly [key: string]: string;
+}
+
+@ObjectType()
+export class MetadataConfigs {
+    @IsObject()
+    @IsOptional()
+    @Field(() => GraphQLJSONObject, { nullable: true, description: 'The alias for each property.' })
+    readonly alias?: MetadataConfigAlias;
 }
 
 @ObjectType()
@@ -156,6 +184,11 @@ export class Metadata {
     @IsObject()
     @Field(() => GraphQLJSONObject, { nullable: true, description: 'The properties of the metadata.' })
     readonly properties?: MetadataProperties;
+
+    @IsObject()
+    @IsOptional()
+    @Field(() => MetadataConfigs, { nullable: true, description: 'The configs of the metadata.' })
+    readonly configs?: MetadataConfigs;
 }
 
 @InputType('MetadataInput')

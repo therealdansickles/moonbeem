@@ -4,6 +4,7 @@ import * as fsPromise from 'fs/promises';
 import * as mjml from 'mjml';
 import { Injectable } from '@nestjs/common';
 import { MailgunService, EmailOptions } from '@nextnm/nestjs-mailgun';
+import { resolve } from 'path';
 
 dotenv.config();
 
@@ -42,7 +43,7 @@ export class MailService {
      * @returns The rendered template
      */
     async renderTemplate(templateName: string, data: any): Promise<string> {
-        const template = await fsPromise.readFile(`./src/mail/templates/${templateName}`, 'utf8');
+        const template = await fsPromise.readFile(resolve(__dirname, `./templates/${templateName}`), 'utf8');
         const rendered = await Mustache.render(template, data);
         return mjml(rendered).html;
     }
@@ -94,6 +95,16 @@ export class MailService {
     async sendPasswordResetEmail(emailAddress: string, token: string): Promise<void> {
         const content = await this.renderTemplate('reset.mjml', {ctaUrl: this.generatePasswordResetUrl(emailAddress, token)});
         await this.sendEmail(emailAddress, 'Your Password Reset Code on Vibe', content);
+    }
+
+    /**
+     * Send an onboard email to a user
+     * @param emailAddress
+     * @param token
+     */
+    async sendOnboardEmail(emailAddress: string, token: string): Promise<void> {
+        const content = await this.renderTemplate('onboard.mjml', {ctaUrl: this.generatePasswordResetUrl(emailAddress, token)});
+        await this.sendEmail(emailAddress, 'You Are Invited To Vibe Dashboard', content);
     }
 
     /**

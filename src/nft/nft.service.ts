@@ -5,6 +5,7 @@ import { In, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
+import { Metadata } from '../metadata/metadata.dto';
 import { Nft as NftDto } from './nft.dto';
 import { Nft } from './nft.entity';
 
@@ -45,9 +46,19 @@ export class NftService {
      */
     renderMetadata(nft: Nft) {
         const result: NftDto = Object.assign({}, nft);
-        if (nft.properties && nft.tier.metadata) {
-            const metadata = render(JSON.stringify(nft.tier.metadata), nft.properties, {}, ['{{', '}}']);
-            result.metadata = JSON.parse(metadata);
+        if (nft?.properties && nft?.tier?.metadata) {
+            const properties = Object.keys(nft.properties).reduce((accu, key) => { 
+                accu[key] = nft.properties[key]?.value;
+                return accu;
+            }, {});
+            const alias = nft.tier.metadata.configs?.alias || {};
+            const allValues = Object.assign(alias, properties);
+            const metadata = JSON.parse(render(JSON.stringify(nft.tier.metadata), allValues));
+            // if some property.name is empty, then use the key as default
+            for (const key in (metadata as Metadata).properties) {
+                if (metadata.properties[key].name === '') metadata.properties[key].name = key;
+            }
+            result.metadata = metadata;
         }
         return result;
     }
@@ -97,11 +108,12 @@ export class NftService {
      * @returns
      */
     async createOrUpdateNftByTokenId({ collectionId, tierId, tokenId, properties }) {
-        return await this.nftRepository.save({
+        await this.nftRepository.upsert({
             tokenId,
             collection: { id: collectionId },
             tier: { id: tierId },
             properties,
-        });
+        }, ['collection.id', 'tier.id', 'tokenId']);
+        return this.nftRepository.findOneBy({ collection: { id: collectionId }, tier: { id: tierId }, tokenId });
     }
 }

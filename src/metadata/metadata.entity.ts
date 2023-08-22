@@ -2,7 +2,9 @@ export class MetadataProperty {
     name: string;
     type: string;
     value: any;
-    display_value: string;
+    display_value?: string;
+    class?: string;
+    updated_at?: number;
 }
 
 export class MetadataProperties {
@@ -19,6 +21,7 @@ export class MetadataRule {
     property: string;
     rule: string;
     value: any;
+    update_unit?: string;
     update: MetadataRuleUpdate[];
 }
 
@@ -41,6 +44,14 @@ export class MetadataCondition {
     trigger: Array<MetadataTrigger>;
 }
 
+export class MetadataConfigAlias {
+    [key: string]: string;
+}
+
+export class MetadataConfigs {
+    alias?: MetadataConfigAlias;
+}
+
 export class Metadata {
     uses?: string[];
     title?: string;
@@ -51,4 +62,5 @@ export class Metadata {
     image_url?: string;
     properties?: MetadataProperties;
     conditions?: MetadataCondition;
+    configs?: MetadataConfigs;
 }

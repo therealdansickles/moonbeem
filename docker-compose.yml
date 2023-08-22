@@ -15,6 +15,7 @@ services:
       SYNC_CHAIN_DATABASE_URL: postgresql://root:root@sync_chain:5432/sync_chain_development?schema=public
       REDIS_URL: redis://default:redis@redis:6379       # Redis.
       MONGO_URL: mongodb://root:root@mongo:27017       # MongoDB. Used by vibe-server.
+      PORT: 3000
 
     depends_on:
       - mongo

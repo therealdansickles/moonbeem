@@ -59,5 +59,68 @@ describe('MerkleTreeResolver', () => {
                     expect(body.data.merkleProof.amount).toBe(amount);
                 });
         });
+
+        it('should return merkleTree', async () => {
+            const address = faker.finance.ethereumAddress();
+            const amount = faker.string.numeric({ length: 2, allowLeadingZeros: false });
+            const merkleTree = await service.createMerkleTree({
+                data: [
+                    {
+                        address: faker.finance.ethereumAddress(),
+                        amount: faker.string.numeric({ length: 2, allowLeadingZeros: false }),
+                    },
+                    {
+                        address: address,
+                        amount: amount,
+                    },
+                ],
+            });
+
+            const query = gql`
+                query GetMerkleTree($merkleRoot: String) {
+                    merkleTree(merkleRoot: $merkleRoot) {
+                        data {
+                            address
+                            amount
+                            __typename
+                        }
+                        merkleRoot
+                        __typename
+                    }
+                }
+            `;
+            const variables = { merkleRoot: merkleTree.merkleRoot };
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.merkleTree.data.length).toBe(2);
+                });
+        });
+
+        it('should return null, if not merkleRoot provide', async () => {
+            const query = gql`
+                query GetMerkleTree($merkleRoot: String) {
+                    merkleTree(merkleRoot: $merkleRoot) {
+                        data {
+                            address
+                            amount
+                            __typename
+                        }
+                        merkleRoot
+                        __typename
+                    }
+                }
+            `;
+            const variables = {};
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.merkleTree).toBeNull();
+                });
+        });
     });
 });

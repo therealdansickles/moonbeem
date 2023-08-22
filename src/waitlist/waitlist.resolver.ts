@@ -18,6 +18,7 @@ export class WaitlistResolver {
         return this.waitlistService.getWaitlist(input);
     }
 
+    @Public()
     @Mutation(() => Waitlist, { description: 'creates a waitlist item' })
     async createWaitlist(@Args('input') input: CreateWaitlistInput): Promise<Waitlist> {
         return this.waitlistService.createWaitlist(input);

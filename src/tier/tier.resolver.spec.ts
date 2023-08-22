@@ -14,7 +14,16 @@ import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import { TierService } from './tier.service';
-import { createAsset721, createCoin, createCollection, createMintSaleContract, createMintSaleTransaction, createTier } from '../test-utils';
+import {
+    createAsset721,
+    createCoin,
+    createCollection,
+    createMintSaleContract,
+    createMintSaleTransaction,
+    createOrganization,
+    createTier
+} from '../test-utils';
+import { OrganizationService } from '../organization/organization.service';
 
 export const gql = String.raw;
 
@@ -23,6 +32,7 @@ describe('TierResolver', () => {
     let service: TierService;
     let walletService: WalletService;
     let collectionService: CollectionService;
+    let organizationService: OrganizationService;
     let userService: UserService;
 
     let coinService: CoinService;
@@ -36,6 +46,7 @@ describe('TierResolver', () => {
         service = global.tierService;
         walletService = global.walletService;
         collectionService = global.collectionService;
+        organizationService = global.organizationService;
         userService = global.userService;
         coinService = global.coinService;
         asset721Service = global.asset721Service;
@@ -47,6 +58,28 @@ describe('TierResolver', () => {
         await global.clearDatabase();
         global.gc && global.gc();
     });
+
+    const getToken = async (tokenVariables) => {
+
+        const tokenQuery = gql`
+            mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
+                createSessionFromEmail(input: $input) {
+                    token
+                    user {
+                        id
+                        email
+                    }
+                }
+            }
+        `;
+
+        const tokenRs = await request(app.getHttpServer())
+            .post('/graphql')
+            .send({ query: tokenQuery, variables: tokenVariables });
+
+        const { token } = tokenRs.body.data.createSessionFromEmail;
+        return token;
+    };
 
     describe('tier', () => {
         it('should return a tier', async () => {
@@ -610,12 +643,33 @@ describe('TierResolver', () => {
         const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
         const tierName = 'Test Tier';
         let innerCollection: Collection;
+        let authToken;
 
         beforeEach(async () => {
             const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
             const coin = await createCoin(coinService);
+            const owner1 = faker.finance.ethereumAddress();
+            const tokenId1 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
+            await walletService.createWallet({ address: owner1 });
+            const owner = await userService.createUser({
+                email:  faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await createOrganization(organizationService, {
+                owner,
+            });
+
+            const tokenVariables = {
+                input: {
+                    email: owner.email,
+                    password: 'password',
+                },
+            };
+            authToken = await getToken(tokenVariables);
 
             innerCollection = await createCollection(collectionService, {
+                organization: organization,
                 address: collectionAddress,
                 tokenAddress: tokenAddress,
             });
@@ -689,10 +743,6 @@ describe('TierResolver', () => {
                 collectionId: innerCollection.id,
             });
 
-            const owner1 = faker.finance.ethereumAddress();
-            await walletService.createWallet({ address: owner1 });
-            const tokenId1 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
-
             const owner2 = faker.finance.ethereumAddress();
             await walletService.createWallet({ address: owner2 });
             const tokenId2 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
@@ -765,6 +815,7 @@ describe('TierResolver', () => {
             const variables = { address: collectionAddress };
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(authToken, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {

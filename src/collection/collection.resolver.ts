@@ -13,7 +13,6 @@ import {
     AggregatedVolume,
     Collection,
     CollectionActivities,
-    CollectionAggregatedActivities,
     CollectionEarningsChartPaginated,
     CollectionInput,
     CollectionPaginated,
@@ -26,14 +25,16 @@ import {
     LandingPageCollection,
     SevenDayVolume,
     UpdateCollectionInput,
+    CollectionAggregatedActivityPaginated,
 } from './collection.dto';
 import { CollectionService } from './collection.service';
+import { Tier } from '../tier/tier.dto';
 
 @Resolver(() => Collection)
 export class CollectionResolver {
     constructor(
         private readonly collectionService: CollectionService,
-        private readonly MintSaleContractService: MintSaleContractService,
+        private readonly mintSaleContractService: MintSaleContractService,
         private readonly openseaService: OpenseaService
     ) {}
 
@@ -46,6 +47,12 @@ export class CollectionResolver {
             @Args({ name: 'slug', nullable: true }) slug: string
     ): Promise<Collection> {
         return this.collectionService.getCollectionByQuery({ id, address, name, slug });
+    }
+
+    @Public()
+    @ResolveField('tiers', () => [Tier], { description: 'Get tiers by collection id', nullable: true })
+    async collectionTiers(@Parent() collection: Collection): Promise<Tier[]> {
+        return await this.collectionService.getCollectionTiers(collection.id);
     }
 
     @AuthorizedOrganization('organization.id')
@@ -85,7 +92,7 @@ export class CollectionResolver {
     @Public()
     @ResolveField(() => MintSaleContract, { description: 'Returns the contract for the given collection' })
     async contract(@Parent() collection: Collection): Promise<MintSaleContract> {
-        return this.MintSaleContractService.getMintSaleContractByCollection(collection.id);
+        return this.mintSaleContractService.getMintSaleContractByCollection(collection.id);
     }
 
     @Public()
@@ -126,11 +133,17 @@ export class CollectionResolver {
     }
 
     @Public()
-    @ResolveField(() => CollectionAggregatedActivities, {
+    @ResolveField(() => CollectionAggregatedActivityPaginated, {
         description: 'Returns the aggregated activities for collection.',
     })
-    async aggregatedActivities(@Parent() collection: Collection): Promise<CollectionAggregatedActivities> {
-        return this.collectionService.getAggregatedCollectionActivities(collection.address, collection.tokenAddress);
+    async aggregatedActivities(
+        @Parent() collection: Collection,
+            @Args('before', { nullable: true }) before?: string,
+            @Args('after', { nullable: true }) after?: string,
+            @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+    ): Promise<CollectionAggregatedActivityPaginated> {
+        return this.collectionService.getAggregatedCollectionActivities(collection.address, collection.tokenAddress, before, after, first, last);
     }
 
     @Public()

@@ -1,14 +1,12 @@
 import { Exclude } from 'class-transformer';
-import {
-    BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn,
-    UpdateDateColumn
-} from 'typeorm';
+import { BaseEntity, Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 import { Collection } from '../collection/collection.entity';
 import { MetadataProperties } from '../metadata/metadata.entity';
 import { Tier } from '../tier/tier.entity';
 
 @Entity({ name: 'Nft' })
+@Index(['collection.id', 'tier.id', 'tokenId'], { unique: true })
 export class Nft extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     readonly id: string;
