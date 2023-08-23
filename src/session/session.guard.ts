@@ -389,3 +389,23 @@ export class VibeEmailGuard implements CanActivate {
         }
     }
 }
+
+@Injectable()
+export class OrganizationProtectionGuard implements CanActivate {
+    constructor(
+        private readonly membershipService: MembershipService
+    ) {}
+
+    /**
+     * Checks if the user is authenticated via the JWT token that registered with vibe email.
+     *
+     * @param context The execution context.
+     * @returns {Promise<boolean>}
+     */
+    async canActivate(context: ExecutionContext): Promise<boolean> {
+        const request = GqlExecutionContext.create(context).getContext().req;
+        const membershipId = get(request.body.variables?.input, 'id');
+        const membership = await this.membershipService.getMembershipWithOrganizationAndUser(membershipId);
+        return membership?.organization?.owner.id !== membership.user.id;
+    }
+}
