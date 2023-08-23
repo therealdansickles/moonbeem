@@ -76,7 +76,6 @@
     "lodash": "^4.17.21",
     "merkletreejs": "^0.3.10",
     "mjml": "^4.14.1",
-    "mongodb": "^4.13.0",
     "mustache": "^4.2.0",
     "nest-raven": "^9.2.0",
     "nftscan-api": "^1.6.1",

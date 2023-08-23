@@ -17,7 +17,6 @@ env:
     NODE_ENV: dev
     DATABASE_URL: postgres://root:root@postgres/vibe-server
     REDIS_URL: redis://localhost:6379
-    MONGO_URL: mongodb://localhost:27017
     SESSION_SECRET: secretKey
     INVITE_SECRET: secretInvite
     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -76,10 +75,6 @@ jobs:
                     --health-retries 5
                 ports:
                     - 6379:6379
-            mongodb:
-                image: mongo
-                ports:
-                    - 27017:27017
         steps:
             - uses: actions/checkout@v3
 

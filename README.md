@@ -36,12 +36,12 @@ docker compose logs
 
 ## 1. Loading services with Docker
 
-Make sure you have started the docker compose for the vibe base middleware and get some accessible middleware endpoints(postgres url, mongo url, redis url).
+Make sure you have started the docker compose for the vibe base middleware and get some accessible middleware endpoints(postgres url, redis url).
 
 This repository also adds those services for your convenience.
 
 ```sh
-docker compose up postgres postgres-sync-chain redis mongo -d
+docker compose up postgres postgres-sync-chain redis -d
 ```
 
 ## Install Deps
