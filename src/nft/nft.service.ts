@@ -34,6 +34,11 @@ export type INftListQuery =
     | INftListQueryWithCollection
     | INftListQueryWithTier
 
+export type INftWithPropertyAndCollection = {
+    collection: { id: string };
+    propertyName: string;
+}
+
 @Injectable()
 export class NftService {
     constructor(@InjectRepository(Nft) private readonly nftRepository: Repository<Nft>) {}
@@ -83,6 +88,23 @@ export class NftService {
      */
     async getNftByQuery(query: INftQuery) {
         return await this.nftRepository.findOneBy(query);
+    }
+
+    /**
+     * get NFTs contains specific property
+     * 
+     * @param query
+     * @returns
+     */
+    async getNftByProperty(query: INftWithPropertyAndCollection) {
+        return await this.nftRepository.createQueryBuilder('nft')
+            .leftJoinAndSelect('nft.collection', 'collection')
+            .leftJoinAndSelect('nft.tier', 'tier')
+            .andWhere('collection.id = :collectionId', { collectionId: query.collection.id })
+            .andWhere(`properties->>'${query.propertyName}' IS NOT NULL`)
+            .andWhere(`properties->'${query.propertyName}'->>'value' != 'N/A'`)
+            .orderBy(`CAST(properties->'${query.propertyName}'->>'value' AS NUMERIC)`, 'DESC')
+            .getMany();
     }
 
     /**
