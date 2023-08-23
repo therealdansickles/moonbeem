@@ -35,6 +35,21 @@ export class Nft {
     public metadata?: Metadata;
 }
 
+@ObjectType('NftPropertyOverview')
+export class NftPropertyOverview {
+    @IsString()
+    @Field({ description: 'The max value of the property appears in a collection.' })
+    readonly max: string;
+
+    @IsString()
+    @Field({ description: 'The min value of the property appears in a collection.' })
+    readonly min: string;
+
+    @IsString()
+    @Field({ description: 'The avg value of the property appears in a collection.' })
+    readonly avg: string;
+}
+
 @InputType()
 export class CreateOrUpdateNftInput extends PickType(Nft, ['tokenId', 'properties'] as const, InputType) {
     @IsString()

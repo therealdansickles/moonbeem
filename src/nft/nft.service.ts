@@ -107,6 +107,18 @@ export class NftService {
             .getMany();
     }
 
+    async getOverviewByCollectionAndProperty(query: INftWithPropertyAndCollection) {
+        return await this.nftRepository.createQueryBuilder('nft')
+            .leftJoinAndSelect('nft.collection', 'collection')
+            .andWhere('collection.id = :collectionId', { collectionId: query.collection.id })
+            .select(`MAX(CAST(properties->'${query.propertyName}'->>'value' AS NUMERIC))`, 'max')
+            .addSelect(`MIN(CAST(properties->'${query.propertyName}'->>'value' AS NUMERIC))`, 'min')
+            .addSelect(`ROUND(AVG(CAST(properties->'${query.propertyName}'->>'value' AS NUMERIC)), 2)`, 'avg')
+            .andWhere(`properties->>'${query.propertyName}' IS NOT NULL`)
+            .andWhere(`properties->'${query.propertyName}'->>'value' != 'N/A'`)
+            .getRawOne();
+    }
+
     /**
      * get NFTs by query
      * @param query

@@ -3,7 +3,7 @@ import { isNil, omitBy } from 'lodash';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { Public } from '../session/session.decorator';
-import { CreateOrUpdateNftInput, Nft } from './nft.dto';
+import { CreateOrUpdateNftInput, Nft, NftPropertyOverview } from './nft.dto';
 import { INftListQuery, INftQuery, INftWithPropertyAndCollection, NftService } from './nft.service';
 
 @Resolver(() => Nft)
@@ -39,12 +39,16 @@ export class NftResolver {
 
     @Public()
     @Query(() => [Nft], { description: 'Get NFTs with specific property.', nullable: true })
-    async nftsByProperty(
-        @Args({ name: 'collectionId' }) collectionId: string,
-            @Args({ name: 'propertyName' }) propertyName: string
-    ): Promise<Nft[]> {
+    async nftsByProperty(@Args({ name: 'collectionId' }) collectionId: string, @Args({ name: 'propertyName' }) propertyName: string): Promise<Nft[]> {
         const query: INftWithPropertyAndCollection = { collection: { id: collectionId }, propertyName };
         return await this.nftService.getNftByProperty(query);
+    }
+
+    @Public()
+    @Query(() => NftPropertyOverview, { description: 'Returns the activity for collection' })
+    async nftPropertyOverview(@Args({ name: 'collectionId' }) collectionId: string, @Args({ name: 'propertyName' }) propertyName: string) {
+        const query: INftWithPropertyAndCollection = { collection: { id: collectionId }, propertyName };
+        return await this.nftService.getOverviewByCollectionAndProperty(query);
     }
 
     @Public()
