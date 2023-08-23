@@ -15,12 +15,7 @@ import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-s
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import {
-    COLLECTION_ID_PARAMETER,
-    ORGANIZATION_ID_PARAMETER,
-    TOKEN_ID_PARAMETER,
-    USER_PARAMETER,
-    WALLET_ADDRESS_PARAMETER,
-    WALLET_PARAMETER,
+    COLLECTION_ID_PARAMETER, ORGANIZATION_ID_PARAMETER, TOKEN_ID_PARAMETER, USER_PARAMETER, WALLET_ADDRESS_PARAMETER, WALLET_PARAMETER
 } from './session.decorator';
 import { IGraphQLRequest } from './session.types';
 import { getUserIdFromToken } from './session.utils';
@@ -285,7 +280,7 @@ export class AuthorizedTokenGuard implements CanActivate {
         const mintSaleContract = await this.mintSaleContractService.getMintSaleContractByCollection(collection.id);
         if (!mintSaleContract) return false;
 
-        const asset = await this.asset721Service.getAsset721ByQuery({ tokenId: tokenIdFromParameter.toString(), address: mintSaleContract.tokenAddress });
+        const asset = await this.asset721Service.getAsset721({ tokenId: tokenIdFromParameter.toString(), address: mintSaleContract.tokenAddress });
         return asset && asset?.owner?.toLowerCase() === ownerAddress.toLowerCase();
     }
 }

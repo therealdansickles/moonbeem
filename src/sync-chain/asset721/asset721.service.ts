@@ -1,8 +1,10 @@
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Injectable } from '@nestjs/common';
-import { Asset721 } from './asset721.entity';
 import { isEmpty } from 'lodash';
+import { Repository } from 'typeorm';
+
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+
+import { Asset721 } from './asset721.entity';
 
 @Injectable()
 export class Asset721Service {
@@ -12,13 +14,13 @@ export class Asset721Service {
         return await this.asset721Repository.save(data);
     }
 
-    async getAsset721(id: string): Promise<Asset721> {
-        return await this.asset721Repository.findOneBy({ id });
-    }
-
-    async getAsset721ByQuery(query: { tokenId?: string, address?: string }) {
+    async getAsset721(query: { id?: string, tokenId?: string, address?: string }): Promise<Asset721> {
         // empty query always return empty
         if (isEmpty(query)) return null;
         return await this.asset721Repository.findOneBy(query);
+    }
+
+    async getAssets(address: string) {
+        return await this.asset721Repository.findBy({ address });
     }
 }

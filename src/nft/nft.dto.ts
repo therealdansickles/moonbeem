@@ -26,6 +26,11 @@ export class Nft {
     @Field({ description: 'The tokenId of the NFT belongs to.' })
     readonly tokenId: string;
 
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'The owner address of the NFT.' })
+    public owner?: string;
+
     @IsObject()
     @Field(() => GraphQLJSONObject, { description:  'The properties of the NFT.', nullable: true })
     readonly properties: MetadataProperties;

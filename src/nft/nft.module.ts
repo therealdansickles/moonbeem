@@ -1,14 +1,22 @@
-import { Collection } from '../collection/collection.entity';
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { Collection } from '../collection/collection.entity';
+import { Asset721 } from '../sync-chain/asset721/asset721.entity';
+import { Asset721Module } from '../sync-chain/asset721/asset721.module';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
+import { Tier } from '../tier/tier.entity';
 import { Nft } from './nft.entity';
 import { NftResolver } from './nft.resolver';
 import { NftService } from './nft.service';
-import { Tier } from '../tier/tier.entity';
-import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Nft, Tier, Collection])],
+    imports: [
+        TypeOrmModule.forFeature([Nft, Tier, Collection]),
+        TypeOrmModule.forFeature([Asset721], 'sync_chain'),
+        Asset721Module
+    ],
     exports: [NftModule],
-    providers: [NftService, NftResolver],
+    providers: [Asset721Service, NftService, NftResolver],
 })
 export class NftModule { }

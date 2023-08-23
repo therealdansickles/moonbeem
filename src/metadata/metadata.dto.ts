@@ -18,6 +18,12 @@ export class MetadataRuleUpdate {
     readonly value: string | number;
 }
 
+export enum MetadataRuleUnit {
+    hours,
+    days,
+    weeks,
+}
+
 @ObjectType()
 export class MetadataRule {
     @IsString()

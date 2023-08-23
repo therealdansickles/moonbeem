@@ -6,6 +6,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { Metadata } from '../metadata/metadata.dto';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { Nft as NftDto } from './nft.dto';
 import { Nft } from './nft.entity';
 
@@ -41,7 +42,10 @@ export type INftWithPropertyAndCollection = {
 
 @Injectable()
 export class NftService {
-    constructor(@InjectRepository(Nft) private readonly nftRepository: Repository<Nft>) {}
+    constructor(
+        private readonly asset721Service: Asset721Service,
+        @InjectRepository(Nft) private readonly nftRepository: Repository<Nft>
+    ) {}
 
     /**
      * render metadata
@@ -97,7 +101,7 @@ export class NftService {
      * @returns
      */
     async getNftByProperty(query: INftWithPropertyAndCollection) {
-        return await this.nftRepository.createQueryBuilder('nft')
+        let nfts = await this.nftRepository.createQueryBuilder('nft')
             .leftJoinAndSelect('nft.collection', 'collection')
             .leftJoinAndSelect('nft.tier', 'tier')
             .andWhere('collection.id = :collectionId', { collectionId: query.collection.id })
@@ -105,6 +109,19 @@ export class NftService {
             .andWhere(`properties->'${query.propertyName}'->>'value' != 'N/A'`)
             .orderBy(`CAST(properties->'${query.propertyName}'->>'value' AS NUMERIC)`, 'DESC')
             .getMany();
+        if (nfts.length > 0) {
+            const assets = await this.asset721Service.getAssets(nfts[0].collection.address);
+            const ownerMapping = assets.reduce((accu, asset) => {
+                accu.set(asset.tokenId, asset.owner);
+                return accu;
+            }, new Map<string, string>());
+
+            nfts = nfts.map(nft => {
+                (nft as NftDto).owner = ownerMapping.get(nft.tokenId);
+                return nft;
+            });
+        }
+        return nfts;
     }
 
     async getOverviewByCollectionAndProperty(query: INftWithPropertyAndCollection) {
