@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-
 
 import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -29,6 +29,7 @@ import { UserModule } from './user/user.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { WalletModule } from './wallet/wallet.module';
 import { CoinMarketCapModule } from './coinmarketcap/coinmarketcap.module';
+import { SessionInterceptor } from './session/session.interceptor';
 
 dotenv.config();
 
@@ -70,6 +71,10 @@ dotenv.config();
         CacheModule.register({ isGlobal: true }),
     ],
     providers: [
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: SessionInterceptor,
+        },
         {
             provide: APP_GUARD,
             useClass: SessionGuard,

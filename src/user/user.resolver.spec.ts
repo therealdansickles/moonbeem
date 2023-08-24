@@ -933,4 +933,47 @@ describe('UserResolver', () => {
                 });
         });
     });
+
+    describe('getPasswordResetLink', function () {
+        it('should return password reset link', async () => {
+            const email = faker.internet.email().toLowerCase();
+            await service.createUser({
+                email,
+                password: 'password',
+            });
+
+            const token = await getToken(app, email);
+
+            const query = gql`
+                query GetResetPasswordLink{
+                    getResetPasswordLink
+                }
+            `;
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
+                .send({ query })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.getResetPasswordLink).toBeDefined();
+                });
+        });
+
+        it('should return 403 if no valid token', async () => {
+            const query = gql`
+                query GetResetPasswordLink{
+                    getResetPasswordLink
+                }
+            `;
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.errors[0].message).toEqual('Forbidden resource');
+                    expect(body.errors[0].extensions.response.statusCode).toEqual(403);
+                });
+        });
+    });
 });

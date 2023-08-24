@@ -43,6 +43,7 @@ export class SigninByWalletGuard implements CanActivate {
      */
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const ctx = GqlExecutionContext.create(context);
+
         const request = ctx.getContext().req;
         const token = extractToken(request);
         const isPublic = this.reflector.get<boolean>('isPublic', context.getHandler());

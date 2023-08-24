@@ -146,6 +146,12 @@ export class UserService {
         return true;
     }
 
+    async getPasswordResetLink(user: User): Promise<string> {
+        const verificationToken = user.generateVerificationToken();
+        await this.userRepository.save({ ...user, verificationToken });
+        return this.mailService.generatePasswordResetUrl(user.email, user.verificationToken);
+    }
+
     async sendOnboardLink(email: string): Promise<boolean> {
         const user = await this.userRepository.findOneBy({ email });
         if (!user)

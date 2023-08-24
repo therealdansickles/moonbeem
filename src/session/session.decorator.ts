@@ -97,3 +97,8 @@ export function AuthorizedCollectionOwner(key: string) {
         UseGuards(AuthorizedCollectionOwnerGuard)
     );
 }
+
+export const SessionUser = createParamDecorator(
+    (data: unknown, ctx: ExecutionContext) =>
+        GqlExecutionContext.create(ctx).getContext().user,
+);

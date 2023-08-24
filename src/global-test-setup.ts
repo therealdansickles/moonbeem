@@ -2,7 +2,7 @@ import { ApolloDriver } from '@nestjs/apollo';
 import { HttpModule, HttpService } from '@nestjs/axios';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ValidationPipe } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { GraphQLModule, Query, Resolver } from '@nestjs/graphql';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
@@ -48,6 +48,7 @@ import { CurrentWallet } from './session/session.decorator';
 import { SessionGuard } from './session/session.guard';
 import { SessionModule } from './session/session.module';
 import { SessionService } from './session/session.service';
+import { SessionInterceptor } from './session/session.interceptor';
 // sync chain modules
 import { Asset721Module } from './sync-chain/asset721/asset721.module';
 // sync chain services
@@ -158,6 +159,10 @@ export default async () => {
         ],
         providers: [
             AWSAdapter,
+            {
+                provide: APP_INTERCEPTOR,
+                useClass: SessionInterceptor,
+            },
             {
                 provide: APP_GUARD,
                 useClass: SessionGuard,

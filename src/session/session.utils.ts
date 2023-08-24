@@ -2,8 +2,13 @@ import { JwtService } from '@nestjs/jwt';
 import { IGraphQLRequest } from './session.types';
 
 export const getUserIdFromToken = (request: IGraphQLRequest, jwtService: JwtService, secret: string): string | undefined => {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    if (type !== 'Bearer') return;
-    const payload = jwtService.verify(token, { secret });
-    return payload.userId;
+    return getJwtPayload(request, jwtService, secret)?.userId;
+};
+
+export const getJwtPayload = (request: IGraphQLRequest, jwtService: JwtService, secret: string): any => {
+    const authorization = request.headers.authorization;
+    if (!authorization) return {};
+    const [type, token] = authorization?.split(' ') ?? [];
+    if (type !== 'Bearer') return {};
+    return jwtService.verify(token, { secret });
 };
