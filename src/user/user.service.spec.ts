@@ -1378,9 +1378,14 @@ describe('UserService', () => {
                 email,
                 password: 'password',
             });
+            const previousToken = user.verificationToken;
             const link = await service.getPasswordResetLink(user);
+            const updatedUser = await service.getUserByQuery({
+                id: user.id,
+            });
             expect(link).toBeDefined();
-            expect(link).toContain(user.verificationToken);
+            expect(link).toContain(updatedUser.verificationToken);
+            expect(link).not.toContain(previousToken);
         });
     });
 });

@@ -148,8 +148,8 @@ export class UserService {
 
     async getPasswordResetLink(user: User): Promise<string> {
         const verificationToken = user.generateVerificationToken();
-        await this.userRepository.save({ ...user, verificationToken });
-        return this.mailService.generatePasswordResetUrl(user.email, user.verificationToken);
+        const updatedUser = await this.userRepository.save({ ...user, verificationToken });
+        return this.mailService.generatePasswordResetUrl(user.email, updatedUser.verificationToken);
     }
 
     async sendOnboardLink(email: string): Promise<boolean> {

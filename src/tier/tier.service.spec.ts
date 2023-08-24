@@ -218,10 +218,10 @@ describe('TierService', () => {
         it('should get tiers based on tier metadata plugin', async () => {
             const coin = await createCoin(coinService);
             const collection = await createCollection(collectionService);
-            
+
             const tierName = faker.commerce.productName();
-            const pluginName1 = faker.lorem.word();
-            const pluginName2 = faker.lorem.word();
+            const pluginName1 = faker.lorem.word(5);
+            const pluginName2 = faker.lorem.word(6);
 
             await createTier(service, {
                 name: tierName,
