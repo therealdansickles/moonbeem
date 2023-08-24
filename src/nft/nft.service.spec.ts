@@ -298,7 +298,7 @@ describe('NftService', () => {
             const tokenId3 = faker.string.numeric({ length: 4, allowLeadingZeros: false });
             const tokenId4 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
 
-            const [nft1, , nft3, ] = await Promise.all([
+            const [nft1, , nft3, nft5, ] = await Promise.all([
                 nftService.createOrUpdateNftByTokenId({
                     collectionId: collection.id,
                     tierId: tier.id,
@@ -343,6 +343,17 @@ describe('NftService', () => {
                     properties: {},
                 }),
                 nftService.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: tokenId4,
+                    properties: {
+                        foo: {
+                            name: '{{foo}}',
+                            value: 'N/A'
+                        }
+                    },
+                }),
+                nftService.createOrUpdateNftByTokenId({
                     collectionId: faker.string.uuid(),
                     tierId: tier.id,
                     tokenId: tokenId4,
@@ -354,13 +365,16 @@ describe('NftService', () => {
                 collection: { id: collection.id },
                 propertyName: 'foo',
             });
-            expect(result.length).toEqual(2);
+            expect(result.length).toEqual(3);
             expect(result[0].tokenId).toEqual(nft3.tokenId);
             expect(result[0].collection.id).toEqual(collection.id);
             expect(result[0].tier.id).toEqual(tier.id);
             expect(result[1].tokenId).toEqual(nft1.tokenId);
             expect(result[1].collection.id).toEqual(collection.id);
             expect(result[1].tier.id).toEqual(tier.id);
+            expect(result[2].tokenId).toEqual(nft5.tokenId);
+            expect(result[2].collection.id).toEqual(collection.id);
+            expect(result[2].tier.id).toEqual(tier.id);
         });
     });
 

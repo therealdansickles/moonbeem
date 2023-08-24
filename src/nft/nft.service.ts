@@ -106,8 +106,7 @@ export class NftService {
             .leftJoinAndSelect('nft.tier', 'tier')
             .andWhere('collection.id = :collectionId', { collectionId: query.collection.id })
             .andWhere(`properties->>'${query.propertyName}' IS NOT NULL`)
-            .andWhere(`properties->'${query.propertyName}'->>'value' != 'N/A'`)
-            .orderBy(`CAST(properties->'${query.propertyName}'->>'value' AS NUMERIC)`, 'DESC')
+            .orderBy(`CAST(REGEXP_REPLACE(properties->'${query.propertyName}'->>'value', 'N/A', '0') AS NUMERIC)`, 'DESC')
             .getMany();
         if (nfts.length > 0) {
             const assets = await this.asset721Service.getAssets(nfts[0].collection.tokenAddress);
