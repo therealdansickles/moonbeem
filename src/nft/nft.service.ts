@@ -110,7 +110,7 @@ export class NftService {
             .orderBy(`CAST(properties->'${query.propertyName}'->>'value' AS NUMERIC)`, 'DESC')
             .getMany();
         if (nfts.length > 0) {
-            const assets = await this.asset721Service.getAssets(nfts[0].collection.address);
+            const assets = await this.asset721Service.getAssets(nfts[0].collection.tokenAddress);
             const ownerMapping = assets.reduce((accu, asset) => {
                 accu.set(asset.tokenId, asset.owner);
                 return accu;

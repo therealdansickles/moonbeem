@@ -28,7 +28,7 @@ export class Nft {
 
     @IsString()
     @IsOptional()
-    @Field({ description: 'The owner address of the NFT.' })
+    @Field({ nullable: true, description: 'The owner address of the NFT.' })
     public owner?: string;
 
     @IsObject()
