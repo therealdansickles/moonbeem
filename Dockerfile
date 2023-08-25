@@ -14,10 +14,8 @@ FROM node:16-alpine3.16
 
 WORKDIR /app
 
-COPY --from=builder /app/.yarn/ ./.yarn/
-COPY --from=builder /app/package.json /app/yarn.lock /app/.yarnrc.yml /app/.pnp.cjs ./
-COPY --from=builder /app/dist ./dist
+COPY --from=builder /app .
 
 EXPOSE ${PORT}
 
-CMD ["yarn", "start:prod"]
+CMD ["yarn", "start:migrate:prod"]

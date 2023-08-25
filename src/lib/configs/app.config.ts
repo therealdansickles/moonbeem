@@ -1,6 +1,7 @@
 export const appConfig = {
     global: {
         prefix: 'v1',
+        host: process.env.HOST || 'localhost',
         port: process.env.PORT || 3000,
         debug: process.env.NODE_ENV === 'dev' ?? false,
     },

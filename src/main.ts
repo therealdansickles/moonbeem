@@ -46,10 +46,10 @@ async function bootstrap() {
     );
 
     // listen server
-    await app.listen(appConfig.global.port);
+    await app.listen(appConfig.global.port, appConfig.global.host);
     // print some log
     console.log(`Server Starting on http://localhost:${appConfig.global.port}`);
-    appConfig.global.debug ? console.log(`GraphQL Starting on http://localhost:${appConfig.global.port}/graphql`) : '';
+    console.log(`GraphQL Starting on http://localhost:${appConfig.global.port}/graphql`);
 }
 
 bootstrap();
