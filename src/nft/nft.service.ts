@@ -6,6 +6,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { Metadata } from '../metadata/metadata.dto';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { Nft as NftDto } from './nft.dto';
 import { Nft } from './nft.entity';
 
@@ -34,9 +35,17 @@ export type INftListQuery =
     | INftListQueryWithCollection
     | INftListQueryWithTier
 
+export type INftWithPropertyAndCollection = {
+    collection: { id: string };
+    propertyName: string;
+}
+
 @Injectable()
 export class NftService {
-    constructor(@InjectRepository(Nft) private readonly nftRepository: Repository<Nft>) {}
+    constructor(
+        private readonly asset721Service: Asset721Service,
+        @InjectRepository(Nft) private readonly nftRepository: Repository<Nft>
+    ) {}
 
     /**
      * render metadata
@@ -83,6 +92,47 @@ export class NftService {
      */
     async getNftByQuery(query: INftQuery) {
         return await this.nftRepository.findOneBy(query);
+    }
+
+    /**
+     * get NFTs contains specific property
+     * 
+     * @param query
+     * @returns
+     */
+    async getNftByProperty(query: INftWithPropertyAndCollection) {
+        let nfts = await this.nftRepository.createQueryBuilder('nft')
+            .leftJoinAndSelect('nft.collection', 'collection')
+            .leftJoinAndSelect('nft.tier', 'tier')
+            .andWhere('collection.id = :collectionId', { collectionId: query.collection.id })
+            .andWhere(`properties->>'${query.propertyName}' IS NOT NULL`)
+            .orderBy(`CAST(REGEXP_REPLACE(properties->'${query.propertyName}'->>'value', 'N/A', '0') AS NUMERIC)`, 'DESC')
+            .getMany();
+        if (nfts.length > 0) {
+            const assets = await this.asset721Service.getAssets(nfts[0].collection.tokenAddress);
+            const ownerMapping = assets.reduce((accu, asset) => {
+                accu.set(asset.tokenId, asset.owner);
+                return accu;
+            }, new Map<string, string>());
+
+            nfts = nfts.map(nft => {
+                (nft as NftDto).owner = ownerMapping.get(nft.tokenId);
+                return nft;
+            });
+        }
+        return nfts;
+    }
+
+    async getOverviewByCollectionAndProperty(query: INftWithPropertyAndCollection) {
+        return await this.nftRepository.createQueryBuilder('nft')
+            .leftJoinAndSelect('nft.collection', 'collection')
+            .andWhere('collection.id = :collectionId', { collectionId: query.collection.id })
+            .select(`MAX(CAST(properties->'${query.propertyName}'->>'value' AS NUMERIC))`, 'max')
+            .addSelect(`MIN(CAST(properties->'${query.propertyName}'->>'value' AS NUMERIC))`, 'min')
+            .addSelect(`ROUND(AVG(CAST(properties->'${query.propertyName}'->>'value' AS NUMERIC)), 2)`, 'avg')
+            .andWhere(`properties->>'${query.propertyName}' IS NOT NULL`)
+            .andWhere(`properties->'${query.propertyName}'->>'value' != 'N/A'`)
+            .getRawOne();
     }
 
     /**

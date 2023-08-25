@@ -1370,4 +1370,22 @@ describe('UserService', () => {
             expect(organization[0].owner.email).toEqual(email);
         });
     });
+
+    describe('getPasswordResetLink', function () {
+        it('should return password reset link', async () => {
+            const email = faker.internet.email().toLowerCase();
+            const user = await service.createUser({
+                email,
+                password: 'password',
+            });
+            const previousToken = user.verificationToken;
+            const link = await service.getPasswordResetLink(user);
+            const updatedUser = await service.getUserByQuery({
+                id: user.id,
+            });
+            expect(link).toBeDefined();
+            expect(link).toContain(updatedUser.verificationToken);
+            expect(link).not.toContain(previousToken);
+        });
+    });
 });

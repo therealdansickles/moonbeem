@@ -3,7 +3,6 @@ import { json, urlencoded } from 'express';
 
 import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as Sentry from '@sentry/node';
 
 import { AppModule } from './app.module';
@@ -46,34 +45,11 @@ async function bootstrap() {
         })
     );
 
-    // configure: swagger
-    if (appConfig.global.debug) {
-        const config = new DocumentBuilder();
-        config.setTitle(appConfig.swagger.title); // swagger title
-        config.setDescription(appConfig.swagger.description); // swagger description
-        config.setVersion(appConfig.swagger.version); // swagger version
-        // configure: swagger session -> header.session
-        config.addApiKey(
-            {
-                name: 'session',
-                type: 'apiKey',
-                in: 'header',
-            },
-            'session'
-        );
-        const cfg = config.build();
-        const document = SwaggerModule.createDocument(app, cfg);
-        SwaggerModule.setup(appConfig.swagger.route, app, document);
-    }
-
     // listen server
-    await app.listen(appConfig.global.port);
+    await app.listen(appConfig.global.port, appConfig.global.host);
     // print some log
     console.log(`Server Starting on http://localhost:${appConfig.global.port}`);
-    appConfig.global.debug
-        ? console.log(`Swagger Starting on http://localhost:${appConfig.global.port}/${appConfig.swagger.route}`)
-        : '';
-    appConfig.global.debug ? console.log(`GraphQL Starting on http://localhost:${appConfig.global.port}/graphql`) : '';
+    console.log(`GraphQL Starting on http://localhost:${appConfig.global.port}/graphql`);
 }
 
 bootstrap();

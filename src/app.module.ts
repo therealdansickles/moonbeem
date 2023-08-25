@@ -36,6 +36,7 @@ import { UploadModule } from './upload/upload.module';
 import { UserModule } from './user/user.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { WalletModule } from './wallet/wallet.module';
+import { SessionInterceptor } from './session/session.interceptor';
 
 dotenv.config();
 
@@ -91,6 +92,10 @@ dotenv.config();
         {
             provide: APP_INTERCEPTOR,
             useValue: new RavenInterceptor(),
+        },
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: SessionInterceptor,
         },
         {
             provide: APP_GUARD,

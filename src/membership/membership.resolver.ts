@@ -9,7 +9,7 @@ import {
     MembershipRequestInput,
 } from './membership.dto';
 import { MembershipService } from './membership.service';
-import { SigninByEmailGuard } from '../session/session.guard';
+import { OrganizationProtectionGuard, SigninByEmailGuard } from '../session/session.guard';
 import { UseGuards } from '@nestjs/common';
 
 @Resolver(() => Membership)
@@ -46,6 +46,7 @@ export class MembershipResolver {
         return await this.membershipService.updateMembership(id, input);
     }
 
+    @UseGuards(OrganizationProtectionGuard)
     @Mutation(() => Boolean, { description: 'Deletes a membership.' })
     async deleteMembership(@Args('input') input: DeleteMembershipInput): Promise<boolean> {
         const { id } = input;

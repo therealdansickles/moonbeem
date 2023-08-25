@@ -21,8 +21,3 @@ export const postgresConfig = {
         database: process.env.SYNC_CHAIN_DATABASE_NAME,
     },
 };
-
-export const mongoConfig = {
-    url: process.env.MONGO_URL,
-    db: process.env.MONGO_DATABASE || 'platform',
-};

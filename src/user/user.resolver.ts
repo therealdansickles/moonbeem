@@ -1,5 +1,13 @@
-import { Resolver, Args, Query, Mutation, ResolveField, Parent, Int } from '@nestjs/graphql';
-import { Public, AuthorizedUser } from '../session/session.decorator';
+import {
+    Resolver,
+    Args,
+    Query,
+    Mutation,
+    ResolveField,
+    Parent,
+    Int,
+} from '@nestjs/graphql';
+import { Public, AuthorizedUser, SessionUser } from '../session/session.decorator';
 import { UserService } from './user.service';
 import {
     User,
@@ -18,7 +26,7 @@ import { MembershipService } from '../membership/membership.service';
 import { Organization } from '../organization/organization.dto';
 import { OrganizationService } from '../organization/organization.service';
 import { VibeEmailGuard } from '../session/session.guard';
-import { UseGuards } from '@nestjs/common';
+import { ForbiddenException, UseGuards } from '@nestjs/common';
 
 @Resolver(() => User)
 export class UserResolver {
@@ -69,6 +77,15 @@ export class UserResolver {
     @Mutation(() => ResetPasswordOutput, { description: 'Reset the user password' })
     async resetPassword(@Args('input') input: ResetPasswordInput): Promise<ResetPasswordOutput> {
         return this.userService.resetUserPassword(input.email, input.verificationToken, input.password);
+    }
+
+    @Public()
+    @Query(() => String, { description: 'Get the user reset password link' })
+    async getResetPasswordLink(@SessionUser() user): Promise<string> {
+        if (!user) {
+            throw new ForbiddenException('Forbidden resource');
+        }
+        return this.userService.getPasswordResetLink(user);
     }
 
     @Public()

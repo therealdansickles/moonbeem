@@ -14,20 +14,15 @@ services:
       V1_DATABASE_URL: postgresql://root:root@postgres:5432/platform_development?schema=public
       SYNC_CHAIN_DATABASE_URL: postgresql://root:root@sync_chain:5432/sync_chain_development?schema=public
       REDIS_URL: redis://default:redis@redis:6379       # Redis.
-      MONGO_URL: mongodb://root:root@mongo:27017       # MongoDB. Used by vibe-server.
       PORT: 3000
-
     depends_on:
-      - mongo
       - postgres
       - redis
       - sync_chain
     links:
-      - mongo
       - postgres
       - redis
       - sync_chain
-
   postgres:
     image: postgres:latest
     container_name: postgres
@@ -61,14 +56,3 @@ services:
     command: redis-server --save 20 1 --loglevel warning
     ports:
       - 6379:6379
-  mongo:
-    image: mongo:latest
-    container_name: mongo
-    restart: always
-    ports:
-      - 27017:27017
-    volumes:
-      - /tmp/mongo-data:/data/db
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: root

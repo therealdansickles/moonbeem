@@ -64,6 +64,46 @@ describe('MembershipService', () => {
         });
     });
 
+    describe('getMembershipWithOrganizationAndUser', () => {
+        it('should return a membership with organization', async () => {
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: 'password',
+            });
+
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: 'password',
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.url(),
+                owner: owner,
+            });
+
+            await service.createMemberships({
+                organizationId: organization.id,
+                emails: [user.email],
+            });
+
+            const membership = await repository.findOneBy({
+                organization: { id: organization.id },
+                user: { id: user.id },
+            });
+            const result = await service.getMembershipWithOrganizationAndUser(membership.id);
+            expect(result.id).toEqual(membership.id);
+            expect(result.user.id).toEqual(user.id);
+            expect(result.organization.id).toEqual(organization.id);
+            expect(result.organization.owner.id).toEqual(owner.id);
+            expect(result.user.id).toEqual(user.id);
+        });
+    });
+
     describe('getMembershipsByOrganizationId', () => {
         it('should return memberships', async () => {
             const owner = await userService.createUser({

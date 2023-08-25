@@ -6,6 +6,7 @@ import { INestApplication } from '@nestjs/common';
 import { OrganizationService } from '../organization/organization.service';
 import { UserService } from '../user/user.service';
 import { MembershipService } from './membership.service';
+import { createOrganization, getToken } from '../test-utils';
 
 export const gql = String.raw;
 
@@ -471,11 +472,7 @@ describe('MembershipResolver', () => {
                 password: 'password',
             });
 
-            const organization = await organizationService.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
+            const organization = await createOrganization(organizationService, {
                 owner: owner,
             });
 
@@ -484,31 +481,7 @@ describe('MembershipResolver', () => {
                 emails: [user.email],
             });
 
-            const tokenQuery = gql`
-                mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
-                    createSessionFromEmail(input: $input) {
-                        token
-                        user {
-                            id
-                            email
-                        }
-                    }
-                }
-            `;
-
-            const tokenVariables = {
-                input: {
-                    email: owner.email,
-                    password: 'password',
-                },
-            };
-
-            const tokenRs = await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query: tokenQuery, variables: tokenVariables });
-
-            const { token } = tokenRs.body.data.createSessionFromEmail;
-
+            const token = await getToken(app, owner.email);
             const query = gql`
                 mutation deleteMembership($input: DeleteMembershipInput!) {
                     deleteMembership(input: $input)
@@ -528,6 +501,54 @@ describe('MembershipResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.deleteMembership).toBeTruthy();
+                });
+        });
+
+        it('should not be able to delete owner from memberships', async () => {
+            const user = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: 'password',
+            });
+
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                username: faker.internet.userName(),
+                password: 'password',
+            });
+
+            const organization = await createOrganization(organizationService, {
+                owner: owner,
+            });
+
+            await service.createMemberships({
+                organizationId: organization.id,
+                emails: [user.email],
+            });
+
+            const ownerMembership = (await service.getMembershipsByUserId(owner.id))[0];
+            const token = await getToken(app, owner.email);
+
+            const query = gql`
+                mutation deleteMembership($input: DeleteMembershipInput!) {
+                    deleteMembership(input: $input)
+                }
+            `;
+
+            const variables = {
+                input: {
+                    id: ownerMembership.id,
+                },
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.errors[0].message).toEqual('Forbidden resource');
+                    expect(body.errors[0].extensions.response.statusCode).toEqual(403);
                 });
         });
     });

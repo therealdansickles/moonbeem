@@ -26,6 +26,11 @@ export class Nft {
     @Field({ description: 'The tokenId of the NFT belongs to.' })
     readonly tokenId: string;
 
+    @IsString()
+    @IsOptional()
+    @Field({ nullable: true, description: 'The owner address of the NFT.' })
+    public owner?: string;
+
     @IsObject()
     @Field(() => GraphQLJSONObject, { description:  'The properties of the NFT.', nullable: true })
     readonly properties: MetadataProperties;
@@ -33,6 +38,21 @@ export class Nft {
     @IsObject()
     @Field(() => GraphQLJSONObject, { description: 'The full rendered metadata of the NFT', nullable: true })
     public metadata?: Metadata;
+}
+
+@ObjectType('NftPropertyOverview')
+export class NftPropertyOverview {
+    @IsString()
+    @Field({ description: 'The max value of the property appears in a collection.' })
+    readonly max: string;
+
+    @IsString()
+    @Field({ description: 'The min value of the property appears in a collection.' })
+    readonly min: string;
+
+    @IsString()
+    @Field({ description: 'The avg value of the property appears in a collection.' })
+    readonly avg: string;
 }
 
 @InputType()

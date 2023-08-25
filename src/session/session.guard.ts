@@ -15,12 +15,7 @@ import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-s
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import {
-    COLLECTION_ID_PARAMETER,
-    ORGANIZATION_ID_PARAMETER,
-    TOKEN_ID_PARAMETER,
-    USER_PARAMETER,
-    WALLET_ADDRESS_PARAMETER,
-    WALLET_PARAMETER,
+    COLLECTION_ID_PARAMETER, ORGANIZATION_ID_PARAMETER, TOKEN_ID_PARAMETER, USER_PARAMETER, WALLET_ADDRESS_PARAMETER, WALLET_PARAMETER
 } from './session.decorator';
 import { IGraphQLRequest } from './session.types';
 import { getUserIdFromToken } from './session.utils';
@@ -48,6 +43,7 @@ export class SigninByWalletGuard implements CanActivate {
      */
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const ctx = GqlExecutionContext.create(context);
+
         const request = ctx.getContext().req;
         const token = extractToken(request);
         const isPublic = this.reflector.get<boolean>('isPublic', context.getHandler());
@@ -285,7 +281,7 @@ export class AuthorizedTokenGuard implements CanActivate {
         const mintSaleContract = await this.mintSaleContractService.getMintSaleContractByCollection(collection.id);
         if (!mintSaleContract) return false;
 
-        const asset = await this.asset721Service.getAsset721ByQuery({ tokenId: tokenIdFromParameter.toString(), address: mintSaleContract.tokenAddress });
+        const asset = await this.asset721Service.getAsset721({ tokenId: tokenIdFromParameter.toString(), address: mintSaleContract.tokenAddress });
         return asset && asset?.owner?.toLowerCase() === ownerAddress.toLowerCase();
     }
 }
@@ -387,5 +383,25 @@ export class VibeEmailGuard implements CanActivate {
             }
             return false;
         }
+    }
+}
+
+@Injectable()
+export class OrganizationProtectionGuard implements CanActivate {
+    constructor(
+        private readonly membershipService: MembershipService
+    ) {}
+
+    /**
+     * Checks if the user is authenticated via the JWT token that registered with vibe email.
+     *
+     * @param context The execution context.
+     * @returns {Promise<boolean>}
+     */
+    async canActivate(context: ExecutionContext): Promise<boolean> {
+        const request = GqlExecutionContext.create(context).getContext().req;
+        const membershipId = get(request.body.variables?.input, 'id');
+        const membership = await this.membershipService.getMembershipWithOrganizationAndUser(membershipId);
+        return membership?.organization?.owner.id !== membership.user.id;
     }
 }
