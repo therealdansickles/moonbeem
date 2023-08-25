@@ -512,21 +512,26 @@ export class CollectionService {
         first: number,
         last: number
     ): Promise<CollectionAggregatedActivityPaginated> {
-        const builder = await this.history721Repository
-            .createQueryBuilder('history')
-            .where('history.address = :address', { address: tokenAddress })
-            .orderBy('history.txTime', 'DESC');
+        const builder = await this.history721Repository.createQueryBuilder('history').where('history.address = :address', { address: tokenAddress });
         const countBuilder = builder.clone();
         if (after) {
-            const [_createdAt, id] = cursorToStrings(after);
-            builder.andWhere(`DATE_TRUNC('day', TO_TIMESTAMP(history."txTime")) * 1000 > :cursorTime`, { id });
+            const [createdAt, id] = cursorToStrings(after);
+            builder.andWhere('history.createdAt > :createdAt', { createdAt });
+            builder.orWhere('history.createdAt = :createdAt AND history.id > :id', { createdAt, id });
+            builder.orderBy('history.createdAt', 'ASC');
+            builder.addOrderBy('history.id', 'ASC');
             builder.limit(first);
         } else if (before) {
-            const [_createdAt, id] = cursorToStrings(after);
-            builder.andWhere(`DATE_TRUNC('day', TO_TIMESTAMP(history."txTime")) * 1000 < :cursorTime`, { id });
+            const [createdAt, id] = cursorToStrings(after);
+            builder.andWhere('history.createdAt < :createdAt', { createdAt });
+            builder.orWhere('history.createdAt = :createdAt AND history.id < :id', { createdAt, id });
+            builder.orderBy('history.createdAt', 'DESC');
+            builder.addOrderBy('history.id', 'DESC');
             builder.limit(last);
         } else {
             const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
+            builder.orderBy('history.createdAt', 'ASC');
+            builder.addOrderBy('history.id', 'ASC');
             builder.limit(limit);
         }
 
@@ -546,7 +551,6 @@ export class CollectionService {
         });
 
         const tiersMap = await this.getCollectionTiersMap(collectionAddress);
-
         const res = await Promise.all(
             histories.map(async (history) => {
                 const txn = transactions.find((transaction) => {
@@ -581,11 +585,10 @@ export class CollectionService {
                     tier,
                     chainId: history.chainId,
                     id: history.id,
-                    createdAt: new Date(history.txTime * 1000),
+                    createdAt: history.createdAt,
                 };
             })
         );
-
         return toPaginated(res, count);
     }
 

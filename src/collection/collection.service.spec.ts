@@ -2618,6 +2618,22 @@ describe('CollectionService', () => {
             expect(transferEvent[0].node.tokenId).toBe(tokenId3);
             expect(transferEvent[0].node.type).toBe(CollectionActivityType.Transfer);
         });
+
+        it('should fetched vai paging', async () => {
+            const tokenPriceUSD = faker.number.int({ max: 1000 });
+            const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+                USD: { price: tokenPriceUSD },
+            });
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
+
+            const result = await service.getAggregatedCollectionActivities(collectionAddress, tokenAddress, '', '', 1, 1);
+            expect(result.edges.length).toBe(1);
+            expect(result.edges[0].node.tokenId).toBe(tokenId1);
+
+            const result1 = await service.getAggregatedCollectionActivities(collectionAddress, tokenAddress, '', result.pageInfo.endCursor, 1, 1);
+            expect(result1.edges.length).toBe(1);
+            expect(result1.edges[0].node.tokenId).toBe(tokenId2);
+        });
     });
 
     describe('getCollectionEarningsChart', () => {
