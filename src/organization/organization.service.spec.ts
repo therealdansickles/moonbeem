@@ -509,7 +509,7 @@ describe('OrganizationService', () => {
     });
 
     describe('getLatestSales', () => {
-        it('should be return latest slaes', async () => {
+        it('should be return latest sales', async () => {
             const coin = await createCoin(coinService);
 
             const owner = await userService.createUser({
@@ -518,7 +518,8 @@ describe('OrganizationService', () => {
             });
 
             const organization = await createOrganization(service, { owner });
-            const collection = await createCollection(collectionService, { organization, address: faker.finance.ethereumAddress() });
+            const collection = await createCollection(
+                collectionService, { organization, address: faker.finance.ethereumAddress() });
             const tx1 = await createMintSaleTransaction(transactionService, {
                 address: collection.address,
                 paymentToken: coin.address,
@@ -546,6 +547,50 @@ describe('OrganizationService', () => {
             expect(result.edges[0].node.txHash).toBe(tx1.txHash);
             expect(result.edges[1].node.txHash).toBe(tx2.txHash);
             expect(result.edges[0].node.txTime).toBeGreaterThan(result.edges[1].node.txTime);
+        });
+
+        it('should works well with pagination', async () => {
+            const coin = await createCoin(coinService);
+
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await createOrganization(service, { owner });
+            const collection = await createCollection(
+                collectionService, { organization, address: faker.finance.ethereumAddress() });
+            for (let i = 0; i < 28; i++) {
+                const txTime = Math.floor(subSeconds(new Date(), i * 100).getTime() / 1000);
+                await createMintSaleTransaction(transactionService, {
+                    address: collection.address,
+                    paymentToken: coin.address,
+                    price: '1000000000000000000',
+                    txTime
+                });
+            }
+
+            const tokenPriceUSD = faker.number.int({ max: 1000 });
+            const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+                USD: { price: tokenPriceUSD },
+            });
+
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
+            const allPages = await service.getLatestSales(organization.id, '', '', 30, 10);
+            expect(allPages).toBeDefined();
+            expect(allPages.totalCount).toBe(28);
+
+            const firstPage = await service.getLatestSales(organization.id, '', '', 10, 10);
+            expect(firstPage).toBeDefined();
+            expect(firstPage.edges.length).toBe(10);
+
+            const secondPage = await service.getLatestSales(organization.id, '', firstPage.pageInfo.endCursor, 10, 10);
+            expect(secondPage).toBeDefined();
+            expect(secondPage.edges.length).toBe(10);
+
+            const lastPage = await service.getLatestSales(organization.id, '', secondPage.pageInfo.endCursor, 10, 10);
+            expect(lastPage).toBeDefined();
+            expect(lastPage.edges.length).toBe(8);
         });
     });
 
