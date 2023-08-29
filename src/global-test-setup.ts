@@ -193,6 +193,7 @@ export default async () => {
     global.merkleTreeService = module.get<MerkleTreeService>(MerkleTreeService);
     global.openseaService = module.get<OpenseaService>(OpenseaService);
     global.coinmarketcapService = module.get<CoinMarketCapService>(CoinMarketCapService);
+    global.jwtService = module.get<JwtService>(JwtService);
 
     // sync chain services
     global.asset721Service = module.get<Asset721Service>(Asset721Service);

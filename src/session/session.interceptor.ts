@@ -18,7 +18,13 @@ export class SessionInterceptor implements NestInterceptor {
     async intercept(executionContext: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
         const ctx = GqlExecutionContext.create(executionContext);
         const context = ctx.getContext();
-        const payload = getJwtPayload(context.req, this.jwtService, process.env.SESSION_SECRET);
+        let payload;
+        try {
+            payload = getJwtPayload(context.req.headers.authorization, this.jwtService, process.env.SESSION_SECRET);
+        } catch (_e) {
+            payload = {};
+            context.verified = false;
+        }
         const { userId, walletId, roles } = payload || {};
         if (userId) {
             context.user = await this.userService.getUserByQuery({ id: userId });
