@@ -37,6 +37,7 @@ import { UserModule } from './user/user.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { WalletModule } from './wallet/wallet.module';
 import { SessionInterceptor } from './session/session.interceptor';
+import { HealthModule } from './health/health.module';
 
 dotenv.config();
 
@@ -87,6 +88,7 @@ dotenv.config();
             signOptions: { expiresIn: '30d' },
         }),
         CacheModule.register({ isGlobal: true }),
+        HealthModule,
     ],
     providers: [
         {
