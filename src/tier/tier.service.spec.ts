@@ -7,16 +7,9 @@ import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import {
-    createAsset721, createCoin, createCollection, createMintSaleContract, createMintSaleTransaction,
-    createTier
-} from '../test-utils';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { createAsset721, createCoin, createCollection, createMintSaleContract, createMintSaleTransaction, createTier } from '../test-utils';
 import { WalletService } from '../wallet/wallet.service';
 import { Tier } from './tier.dto';
 import { TierService } from './tier.service';
@@ -161,6 +154,93 @@ describe('TierService', () => {
             });
 
             expect(tier).toBeDefined();
+        });
+    });
+
+    describe('getTier', () => {
+        it('should return null if `id` is not matched ', async () => {
+            const coin = await createCoin(coinService);
+            const collection = await createCollection(collectionService);
+
+            await createTier(service, {
+                collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
+            });
+
+            const result = await service.getTier({ id: faker.string.uuid() });
+            expect(result).toBeFalsy();
+        });
+
+        it('should get tier based on `id`', async () => {
+            const coin = await createCoin(coinService);
+            const collection = await createCollection(collectionService);
+            const anotherCollection = await createCollection(collectionService);
+
+            await createTier(service, {
+                collection: { id: anotherCollection.id },
+                paymentTokenAddress: coin.address,
+            });
+
+            const targetTier = await createTier(service, {
+                totalMints: 200,
+                collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
+            });
+
+            const result = await service.getTier({ id: targetTier.id });
+            expect(result).toBeTruthy();
+            expect(result.collection.id).toEqual(collection.id);
+        });
+
+        it('should return null if `collection` is not matched ', async () => {
+            const coin = await createCoin(coinService);
+            const collection = await createCollection(collectionService);
+
+            const targetTier = await createTier(service, {
+                tierId: 0,
+                collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
+            });
+
+            const result = await service.getTier({ collection: { id: faker.string.uuid() }, tierId: targetTier.tierId });
+            expect(result).toBeFalsy();
+        });
+
+        it('should return null if `tierId` is not matched ', async () => {
+            const coin = await createCoin(coinService);
+            const collection = await createCollection(collectionService);
+
+            const targetTier = await createTier(service, {
+                tierId: 0,
+                collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
+            });
+
+            const result = await service.getTier({ collection: { id: targetTier.id }, tierId: 1 });
+            expect(result).toBeFalsy();
+        });
+
+        it('should get tier based on `collectionId` and `tierId`', async () => {
+            const coin = await createCoin(coinService);
+            const collection = await createCollection(collectionService);
+
+            await createTier(service, {
+                tierId: 0,
+                collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
+            });
+
+            const targetTier = await createTier(service, {
+                totalMints: 200,
+                tierId: 1,
+                collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
+            });
+
+            const result = await service.getTier({ collection: { id: collection.id }, tierId: 1 });
+            expect(result).toBeTruthy();
+            expect(result.id).toEqual(targetTier.id);
+            expect(result.tierId).toEqual(1);
         });
     });
 

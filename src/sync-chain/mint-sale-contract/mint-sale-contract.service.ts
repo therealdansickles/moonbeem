@@ -1,10 +1,13 @@
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { isInteger } from 'lodash';
+import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+
 import { Injectable } from '@nestjs/common';
-import * as MintSaleContractEntity from './mint-sale-contract.entity';
-import { MintSaleContract } from './mint-sale-contract.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+
 import { FactoryService } from '../factory/factory.service';
 import { MintSaleTransaction } from '../mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleContract } from './mint-sale-contract.dto';
+import * as MintSaleContractEntity from './mint-sale-contract.entity';
 
 @Injectable()
 export class MintSaleContractService {
@@ -24,8 +27,15 @@ export class MintSaleContractService {
         return await this.contractRepository.findOneBy({ id });
     }
 
-    async getMintSaleContractByCollection(collectionId: string): Promise<MintSaleContract> {
-        const contract = await this.contractRepository.findOneBy({ collectionId });
+    // ?? lagecy issue
+    // without `tokenId` it should return array but not one record
+    async getMintSaleContractByCollection(collectionId: string, tokenId?: number): Promise<MintSaleContract> {
+        const query: any = { collectionId };
+        if (isInteger(tokenId)) {
+            query.startId = LessThanOrEqual(tokenId);
+            query.endId = MoreThanOrEqual(tokenId);
+        }
+        const contract = await this.contractRepository.findOneBy(query);
         if (!contract) {
             return null;
         }

@@ -59,7 +59,7 @@ export class PluginResolver {
  
     @Mutation(() => Tier)
     async installOnTier(@Args('input') input: InstallOnTierInput) {
-        const tier = await this.tierService.getTier(input.tierId);
+        const tier = await this.tierService.getTier({ id: input.tierId });
         if (!tier) throw new GraphQLError(`Tier ${input.tierId} doesn't exist.`);
 
         const plugin = await this.pluginService.getPlugin(input.pluginId);

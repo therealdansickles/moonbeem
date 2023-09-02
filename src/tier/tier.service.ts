@@ -9,21 +9,17 @@ import { captureException } from '@sentry/node';
 
 import { Collection, CollectionKind } from '../collection/collection.entity';
 import { MetadataPropertySearchInput } from '../metadata/metadata.dto';
-import {
-    cursorToStrings, fromCursor, PaginatedImp, stringsToCursor, toPaginated
-} from '../pagination/pagination.utils';
+import { cursorToStrings, fromCursor, PaginatedImp, stringsToCursor, toPaginated } from '../pagination/pagination.utils';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import {
-    MintSaleTransaction
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { TierHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    BasicPriceInfo, CreateTierInput, IAttributeOverview, IOverview, IPluginOverview,
-    IUpgradeOverview, Profit, Tier, TierSearchPaginated, UpdateTierInput
+    BasicPriceInfo, CreateTierInput, IAttributeOverview, IOverview, IPluginOverview, IUpgradeOverview, Profit, Tier, TierSearchPaginated,
+    UpdateTierInput
 } from './tier.dto';
 import * as tierEntity from './tier.entity';
 
@@ -42,11 +38,13 @@ type AttributesOverviewQuery = {
     collectionSlug?: string;
 };
 
-export type ITierQuery = {
+export type ITierListQuery = {
     name?: string;
     collection?: { id: string };
     pluginName?: string;
 };
+
+export type ITierQuery = { id: string } | { collection: { id: string }, tierId: number };
 
 @Injectable()
 export class TierService {
@@ -74,8 +72,9 @@ export class TierService {
      * @param id The id of the tier.
      * @returns The tier.
      */
-    async getTier(id: string): Promise<Tier> {
-        const tier = await this.tierRepository.findOne({ where: { id }, relations: ['collection'] });
+    async getTier(query: ITierQuery): Promise<Tier> {
+        const tier = await this.tierRepository.findOne({ where: query, relations: ['collection'] });
+        if (!tier) return null;
         const coin = await this.coinService.getCoinByAddress(tier.paymentTokenAddress.toLowerCase());
 
         return {
@@ -90,7 +89,7 @@ export class TierService {
      * @param query The query of the search
      * @returns Array of tiers
      */
-    async getTiers(query: ITierQuery): Promise<Tier[] | null> {
+    async getTiers(query: ITierListQuery): Promise<Tier[] | null> {
         query = omitBy(query, isNil);
         if (isEmpty(query)) return null;
 
@@ -192,7 +191,7 @@ export class TierService {
 
     async getTierTotalSold(id: string): Promise<number> {
         try {
-            const tier = await this.getTier(id);
+            const tier = await this.getTier({ id });
             const { collection } = tier;
             if (!collection.address) return 0;
 
@@ -216,7 +215,7 @@ export class TierService {
      */
     async getTierProfit(id: string): Promise<Profit> {
         try {
-            const tier = await this.getTier(id);
+            const tier = await this.getTier({ id });
             const { collection } = tier;
             if (!collection.address) return { inPaymentToken: '0', inUSDC: '0' };
 

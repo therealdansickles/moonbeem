@@ -67,6 +67,6 @@ export class PluginService {
             configs: merge(configs, customizedMetadataParameters?.configs),
         };
         await this.tierService.updateTier(tier.id, { metadata: metadataPayload });
-        return this.tierService.getTier(tier.id);
+        return this.tierService.getTier({ id: tier.id });
     }
 }

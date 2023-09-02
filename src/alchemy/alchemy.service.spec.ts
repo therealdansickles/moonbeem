@@ -2,16 +2,65 @@ import { Network } from 'alchemy-sdk';
 
 import { faker } from '@faker-js/faker';
 
+import { CollectionService } from '../collection/collection.service';
+import { createCoin, createCollection, createMintSaleContract, createTier } from '../test-utils';
+import { TierService } from '../tier/tier.service';
 import { AlchemyService } from './alchemy.service';
 
 describe('AlchemySerice', () => {
     let service: AlchemyService;
+    let collectionService: CollectionService;
+    let collection;
+    let tierService: TierService;
+    let tier;
 
-    beforeAll(() => {
-        service = new AlchemyService();
+    beforeAll(async () => {
+        service = global.alchemyService;
+        const coinService = global.coinService;
+        const coin = await createCoin(coinService);
+        collectionService = global.collectionService;
+        collection = await createCollection(collectionService, { tokenAddress: faker.finance.ethereumAddress() });
+        const mintSaleContractService = global.mintSaleContractService;
+        await createMintSaleContract(mintSaleContractService, { collectionId: collection.id, startId: 1, endId: 100, tierId: 0 });
+        await createMintSaleContract(mintSaleContractService, { collectionId: collection.id, startId: 101, endId: 200, tierId: 1 });
+        tierService = global.tierService;
+        await createTier(tierService, {
+            collection: { id: collection.id },
+            paymentTokenAddress: coin.address,
+            tierId: 0
+        });
+        tier = await createTier(tierService, {
+            collection: { id: collection.id },
+            paymentTokenAddress: coin.address,
+            tierId: 1
+        });
+    });
+
+    describe('#getEventTypeByAddress', () => {
+        it('should identify `mint` event', () => {
+            const result = service.getEventTypeByAddress('0x0000000000000000000000000000000000000000', faker.finance.ethereumAddress());
+            expect(result).toEqual('mint');
+        });
+
+        it('should identify `burn` event', () => {
+            const result = service.getEventTypeByAddress(faker.finance.ethereumAddress(), '0x0000000000000000000000000000000000000000');
+            expect(result).toEqual('burn');
+        });
+
+        it('should identify `tranfer` event', () => {
+            const result = service.getEventTypeByAddress(faker.finance.ethereumAddress(), faker.finance.ethereumAddress());
+            expect(result).toEqual('transfer');
+        });
+
+        it('should identify `unknown` event', () => {
+            const result = service.getEventTypeByAddress('0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000');
+            expect(result).toEqual('unknown');
+        });
     });
 
     describe('#getNFTsForCollection', () => {
+        jest.setTimeout(600000);
+        
         it('should work', async () => {
             const mockResponse = [
                 {
@@ -71,231 +120,132 @@ describe('AlchemySerice', () => {
             expect(result.length).toEqual(mockResponse.length);
             expect(result[5]).toEqual(BigInt(mockResponse[5].id.tokenId).toString());
         });
+
+        it.skip('should work for realworld', async () => {
+            // PETGPT CAT SCIENTIST
+            // 600 items
+            // 0x82ca7a988682bfe216d9b38d2dd0f26599417f0e
+            // GMX Blueberry Club
+            // 10000 items
+            // 0x17f4baa9d35ee54ffbcb2608e20786473c7aa49f
+            const contract = {
+                tokenAddress: '0x82ca7a988682bfe216d9b38d2dd0f26599417f0e',
+                itemsTotal: 600
+            };
+            const result = await service.getNFTsForCollection(Network.ARB_MAINNET, contract.tokenAddress);
+            expect(result.length).toEqual(contract.itemsTotal);
+        });
     });
 
-    describe('#getTokenIdFromNFTActivity', () => {
-        it('should work', async () => {
+    describe('#serializeActivityEvent', () => {
+        it('should serialize event from webhook', async () => {
             const req = {
-                'webhookId': 'wh_v394g727u681i5rj',
-                'id': 'whevt_13vxrot10y8omrdp',
-                'createdAt': '2022-08-03T23:29:11.267808614Z',
+                'webhookId': 'wh_tconj0eytlvxllux',
+                'id': 'whevt_bm5nbftkzbkcejmd',
+                'createdAt': '2023-08-29T09:15:40.651Z',
                 'type': 'NFT_ACTIVITY',
                 'event': {
-                    'activity': [
-                        {
-                            'network': 'ETH_GOERLI',
-                            'fromAddress': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f77',
-                            'toAddress': '0x15dd13f3c4c5279222b5f09ed1b9e9340ed17185',
-                            'contractAddress': '0xf4910c763ed4e47a585e2d34baa9a4b611ae448c',
-                            'blockNum': '0x78b94e',
-                            'hash': '0x6ca7fed3e3ca7a97e774b0eab7d8f46b7dcad5b8cf8ff28593a2ba00cdef4bff',
-                            'erc1155Metadata': [
-                                {
-                                    'tokenId': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f77000000000000010000000001',
-                                    'value': '0x1'
-                                }
-                            ],
-                            'category': 'erc721',
-                            'tokenId': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f77000000000000010000000001',
-                            'log': {
-                                'address': '0xf4910c763ed4e47a585e2d34baa9a4b611ae448c',
-                                'topics': [
-                                    '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62',
-                                    '0x0000000000000000000000002acc2dff0c1fa9c1c62f518c9415a0ca60e03f77',
-                                    '0x0000000000000000000000002acc2dff0c1fa9c1c62f518c9415a0ca60e03f77',
-                                    '0x00000000000000000000000015dd13f3c4c5279222b5f09ed1b9e9340ed17185'
-                                ],
-                                'data': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f770000000000000100000000010000000000000000000000000000000000000000000000000000000000000001',
-                                'blockNumber': '0x78b94e',
-                                'transactionHash': '0x6ca7fed3e3ca7a97e774b0eab7d8f46b7dcad5b8cf8ff28593a2ba00cdef4bff',
-                                'transactionIndex': '0x1b',
-                                'blockHash': '0x4887f8bfbba48b7bff0362c34149d76783feae32f29bff3d98c841bc2ba1902f',
-                                'logIndex': '0x16',
-                                'removed': false
-                            }
-                        },
-                        {
-                            'network': 'ETH_GOERLI',
-                            'fromAddress': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f77',
-                            'toAddress': '0x15dd13f3c4c5279222b5f09ed1b9e9340ed17185',
-                            'contractAddress': '0xf4910c763ed4e47a585e2d34baa9a4b611ae448c',
-                            'blockNum': '0x78b94e',
-                            'hash': '0x6ca7fed3e3ca7a97e774b0eab7d8f46b7dcad5b8cf8ff28593a2ba00cdef4bff',
-                            'erc1155Metadata': [
-                                {
-                                    'tokenId': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f77000000000000010000000001',
-                                    'value': '0x1'
-                                }
-                            ],
-                            'tokenId': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f77000000000000010000000002',
-                            'category': 'erc721',
-                            'log': {
-                                'address': '0xf4910c763ed4e47a585e2d34baa9a4b611ae448c',
-                                'topics': [
-                                    '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62',
-                                    '0x0000000000000000000000002acc2dff0c1fa9c1c62f518c9415a0ca60e03f77',
-                                    '0x0000000000000000000000002acc2dff0c1fa9c1c62f518c9415a0ca60e03f77',
-                                    '0x00000000000000000000000015dd13f3c4c5279222b5f09ed1b9e9340ed17185'
-                                ],
-                                'data': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f770000000000000100000000010000000000000000000000000000000000000000000000000000000000000001',
-                                'blockNumber': '0x78b94e',
-                                'transactionHash': '0x6ca7fed3e3ca7a97e774b0eab7d8f46b7dcad5b8cf8ff28593a2ba00cdef4bff',
-                                'transactionIndex': '0x1b',
-                                'blockHash': '0x4887f8bfbba48b7bff0362c34149d76783feae32f29bff3d98c841bc2ba1902f',
-                                'logIndex': '0x16',
-                                'removed': false
-                            }
-                        },
-                        {
-                            'network': 'ETH_GOERLI',
-                            'fromAddress': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f77',
-                            'toAddress': '0x15dd13f3c4c5279222b5f09ed1b9e9340ed17185',
-                            'contractAddress': '0xf4910c763ed4e47a585e2d34baa9a4b611ae448c',
-                            'blockNum': '0x78b94e',
-                            'hash': '0x6ca7fed3e3ca7a97e774b0eab7d8f46b7dcad5b8cf8ff28593a2ba00cdef4bff',
-                            'erc1155Metadata': [
-                                {
-                                    'tokenId': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f77000000000000010000000001',
-                                    'value': '0x1'
-                                }
-                            ],
-                            'tokenId': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f77000000000000010000000003',
-                            'category': 'erc721',
-                            'log': {
-                                'address': '0xf4910c763ed4e47a585e2d34baa9a4b611ae448c',
-                                'topics': [
-                                    '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62',
-                                    '0x0000000000000000000000002acc2dff0c1fa9c1c62f518c9415a0ca60e03f77',
-                                    '0x0000000000000000000000002acc2dff0c1fa9c1c62f518c9415a0ca60e03f77',
-                                    '0x00000000000000000000000015dd13f3c4c5279222b5f09ed1b9e9340ed17185'
-                                ],
-                                'data': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f770000000000000100000000010000000000000000000000000000000000000000000000000000000000000001',
-                                'blockNumber': '0x78b94e',
-                                'transactionHash': '0x6ca7fed3e3ca7a97e774b0eab7d8f46b7dcad5b8cf8ff28593a2ba00cdef4bff',
-                                'transactionIndex': '0x1b',
-                                'blockHash': '0x4887f8bfbba48b7bff0362c34149d76783feae32f29bff3d98c841bc2ba1902f',
-                                'logIndex': '0x16',
-                                'removed': false
-                            }
+                    'network': 'ARB_GOERLI',
+                    'activity': [{
+                        'fromAddress': '0x0000000000000000000000000000000000000000',
+                        'toAddress': '0x6532cf5d7acbeebd787381166df4ac782b888888',
+                        'contractAddress': collection.tokenAddress,
+                        'blockNum': '0x23c4852',
+                        'hash': '0x7433d17e87888faf38bba59626fb4bd80683f55c355f3c485ce90fd0dcc16b4c',
+                        'erc721TokenId': '0x96',
+                        'category': 'erc721',
+                        'log': {
+                            'address': '0xc2eba41f196c8fb35f60a3a96ae210da8d7f23f6',
+                            'topics': ['0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', '0x0000000000000000000000000000000000000000000000000000000000000000', '0x0000000000000000000000006532cf5d7acbeebd787381166df4ac782b8abf89', '0x0000000000000000000000000000000000000000000000000000000000000003'],
+                            'data': '0x',
+                            'blockNumber': '0x23c4852',
+                            'transactionHash': '0x7433d17e87888faf38bba59626fb4bd80683f55c355f3c485ce90fd0dcc16b4c',
+                            'transactionIndex': '0x1',
+                            'blockHash': '0x53d7f7f119511472c5c86e9ec81b7a733df145814045936e6547310cab6d6955',
+                            'logIndex': '0x0',
+                            'removed': false
                         }
-                    ]
+                    }]
                 }
             };
-            const result = service.getTokenIdFromNFTActivity(req);
-            expect(result.length).toEqual(3);
-            const inspectIdx = 2;
-            expect(result[inspectIdx]).toEqual(BigInt(req.event.activity[inspectIdx].tokenId).toString());
+            const result = await service.serializeActivityEvent(req);
+            expect(result.length).toEqual(1);
+            expect(result[0].eventType).toEqual('mint');
+            expect(result[0].tokenId).toEqual('150');
+            expect(result[0].collectionId).toEqual(collection.id);
+            expect(result[0].tierId).toEqual(tier.id);
         });
 
-        it('should handle deduplication', async () => {
+        it('should handle mixed event', async () => {
             const req = {
-                'webhookId': 'wh_v394g727u681i5rj',
-                'id': 'whevt_13vxrot10y8omrdp',
-                'createdAt': '2022-08-03T23:29:11.267808614Z',
+                'webhookId': 'wh_tconj0eytlvxllux',
+                'id': 'whevt_bm5nbftkzbkcejmd',
+                'createdAt': '2023-08-29T09:15:40.651Z',
                 'type': 'NFT_ACTIVITY',
                 'event': {
-                    'activity': [
-                        {
-                            'network': 'ETH_GOERLI',
-                            'fromAddress': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f77',
-                            'toAddress': '0x15dd13f3c4c5279222b5f09ed1b9e9340ed17185',
-                            'contractAddress': '0xf4910c763ed4e47a585e2d34baa9a4b611ae448c',
-                            'blockNum': '0x78b94e',
-                            'hash': '0x6ca7fed3e3ca7a97e774b0eab7d8f46b7dcad5b8cf8ff28593a2ba00cdef4bff',
-                            'erc1155Metadata': [
-                                {
-                                    'tokenId': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f77000000000000010000000001',
-                                    'value': '0x1'
-                                }
-                            ],
-                            'category': 'erc721',
-                            'tokenId': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f77000000000000010000000001',
-                            'log': {
-                                'address': '0xf4910c763ed4e47a585e2d34baa9a4b611ae448c',
-                                'topics': [
-                                    '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62',
-                                    '0x0000000000000000000000002acc2dff0c1fa9c1c62f518c9415a0ca60e03f77',
-                                    '0x0000000000000000000000002acc2dff0c1fa9c1c62f518c9415a0ca60e03f77',
-                                    '0x00000000000000000000000015dd13f3c4c5279222b5f09ed1b9e9340ed17185'
-                                ],
-                                'data': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f770000000000000100000000010000000000000000000000000000000000000000000000000000000000000001',
-                                'blockNumber': '0x78b94e',
-                                'transactionHash': '0x6ca7fed3e3ca7a97e774b0eab7d8f46b7dcad5b8cf8ff28593a2ba00cdef4bff',
-                                'transactionIndex': '0x1b',
-                                'blockHash': '0x4887f8bfbba48b7bff0362c34149d76783feae32f29bff3d98c841bc2ba1902f',
-                                'logIndex': '0x16',
-                                'removed': false
-                            }
-                        },
-                        {
-                            'network': 'ETH_GOERLI',
-                            'fromAddress': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f77',
-                            'toAddress': '0x15dd13f3c4c5279222b5f09ed1b9e9340ed17185',
-                            'contractAddress': '0xf4910c763ed4e47a585e2d34baa9a4b611ae448c',
-                            'blockNum': '0x78b94e',
-                            'hash': '0x6ca7fed3e3ca7a97e774b0eab7d8f46b7dcad5b8cf8ff28593a2ba00cdef4bff',
-                            'erc1155Metadata': [
-                                {
-                                    'tokenId': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f77000000000000010000000001',
-                                    'value': '0x1'
-                                }
-                            ],
-                            'tokenId': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f77000000000000010000000002',
-                            'category': 'erc721',
-                            'log': {
-                                'address': '0xf4910c763ed4e47a585e2d34baa9a4b611ae448c',
-                                'topics': [
-                                    '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62',
-                                    '0x0000000000000000000000002acc2dff0c1fa9c1c62f518c9415a0ca60e03f77',
-                                    '0x0000000000000000000000002acc2dff0c1fa9c1c62f518c9415a0ca60e03f77',
-                                    '0x00000000000000000000000015dd13f3c4c5279222b5f09ed1b9e9340ed17185'
-                                ],
-                                'data': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f770000000000000100000000010000000000000000000000000000000000000000000000000000000000000001',
-                                'blockNumber': '0x78b94e',
-                                'transactionHash': '0x6ca7fed3e3ca7a97e774b0eab7d8f46b7dcad5b8cf8ff28593a2ba00cdef4bff',
-                                'transactionIndex': '0x1b',
-                                'blockHash': '0x4887f8bfbba48b7bff0362c34149d76783feae32f29bff3d98c841bc2ba1902f',
-                                'logIndex': '0x16',
-                                'removed': false
-                            }
-                        },
-                        {
-                            'network': 'ETH_GOERLI',
-                            'fromAddress': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f77',
-                            'toAddress': '0x15dd13f3c4c5279222b5f09ed1b9e9340ed17185',
-                            'contractAddress': '0xf4910c763ed4e47a585e2d34baa9a4b611ae448c',
-                            'blockNum': '0x78b94e',
-                            'hash': '0x6ca7fed3e3ca7a97e774b0eab7d8f46b7dcad5b8cf8ff28593a2ba00cdef4bff',
-                            'erc1155Metadata': [
-                                {
-                                    'tokenId': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f77000000000000010000000001',
-                                    'value': '0x1'
-                                }
-                            ],
-                            'tokenId': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f77000000000000010000000002',
-                            'category': 'erc721',
-                            'log': {
-                                'address': '0xf4910c763ed4e47a585e2d34baa9a4b611ae448c',
-                                'topics': [
-                                    '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62',
-                                    '0x0000000000000000000000002acc2dff0c1fa9c1c62f518c9415a0ca60e03f77',
-                                    '0x0000000000000000000000002acc2dff0c1fa9c1c62f518c9415a0ca60e03f77',
-                                    '0x00000000000000000000000015dd13f3c4c5279222b5f09ed1b9e9340ed17185'
-                                ],
-                                'data': '0x2acc2dff0c1fa9c1c62f518c9415a0ca60e03f770000000000000100000000010000000000000000000000000000000000000000000000000000000000000001',
-                                'blockNumber': '0x78b94e',
-                                'transactionHash': '0x6ca7fed3e3ca7a97e774b0eab7d8f46b7dcad5b8cf8ff28593a2ba00cdef4bff',
-                                'transactionIndex': '0x1b',
-                                'blockHash': '0x4887f8bfbba48b7bff0362c34149d76783feae32f29bff3d98c841bc2ba1902f',
-                                'logIndex': '0x16',
-                                'removed': false
-                            }
+                    'network': 'ARB_GOERLI',
+                    'activity': [{
+                        'fromAddress': '0x0000000000000000000000000000000000000000',
+                        'toAddress': '0x6532cf5d7acbeebd787381166df4ac782b888888',
+                        'contractAddress': collection.tokenAddress,
+                        'blockNum': '0x23c4852',
+                        'hash': '0x7433d17e87888faf38bba59626fb4bd80683f55c355f3c485ce90fd0dcc16b4c',
+                        'erc721TokenId': '0x3',
+                        'category': 'erc721',
+                        'log': {
+                            'address': collection.tokenAddress,
+                            'topics': ['0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', '0x0000000000000000000000000000000000000000000000000000000000000000', '0x0000000000000000000000006532cf5d7acbeebd787381166df4ac782b8abf89', '0x0000000000000000000000000000000000000000000000000000000000000003'],
+                            'data': '0x',
+                            'blockNumber': '0x23c4852',
+                            'transactionHash': '0x7433d17e87888faf38bba59626fb4bd80683f55c355f3c485ce90fd0dcc16b4c',
+                            'transactionIndex': '0x1',
+                            'blockHash': '0x53d7f7f119511472c5c86e9ec81b7a733df145814045936e6547310cab6d6955',
+                            'logIndex': '0x0',
+                            'removed': false
                         }
-                    ]
+                    }, {
+                        'fromAddress': '0x6532cf5d7acbeebd787381166df4ac782b888888',
+                        'toAddress': '0x0000000000000000000000000000000000000000',
+                        'contractAddress': collection.tokenAddress,
+                        'blockNum': '0x23c4852',
+                        'hash': '0x7433d17e87888faf38bba59626fb4bd80683f55c355f3c485ce90fd0dcc16b4c',
+                        'erc721TokenId': '0x3',
+                        'category': 'erc721',
+                        'log': {
+                            'address': collection.tokenAddress,
+                            'topics': ['0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', '0x0000000000000000000000000000000000000000000000000000000000000000', '0x0000000000000000000000006532cf5d7acbeebd787381166df4ac782b8abf89', '0x0000000000000000000000000000000000000000000000000000000000000003'],
+                            'data': '0x',
+                            'blockNumber': '0x23c4852',
+                            'transactionHash': '0x7433d17e87888faf38bba59626fb4bd80683f55c355f3c485ce90fd0dcc16b4c',
+                            'transactionIndex': '0x1',
+                            'blockHash': '0x53d7f7f119511472c5c86e9ec81b7a733df145814045936e6547310cab6d6955',
+                            'logIndex': '0x0',
+                            'removed': false
+                        }
+                    }, {
+                        'fromAddress': '0x6532cf5d7acbeebd787381166df4ac782b888888',
+                        'toAddress': '0x6532cf5d7acbeebd787381166df4ac782b888888',
+                        'contractAddress': collection.tokenAddress,
+                        'blockNum': '0x23c4852',
+                        'hash': '0x7433d17e87888faf38bba59626fb4bd80683f55c355f3c485ce90fd0dcc16b4c',
+                        'erc721TokenId': '0x3',
+                        'category': 'erc721',
+                        'log': {
+                            'address': collection.tokenAddress,
+                            'topics': ['0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', '0x0000000000000000000000000000000000000000000000000000000000000000', '0x0000000000000000000000006532cf5d7acbeebd787381166df4ac782b8abf89', '0x0000000000000000000000000000000000000000000000000000000000000003'],
+                            'data': '0x',
+                            'blockNumber': '0x23c4852',
+                            'transactionHash': '0x7433d17e87888faf38bba59626fb4bd80683f55c355f3c485ce90fd0dcc16b4c',
+                            'transactionIndex': '0x1',
+                            'blockHash': '0x53d7f7f119511472c5c86e9ec81b7a733df145814045936e6547310cab6d6955',
+                            'logIndex': '0x0',
+                            'removed': false
+                        }
+                    }]
                 }
             };
-            const result = service.getTokenIdFromNFTActivity(req);
-            expect(result.length).toEqual(2);
+            const result = await service.serializeActivityEvent(req);
+            expect(result.length).toEqual(3);
         });
     });
 });

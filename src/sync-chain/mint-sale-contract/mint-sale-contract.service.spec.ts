@@ -108,6 +108,84 @@ describe('MintSaleContractService', () => {
             expect(result.id).toEqual(contract.id);
         });
 
+        it('should return a contract with collectionId / startId / endId', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: owner,
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+            });
+
+            await service.createMintSaleContract({
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                address: faker.finance.ethereumAddress(),
+                royaltyReceiver: faker.finance.ethereumAddress(),
+                royaltyRate: 10000,
+                derivativeRoyaltyRate: 1000,
+                isDerivativeAllowed: true,
+                beginTime: Math.floor(faker.date.recent().getTime() / 1000),
+                endTime: Math.floor(faker.date.recent().getTime() / 1000),
+                tierId: 0,
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
+                paymentToken: faker.finance.ethereumAddress(),
+                startId: 1,
+                endId: 100,
+                currentId: 1,
+                tokenAddress: faker.finance.ethereumAddress(),
+                collectionId: collection.id,
+            });
+
+            const tier2Contract = await service.createMintSaleContract({
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                sender: faker.finance.ethereumAddress(),
+                address: faker.finance.ethereumAddress(),
+                royaltyReceiver: faker.finance.ethereumAddress(),
+                royaltyRate: 10000,
+                derivativeRoyaltyRate: 1000,
+                isDerivativeAllowed: true,
+                beginTime: Math.floor(faker.date.recent().getTime() / 1000),
+                endTime: Math.floor(faker.date.recent().getTime() / 1000),
+                tierId: 0,
+                price: faker.string.numeric({ length: { min: 18, max: 19 }, allowLeadingZeros: false }),
+                paymentToken: faker.finance.ethereumAddress(),
+                startId: 101,
+                endId: 200,
+                currentId: 1,
+                tokenAddress: faker.finance.ethereumAddress(),
+                collectionId: collection.id,
+            });
+
+            const result = await service.getMintSaleContractByCollection(collection.id, 150);
+            expect(result).toBeDefined();
+            expect(result.id).toEqual(tier2Contract.id);
+        });
+
         it('should return null for contract, if no contract exists', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),

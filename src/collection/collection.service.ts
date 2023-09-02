@@ -15,6 +15,7 @@ import { SaleHistory } from '../saleHistory/saleHistory.dto';
 import { getCurrentPrice } from '../saleHistory/saleHistory.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
+import { History721, History721Type } from '../sync-chain/history721/history721.entity';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import { BasicTokenPrice } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
@@ -26,31 +27,14 @@ import { User } from '../user/user.entity';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    AggregatedVolume,
-    Collection,
-    CollectionActivities,
-    CollectionActivityType,
-    CollectionEarningsChartPaginated,
-    CollectionPaginated,
-    CollectionSold,
-    CollectionSoldAggregated,
-    CollectionSoldPaginated,
-    CollectionStat,
-    CollectionStatus,
-    CreateCollectionInput,
-    GrossEarnings,
-    LandingPageCollection,
-    SecondarySale,
-    SevenDayVolume,
-    UpdateCollectionInput,
-    ZeroAccount,
-    CollectionAggregatedActivityPaginated,
+    AggregatedVolume, Collection, CollectionActivities, CollectionActivityType, CollectionAggregatedActivityPaginated,
+    CollectionEarningsChartPaginated, CollectionPaginated, CollectionSold, CollectionSoldAggregated, CollectionSoldPaginated, CollectionStat,
+    CollectionStatus, CreateCollectionInput, GrossEarnings, LandingPageCollection, SecondarySale, SevenDayVolume, UpdateCollectionInput, ZeroAccount
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
 import { generateSlug } from './collection.utils';
-import { History721, History721Type } from '../sync-chain/history721/history721.entity';
 
-type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name' | 'slug'>>;
+type ICollectionQuery = Partial<Pick<Collection, 'id' | 'tokenAddress' | 'address' | 'name' | 'slug'>>;
 
 @Injectable()
 export class CollectionService {
