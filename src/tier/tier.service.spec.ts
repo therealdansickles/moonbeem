@@ -242,6 +242,42 @@ describe('TierService', () => {
             expect(result.id).toEqual(targetTier.id);
             expect(result.tierId).toEqual(1);
         });
+
+        it('should render the property name correctly', async () => {
+            const coin = await createCoin(coinService);
+            const collection = await createCollection(collectionService);
+
+            const propertyKey = faker.string.sample(10);
+            const anotherPropertyKey = faker.string.sample(8);
+            const tier = await createTier(service, {
+                totalMints: 200,
+                tierId: 1,
+                collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
+                metadata: {
+                    configs: {
+                        alias: {
+                            [propertyKey]: faker.string.uuid()
+                        }
+                    },
+                    properties: {
+                        [propertyKey]: {
+                            name: `{{${propertyKey}}}`,
+                            value: faker.number.int(10)
+                        },
+                        [anotherPropertyKey]: {
+                            name: `{{${anotherPropertyKey}}}`,
+                            value: faker.number.int(8)
+                        }
+                    }
+                }
+            });
+
+            const result = await service.getTier({ id: tier.id });
+            expect(result.metadata.properties[propertyKey].name).toEqual(tier.metadata.configs.alias[propertyKey]);
+            expect(result.metadata.properties[anotherPropertyKey].name.startsWith('{{')).toBeTruthy();
+            expect(result.metadata.properties[anotherPropertyKey].name.endsWith('}}')).toBeTruthy();
+        });
     });
 
     describe('getTiers', () => {

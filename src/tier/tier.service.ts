@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js';
 import { GraphQLError } from 'graphql';
-import { isEmpty, isNil, omitBy } from 'lodash';
+import { find, isEmpty, isNil, omitBy, toPairs } from 'lodash';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
@@ -75,8 +75,12 @@ export class TierService {
     async getTier(query: ITierQuery): Promise<Tier> {
         const tier = await this.tierRepository.findOne({ where: query, relations: ['collection'] });
         if (!tier) return null;
+        // re-render property name for metadata by using `alias` config
+        for (const [key, value] of toPairs(tier.metadata?.configs?.alias)) {
+            const target = find(toPairs(tier.metadata?.properties), kv => kv[1].name === `{{${key}}}`);
+            tier.metadata.properties[target[0]].name = value;
+        }
         const coin = await this.coinService.getCoinByAddress(tier.paymentTokenAddress.toLowerCase());
-
         return {
             ...tier,
             coin,
