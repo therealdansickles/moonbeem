@@ -367,6 +367,44 @@ describe('TierService', () => {
             const result3 = await service.getTiers({ pluginName: pluginName1, name: tierName });
             expect(result3.length).toEqual(1);
         });
+
+        it('should get the tier with rendered property name', async () => {
+            const coin = await createCoin(coinService);
+            const collection = await createCollection(collectionService);
+
+            const pluginName1 = faker.lorem.word(5);
+            const propertyKey = faker.string.sample(10);
+            const anotherPropertyKey = faker.string.sample(8);
+
+            const tier = await createTier(service, {
+                name: faker.commerce.productName(),
+                collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
+                metadata: {
+                    uses: [ pluginName1 ],
+                    configs: {
+                        alias: {
+                            [propertyKey]: faker.string.uuid()
+                        }
+                    },
+                    properties: {
+                        [propertyKey]: {
+                            name: `{{${propertyKey}}}`,
+                            value: faker.number.int(10)
+                        },
+                        [anotherPropertyKey]: {
+                            name: `{{${anotherPropertyKey}}}`,
+                            value: faker.number.int(8)
+                        }
+                    }
+                },
+            });
+
+            const result = await service.getTiers({ collection: { id: collection.id } });
+            expect(result[0].metadata.properties[propertyKey].name).toEqual(tier.metadata.configs.alias[propertyKey]);
+            expect(result[0].metadata.properties[anotherPropertyKey].name.startsWith('{{')).toBeTruthy();
+            expect(result[0].metadata.properties[anotherPropertyKey].name.endsWith('}}')).toBeTruthy();
+        });
     });
 
     describe('updateTier', () => {
@@ -441,6 +479,7 @@ describe('TierService', () => {
         const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
         const tierName = 'Test Tier';
         let tier: Tier;
+        const propertyLevelName = faker.lorem.word(10);
         let draftTier: Tier;
         let innerCollection: Collection;
         let draftCollection: Collection;
@@ -458,16 +497,21 @@ describe('TierService', () => {
                 about: 'The draft collection',
                 address: null,
             });
-
+            
             tier = await createTier(service, {
                 name: tierName,
                 collection: { id: innerCollection.id },
                 paymentTokenAddress: coin.address,
                 metadata: {
                     uses: ['vibexyz/creator_scoring', 'vibexyz/royalty_level'],
+                    configs: {
+                        alias: {
+                            level_name: propertyLevelName
+                        }
+                    },
                     properties: {
                         level: {
-                            name: 'level',
+                            name: '{{level_name}}',
                             type: 'string',
                             value: 'basic',
                             display_value: 'Basic',
@@ -692,8 +736,8 @@ describe('TierService', () => {
             const result = await service.getAttributesOverview({ collectionAddress } );
             expect(result).toBeDefined();
             expect(result.attributes).toBeDefined();
-            expect(result.attributes['level']).toBeDefined();
-            expect(result.attributes['level']['basic']).toEqual(1);
+            expect(result.attributes[propertyLevelName]).toBeDefined();
+            expect(result.attributes[propertyLevelName]['basic']).toEqual(1);
 
             expect(result.upgrades).toBeDefined();
             expect(result.upgrades['level']).toEqual(1);
@@ -797,6 +841,25 @@ describe('TierService', () => {
         });
 
         xit('should search two tier, if input two attributes', async () => {
+            const result = await service.searchTier(
+                {
+                    collectionId: innerCollection.id,
+                    properties: [
+                        { name: 'holding_days', value: 125 },
+                        { name: 'color', value: 'red' },
+                    ],
+                },
+                '',
+                '',
+                10,
+                10
+            );
+            expect(result).toBeDefined();
+            expect(result.totalCount).toEqual(2);
+            expect(result.edges.length).toBe(2);
+        });
+
+        it('should get the property with correct name', async () => {
             const result = await service.searchTier(
                 {
                     collectionId: innerCollection.id,

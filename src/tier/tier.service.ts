@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js';
 import { GraphQLError } from 'graphql';
-import { find, isEmpty, isNil, omitBy, toPairs } from 'lodash';
+import { isEmpty, isNil, omitBy } from 'lodash';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
@@ -22,6 +22,7 @@ import {
     UpdateTierInput
 } from './tier.dto';
 import * as tierEntity from './tier.entity';
+import { renderPropertyName } from './tier.utils';
 
 interface ITierSearch {
     collectionId?: string;
@@ -73,13 +74,9 @@ export class TierService {
      * @returns The tier.
      */
     async getTier(query: ITierQuery): Promise<Tier> {
-        const tier = await this.tierRepository.findOne({ where: query, relations: ['collection'] });
+        let tier = await this.tierRepository.findOne({ where: query, relations: ['collection'] });
         if (!tier) return null;
-        // re-render property name for metadata by using `alias` config
-        for (const [key, value] of toPairs(tier.metadata?.configs?.alias)) {
-            const target = find(toPairs(tier.metadata?.properties), kv => kv[1].name === `{{${key}}}`);
-            tier.metadata.properties[target[0]].name = value;
-        }
+        tier = renderPropertyName(tier);
         const coin = await this.coinService.getCoinByAddress(tier.paymentTokenAddress.toLowerCase());
         return {
             ...tier,
@@ -105,9 +102,9 @@ export class TierService {
         const result: Tier[] = [];
         const tiers = await builder.getMany();
 
-        for (const tier of tiers) {
+        for (let tier of tiers) {
             const coin = await this.coinService.getCoinByAddress(tier.paymentTokenAddress.toLowerCase());
-
+            tier = renderPropertyName(tier);
             result.push({
                 ...tier,
                 coin,
@@ -453,7 +450,8 @@ export class TierService {
 
         builder.orderBy('tier.createdAt', 'ASC');
 
-        const [tiers, total] = await builder.getManyAndCount();
+        const [result, total] = await builder.getManyAndCount();
+        const tiers = result.map(tier => renderPropertyName(tier));
         return PaginatedImp(tiers, total);
     }
 
@@ -474,6 +472,7 @@ export class TierService {
         const plugins: IPluginOverview = {};
 
         tiers.forEach((tier) => {
+            tier = renderPropertyName(tier);
             if (tier.metadata) {
                 if (tier.metadata.properties) {
                     Object.entries(tier.metadata.properties).forEach(([, value]) => {
