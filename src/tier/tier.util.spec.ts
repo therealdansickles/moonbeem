@@ -23,7 +23,7 @@ describe('renderPropertyName', () => {
                         value: faker.number.int(10)
                     },
                     [anotherPropertyKey]: {
-                        name: `{{${anotherPropertyKey}}}`,
+                        name: `{{${anotherPropertyKey}_name}}`,
                         value: faker.number.int(8)
                     }
                 }
@@ -31,7 +31,6 @@ describe('renderPropertyName', () => {
         };
         const result = renderPropertyName(tier as Tier);
         expect(result.metadata.properties[propertyKey].name).toEqual(tier.metadata.configs.alias[propertyKey]);
-        expect(result.metadata.properties[anotherPropertyKey].name.startsWith('{{')).toBeTruthy();
-        expect(result.metadata.properties[anotherPropertyKey].name.endsWith('}}')).toBeTruthy(); 
+        expect(result.metadata.properties[anotherPropertyKey].name).toEqual(anotherPropertyKey);
     });
 });

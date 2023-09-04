@@ -266,7 +266,7 @@ describe('TierService', () => {
                             value: faker.number.int(10)
                         },
                         [anotherPropertyKey]: {
-                            name: `{{${anotherPropertyKey}}}`,
+                            name: `{{${anotherPropertyKey}_name}}`,
                             value: faker.number.int(8)
                         }
                     }
@@ -275,8 +275,7 @@ describe('TierService', () => {
 
             const result = await service.getTier({ id: tier.id });
             expect(result.metadata.properties[propertyKey].name).toEqual(tier.metadata.configs.alias[propertyKey]);
-            expect(result.metadata.properties[anotherPropertyKey].name.startsWith('{{')).toBeTruthy();
-            expect(result.metadata.properties[anotherPropertyKey].name.endsWith('}}')).toBeTruthy();
+            expect(result.metadata.properties[anotherPropertyKey].name).toEqual(anotherPropertyKey);
         });
     });
 
@@ -393,7 +392,7 @@ describe('TierService', () => {
                             value: faker.number.int(10)
                         },
                         [anotherPropertyKey]: {
-                            name: `{{${anotherPropertyKey}}}`,
+                            name: `{{${anotherPropertyKey}_name}}`,
                             value: faker.number.int(8)
                         }
                     }
@@ -402,8 +401,7 @@ describe('TierService', () => {
 
             const result = await service.getTiers({ collection: { id: collection.id } });
             expect(result[0].metadata.properties[propertyKey].name).toEqual(tier.metadata.configs.alias[propertyKey]);
-            expect(result[0].metadata.properties[anotherPropertyKey].name.startsWith('{{')).toBeTruthy();
-            expect(result[0].metadata.properties[anotherPropertyKey].name.endsWith('}}')).toBeTruthy();
+            expect(result[0].metadata.properties[anotherPropertyKey].name).toEqual(anotherPropertyKey);
         });
     });
 
