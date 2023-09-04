@@ -43,16 +43,19 @@ export class Nft {
 @ObjectType('NftPropertyOverview')
 export class NftPropertyOverview {
     @IsString()
-    @Field({ description: 'The max value of the property appears in a collection.' })
-    readonly max: string;
+    @IsOptional()
+    @Field({ nullable: true,  description: 'The max value of the property appears in a collection.' })
+    readonly max?: string;
 
     @IsString()
-    @Field({ description: 'The min value of the property appears in a collection.' })
-    readonly min: string;
+    @IsOptional()
+    @Field({ nullable: true,  description: 'The min value of the property appears in a collection.' })
+    readonly min?: string;
 
     @IsString()
-    @Field({ description: 'The avg value of the property appears in a collection.' })
-    readonly avg: string;
+    @IsOptional()
+    @Field({ nullable: true, description: 'The avg value of the property appears in a collection.' })
+    readonly avg?: string;
 }
 
 @InputType()
