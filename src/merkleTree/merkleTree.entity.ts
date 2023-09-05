@@ -1,9 +1,9 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-export class MerkleData {
+type MerkleData = {
     address: string;
     amount: string;
-}
+};
 
 @Entity({ name: 'MerkleTree' })
 export class MerkleTree extends BaseEntity {

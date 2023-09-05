@@ -111,7 +111,7 @@ describe('PluginResolver', () => {
                 artists: [],
                 tags: [],
                 kind: CollectionKind.edition,
-                address: faker.finance.ethereumAddress()
+                address: faker.finance.ethereumAddress(),
             });
 
             await tierService.createTier({
@@ -122,7 +122,7 @@ describe('PluginResolver', () => {
                 paymentTokenAddress: coin.address,
                 tierId: 0,
                 metadata: {
-                    uses: [plugin2.name]
+                    uses: [plugin2.name],
                 },
             });
 
@@ -134,7 +134,7 @@ describe('PluginResolver', () => {
                 paymentTokenAddress: coin.address,
                 tierId: 0,
                 metadata: {
-                    uses: [plugin2.name]
+                    uses: [plugin2.name],
                 },
             });
 
@@ -145,7 +145,7 @@ describe('PluginResolver', () => {
                 artists: [],
                 tags: [],
                 kind: CollectionKind.edition,
-                address: faker.finance.ethereumAddress()
+                address: faker.finance.ethereumAddress(),
             });
 
             await tierService.createTier({
@@ -156,7 +156,7 @@ describe('PluginResolver', () => {
                 paymentTokenAddress: coin.address,
                 tierId: 0,
                 metadata: {
-                    uses: [plugin1.name]
+                    uses: [plugin1.name],
                 },
             });
 
@@ -168,7 +168,7 @@ describe('PluginResolver', () => {
                 paymentTokenAddress: coin.address,
                 tierId: 0,
                 metadata: {
-                    uses: [plugin2.name]
+                    uses: [plugin2.name],
                 },
             });
 
@@ -180,7 +180,7 @@ describe('PluginResolver', () => {
                 paymentTokenAddress: coin.address,
                 tierId: 0,
                 metadata: {
-                    uses: [plugin1.name, plugin2.name]
+                    uses: [plugin1.name, plugin2.name],
                 },
             });
 
@@ -211,10 +211,10 @@ describe('PluginResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.plugins.length).toEqual(2);
-                });  
+                });
         });
     });
-    
+
     describe('#installOnCollection', () => {
         let coin;
         let collection;
@@ -270,7 +270,7 @@ describe('PluginResolver', () => {
         it('should install the plugin on given collection', async () => {
             const message = 'installPluginOnCollection';
             const signature = await walletEntity.signMessage(message);
-            
+
             const plugin: Plugin = await pluginRepository.save({
                 name: faker.commerce.productName(),
                 displayName: faker.commerce.productName(),
@@ -307,7 +307,7 @@ describe('PluginResolver', () => {
                     },
                 },
             });
-            
+
             const tokenQuery = gql`
                 mutation CreateSession($input: CreateSessionInput!) {
                     createSession(input: $input) {
@@ -328,9 +328,7 @@ describe('PluginResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const query = gql`
                 mutation InstallOnCollection($input: InstallOnCollectionInput!) {
@@ -340,10 +338,12 @@ describe('PluginResolver', () => {
                 }
             `;
 
-            const variables = { 
+            const variables = {
                 input: {
-                    collectionId: collection.id, pluginId: plugin.id, metadata: {} 
-                }
+                    collectionId: collection.id,
+                    pluginId: plugin.id,
+                    metadata: {},
+                },
             };
 
             return await request(app.getHttpServer())
@@ -378,7 +378,7 @@ describe('PluginResolver', () => {
                 tags: [],
                 kind: CollectionKind.edition,
                 address: faker.finance.ethereumAddress(),
-                creator: { id: anotherWallet.id }
+                creator: { id: anotherWallet.id },
             });
 
             await tierService.createTier({
@@ -420,9 +420,7 @@ describe('PluginResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const query = gql`
                 mutation InstallOnCollection($input: InstallOnCollectionInput!) {
@@ -432,10 +430,12 @@ describe('PluginResolver', () => {
                 }
             `;
 
-            const variables = { 
+            const variables = {
                 input: {
-                    collectionId: anotherCollection.id, pluginId: plugin.id, metadata: {} 
-                }
+                    collectionId: anotherCollection.id,
+                    pluginId: plugin.id,
+                    metadata: {},
+                },
             };
 
             return await request(app.getHttpServer())
@@ -513,10 +513,12 @@ describe('PluginResolver', () => {
                     }
                 }
             `;
-            const variables = { 
+            const variables = {
                 input: {
-                    tierId: tier.id, pluginId: plugin.id, metadata: {} 
-                }
+                    tierId: tier.id,
+                    pluginId: plugin.id,
+                    metadata: {},
+                },
             };
 
             return await request(app.getHttpServer())

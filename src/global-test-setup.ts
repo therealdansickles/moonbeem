@@ -81,6 +81,8 @@ import { WaitlistService } from './waitlist/waitlist.service';
 import { Wallet } from './wallet/wallet.dto';
 import { WalletModule } from './wallet/wallet.module';
 import { WalletService } from './wallet/wallet.service';
+import { CollectionPluginModule } from './collectionPlugin/collectionPlugin.module';
+import { CollectionPluginService } from './collectionPlugin/collectionPlugin.service';
 
 @Resolver()
 export class TestResolver {
@@ -92,8 +94,8 @@ export class TestResolver {
 
 export default async () => {
     // Should abort if it's not a local database
-    if ((!postgresConfig.url.includes('localhost') && !postgresConfig.url.includes('127.0.0.1')) || 
-        (!postgresConfig.syncChain.url.includes('localhost') && !postgresConfig.syncChain.url.includes('127.0.0.1'))) {
+    if ((!postgresConfig.url.includes('localhost') && !postgresConfig.url.includes('127.0.0.1')) ||
+        ( !postgresConfig.syncChain.url.includes('localhost')&& !postgresConfig.syncChain.url.includes('127.0.0.1'))) {
         throw new Error('You are not running tests on a local database. Aborting.');
     }
     const module = await Test.createTestingModule({
@@ -138,6 +140,7 @@ export default async () => {
             WaitlistModule,
             MerkleTreeModule,
             TestResolver,
+            CollectionPluginModule,
             // import sync modules
             Asset721Module,
             CoinModule,
@@ -194,6 +197,7 @@ export default async () => {
     global.openseaService = module.get<OpenseaService>(OpenseaService);
     global.coinmarketcapService = module.get<CoinMarketCapService>(CoinMarketCapService);
     global.jwtService = module.get<JwtService>(JwtService);
+    global.collectionPluginService = module.get<CollectionPluginService>(CollectionPluginService);
 
     // platform controller
     global.alchemyController = module.get<AlchemyController>(AlchemyController);
@@ -223,6 +227,7 @@ export default async () => {
     global.relationshipRepository = module.get('RelationshipRepository');
     global.collaborationRepository = module.get('CollaborationRepository');
     global.merkleTreeRepository = module.get('MerkleTreeRepository');
+    global.collectionPluginRepository = module.get('CollectionPluginRepository');
 
     // sync chain repositories
     global.asset721Repository = module.get('sync_chain_Asset721Repository');
@@ -267,6 +272,7 @@ async function clearDatabase() {
     await global.userRepository.query('TRUNCATE TABLE "User" CASCADE;');
     await global.walletRepository.query('TRUNCATE TABLE "Wallet" CASCADE;');
     await global.pluginRepository.query('TRUNCATE TABLE "Plugin" CASCADE;');
+    await global.collectionPluginRepository.query('TRUNCATE TABLE "CollectionPlugin" CASCADE;');
 
     // sync chain database clear
     await global.asset721Repository.query('TRUNCATE TABLE "Asset721" CASCADE;');

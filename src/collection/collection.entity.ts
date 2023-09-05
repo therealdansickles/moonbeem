@@ -1,7 +1,14 @@
 import { Exclude } from 'class-transformer';
 import {
-    BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany,
-    PrimaryGeneratedColumn, UpdateDateColumn
+    BaseEntity,
+    Column,
+    CreateDateColumn,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn
 } from 'typeorm';
 
 import { Collaboration } from '../collaboration/collaboration.entity';
@@ -11,6 +18,7 @@ import { Organization } from '../organization/organization.entity';
 import { Redeem } from '../redeem/redeem.entity';
 import { Tier } from '../tier/tier.entity';
 import { Wallet } from '../wallet/wallet.entity';
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
 
 // see https://stackoverflow.com/questions/55598213/enums-not-working-with-nestjs-and-graphql
 export enum CollectionKind {
@@ -74,8 +82,7 @@ export class Collection extends BaseEntity {
     @Column('text', {
         default: [],
         array: true,
-        comment:
-            'This is going to change later as a stronger, association between our `User`. The list of artists attached to the collection.',
+        comment: 'This is going to change later as a stronger, association between our `User`. The list of artists attached to the collection.',
     })
     readonly artists?: string[];
 
@@ -115,8 +122,7 @@ export class Collection extends BaseEntity {
 
     @Column({
         nullable: true,
-        comment:
-            "Temporary field for store collection name in Opensea, while we can't retrieve collection stat by address",
+        comment: "Temporary field for store collection name in Opensea, while we can't retrieve collection stat by address",
     })
     readonly nameOnOpensea?: string;
 
@@ -128,6 +134,9 @@ export class Collection extends BaseEntity {
 
     @Column({ nullable: true, comment: 'The DateTime when the collection was launched.' })
     readonly publishedAt?: Date;
+
+    @OneToMany(() => CollectionPlugin, (collectionPlugin) => collectionPlugin.collection, { nullable: true })
+    readonly plugins: CollectionPlugin[];
 
     @CreateDateColumn()
     @Exclude()

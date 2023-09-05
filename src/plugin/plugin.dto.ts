@@ -63,7 +63,7 @@ export class InstallOnCollectionInput {
 
     @IsObject()
     @IsOptional()
-    @Field(() => GraphQLJSONObject, { nullable: true, description: 'The customized metadata need to be installed on chosen tier. '})
+    @Field(() => GraphQLJSONObject, { nullable: true, description: 'The customized metadata need to be installed on chosen collection. ' })
     readonly metadata?: MetadataInput;
 }
 
@@ -79,6 +79,6 @@ export class InstallOnTierInput {
 
     @IsObject()
     @IsOptional()
-    @Field(() => GraphQLJSONObject, { nullable: true, description: 'The customized metadata need to be installed on chosen tier. '})
+    @Field(() => GraphQLJSONObject, { nullable: true, description: 'The customized metadata need to be installed on chosen tier. ' })
     readonly metadata?: MetadataInput;
 }

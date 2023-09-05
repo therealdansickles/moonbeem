@@ -37,6 +37,7 @@ import { UserModule } from './user/user.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { WalletModule } from './wallet/wallet.module';
 import { SessionInterceptor } from './session/session.interceptor';
+import { CollectionPluginModule } from './collectionPlugin/collectionPlugin.module';
 
 dotenv.config();
 
@@ -66,6 +67,7 @@ dotenv.config();
         PluginModule,
         AlchemyModule,
         MerkleTreeModule,
+        CollectionPluginModule,
         // integration graphql
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver, // GraphQL server adapter

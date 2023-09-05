@@ -15,6 +15,8 @@ import { CreateMembershipInput } from './membership/membership.dto';
 import { gql } from './user/user.resolver.spec';
 import * as request from 'supertest';
 import { INestApplication } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { Plugin } from './plugin/plugin.entity';
 
 export const createCoin = async (coinService: CoinService, coin?: any) =>
     coinService.createCoin({
@@ -151,6 +153,17 @@ export const createHistory721 = async (service: History721Service, history?: any
         receiver: faker.finance.ethereumAddress(),
         kind: History721Type.unknown,
         ...history,
+    });
+
+export const createPlugin = async (repo: Repository<Plugin>, plugin?: any) =>
+    repo.save({
+        name: faker.commerce.productName(),
+        displayName: faker.commerce.productName(),
+        description: faker.commerce.productDescription(),
+        author: faker.commerce.department(),
+        version: faker.git.commitSha(),
+        isPublished: false,
+        ...plugin,
     });
 
 /**

@@ -16,7 +16,7 @@ export class PluginResolver {
     constructor(
         private readonly pluginService: PluginService,
         private readonly collectionService: CollectionService,
-        private readonly tierService: TierService,
+        private readonly tierService: TierService
     ) {}
 
     @Public()
@@ -47,16 +47,16 @@ export class PluginResolver {
         const collection = await this.collectionService.getCollection(input.collectionId);
         if (!collection) throw new GraphQLError(`Collection ${input.collectionId} doesn't exsit.`);
 
-        const tiers = await this.tierService.getTiers({ collection: { id: input.collectionId }});
-        if (!tiers || tiers.length === 0)  throw new GraphQLError(`Collection ${input.collectionId} doesn't have tiers.`);
-        
+        const tiers = await this.tierService.getTiers({ collection: { id: input.collectionId } });
+        if (!tiers || tiers.length === 0) throw new GraphQLError(`Collection ${input.collectionId} doesn't have tiers.`);
+
         const plugin = await this.pluginService.getPlugin(input.pluginId);
         if (!plugin) throw new GraphQLError(`Plugin ${input.pluginId} doesn't exist.`);
 
-        const promises = tiers.map(tier => this.pluginService.installOnTier({ tier, plugin, customizedMetadataParameters: input.metadata }));
+        const promises = tiers.map((tier) => this.pluginService.installOnTier({ tier, plugin, customizedMetadataParameters: input.metadata }));
         return Promise.all(promises);
     }
- 
+
     @Mutation(() => Tier)
     async installOnTier(@Args('input') input: InstallOnTierInput) {
         const tier = await this.tierService.getTier({ id: input.tierId });

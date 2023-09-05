@@ -1,5 +1,4 @@
 import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
-
 import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
@@ -30,6 +29,7 @@ import { WaitlistModule } from './waitlist/waitlist.module';
 import { WalletModule } from './wallet/wallet.module';
 import { CoinMarketCapModule } from './coinmarketcap/coinmarketcap.module';
 import { SessionInterceptor } from './session/session.interceptor';
+import { CollectionPluginModule } from './collectionPlugin/collectionPlugin.module';
 
 dotenv.config();
 
@@ -56,6 +56,7 @@ dotenv.config();
         MoonpayModule,
         SaleHistoryModule,
         PluginModule,
+        CollectionPluginModule,
         TypeOrmModule.forRoot({
             name: 'default',
             type: 'postgres',
