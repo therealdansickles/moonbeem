@@ -10,10 +10,21 @@ import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { Nft as NftDto } from './nft.dto';
 import { Nft } from './nft.entity';
 
-export type INftQuery = 
-    | { id: string }
-    | { collection: { id: string }, tokenId: string; }
-    | { tier: { id: string }, tokenId: string };
+interface INFTQueryWithId {
+    id: string
+}
+
+interface INftQueryWithCollection {
+    collection: { id: string };
+    tokenId: string;
+}
+
+interface INftQueryWithTier {
+    tier: { id: string };
+    tokenId: string;
+}
+
+export type INftQuery = INFTQueryWithId | INftQueryWithCollection | INftQueryWithTier;
 
 interface INftListQueryWithIds {
     ids: string[];
@@ -30,10 +41,7 @@ interface INftListQueryWithTier {
 }
 
 
-export type INftListQuery = 
-    | INftListQueryWithIds
-    | INftListQueryWithCollection
-    | INftListQueryWithTier
+export type INftListQuery = INftListQueryWithIds | INftListQueryWithCollection | INftListQueryWithTier;
 
 export type INftWithPropertyAndCollection = {
     collection: { id: string };
@@ -67,6 +75,15 @@ export class NftService {
             for (const key in (metadata as Metadata).properties) {
                 if (metadata.properties[key].name === '') metadata.properties[key].name = key;
             }
+            // attach image on metadata with the priority below
+            // 1. NFT's own image property
+            // 2. `image` attribute on tier
+            // 3. none
+            if (nft.properties.image && nft.properties.image.value) {
+                metadata.image = nft.properties.image.value;
+            } else if (nft.tier?.image) {
+                metadata.image = nft.tier.image;
+            }
             result.metadata = metadata;
         }
         return result;
@@ -81,17 +98,6 @@ export class NftService {
     async getNft(query: INftQuery) {
         const nft = await this.nftRepository.findOne({ where: query, relations: ['collection', 'tier'] });
         return this.renderMetadata(nft);
-    }
-
-    /**
-     * @deprecated
-     * get NFT info by criteria, just use `getNft` function
-     *
-     * @param query
-     * @returns
-     */
-    async getNftByQuery(query: INftQuery) {
-        return await this.nftRepository.findOneBy(query);
     }
 
     /**
@@ -123,6 +129,12 @@ export class NftService {
         return nfts;
     }
 
+    /**
+     * get NFT metadata overview
+     * 
+     * @param query
+     * @returns
+     */
     async getOverviewByCollectionAndProperty(query: INftWithPropertyAndCollection) {
         return await this.nftRepository.createQueryBuilder('nft')
             .leftJoinAndSelect('nft.collection', 'collection')
