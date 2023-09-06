@@ -157,7 +157,8 @@ export class NftService {
         if ((query as INftListQueryWithIds).ids) where.id = In([...(query as INftListQueryWithIds).ids]);
         if ((query as INftListQueryWithCollection | INftListQueryWithTier).tokenIds) where.tokenId = In([...(query as INftListQueryWithCollection | INftListQueryWithTier).tokenIds]);
 
-        return await this.nftRepository.findBy(where);
+        const nfts = await this.nftRepository.findBy(where);
+        return (nfts || []).map(nft => this.renderMetadata(nft));
     }
 
     /**
