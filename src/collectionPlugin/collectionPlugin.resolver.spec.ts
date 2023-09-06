@@ -162,5 +162,78 @@ describe('MerkleTreeResolver', () => {
                     expect(body.data.collectionPlugins.length).toEqual(2);
                 });
         });
+
+        it('should update collection plugin', async () => {
+            const createCollectionPluginInput = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: faker.company.name(),
+                pluginDetail: {
+                    properties: {
+                        Color: 'red',
+                    },
+                    recipients: ['1', '2'],
+                    filters: {
+                        Color: 'red',
+                    },
+                },
+            };
+            const collectionPlugin = await collectionPluginService.createCollectionPlugin(createCollectionPluginInput);
+            const id = collectionPlugin.id;
+            const input = {
+                id,
+                name: faker.company.name(),
+                description: faker.lorem.sentence(),
+                mediaUrl: faker.internet.url(),
+                pluginDetail: {
+                    properties: {
+                        Color: 'Green',
+                    },
+                    recipients: ['2', '5'],
+                    filters: {
+                        Color: 'Green',
+                    },
+                    contract: faker.finance.ethereumAddress(),
+                },
+                merkleRoot: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
+            };
+
+            const query = gql`
+                mutation UpdateCollectionPlugin($input: UpdateCollectionPluginInput!) {
+                    updateCollectionPlugin(input: $input) {
+                        name
+                        description
+                        mediaUrl
+                        pluginDetail
+                        merkleRoot
+                        plugin {
+                            name
+                        }
+                        collection {
+                            name
+                        }
+                    }
+                }
+            `;
+            const variables = { input };
+            const token = await getToken(app, user.email);
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    const updatedCollectionPlugin = body.data.updateCollectionPlugin;
+                    expect(updatedCollectionPlugin).toBeDefined();
+                    expect(updatedCollectionPlugin.name).toBe(input.name);
+                    expect(updatedCollectionPlugin.description).toBe(input.description);
+                    expect(updatedCollectionPlugin.mediaUrl).toBe(input.mediaUrl);
+                    expect(updatedCollectionPlugin.pluginDetail).toStrictEqual(input.pluginDetail);
+                    expect(updatedCollectionPlugin.merkleRoot).toBe(input.merkleRoot);
+                    expect(updatedCollectionPlugin.plugin.name).toBe(plugin.name);
+                    expect(updatedCollectionPlugin.collection.name).toBe(collection.name);
+                });
+        });
     });
 });

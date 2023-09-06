@@ -129,4 +129,67 @@ describe('CollectionPluginService', () => {
             expect(result.length).toEqual(2);
         });
     });
+
+    describe('getCollectionPlugin[s]', () => {
+        let collection;
+        let plugin;
+        let collectionPlugin;
+
+        beforeEach(async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await createOrganization(organizationService, { owner: user });
+            collection = await createCollection(collectionService, { organization });
+            plugin = await createPlugin(pluginRepository, { organization });
+            const input = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: 'test collection plugin',
+                pluginDetail: {
+                    properties: {
+                        Color: 'red',
+                    },
+                    recipients: ['1', '2'],
+                    filters: {
+                        Color: 'red',
+                    },
+                },
+            };
+            collectionPlugin = await service.createCollectionPlugin(input);
+        });
+
+        it('should update a collection plugin', async () => {
+            const id = collectionPlugin.id;
+            const input = {
+                id,
+                name: faker.company.name(),
+                description: faker.lorem.sentence(),
+                mediaUrl: faker.internet.url(),
+                pluginDetail: {
+                    properties: {
+                        Color: 'Green',
+                    },
+                    recipients: ['2', '5'],
+                    filters: {
+                        Color: 'Green',
+                    },
+                    contract: faker.finance.ethereumAddress(),
+                },
+                merkleRoot: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
+            };
+            const updatedCollectionPlugin = await service.updateCollectionPlugin(input);
+
+            expect(updatedCollectionPlugin).toBeDefined();
+            expect(updatedCollectionPlugin.id).toEqual(id);
+            expect(updatedCollectionPlugin.name).toEqual(input.name);
+            expect(updatedCollectionPlugin.description).toEqual(input.description);
+            expect(updatedCollectionPlugin.mediaUrl).toEqual(input.mediaUrl);
+            expect(updatedCollectionPlugin.pluginDetail).toEqual(input.pluginDetail);
+            expect(updatedCollectionPlugin.merkleRoot).toEqual(input.merkleRoot);
+        });
+    });
 });

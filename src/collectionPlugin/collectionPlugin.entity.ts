@@ -23,7 +23,7 @@ export class CollectionPlugin extends BaseEntity {
         type: 'jsonb',
         comment: 'Recipient filters',
     })
-        pluginDetail: PluginDetail;
+    readonly pluginDetail: PluginDetail;
 
     @ManyToOne(() => Collection, (collection) => collection.plugins, {
         createForeignKeyConstraints: false,
@@ -35,8 +35,8 @@ export class CollectionPlugin extends BaseEntity {
     })
     readonly plugin: Plugin;
 
-    @Column({ default: '', comment: 'merkle root for the recipients' })
-        merkleRoot?: string;
+    @Column({ nullable: true, comment: 'merkle root for the recipients' })
+    readonly merkleRoot?: string;
 
     @CreateDateColumn()
     readonly createdAt: Date;

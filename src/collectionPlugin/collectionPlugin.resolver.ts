@@ -1,4 +1,4 @@
-import { CollectionPlugin, CreateCollectionPluginInput } from './collectionPlugin.dto';
+import { CollectionPlugin, CreateCollectionPluginInput, UpdateCollectionPluginInput } from './collectionPlugin.dto';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { CollectionPluginService } from './collectionPlugin.service';
 import { Public } from '../session/session.decorator';
@@ -16,5 +16,10 @@ export class CollectionPluginResolver {
     @Mutation(() => CollectionPlugin)
     async createCollectionPlugin(@Args('input') input: CreateCollectionPluginInput): Promise<CollectionPlugin> {
         return await this.collectionPluginService.createCollectionPlugin(input);
+    }
+
+    @Mutation(() => CollectionPlugin)
+    async updateCollectionPlugin(@Args('input') input: UpdateCollectionPluginInput): Promise<CollectionPlugin> {
+        return await this.collectionPluginService.updateCollectionPlugin(input);
     }
 }

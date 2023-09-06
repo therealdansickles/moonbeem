@@ -2,7 +2,7 @@ import { Collection as CollectionEntity } from '../collection/collection.entity'
 import { CollectionPlugin as CollectionPluginEntity } from '../collectionPlugin/collectionPlugin.entity';
 import { Plugin as PluginEntity } from '../plugin/plugin.entity';
 
-import { CollectionPlugin, CreateCollectionPluginInput } from './collectionPlugin.dto';
+import { CollectionPlugin, CreateCollectionPluginInput, UpdateCollectionPluginInput } from './collectionPlugin.dto';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
@@ -35,6 +35,19 @@ export class CollectionPluginService {
         });
 
         return (await this.collectionPluginRepository.save(collectionPlugin)) as CollectionPlugin;
+    }
+
+    async updateCollectionPlugin(updateCollectionPluginInput: UpdateCollectionPluginInput): Promise<CollectionPlugin> {
+        const { id, pluginDetail, ...others } = updateCollectionPluginInput;
+        const current = await this.collectionPluginRepository.findOne({ where: { id } });
+        if (!current) throw new Error(`CollectionPlugin ${id} doesn't exist.`);
+        const newCollectionPlugin = this.collectionPluginRepository.create({
+            ...current,
+            pluginDetail,
+            ...others,
+        });
+        await this.collectionPluginRepository.update(id, newCollectionPlugin);
+        return this.getCollectionPlugin(id);
     }
 
     async getCollectionPlugin(id: string): Promise<CollectionPlugin> {

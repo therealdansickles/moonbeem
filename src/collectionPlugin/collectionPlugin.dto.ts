@@ -101,7 +101,7 @@ export class CreateCollectionPluginInput extends OmitType(CollectionPlugin, ['id
 }
 
 @InputType()
-export class UpdateCollectionPluginInput extends CreateCollectionPluginInput {
+export class UpdateCollectionPluginInput extends OmitType(CreateCollectionPluginInput, ['collectionId', 'pluginId'], InputType) {
     @IsString()
     @Field({ description: 'The id of the collection plugin.' })
     readonly id: string;
