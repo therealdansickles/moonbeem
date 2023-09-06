@@ -1,10 +1,5 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-type MerkleData = {
-    address: string;
-    amount: string;
-};
-
 @Entity({ name: 'MerkleTree' })
 export class MerkleTree extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
@@ -14,7 +9,7 @@ export class MerkleTree extends BaseEntity {
     readonly merkleRoot: string;
 
     @Column({ type: 'jsonb', default: [], comment: 'The merkle data for the merkle tree.' })
-    readonly data: MerkleData[];
+    readonly data: any[];
 
     @CreateDateColumn()
     readonly createdAt: Date;

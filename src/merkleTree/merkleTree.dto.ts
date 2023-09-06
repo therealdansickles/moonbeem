@@ -1,5 +1,6 @@
 import { Field, InputType, Int, ObjectType, OmitType } from '@nestjs/graphql';
 import { IsArray, IsDateString, IsNumber, IsNumberString, IsObject, IsString } from 'class-validator';
+import JSON from 'graphql-type-json';
 
 @ObjectType()
 export class MerkleDataOutput {
@@ -62,8 +63,45 @@ export class MerkleProofOutput {
     @Field(() => Int, {
         nullable: true,
         defaultValue: 0,
-        description: 'Given merekleRoot and collection, return the number of available',
+        description: 'Given merkleRoot and collection, return the number of available',
     })
     @IsNumber()
     readonly usable?: number;
+}
+
+@InputType('CreateGeneralMerkleRootInput')
+export class CreateGeneralMerkleRootInput {
+    @IsArray()
+    @Field(() => [JSON], { description: 'Create data for merkle.' })
+    readonly data: object[];
+
+    @IsString()
+    @Field(() => String, { description: 'Type for this merkle tree.' })
+    readonly type: string;
+}
+
+@InputType('GetGeneralMerkleProofInput')
+export class GetGeneralMerkleProofInput {
+    @IsString()
+    @Field(() => String, { description: 'Type for this merkle tree.' })
+    readonly type: string;
+
+    @IsString()
+    @Field({ description: 'The merkle root for the merkle tree.', nullable: true })
+    readonly merkleRoot?: string;
+
+    @IsObject()
+    @Field(() => JSON, { description: 'Leaf data for the merkle tree.' })
+    readonly leafData: object;
+}
+
+@ObjectType()
+export class GeneralMerkleProofOutput {
+    @IsArray()
+    @Field(() => [String], { description: 'Merkle proof.' })
+    readonly proof: string[];
+
+    @IsObject()
+    @Field(() => JSON, { description: 'Leaf data for the merkle proof' })
+    readonly leafData: object;
 }

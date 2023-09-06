@@ -123,4 +123,83 @@ describe('MerkleTreeResolver', () => {
                 });
         });
     });
+
+    describe('GeneralMerkleTree', () => {
+        it('should create merkle tree', async () => {
+            const type = 'recipients';
+            const data = [
+                {
+                    tokenId: faker.number.int({ max: 1000, min: 1 }),
+                    quantity: faker.number.int({ max: 1000, min: 1 }),
+                },
+            ];
+            const input = {
+                type,
+                data,
+            };
+
+            const query = gql`
+                mutation CreateGeneralMerkleTree($input: CreateGeneralMerkleRootInput!) {
+                    createGeneralMerkleTree(input: $input) {
+                        merkleRoot
+                    }
+                }
+            `;
+            const variables = { input };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.createGeneralMerkleTree).toBeDefined();
+                    expect(body.data.createGeneralMerkleTree.merkleRoot).toBeDefined();
+                });
+        });
+
+        it('should get merkle tree proof', async () => {
+            const type = 'recipients';
+            const leafData = {
+                tokenId: faker.number.int({ max: 1000, min: 1 }),
+                quantity: faker.number.int({ max: 1000, min: 1 }),
+            };
+            const data = [
+                leafData,
+                {
+                    tokenId: faker.number.int({ max: 1000, min: 1 }),
+                    quantity: faker.number.int({ max: 1000, min: 1 }),
+                },
+                {
+                    tokenId: faker.number.int({ max: 1000, min: 1 }),
+                    quantity: faker.number.int({ max: 1000, min: 1 }),
+                },
+            ];
+
+            const merkleTree = await service.createGeneralMerkleTree(type, data);
+            const merkleRoot = merkleTree.merkleRoot;
+            const input = {
+                merkleRoot,
+                type,
+                leafData,
+            };
+
+            const query = gql`
+                query GetGeneralMerkleProof($input: GetGeneralMerkleProofInput!) {
+                    getGeneralMerkleProof(input: $input) {
+                        proof
+                    }
+                }
+            `;
+            const variables = { input };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.getGeneralMerkleProof).toBeDefined();
+                    expect(body.data.getGeneralMerkleProof.proof).not.toEqual([]);
+                });
+        });
+    });
 });
