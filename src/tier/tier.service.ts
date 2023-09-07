@@ -9,6 +9,7 @@ import { captureException } from '@sentry/node';
 
 import { Collection, CollectionKind } from '../collection/collection.entity';
 import { MetadataPropertySearchInput } from '../metadata/metadata.dto';
+import { MetadataPropertyClass } from '../metadata/metadata.entity';
 import { cursorToStrings, fromCursor, PaginatedImp, stringsToCursor, toPaginated } from '../pagination/pagination.utils';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Coin } from '../sync-chain/coin/coin.entity';
@@ -475,12 +476,13 @@ export class TierService {
             tier = renderPropertyName(tier);
             if (tier.metadata) {
                 if (tier.metadata.properties) {
-                    Object.entries(tier.metadata.properties).forEach(([, value]) => {
+                    for (const [, value] of Object.entries(tier.metadata.properties)) {
+                        if (value.class === MetadataPropertyClass.UPGRADABLE || value.display_value === 'none') continue;
                         if (!attributes[value.name]) attributes[value.name] = {};
                         attributes[value.name][value.value]
                             ? attributes[value.name][value.value]++
                             : (attributes[value.name][value.value] = 1);
-                    });
+                    }
                 }
 
                 if (tier.metadata.conditions) {

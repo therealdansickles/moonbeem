@@ -1,9 +1,13 @@
+export const enum MetadataPropertyClass {
+    UPGRADABLE = 'upgradable'
+}
+
 export class MetadataProperty {
     name: string;
     type: string;
     value: any;
     display_value?: string;
-    class?: string;
+    class?: MetadataPropertyClass;
     updated_at?: number;
 }
 

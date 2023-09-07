@@ -508,17 +508,24 @@ describe('TierService', () => {
                         }
                     },
                     properties: {
+                        color: {
+                            type: 'string',
+                            value: 'white',
+                            display_value: 'white',
+                        },
                         level: {
                             name: '{{level_name}}',
                             type: 'string',
                             value: 'basic',
                             display_value: 'Basic',
+                            class: 'upgradable',
                         },
                         holding_days: {
                             name: 'holding_days',
                             type: 'integer',
                             value: 125,
                             display_value: 'Days of holding',
+                            class: 'upgradable',
                         },
                     },
                     conditions: {
@@ -729,33 +736,164 @@ describe('TierService', () => {
             expect(previousPage.edges.length).toEqual(10);
             expect(previousPage.pageInfo.endCursor).toEqual(firstPage.pageInfo.startCursor);
         });
+    });
 
-        it('should get attribute overview by collection address', async () => {
-            const result = await service.getAttributesOverview({ collectionAddress } );
-            expect(result).toBeDefined();
-            expect(result.attributes).toBeDefined();
-            expect(result.attributes[propertyLevelName]).toBeDefined();
-            expect(result.attributes[propertyLevelName]['basic']).toEqual(1);
+    describe('getHoldersOfTier', () => {
+        const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
+        const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
+        const tierName = 'Test Tier';
+        const propertyLevelName = faker.lorem.word(10);
+        let innerCollection: Collection;
+        let draftCollection: Collection;
+        let coin;
 
-            expect(result.upgrades).toBeDefined();
-            expect(result.upgrades['level']).toEqual(1);
+        beforeEach(async () => {
+            coin = await createCoin(coinService);
+            innerCollection = await createCollection(collectionService, {
+                address: collectionAddress,
+                tokenAddress: tokenAddress,
+            });
 
-            expect(result.plugins).toBeDefined();
-            expect(result.plugins['vibexyz/creator_scoring']).toEqual(1);
-        });
+            draftCollection = await createCollection(collectionService, {
+                displayName: 'The draft collection',
+                about: 'The draft collection',
+                address: null,
+            });
 
-        xit('should get attribute overview by collection slug', async () => {
-            const result = await service.getAttributesOverview({ collectionSlug: innerCollection.slug } );
-            expect(result).toBeDefined();
-            expect(result.attributes).toBeDefined();
-            expect(result.attributes['level']).toBeDefined();
-            expect(result.attributes['level']['basic']).toEqual(1);
+            await createTier(service, {
+                name: tierName,
+                collection: { id: innerCollection.id },
+                paymentTokenAddress: coin.address,
+                metadata: {
+                    uses: ['vibexyz/creator_scoring', 'vibexyz/royalty_level'],
+                    configs: {
+                        alias: {
+                            level_name: propertyLevelName
+                        }
+                    },
+                    properties: {
+                        color: {
+                            type: 'string',
+                            value: 'white',
+                            display_value: 'white',
+                        },
+                        level: {
+                            name: '{{level_name}}',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                            class: 'upgradable',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                            class: 'upgradable',
+                        },
+                    },
+                    conditions: {
+                        operator: 'and',
+                        rules: [
+                            {
+                                rule: 'greater_than',
+                                value: -1,
+                                update: [{ value: '1', property: 'holding_days' }],
+                                property: 'holding_days',
+                            },
+                            {
+                                rule: 'greater_than',
+                                value: 10,
+                                update: [{ value: 'Bronze', property: 'level' }],
+                                property: 'holding_days',
+                            },
+                        ],
+                        trigger: [
+                            {
+                                type: 'schedule',
+                                updatedAt: faker.date.past().toISOString(),
+                                config: {
+                                    startAt: faker.date.past().toISOString(),
+                                    endAt: faker.date.future().toISOString(),
+                                    every: +faker.string.numeric({ length: 1, allowLeadingZeros: false }),
+                                    unit: 'minute',
+                                },
+                            },
+                        ],
+                    },
+                },
+            });
 
-            expect(result.upgrades).toBeDefined();
-            expect(result.upgrades['level']).toEqual(1);
+            await createTier(service, {
+                collection: { id: innerCollection.id },
+                paymentTokenAddress: coin.address,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        color: {
+                            name: 'color',
+                            type: 'string',
+                            value: 'red',
+                            display_value: 'Red',
+                        },
+                    },
+                },
+            });
 
-            expect(result.plugins).toBeDefined();
-            expect(result.plugins['vibexyz/creator_scoring']).toEqual(1);
+            await createTier(service, {
+                collection: { id: draftCollection.id },
+                paymentTokenAddress: coin.address,
+            });
+
+            await createMintSaleContract(mintSaleContractService, {
+                address: collectionAddress,
+                tokenAddress: tokenAddress,
+                collectionId: innerCollection.id,
+            });
+
+            const owner1 = faker.finance.ethereumAddress().toLowerCase();
+            await walletService.createWallet({ address: owner1 });
+            const tokenId1 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
+
+            const owner2 = faker.finance.ethereumAddress().toLowerCase();
+            await walletService.createWallet({ address: owner2 });
+            const tokenId2 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
+            const tokenId3 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
+
+            await createAsset721(asset721Service, {
+                address: tokenAddress,
+                tokenId: tokenId1,
+                owner: owner1,
+            });
+            await createAsset721(asset721Service, {
+                address: tokenAddress,
+                tokenId: tokenId2,
+                owner: owner2,
+            });
+            await createAsset721(asset721Service, {
+                address: tokenAddress,
+                tokenId: tokenId3,
+                owner: owner2,
+            });
+
+            await createMintSaleTransaction(mintSaleTransactionService, {
+                recipient: owner1,
+                address: collectionAddress,
+                tokenAddress: tokenAddress,
+                tokenId: tokenId1,
+            });
+            await createMintSaleTransaction(mintSaleTransactionService, {
+                recipient: owner2,
+                address: collectionAddress,
+                tokenAddress: tokenAddress,
+                tokenId: tokenId2,
+            });
+            await createMintSaleTransaction(mintSaleTransactionService, {
+                recipient: owner2,
+                address: collectionAddress,
+                tokenAddress: tokenAddress,
+                tokenId: tokenId3,
+            });
         });
 
         xit('should search by keyword and collection id', async () => {
@@ -874,6 +1012,185 @@ describe('TierService', () => {
             expect(result).toBeDefined();
             expect(result.totalCount).toEqual(2);
             expect(result.edges.length).toBe(2);
+        });
+    });
+
+    describe('getAttributesOverview', () => {
+        const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
+        const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
+        const tierName = 'Test Tier';
+        const propertyLevelName = faker.lorem.word(10);
+        let innerCollection: Collection;
+        let draftCollection: Collection;
+        let coin;
+
+        beforeEach(async () => {
+            coin = await createCoin(coinService);
+            innerCollection = await createCollection(collectionService, {
+                address: collectionAddress,
+                tokenAddress: tokenAddress,
+            });
+
+            draftCollection = await createCollection(collectionService, {
+                displayName: 'The draft collection',
+                about: 'The draft collection',
+                address: null,
+            });
+            
+            await createTier(service, {
+                name: tierName,
+                collection: { id: innerCollection.id },
+                paymentTokenAddress: coin.address,
+                metadata: {
+                    uses: ['vibexyz/creator_scoring', 'vibexyz/royalty_level'],
+                    configs: {
+                        alias: {
+                            level_name: propertyLevelName
+                        }
+                    },
+                    properties: {
+                        color: {
+                            name: 'color',
+                            type: 'string',
+                            value: 'white',
+                            display_value: 'white',
+                        },
+                        level: {
+                            name: '{{level_name}}',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                            class: 'upgradable',
+                        },
+                        hidden_property: {
+                            name: 'hidden_property',
+                            type: 'string',
+                            value: 'hidden',
+                            display_value: 'none'
+                        },
+                    },
+                    conditions: {
+                        operator: 'and',
+                        rules: [
+                            {
+                                rule: 'greater_than',
+                                value: -1,
+                                update: [{ value: '1', property: 'holding_days' }],
+                                property: 'holding_days',
+                            },
+                            {
+                                rule: 'greater_than',
+                                value: 10,
+                                update: [{ value: 'Bronze', property: 'level' }],
+                                property: 'holding_days',
+                            },
+                        ],
+                        trigger: [
+                            {
+                                type: 'schedule',
+                                updatedAt: faker.date.past().toISOString(),
+                                config: {
+                                    startAt: faker.date.past().toISOString(),
+                                    endAt: faker.date.future().toISOString(),
+                                    every: +faker.string.numeric({ length: 1, allowLeadingZeros: false }),
+                                    unit: 'minute',
+                                },
+                            },
+                        ],
+                    },
+                },
+            });
+
+            await createTier(service, {
+                collection: { id: draftCollection.id },
+                paymentTokenAddress: coin.address,
+            });
+
+            await createMintSaleContract(mintSaleContractService, {
+                address: collectionAddress,
+                tokenAddress: tokenAddress,
+                collectionId: innerCollection.id,
+            });
+
+            const owner1 = faker.finance.ethereumAddress().toLowerCase();
+            await walletService.createWallet({ address: owner1 });
+            const tokenId1 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
+
+            const owner2 = faker.finance.ethereumAddress().toLowerCase();
+            await walletService.createWallet({ address: owner2 });
+            const tokenId2 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
+            const tokenId3 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
+
+            await createAsset721(asset721Service, {
+                address: tokenAddress,
+                tokenId: tokenId1,
+                owner: owner1,
+            });
+            await createAsset721(asset721Service, {
+                address: tokenAddress,
+                tokenId: tokenId2,
+                owner: owner2,
+            });
+            await createAsset721(asset721Service, {
+                address: tokenAddress,
+                tokenId: tokenId3,
+                owner: owner2,
+            });
+
+            await createMintSaleTransaction(mintSaleTransactionService, {
+                recipient: owner1,
+                address: collectionAddress,
+                tokenAddress: tokenAddress,
+                tokenId: tokenId1,
+            });
+            await createMintSaleTransaction(mintSaleTransactionService, {
+                recipient: owner2,
+                address: collectionAddress,
+                tokenAddress: tokenAddress,
+                tokenId: tokenId2,
+            });
+            await createMintSaleTransaction(mintSaleTransactionService, {
+                recipient: owner2,
+                address: collectionAddress,
+                tokenAddress: tokenAddress,
+                tokenId: tokenId3,
+            });
+        });
+
+        it('should get attribute overview by collection address', async () => {
+            const result = await service.getAttributesOverview({ collectionAddress });
+            expect(result).toBeDefined();
+            expect(result.attributes).toBeDefined();
+            expect(Object.keys(result.attributes).length).toEqual(1);
+            expect(result.attributes['color']).toBeDefined();
+            expect(result.attributes['color']['white']).toEqual(1);
+
+            expect(result.upgrades).toBeDefined();
+            expect(result.upgrades['level']).toEqual(1);
+
+            expect(result.plugins).toBeDefined();
+            expect(result.plugins['vibexyz/creator_scoring']).toEqual(1);
+        });
+
+        it('should hide the hidden properties', async () => {
+            const result = await service.getAttributesOverview({ collectionAddress } );
+
+            expect(result.upgrades).toBeDefined();
+            expect(result.upgrades['hidden_property']).toBeFalsy();
+        });
+
+        xit('should get attribute overview by collection slug', async () => {
+            const result = await service.getAttributesOverview({ collectionSlug: innerCollection.slug } );
+            expect(result).toBeDefined();
+            expect(result.attributes).toBeDefined();
+            expect(result.attributes['level']).toBeDefined();
+            expect(result.attributes['level']['basic']).toEqual(1);
+
+            expect(result.upgrades).toBeDefined();
+            expect(result.upgrades['level']).toEqual(1);
+
+            expect(result.plugins).toBeDefined();
+            expect(result.plugins['vibexyz/creator_scoring']).toEqual(1);
         });
     });
 });
