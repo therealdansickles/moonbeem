@@ -1,5 +1,5 @@
 import { GraphQLError } from 'graphql';
-import { concat, uniq } from 'lodash';
+import { cloneDeep, concat, uniq } from 'lodash';
 import { In } from 'typeorm';
 
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
@@ -53,8 +53,10 @@ export class PluginResolver {
         const plugin = await this.pluginService.getPlugin(input.pluginId);
         if (!plugin) throw new GraphQLError(`Plugin ${input.pluginId} doesn't exist.`);
 
-        const promises = tiers.map((tier) => this.pluginService.installOnTier({ tier, plugin, customizedMetadataParameters: input.metadata }));
-        return Promise.all(promises);
+        return Promise.all(tiers.map(tier => {
+            const pluginData = cloneDeep(plugin);
+            return this.pluginService.installOnTier({ tier, plugin: pluginData, customizedMetadataParameters: input.metadata });
+        }));
     }
 
     @Mutation(() => Tier)
