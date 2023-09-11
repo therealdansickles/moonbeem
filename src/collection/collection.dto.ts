@@ -545,3 +545,40 @@ export class CollectionSoldAggregatedData extends PickType(
     @Field(() => Tier, { nullable: true, description: 'The tier info for the aggregated transaction.' })
     readonly tier?: Tier;
 }
+
+@ObjectType('TokenIds')
+export class TokenIds {
+    @IsArray()
+    @Field(() => [String], { description: 'The tokenIds' })
+    readonly tokenIds: Array<string>;
+}
+
+@InputType()
+export class PropertyFilter {
+    @IsString()
+    @Field({ description: 'The property name' })
+    readonly name: string;
+
+    @IsString()
+    @Field(() => String, { nullable: true, description: 'The property value' })
+    readonly value?: string;
+
+    @IsString()
+    @Field(() => [Int], { nullable: true, description: 'The range of the property' })
+    readonly range?: number[];
+}
+
+@InputType()
+export class SearchTokenIdsInput {
+    @IsString()
+    @Field(() => String)
+    readonly collectionId: string;
+
+    @IsArray()
+    @Field(() => [PropertyFilter], { description: 'The static property filters' })
+    readonly staticPropertyFilters: Array<PropertyFilter>;
+
+    @IsArray()
+    @Field(() => [PropertyFilter], { description: 'The dynamic property filters' })
+    readonly dynamicPropertyFilters: Array<PropertyFilter>;
+}

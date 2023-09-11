@@ -40,6 +40,9 @@ import { WalletModule } from '../wallet/wallet.module';
 import { Collection } from './collection.entity';
 import { CollectionResolver } from './collection.resolver';
 import { CollectionService } from './collection.service';
+import { NftService } from '../nft/nft.service';
+import { NftModule } from '../nft/nft.module';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 
 @Module({
     imports: [
@@ -60,6 +63,7 @@ import { CollectionService } from './collection.service';
         forwardRef(() => UserModule),
         forwardRef(() => WalletModule),
         forwardRef(() => History721Module),
+        forwardRef(() => NftModule),
         JwtModule,
     ],
     exports: [CollectionModule, CollectionService],
@@ -74,6 +78,8 @@ import { CollectionService } from './collection.service';
         CollectionResolver,
         CoinMarketCapService,
         MintSaleTransactionService,
+        NftService,
+        Asset721Service,
     ],
     controllers: [],
 })

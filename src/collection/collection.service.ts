@@ -27,12 +27,31 @@ import { User } from '../user/user.entity';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    AggregatedVolume, Collection, CollectionActivities, CollectionActivityType, CollectionAggregatedActivityPaginated,
-    CollectionEarningsChartPaginated, CollectionPaginated, CollectionSold, CollectionSoldAggregated, CollectionSoldPaginated, CollectionStat,
-    CollectionStatus, CreateCollectionInput, GrossEarnings, LandingPageCollection, SecondarySale, SevenDayVolume, UpdateCollectionInput, ZeroAccount
+    AggregatedVolume,
+    Collection,
+    CollectionActivities,
+    CollectionActivityType,
+    CollectionAggregatedActivityPaginated,
+    CollectionEarningsChartPaginated,
+    CollectionPaginated,
+    CollectionSold,
+    CollectionSoldAggregated,
+    CollectionSoldPaginated,
+    CollectionStat,
+    CollectionStatus,
+    CreateCollectionInput,
+    GrossEarnings,
+    LandingPageCollection,
+    PropertyFilter,
+    SearchTokenIdsInput,
+    SecondarySale,
+    SevenDayVolume,
+    UpdateCollectionInput,
+    ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
-import { generateSlug } from './collection.utils';
+import { filterTokenIdsByRanges, generateSlug } from './collection.utils';
+import { NftService } from '../nft/nft.service';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'tokenAddress' | 'address' | 'name' | 'slug'>>;
 
@@ -55,7 +74,8 @@ export class CollectionService {
         private tierService: TierService,
         private transactionService: MintSaleTransactionService,
         private openseaService: OpenseaService,
-        private coinService: CoinService
+        private coinService: CoinService,
+        private nftService: NftService
     ) {}
 
     /**
@@ -1134,5 +1154,56 @@ export class CollectionService {
         }
 
         return result;
+    }
+
+    async searchTokenIds(input: SearchTokenIdsInput): Promise<string[]> {
+        const { staticPropertyFilters, dynamicPropertyFilters, collectionId } = input;
+        const collection = await this.collectionRepository.findOneBy({ id: collectionId });
+        if (!collection) {
+            throw new Error(`Collection not found`);
+        }
+        const ranges = await this.getTokenIdRangesByStaticPropertiesFilters(collectionId, collection.address, staticPropertyFilters);
+        const tokenIds = await this.nftService.getNftsIdsByProperties(collectionId, dynamicPropertyFilters);
+        return filterTokenIdsByRanges(tokenIds, ranges);
+    }
+
+    async getTokenIdRangesByStaticPropertiesFilters(
+        collectionId: string,
+        collectionAddress: string,
+        propertyFilters: PropertyFilter[]
+    ): Promise<number[][]> {
+        const contracts = await this.mintSaleContractRepository.findBy({
+            address: collectionAddress,
+        });
+
+        const builder = this.tierRepository
+            .createQueryBuilder('tier')
+            .select('tier.tierId', 'tier_id')
+            .where('tier.collectionId = :collectionId', { collectionId })
+            .orderBy('tier.tierId', 'ASC');
+        const filterConditions = propertyFilters.map((propertyFilter) => {
+            const { name, value, range } = propertyFilter;
+            if (value) {
+                return `metadata->'properties'->'${name}'->>'value'='${value}'`;
+            }
+            if (range) {
+                const [min, max] = range;
+                return `(metadata->'properties'->'${name}'->>'value')::INTEGER>=${min} AND (metadata->'properties'->'${name}'->>'value')::INTEGER<=${max}`;
+            }
+            return '';
+        });
+        filterConditions.filter((condition) => condition !== '').map((condition) => builder.andWhere(condition));
+        const tiers = await builder.getRawMany();
+        return tiers
+            .map((tier) => {
+                const { tier_id } = tier;
+                const contract = contracts.find((contract) => contract.tierId === tier_id);
+                if (!contract) {
+                    return [];
+                }
+                const { startId, endId } = contract;
+                return [startId, endId];
+            })
+            .filter((range) => range.length > 0);
     }
 }

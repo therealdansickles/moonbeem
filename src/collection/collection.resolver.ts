@@ -13,19 +13,20 @@ import {
     AggregatedVolume,
     Collection,
     CollectionActivities,
+    CollectionAggregatedActivityPaginated,
     CollectionEarningsChartPaginated,
     CollectionInput,
     CollectionPaginated,
-    CollectionSoldPaginated,
     CollectionSoldAggregated,
+    CollectionSoldPaginated,
     CollectionStat,
     CollectionStatus,
     CreateCollectionInput,
     GrossEarnings,
     LandingPageCollection,
+    SearchTokenIdsInput,
     SevenDayVolume,
     UpdateCollectionInput,
-    CollectionAggregatedActivityPaginated,
 } from './collection.dto';
 import { CollectionService } from './collection.service';
 import { Tier } from '../tier/tier.dto';
@@ -235,5 +236,11 @@ export class CollectionResolver {
     })
     async aggregatedVolumes(@Parent() collection: Collection): Promise<AggregatedVolume> {
         return this.collectionService.getAggregatedVolumes(collection.address);
+    }
+
+    @Public()
+    @Query(() => [String], { description: 'Returns the upcoming collections.' })
+    async searchTokenIds(@Args('input', { nullable: true }) input: SearchTokenIdsInput): Promise<string[]> {
+        return this.collectionService.searchTokenIds(input);
     }
 }

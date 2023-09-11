@@ -36,10 +36,13 @@ import { Wallet } from '../wallet/wallet.entity';
 import { WalletModule } from '../wallet/wallet.module';
 import { SessionResolver } from './session.resolver';
 import { SessionService } from './session.service';
+import { NftModule } from '../nft/nft.module';
+import { NftService } from '../nft/nft.service';
+import { Nft } from '../nft/nft.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Wallet, User, Collection, Membership, Organization, Tier]),
+        TypeOrmModule.forFeature([Wallet, User, Collection, Membership, Organization, Tier, Nft]),
         TypeOrmModule.forFeature([Asset721, Coin, MintSaleContract, MintSaleTransaction, History721], 'sync_chain'),
         forwardRef(() => Asset721Module),
         forwardRef(() => CoinMarketCapModule),
@@ -54,6 +57,7 @@ import { SessionService } from './session.service';
         forwardRef(() => WalletModule),
         forwardRef(() => MintSaleTransactionModule),
         forwardRef(() => History721Module),
+        forwardRef(() => NftModule),
         JwtModule.register({
             secret: process.env.SESSION_SECRET,
             signOptions: { expiresIn: '7d' },
@@ -71,6 +75,7 @@ import { SessionService } from './session.service';
         SessionResolver,
         CoinMarketCapService,
         MintSaleTransactionService,
+        NftService,
     ],
     exports: [SessionModule, SessionResolver],
 })

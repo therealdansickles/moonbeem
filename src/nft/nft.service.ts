@@ -9,9 +9,10 @@ import { Metadata } from '../metadata/metadata.dto';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { Nft as NftDto } from './nft.dto';
 import { Nft } from './nft.entity';
+import { PropertyFilter } from '../collection/collection.dto';
 
 interface INFTQueryWithId {
-    id: string
+    id: string;
 }
 
 interface INftQueryWithCollection {
@@ -40,31 +41,27 @@ interface INftListQueryWithTier {
     tokenIds?: string[];
 }
 
-
 export type INftListQuery = INftListQueryWithIds | INftListQueryWithCollection | INftListQueryWithTier;
 
 export type INftWithPropertyAndCollection = {
     collection: { id: string };
     propertyName: string;
-}
+};
 
 @Injectable()
 export class NftService {
-    constructor(
-        private readonly asset721Service: Asset721Service,
-        @InjectRepository(Nft) private readonly nftRepository: Repository<Nft>
-    ) {}
+    constructor(private readonly asset721Service: Asset721Service, @InjectRepository(Nft) private readonly nftRepository: Repository<Nft>) {}
 
     /**
      * render metadata
-     * 
+     *
      * @param id
      * @param tier
      */
     renderMetadata(nft: Nft) {
         const result: NftDto = Object.assign({}, nft);
         if (nft?.properties && nft?.tier?.metadata) {
-            const properties = Object.keys(nft.properties).reduce((accu, key) => { 
+            const properties = Object.keys(nft.properties).reduce((accu, key) => {
                 accu[key] = nft.properties[key]?.value;
                 return accu;
             }, {});
@@ -102,12 +99,13 @@ export class NftService {
 
     /**
      * get NFTs contains specific property
-     * 
+     *
      * @param query
      * @returns
      */
     async getNftByProperty(query: INftWithPropertyAndCollection) {
-        let nfts = await this.nftRepository.createQueryBuilder('nft')
+        let nfts = await this.nftRepository
+            .createQueryBuilder('nft')
             .leftJoinAndSelect('nft.collection', 'collection')
             .leftJoinAndSelect('nft.tier', 'tier')
             .andWhere('collection.id = :collectionId', { collectionId: query.collection.id })
@@ -121,7 +119,7 @@ export class NftService {
                 return accu;
             }, new Map<string, string>());
 
-            nfts = nfts.map(nft => {
+            nfts = nfts.map((nft) => {
                 (nft as NftDto).owner = ownerMapping.get(nft.tokenId);
                 return nft;
             });
@@ -131,12 +129,13 @@ export class NftService {
 
     /**
      * get NFT metadata overview
-     * 
+     *
      * @param query
      * @returns
      */
     async getOverviewByCollectionAndProperty(query: INftWithPropertyAndCollection) {
-        return await this.nftRepository.createQueryBuilder('nft')
+        return await this.nftRepository
+            .createQueryBuilder('nft')
             .leftJoinAndSelect('nft.collection', 'collection')
             .andWhere('collection.id = :collectionId', { collectionId: query.collection.id })
             .select(`MAX(CAST(properties->'${query.propertyName}'->>'value' AS NUMERIC))`, 'max')
@@ -155,10 +154,33 @@ export class NftService {
     async getNfts(query: INftListQuery) {
         const where = pick(query, ['collection', 'tier']);
         if ((query as INftListQueryWithIds).ids) where.id = In([...(query as INftListQueryWithIds).ids]);
-        if ((query as INftListQueryWithCollection | INftListQueryWithTier).tokenIds) where.tokenId = In([...(query as INftListQueryWithCollection | INftListQueryWithTier).tokenIds]);
+        if ((query as INftListQueryWithCollection | INftListQueryWithTier).tokenIds)
+            where.tokenId = In([...(query as INftListQueryWithCollection | INftListQueryWithTier).tokenIds]);
 
         const nfts = await this.nftRepository.findBy(where);
-        return (nfts || []).map(nft => this.renderMetadata(nft));
+        return (nfts || []).map((nft) => this.renderMetadata(nft));
+    }
+
+    async getNftsIdsByProperties(collectionId: string, propertyFilters: PropertyFilter[]): Promise<string[]> {
+        const builder = this.nftRepository
+            .createQueryBuilder('nft')
+            .select('nft.tokenId', 'token_id')
+            .where('nft.collectionId = :collectionId', { collectionId })
+            .orderBy('token_id', 'ASC');
+        const filterConditions = propertyFilters.map((propertyFilter) => {
+            const { name, value, range } = propertyFilter;
+            if (value) {
+                return `properties->'${name}'->>'value'='${value}'`;
+            }
+            if (range) {
+                const [min, max] = range;
+                return `(properties->'${name}'->>'value')::INTEGER>=${min} AND (properties->'${name}'->>'value')::INTEGER<=${max}`;
+            }
+            return '';
+        });
+        filterConditions.filter((condition) => condition !== '').map((condition) => builder.andWhere(condition));
+
+        return (await builder.getRawMany()).map((nft) => nft.token_id).sort((a, b) => parseInt(a) - parseInt(b));
     }
 
     /**
@@ -171,12 +193,15 @@ export class NftService {
      * @returns
      */
     async createOrUpdateNftByTokenId({ collectionId, tierId, tokenId, properties }) {
-        await this.nftRepository.upsert({
-            tokenId,
-            collection: { id: collectionId },
-            tier: { id: tierId },
-            properties,
-        }, ['collection.id', 'tier.id', 'tokenId']);
+        await this.nftRepository.upsert(
+            {
+                tokenId,
+                collection: { id: collectionId },
+                tier: { id: tierId },
+                properties,
+            },
+            ['collection.id', 'tier.id', 'tokenId']
+        );
         return this.nftRepository.findOneBy({ collection: { id: collectionId }, tier: { id: tierId }, tokenId });
     }
 }

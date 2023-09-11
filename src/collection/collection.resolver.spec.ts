@@ -7,12 +7,8 @@ import { CollaborationService } from '../collaboration/collaboration.service';
 import { OrganizationService } from '../organization/organization.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import {
     createCoin,
     createCollection,
@@ -20,7 +16,7 @@ import {
     createMintSaleContract,
     createMintSaleTransaction,
     createOrganization,
-    createTier
+    createTier,
 } from '../test-utils';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
@@ -30,6 +26,7 @@ import { Collection, CollectionKind } from './collection.entity';
 import { CollectionService } from './collection.service';
 import { generateSlug } from './collection.utils';
 import { MembershipService } from '../membership/membership.service';
+import { NftService } from '../nft/nft.service';
 
 export const gql = String.raw;
 
@@ -46,6 +43,7 @@ describe('CollectionResolver', () => {
     let walletService: WalletService;
     let asset721Service: Asset721Service;
     let membershipService: MembershipService;
+    let nftService: NftService;
 
     beforeAll(async () => {
         app = global.app;
@@ -61,6 +59,7 @@ describe('CollectionResolver', () => {
         asset721Service = global.asset721Service;
         walletService = global.walletService;
         membershipService = global.membershipService;
+        nftService = global.nftService;
     });
 
     afterEach(async () => {
@@ -69,7 +68,6 @@ describe('CollectionResolver', () => {
     });
 
     const getToken = async (tokenVariables) => {
-
         const tokenQuery = gql`
             mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
                 createSessionFromEmail(input: $input) {
@@ -82,9 +80,7 @@ describe('CollectionResolver', () => {
             }
         `;
 
-        const tokenRs = await request(app.getHttpServer())
-            .post('/graphql')
-            .send({ query: tokenQuery, variables: tokenVariables });
+        const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
         const { token } = tokenRs.body.data.createSessionFromEmail;
         return token;
@@ -205,7 +201,7 @@ describe('CollectionResolver', () => {
                 });
         });
 
-        it('should get a collection by id with no contract details, if contract doesn\'t exist', async () => {
+        it("should get a collection by id with no contract details, if contract doesn't exist", async () => {
             const query = gql`
                 query GetCollection($id: String!) {
                     collection(id: $id) {
@@ -563,7 +559,6 @@ describe('CollectionResolver', () => {
                 owner: anotherOwner,
             });
 
-
             const query = gql`
                 mutation CreateCollection($input: CreateCollectionInput!) {
                     createCollection(input: $input) {
@@ -654,9 +649,7 @@ describe('CollectionResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -827,9 +820,7 @@ describe('CollectionResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -897,9 +888,7 @@ describe('CollectionResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -966,9 +955,7 @@ describe('CollectionResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -1473,6 +1460,236 @@ describe('CollectionResolver', () => {
                     expect(body.data.landingPage.data).toBeDefined();
                     expect(body.data.landingPage.data.length).toEqual(1);
                     expect(body.data.landingPage.data[0].address).toEqual(collectionAddress);
+                });
+        });
+    });
+
+    describe('searchTokenIds', () => {
+        let user;
+        let wallet;
+        let organization;
+        let collection;
+        let tier;
+
+        beforeEach(async () => {
+            user = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            organization = await createOrganization(organizationService, { owner: user });
+
+            wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            collection = await createCollection(service, {
+                organization,
+                creator: { id: wallet.id },
+            });
+            await createTierAndMintSaleContract(
+                {
+                    tierId: 0,
+                    metadata: {
+                        properties: {
+                            height: {
+                                value: '200',
+                            },
+                        },
+                    },
+                },
+                {
+                    tierId: 0,
+                    startId: 0,
+                    endId: 2,
+                }
+            );
+
+            await createTierAndMintSaleContract(
+                {
+                    tierId: 1,
+                    metadata: {
+                        properties: {
+                            type: {
+                                value: 'silver',
+                            },
+                            height: {
+                                value: '100',
+                            },
+                        },
+                    },
+                },
+                {
+                    tierId: 1,
+                    startId: 3,
+                    endId: 5,
+                }
+            );
+
+            await createTierAndMintSaleContract(
+                {
+                    tierId: 2,
+                    metadata: {
+                        properties: {
+                            type: {
+                                value: 'golden',
+                            },
+                            height: {
+                                value: '100',
+                            },
+                        },
+                    },
+                },
+                {
+                    tierId: 2,
+                    startId: 6,
+                    endId: 8,
+                }
+            );
+
+            tier = await createTierAndMintSaleContract(
+                {
+                    tierId: 3,
+                    metadata: {
+                        properties: {
+                            type: {
+                                value: 'golden',
+                            },
+                            height: {
+                                value: '200',
+                            },
+                        },
+                    },
+                },
+                {
+                    tierId: 3,
+                    startId: 9,
+                    endId: 11,
+                }
+            );
+
+            await createTierAndMintSaleContract(
+                {
+                    tierId: 4,
+                    metadata: {
+                        properties: {
+                            type: {
+                                value: 'golden',
+                            },
+                            height: {
+                                value: '300',
+                            },
+                        },
+                    },
+                },
+                {
+                    tierId: 4,
+                    startId: 12,
+                    endId: 14,
+                }
+            );
+
+            await createTierAndMintSaleContract(
+                {
+                    tierId: 5,
+                    metadata: {
+                        properties: {
+                            type: {
+                                value: 'golden',
+                            },
+                            height: {
+                                value: '400',
+                            },
+                        },
+                    },
+                },
+                {
+                    tierId: 5,
+                    startId: 15,
+                    endId: 17,
+                }
+            );
+            const collectionId = collection.id;
+            const tierId = tier.id;
+            await nftService.createOrUpdateNftByTokenId({
+                collectionId,
+                tierId,
+                tokenId: 9,
+                properties: {
+                    loyalty: {
+                        value: '150',
+                    },
+                },
+            });
+            await nftService.createOrUpdateNftByTokenId({
+                collectionId,
+                tierId,
+                tokenId: 10,
+                properties: {
+                    loyalty: {
+                        value: '50',
+                    },
+                },
+            });
+            await nftService.createOrUpdateNftByTokenId({
+                collectionId,
+                tierId,
+                tokenId: 11,
+                properties: {
+                    loyalty: {
+                        value: '250',
+                    },
+                },
+            });
+        });
+
+        const createTierAndMintSaleContract = async (tierData, mintSaleContractData) => {
+            await createMintSaleContract(mintSaleContractService, {
+                address: collection.address,
+                ...mintSaleContractData,
+            });
+
+            return await createTier(tierService, {
+                collection: { id: collection.id },
+                ...tierData,
+            });
+        };
+        it('should return the token ids by given filter', async () => {
+            const searchInput = {
+                collectionId: collection.id,
+                staticPropertyFilters: [
+                    {
+                        name: 'type',
+                        value: 'golden',
+                    },
+                    {
+                        name: 'height',
+                        range: [200, 300],
+                    },
+                ],
+                dynamicPropertyFilters: [
+                    {
+                        name: 'loyalty',
+                        range: [100, 400],
+                    },
+                ],
+            };
+            const query = gql`
+                query SearchTokenIds($input: SearchTokenIdsInput!) {
+                    searchTokenIds(input: $input)
+                }
+            `;
+
+            const variables = { input: searchInput };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.searchTokenIds).toBeDefined();
+                    expect(body.data.searchTokenIds.length).toEqual(2);
+                    expect(body.data.searchTokenIds).toEqual(['9', '11']);
                 });
         });
     });
