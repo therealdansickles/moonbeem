@@ -135,6 +135,7 @@ describe('MerkleTreeService', () => {
             const type = 'recipients';
             const data = [
                 {
+                    collection: faker.finance.ethereumAddress(),
                     tokenId: faker.number.int({ max: 1000, min: 1 }),
                     quantity: faker.number.int({ max: 1000, min: 1 }),
                 },
@@ -154,6 +155,7 @@ describe('MerkleTreeService', () => {
             const type = 'recipients';
             const data = [
                 {
+                    collection: faker.finance.ethereumAddress(),
                     tokenId: faker.number.int({ max: 1000, min: 1 }),
                     quantity: faker.number.int({ max: 1000, min: 1 }),
                 },

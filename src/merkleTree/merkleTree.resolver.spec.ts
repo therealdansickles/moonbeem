@@ -129,6 +129,7 @@ describe('MerkleTreeResolver', () => {
             const type = 'recipients';
             const data = [
                 {
+                    collection: faker.finance.ethereumAddress(),
                     tokenId: faker.number.int({ max: 1000, min: 1 }),
                     quantity: faker.number.int({ max: 1000, min: 1 }),
                 },
@@ -159,17 +160,21 @@ describe('MerkleTreeResolver', () => {
 
         it('should get merkle tree proof', async () => {
             const type = 'recipients';
+            const collection = faker.finance.ethereumAddress();
             const leafData = {
+                collection,
                 tokenId: faker.number.int({ max: 1000, min: 1 }),
                 quantity: faker.number.int({ max: 1000, min: 1 }),
             };
             const data = [
                 leafData,
                 {
+                    collection,
                     tokenId: faker.number.int({ max: 1000, min: 1 }),
                     quantity: faker.number.int({ max: 1000, min: 1 }),
                 },
                 {
+                    collection,
                     tokenId: faker.number.int({ max: 1000, min: 1 }),
                     quantity: faker.number.int({ max: 1000, min: 1 }),
                 },

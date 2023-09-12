@@ -7,6 +7,7 @@ import { CollectionPlugin, CreateCollectionPluginInput, UpdateCollectionPluginIn
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
+import { MerkleTree as MerkleTreeEntity } from '../merkleTree/merkleTree.entity';
 
 @Injectable()
 export class CollectionPluginService {
@@ -16,7 +17,9 @@ export class CollectionPluginService {
         @InjectRepository(PluginEntity)
         private readonly pluginRepository: Repository<PluginEntity>,
         @InjectRepository(CollectionPluginEntity)
-        private readonly collectionPluginRepository: Repository<CollectionPluginEntity>
+        private readonly collectionPluginRepository: Repository<CollectionPluginEntity>,
+        @InjectRepository(MerkleTreeEntity)
+        private readonly merkleTreeRepo: Repository<MerkleTreeEntity>
     ) {}
 
     async createCollectionPlugin(createCollectionPluginInput: CreateCollectionPluginInput): Promise<CollectionPlugin> {
@@ -68,5 +71,34 @@ export class CollectionPluginService {
                 collection: true,
             },
         })) as CollectionPlugin[];
+    }
+
+    async getTokenInstalledPlugins(collectionId: string, tokenId: string): Promise<CollectionPlugin[]> {
+        const plugins = await this.getCollectionPluginsByCollectionId(collectionId);
+        const appliedPlugins = [];
+        for (const plugin of plugins) {
+            const applied = await this.checkIfPluginApplied(plugin, tokenId);
+            if (applied) {
+                appliedPlugins.push(plugin);
+            }
+        }
+        return appliedPlugins;
+    }
+
+    async checkIfPluginApplied(plugin: CollectionPlugin, tokenId: string): Promise<boolean> {
+        const { merkleRoot } = plugin;
+        if (!merkleRoot) return true;
+        return await this.merkleTreeRepo
+            .createQueryBuilder('merkleTree')
+            .select('id')
+            .where('merkleTree.merkleRoot = :merkleRoot', { merkleRoot })
+            .andWhere(`data @> '[{"tokenId": "${tokenId}"}]'`)
+            .getExists();
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async checkIfPluginClaimed(plugin: CollectionPlugin, tokenId: string): Promise<boolean> {
+        // check if there is a claim record for this plugin and tokenId
+        return true;
     }
 }

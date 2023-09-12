@@ -7,6 +7,7 @@ const typeToSolidityTypes = {
         amount: 'uint256',
     },
     recipients: {
+        collection: 'address',
         tokenId: 'uint256',
         quantity: 'uint256',
     },

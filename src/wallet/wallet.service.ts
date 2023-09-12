@@ -31,6 +31,7 @@ import {
 } from './wallet.dto';
 import { Wallet } from './wallet.entity';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 
 interface ITokenPrice {
     token: string;
@@ -51,7 +52,8 @@ export class WalletService {
         @InjectRepository(MintSaleContract, 'sync_chain')
         private mintSaleContractRepository: Repository<MintSaleContract>,
         private coinService: CoinService,
-        private collectionService: CollectionService
+        private collectionService: CollectionService,
+        private collectionPluginService: CollectionPluginService
     ) {}
 
     /**
@@ -191,9 +193,7 @@ export class WalletService {
         const wallet = await this.verifyWallet(address, data.message, data.signature);
 
         if (wallet.owner?.id)
-            throw new Error(
-                `The wallet at ${address} is already connected to an existing account. Please connect another wallet to this account.`
-            );
+            throw new Error(`The wallet at ${address} is already connected to an existing account. Please connect another wallet to this account.`);
 
         await this.updateWallet(wallet.id, { ...omit(wallet, 'owner'), ownerId: owner.id });
         return this.walletRepository.findOne({
@@ -299,13 +299,7 @@ export class WalletService {
      * @param last The number of results to retrieve, work with before together
      * @returns The `Minted` details + mint sale transactions associated with the given address.
      */
-    async getMintedByAddress(
-        address: string,
-        before: string,
-        after: string,
-        first: number,
-        last: number
-    ): Promise<MintPaginated> {
+    async getMintedByAddress(address: string, before: string, after: string, first: number, last: number): Promise<MintPaginated> {
         const wallet = await this.getWalletByQuery({ address });
         if (!wallet) throw new Error(`Wallet with address ${address} doesn't exist.`);
 
@@ -341,7 +335,7 @@ export class WalletService {
 
         const mintedList: Minted[] = await Promise.all(
             mintSaleTransactions.map(async (mintSaleTransaction) => {
-                const { tierId, address } = mintSaleTransaction;
+                const { tierId, address, tokenId } = mintSaleTransaction;
 
                 const tier = await this.tierRepository
                     .createQueryBuilder('tier')
@@ -351,7 +345,9 @@ export class WalletService {
                     .andWhere('tier.tierId = :tierId', { tierId })
                     .getOne();
 
-                return { ...mintSaleTransaction, tier };
+                const pluginsInstalled = await this.collectionPluginService.getTokenInstalledPlugins(tier.collection.id, tokenId);
+
+                return { ...mintSaleTransaction, tier, pluginsCount: pluginsInstalled.length };
             })
         );
 
@@ -474,13 +470,7 @@ export class WalletService {
         }
     }
 
-    async getSold(
-        address: string,
-        before: string,
-        after: string,
-        first: number,
-        last: number
-    ): Promise<WalletSoldPaginated> {
+    async getSold(address: string, before: string, after: string, first: number, last: number): Promise<WalletSoldPaginated> {
         const collections = await this.collectionService.getCreatedCollectionsByWalletAddress(address);
 
         if (collections.length <= 0) return PaginatedImp([], 0);
