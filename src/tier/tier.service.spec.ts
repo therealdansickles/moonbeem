@@ -1166,7 +1166,7 @@ describe('TierService', () => {
             expect(result.attributes['color']['white']).toEqual(1);
 
             expect(result.upgrades).toBeDefined();
-            expect(result.upgrades['level']).toEqual(1);
+            expect(result.upgrades[propertyLevelName]).toEqual(1);
 
             expect(result.plugins).toBeDefined();
             expect(result.plugins['vibexyz/creator_scoring']).toEqual(1);

@@ -681,11 +681,19 @@ describe('TierResolver', () => {
                             value: 'basic',
                             display_value: 'Basic',
                         },
+                        upgradable_level: {
+                            name: 'upgradable_level',
+                            type: 'string',
+                            value: 'advanced',
+                            display_value: 'Basic',
+                            class: 'upgradable'
+                        },
                         holding_days: {
                             name: 'holding_days',
                             type: 'integer',
                             value: 125,
-                            display_value: 'Days of holding',
+                            display_value: 'none',
+                            class: 'upgradable'
                         },
                     },
                     conditions: {
@@ -839,7 +847,8 @@ describe('TierResolver', () => {
                     expect(body.data.attributeOverview.attributes.level.basic).toEqual(1);
 
                     expect(body.data.attributeOverview.upgrades).toBeDefined();
-                    expect(body.data.attributeOverview.upgrades.level).toEqual(1);
+                    expect(body.data.attributeOverview.upgrades.upgradable_level).toEqual(1);
+                    expect(body.data.attributeOverview.holding_days).toBeFalsy();
 
                     expect(body.data.attributeOverview.plugins).toBeDefined();
                     expect(body.data.attributeOverview.plugins['vibexyz/creator_scoring']).toEqual(1);
@@ -869,7 +878,8 @@ describe('TierResolver', () => {
                     expect(body.data.attributeOverview.attributes.level.basic).toEqual(1);
 
                     expect(body.data.attributeOverview.upgrades).toBeDefined();
-                    expect(body.data.attributeOverview.upgrades.level).toEqual(1);
+                    expect(body.data.attributeOverview.upgrades.upgradable_level).toEqual(1);
+                    expect(body.data.attributeOverview.holding_days).toBeFalsy();
 
                     expect(body.data.attributeOverview.plugins).toBeDefined();
                     expect(body.data.attributeOverview.plugins['vibexyz/creator_scoring']).toEqual(1);
@@ -899,7 +909,8 @@ describe('TierResolver', () => {
                     expect(body.data.attributeOverview.attributes.level.basic).toEqual(1);
 
                     expect(body.data.attributeOverview.upgrades).toBeDefined();
-                    expect(body.data.attributeOverview.upgrades.level).toEqual(1);
+                    expect(body.data.attributeOverview.upgrades.upgradable_level).toEqual(1);
+                    expect(body.data.attributeOverview.holding_days).toBeFalsy();
 
                     expect(body.data.attributeOverview.plugins).toBeDefined();
                     expect(body.data.attributeOverview.plugins['vibexyz/creator_scoring']).toEqual(1);

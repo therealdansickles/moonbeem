@@ -477,20 +477,16 @@ export class TierService {
             if (tier.metadata) {
                 if (tier.metadata.properties) {
                     for (const [, value] of Object.entries(tier.metadata.properties)) {
-                        if (value.class === MetadataPropertyClass.UPGRADABLE || value.display_value === 'none') continue;
-                        if (!attributes[value.name]) attributes[value.name] = {};
-                        attributes[value.name][value.value]
-                            ? attributes[value.name][value.value]++
-                            : (attributes[value.name][value.value] = 1);
+                        if (value.display_value === 'none') continue;
+                        if (value.class === MetadataPropertyClass.UPGRADABLE) {
+                            upgrades[value.name] ? upgrades[value.name]++ : upgrades[value.name] = 1;
+                        } else {
+                            if (!attributes[value.name]) attributes[value.name] = {};
+                            attributes[value.name][value.value]
+                                ? attributes[value.name][value.value]++
+                                : (attributes[value.name][value.value] = 1);
+                        }
                     }
-                }
-
-                if (tier.metadata.conditions) {
-                    tier.metadata.conditions.rules.forEach((rule) => {
-                        rule.update.forEach((u) => {
-                            upgrades[u.property] ? upgrades[u.property]++ : (upgrades[u.property] = 1);
-                        });
-                    });
                 }
 
                 if (tier.metadata.uses) {
