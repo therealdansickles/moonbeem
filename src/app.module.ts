@@ -14,7 +14,6 @@ import { AlchemyModule } from './alchemy/alchemy.module';
 import { CoinMarketCapModule } from './coinmarketcap/coinmarketcap.module';
 import { CollaborationModule } from './collaboration/collaboration.module';
 import { CollectionModule } from './collection/collection.module';
-import { RedisAdapter } from './lib/adapters/redis.adapter';
 import { appConfig } from './lib/configs/app.config';
 import { postgresConfig } from './lib/configs/db.config';
 import { MembershipModule } from './membership/membership.module';
@@ -103,7 +102,6 @@ dotenv.config();
             provide: APP_GUARD,
             useClass: SessionGuard,
         },
-        RedisAdapter,
     ],
     exports: [],
 })

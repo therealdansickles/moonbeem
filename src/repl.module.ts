@@ -7,7 +7,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CollaborationModule } from './collaboration/collaboration.module';
 import { CollectionModule } from './collection/collection.module';
-import { RedisAdapter } from './lib/adapters/redis.adapter';
 import { postgresConfig } from './lib/configs/db.config';
 import { MembershipModule } from './membership/membership.module';
 import { MoonpayModule } from './moonpay/moonpay.module';
@@ -80,7 +79,6 @@ dotenv.config();
             provide: APP_GUARD,
             useClass: SessionGuard,
         },
-        RedisAdapter,
     ],
     exports: [],
 })
