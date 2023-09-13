@@ -345,7 +345,10 @@ export class WalletService {
                     .andWhere('tier.tierId = :tierId', { tierId })
                     .getOne();
 
-                const pluginsInstalled = await this.collectionPluginService.getTokenInstalledPlugins(tier.collection.id, tokenId);
+                let pluginsInstalled = [];
+                if (tier && tier.collection && tier.collection.id) {
+                    pluginsInstalled = await this.collectionPluginService.getTokenInstalledPlugins(tier.collection.id, tokenId);
+                }
 
                 return { ...mintSaleTransaction, tier, pluginsCount: pluginsInstalled.length };
             })
