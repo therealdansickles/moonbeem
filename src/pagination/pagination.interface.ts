@@ -21,4 +21,5 @@ export interface IEntity {
     createdAt: Date;
     quantity: number;
     address: string;
+    txHash: string;
 }

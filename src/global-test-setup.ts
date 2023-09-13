@@ -8,6 +8,9 @@ import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { AlchemyController } from './alchemy/alchemy.controller';
+import { AlchemyModule } from './alchemy/alchemy.module';
+import { AlchemyService } from './alchemy/alchemy.service';
 import { CoinMarketCapModule } from './coinmarketcap/coinmarketcap.module';
 import { CoinMarketCapService } from './coinmarketcap/coinmarketcap.service';
 // platform modules
@@ -46,9 +49,9 @@ import { SearchModule } from './search/search.module';
 import { SearchService } from './search/search.service';
 import { CurrentWallet } from './session/session.decorator';
 import { SessionGuard } from './session/session.guard';
+import { SessionInterceptor } from './session/session.interceptor';
 import { SessionModule } from './session/session.module';
 import { SessionService } from './session/session.service';
-import { SessionInterceptor } from './session/session.interceptor';
 // sync chain modules
 import { Asset721Module } from './sync-chain/asset721/asset721.module';
 // sync chain services
@@ -60,15 +63,9 @@ import { FactoryService } from './sync-chain/factory/factory.service';
 import { History721Module } from './sync-chain/history721/history721.module';
 import { History721Service } from './sync-chain/history721/history721.service';
 import { MintSaleContractModule } from './sync-chain/mint-sale-contract/mint-sale-contract.module';
-import {
-    MintSaleContractService
-} from './sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransactionModule
-} from './sync-chain/mint-sale-transaction/mint-sale-transaction.module';
-import {
-    MintSaleTransactionService
-} from './sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleContractService } from './sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionModule } from './sync-chain/mint-sale-transaction/mint-sale-transaction.module';
+import { MintSaleTransactionService } from './sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { Record721Module } from './sync-chain/record721/record721.module';
 import { Record721Service } from './sync-chain/record721/record721.service';
 import { RoyaltyModule } from './sync-chain/royalty/royalty.module';
@@ -84,6 +81,8 @@ import { WaitlistService } from './waitlist/waitlist.service';
 import { Wallet } from './wallet/wallet.dto';
 import { WalletModule } from './wallet/wallet.module';
 import { WalletService } from './wallet/wallet.service';
+import { CollectionPluginModule } from './collectionPlugin/collectionPlugin.module';
+import { CollectionPluginService } from './collectionPlugin/collectionPlugin.service';
 
 @Resolver()
 export class TestResolver {
@@ -95,7 +94,8 @@ export class TestResolver {
 
 export default async () => {
     // Should abort if it's not a local database
-    if (!postgresConfig.url.includes('localhost') || !postgresConfig.syncChain.url.includes('localhost') ) {
+    if ((!postgresConfig.url.includes('localhost') && !postgresConfig.url.includes('127.0.0.1')) ||
+        ( !postgresConfig.syncChain.url.includes('localhost')&& !postgresConfig.syncChain.url.includes('127.0.0.1'))) {
         throw new Error('You are not running tests on a local database. Aborting.');
     }
     const module = await Test.createTestingModule({
@@ -117,6 +117,7 @@ export default async () => {
             }),
             HttpModule,
             // import platform modules
+            AlchemyModule,
             CollaborationModule,
             CollectionModule,
             MailModule,
@@ -139,6 +140,7 @@ export default async () => {
             WaitlistModule,
             MerkleTreeModule,
             TestResolver,
+            CollectionPluginModule,
             // import sync modules
             Asset721Module,
             CoinModule,
@@ -172,6 +174,7 @@ export default async () => {
     }).compile();
 
     // platform services
+    global.alchemyService = module.get<AlchemyService>(AlchemyService);
     global.collaborationService = module.get<CollaborationService>(CollaborationService);
     global.collectionService = module.get<CollectionService>(CollectionService);
     global.mailService = module.get<MailService>(MailService);
@@ -193,6 +196,11 @@ export default async () => {
     global.merkleTreeService = module.get<MerkleTreeService>(MerkleTreeService);
     global.openseaService = module.get<OpenseaService>(OpenseaService);
     global.coinmarketcapService = module.get<CoinMarketCapService>(CoinMarketCapService);
+    global.jwtService = module.get<JwtService>(JwtService);
+    global.collectionPluginService = module.get<CollectionPluginService>(CollectionPluginService);
+
+    // platform controller
+    global.alchemyController = module.get<AlchemyController>(AlchemyController);
 
     // sync chain services
     global.asset721Service = module.get<Asset721Service>(Asset721Service);
@@ -219,6 +227,7 @@ export default async () => {
     global.relationshipRepository = module.get('RelationshipRepository');
     global.collaborationRepository = module.get('CollaborationRepository');
     global.merkleTreeRepository = module.get('MerkleTreeRepository');
+    global.collectionPluginRepository = module.get('CollectionPluginRepository');
 
     // sync chain repositories
     global.asset721Repository = module.get('sync_chain_Asset721Repository');
@@ -263,6 +272,7 @@ async function clearDatabase() {
     await global.userRepository.query('TRUNCATE TABLE "User" CASCADE;');
     await global.walletRepository.query('TRUNCATE TABLE "Wallet" CASCADE;');
     await global.pluginRepository.query('TRUNCATE TABLE "Plugin" CASCADE;');
+    await global.collectionPluginRepository.query('TRUNCATE TABLE "CollectionPlugin" CASCADE;');
 
     // sync chain database clear
     await global.asset721Repository.query('TRUNCATE TABLE "Asset721" CASCADE;');

@@ -11,18 +11,15 @@ import { SessionService } from '../session/session.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import {
-    createAsset721, createCollection, createMintSaleTransaction, createTier
-} from '../test-utils';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { createAsset721, createCollection, createMintSaleTransaction, createPlugin, createTier } from '../test-utils';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from './wallet.service';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
+import { Repository } from 'typeorm';
+import { Plugin } from '../plugin/plugin.entity';
 
 export const gql = String.raw;
 
@@ -39,6 +36,8 @@ describe('WalletResolver', () => {
     let address: string;
     let coinService: CoinService;
     let asset721Service: Asset721Service;
+    let collectionPluginService: CollectionPluginService;
+    let pluginRepository: Repository<Plugin>;
 
     beforeAll(async () => {
         app = global.app;
@@ -52,6 +51,8 @@ describe('WalletResolver', () => {
         sessionService = global.sessionService;
         coinService = global.coinService;
         asset721Service = global.asset721Service;
+        collectionPluginService = global.collectionPluginService;
+        pluginRepository = global.pluginRepository;
     });
 
     afterEach(async () => {
@@ -356,9 +357,7 @@ describe('WalletResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
             const query = gql`
@@ -425,9 +424,7 @@ describe('WalletResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -606,6 +603,17 @@ describe('WalletResolver', () => {
                 tokenId: transaction.tokenId,
                 owner: wallet.address,
             });
+            const plugin = await createPlugin(pluginRepository);
+
+            const input = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: faker.company.name(),
+                description: faker.lorem.paragraph(),
+                mediaUrl: faker.image.url(),
+                pluginDetail: {},
+            };
+            await collectionPluginService.createCollectionPlugin(input);
 
             const query = gql`
                 query MintedByWallet($address: String!) {
@@ -624,6 +632,7 @@ describe('WalletResolver', () => {
                                             name
                                         }
                                     }
+                                    pluginsCount
                                 }
                             }
                             pageInfo {
@@ -651,6 +660,7 @@ describe('WalletResolver', () => {
                     expect(result.edges[0].node.txTime).toEqual(transaction.txTime);
                     expect(result.edges[0].node.txHash).toEqual(transaction.txHash);
                     expect(result.edges[0].node.chainId).toEqual(transaction.chainId);
+                    expect(result.edges[0].node.pluginsCount).toEqual(1);
                     expect(result.edges[0].node.tier.name).toEqual(tier.name);
                     expect(result.edges[0].node.tier.collection.name).toEqual(collection.name);
                 });

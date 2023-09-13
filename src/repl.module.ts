@@ -1,5 +1,4 @@
 import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
-
 import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
@@ -8,7 +7,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CollaborationModule } from './collaboration/collaboration.module';
 import { CollectionModule } from './collection/collection.module';
-import { RedisAdapter } from './lib/adapters/redis.adapter';
 import { postgresConfig } from './lib/configs/db.config';
 import { MembershipModule } from './membership/membership.module';
 import { MoonpayModule } from './moonpay/moonpay.module';
@@ -30,6 +28,7 @@ import { WaitlistModule } from './waitlist/waitlist.module';
 import { WalletModule } from './wallet/wallet.module';
 import { CoinMarketCapModule } from './coinmarketcap/coinmarketcap.module';
 import { SessionInterceptor } from './session/session.interceptor';
+import { CollectionPluginModule } from './collectionPlugin/collectionPlugin.module';
 
 dotenv.config();
 
@@ -56,6 +55,7 @@ dotenv.config();
         MoonpayModule,
         SaleHistoryModule,
         PluginModule,
+        CollectionPluginModule,
         TypeOrmModule.forRoot({
             name: 'default',
             type: 'postgres',
@@ -79,7 +79,6 @@ dotenv.config();
             provide: APP_GUARD,
             useClass: SessionGuard,
         },
-        RedisAdapter,
     ],
     exports: [],
 })

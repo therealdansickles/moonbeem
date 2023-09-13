@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Collection } from '../collection/collection.entity';
@@ -14,9 +14,9 @@ import { NftService } from './nft.service';
     imports: [
         TypeOrmModule.forFeature([Nft, Tier, Collection]),
         TypeOrmModule.forFeature([Asset721], 'sync_chain'),
-        Asset721Module
+        forwardRef(() => Asset721Module),
     ],
     exports: [NftModule],
     providers: [Asset721Service, NftService, NftResolver],
 })
-export class NftModule { }
+export class NftModule {}

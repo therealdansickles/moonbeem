@@ -7,10 +7,9 @@ import { Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
 import { TierHoldersPaginated } from '../wallet/wallet.dto';
 import {
-    AttributeOverviewInput, CreateTierInput, DeleteTierInput, IOverview, Profit, Tier,
-    TierSearchInput, TierSearchPaginated, UpdateTierInput
+    AttributeOverviewInput, CreateTierInput, DeleteTierInput, IOverview, Profit, Tier, TierSearchInput, TierSearchPaginated, UpdateTierInput
 } from './tier.dto';
-import { ITierQuery, TierService } from './tier.service';
+import { ITierListQuery, TierService } from './tier.service';
 
 @Resolver(() => Tier)
 export class TierResolver {
@@ -19,7 +18,7 @@ export class TierResolver {
     @Public()
     @Query(() => Tier, { description: 'Get a specific tier by id.', nullable: true })
     async tier(@Args('id') id: string): Promise<Tier> {
-        return await this.tierService.getTier(id);
+        return await this.tierService.getTier({ id });
     }
 
     @Public()
@@ -29,7 +28,7 @@ export class TierResolver {
             @Args({ name: 'name', nullable: true }) name?: string,
             @Args({ name: 'pluginName', nullable: true }) pluginName?: string,
     ): Promise<Tier[]> {
-        const query: ITierQuery = { name, pluginName };
+        const query: ITierListQuery = { name, pluginName };
         if (collectionId) query.collection = { id: collectionId };
         return await this.tierService.getTiers(query);
     }

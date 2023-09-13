@@ -111,7 +111,7 @@ describe('PluginResolver', () => {
                 artists: [],
                 tags: [],
                 kind: CollectionKind.edition,
-                address: faker.finance.ethereumAddress()
+                address: faker.finance.ethereumAddress(),
             });
 
             await tierService.createTier({
@@ -122,7 +122,7 @@ describe('PluginResolver', () => {
                 paymentTokenAddress: coin.address,
                 tierId: 0,
                 metadata: {
-                    uses: [plugin2.name]
+                    uses: [plugin2.name],
                 },
             });
 
@@ -134,7 +134,7 @@ describe('PluginResolver', () => {
                 paymentTokenAddress: coin.address,
                 tierId: 0,
                 metadata: {
-                    uses: [plugin2.name]
+                    uses: [plugin2.name],
                 },
             });
 
@@ -145,7 +145,7 @@ describe('PluginResolver', () => {
                 artists: [],
                 tags: [],
                 kind: CollectionKind.edition,
-                address: faker.finance.ethereumAddress()
+                address: faker.finance.ethereumAddress(),
             });
 
             await tierService.createTier({
@@ -156,7 +156,7 @@ describe('PluginResolver', () => {
                 paymentTokenAddress: coin.address,
                 tierId: 0,
                 metadata: {
-                    uses: [plugin1.name]
+                    uses: [plugin1.name],
                 },
             });
 
@@ -168,7 +168,7 @@ describe('PluginResolver', () => {
                 paymentTokenAddress: coin.address,
                 tierId: 0,
                 metadata: {
-                    uses: [plugin2.name]
+                    uses: [plugin2.name],
                 },
             });
 
@@ -180,7 +180,7 @@ describe('PluginResolver', () => {
                 paymentTokenAddress: coin.address,
                 tierId: 0,
                 metadata: {
-                    uses: [plugin1.name, plugin2.name]
+                    uses: [plugin1.name, plugin2.name],
                 },
             });
 
@@ -211,14 +211,15 @@ describe('PluginResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.plugins.length).toEqual(2);
-                });  
+                });
         });
     });
-    
+
     describe('#installOnCollection', () => {
         let coin;
         let collection;
         let tier;
+        let tier2;
         let walletEntity;
         let wallet;
 
@@ -259,7 +260,26 @@ describe('PluginResolver', () => {
                         level: {
                             name: '{{level_name}}',
                             type: 'string',
-                            value: '{{basic}}',
+                            value: '{{level}}',
+                            display_value: 'Basic',
+                        },
+                    },
+                },
+            });
+
+            tier2 = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '1000',
+                paymentTokenAddress: coin.address,
+                tierId: 1,
+                metadata: {
+                    properties: {
+                        level2: {
+                            name: '{{level2_name}}',
+                            type: 'string',
+                            value: '{{level}}',
                             display_value: 'Basic',
                         },
                     },
@@ -270,7 +290,7 @@ describe('PluginResolver', () => {
         it('should install the plugin on given collection', async () => {
             const message = 'installPluginOnCollection';
             const signature = await walletEntity.signMessage(message);
-            
+
             const plugin: Plugin = await pluginRepository.save({
                 name: faker.commerce.productName(),
                 displayName: faker.commerce.productName(),
@@ -307,7 +327,7 @@ describe('PluginResolver', () => {
                     },
                 },
             });
-            
+
             const tokenQuery = gql`
                 mutation CreateSession($input: CreateSessionInput!) {
                     createSession(input: $input) {
@@ -328,32 +348,117 @@ describe('PluginResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const query = gql`
                 mutation InstallOnCollection($input: InstallOnCollectionInput!) {
                     installOnCollection(input: $input) {
                         id
+                        metadata
                     }
                 }
             `;
 
-            const variables = { 
+            const variables = {
                 input: {
-                    collectionId: collection.id, pluginId: plugin.id, metadata: {} 
-                }
+                    collectionId: collection.id,
+                    pluginId: plugin.id,
+                    metadata: {},
+                },
             };
 
             return await request(app.getHttpServer())
                 .post('/graphql')
                 .auth(tokenRs.body.data.createSession.token, { type: 'bearer' })
                 .send({ query, variables })
-                .expect(200)
                 .expect(({ body }) => {
-                    expect(body.data.installOnCollection.length).toEqual(1);
+                    expect(body.data.installOnCollection.length).toEqual(2);
                     expect(body.data.installOnCollection[0].id).toEqual(tier.id);
+                    expect(body.data.installOnCollection[0].metadata.properties.level).toBeTruthy();
+                    expect(body.data.installOnCollection[0].metadata.properties.level2).toBeFalsy();
+                    expect(body.data.installOnCollection[1].id).toEqual(tier2.id);
+                    expect(body.data.installOnCollection[1].metadata.properties.level).toBeFalsy();
+                    expect(body.data.installOnCollection[1].metadata.properties.level2).toBeTruthy();
+                });
+        });
+
+        it('should install the plugin on given collection with customized metadata', async () => {
+            const message = 'installPluginOnCollection';
+            const signature = await walletEntity.signMessage(message);
+
+            const plugin: Plugin = await pluginRepository.save({
+                name: faker.commerce.productName(),
+                displayName: faker.commerce.productName(),
+                description: faker.commerce.productDescription(),
+                author: faker.commerce.department(),
+                version: faker.git.commitSha(),
+                metadata: {
+                    properties: {
+                        holding_days: {
+                            name: '{{holding_days_name}}',
+                            type: 'number',
+                            value: '{{holding_days}}',
+                            display_value: 'none',
+                        }
+                    }
+                }
+            });
+
+            const tokenQuery = gql`
+                mutation CreateSession($input: CreateSessionInput!) {
+                    createSession(input: $input) {
+                        token
+                        wallet {
+                            id
+                            address
+                        }
+                    }
+                }
+            `;
+
+            const tokenVariables = {
+                input: {
+                    address: wallet.address,
+                    message,
+                    signature,
+                },
+            };
+
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
+
+            const query = gql`
+                mutation InstallOnCollection($input: InstallOnCollectionInput!) {
+                    installOnCollection(input: $input) {
+                        id
+                        metadata
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    collectionId: collection.id,
+                    pluginId: plugin.id,
+                    metadata: {
+                        conditions: plugin.metadata.conditions,
+                        configs: plugin.metadata.configs,
+                        properties: plugin.metadata.properties,
+                    },
+                },
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(tokenRs.body.data.createSession.token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(({ body }) => {
+                    expect(body.data.installOnCollection.length).toEqual(2);
+                    expect(body.data.installOnCollection[0].id).toEqual(tier.id);
+                    expect(body.data.installOnCollection[0].metadata.properties.level).toBeTruthy();
+                    expect(body.data.installOnCollection[0].metadata.properties.level2).toBeFalsy();
+                    expect(body.data.installOnCollection[1].id).toEqual(tier2.id);
+                    expect(body.data.installOnCollection[1].metadata.properties.level).toBeFalsy();
+                    expect(body.data.installOnCollection[1].metadata.properties.level2).toBeTruthy();
                 });
         });
 
@@ -378,7 +483,7 @@ describe('PluginResolver', () => {
                 tags: [],
                 kind: CollectionKind.edition,
                 address: faker.finance.ethereumAddress(),
-                creator: { id: anotherWallet.id }
+                creator: { id: anotherWallet.id },
             });
 
             await tierService.createTier({
@@ -420,9 +525,7 @@ describe('PluginResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const query = gql`
                 mutation InstallOnCollection($input: InstallOnCollectionInput!) {
@@ -432,10 +535,12 @@ describe('PluginResolver', () => {
                 }
             `;
 
-            const variables = { 
+            const variables = {
                 input: {
-                    collectionId: anotherCollection.id, pluginId: plugin.id, metadata: {} 
-                }
+                    collectionId: anotherCollection.id,
+                    pluginId: plugin.id,
+                    metadata: {},
+                },
             };
 
             return await request(app.getHttpServer())
@@ -513,10 +618,12 @@ describe('PluginResolver', () => {
                     }
                 }
             `;
-            const variables = { 
+            const variables = {
                 input: {
-                    tierId: tier.id, pluginId: plugin.id, metadata: {} 
-                }
+                    tierId: tier.id,
+                    pluginId: plugin.id,
+                    metadata: {},
+                },
             };
 
             return await request(app.getHttpServer())

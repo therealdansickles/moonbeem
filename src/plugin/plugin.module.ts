@@ -28,6 +28,10 @@ import { Wallet } from '../wallet/wallet.entity';
 import { Plugin } from './plugin.entity';
 import { PluginResolver } from './plugin.resolver';
 import { PluginService } from './plugin.service';
+import { NftService } from '../nft/nft.service';
+import { NftModule } from '../nft/nft.module';
+import { Asset721Module } from '../sync-chain/asset721/asset721.module';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 
 @Module({
     imports: [
@@ -40,6 +44,8 @@ import { PluginService } from './plugin.service';
         forwardRef(() => CoinModule),
         forwardRef(() => MintSaleTransactionModule),
         forwardRef(() => History721Module),
+        forwardRef(() => NftModule),
+        forwardRef(() => Asset721Module),
         HttpModule,
         JwtModule,
     ],
@@ -53,6 +59,8 @@ import { PluginService } from './plugin.service';
         CoinMarketCapService,
         MintSaleTransactionService,
         JwtService,
+        Asset721Service,
+        NftService,
     ],
 })
 export class PluginModule {}

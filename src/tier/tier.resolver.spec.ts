@@ -7,23 +7,17 @@ import { INestApplication } from '@nestjs/common';
 import { Collection } from '../collection/collection.dto';
 import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
+import { OrganizationService } from '../organization/organization.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import {
+    createAsset721, createCoin, createCollection, createMintSaleContract, createMintSaleTransaction, createOrganization, createTier
+} from '../test-utils';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import { TierService } from './tier.service';
-import {
-    createAsset721,
-    createCoin,
-    createCollection,
-    createMintSaleContract,
-    createMintSaleTransaction,
-    createOrganization,
-    createTier
-} from '../test-utils';
-import { OrganizationService } from '../organization/organization.service';
 
 export const gql = String.raw;
 
@@ -572,7 +566,7 @@ describe('TierResolver', () => {
                     expect(body.data.updateTier).toBeTruthy();
                 });
 
-            const result = await service.getTier(tier.id);
+            const result = await service.getTier({ id: tier.id });
             expect(result.paymentTokenAddress).toBe(coin.address);
         });
     });
@@ -687,11 +681,19 @@ describe('TierResolver', () => {
                             value: 'basic',
                             display_value: 'Basic',
                         },
+                        upgradable_level: {
+                            name: 'upgradable_level',
+                            type: 'string',
+                            value: 'advanced',
+                            display_value: 'Basic',
+                            class: 'upgradable'
+                        },
                         holding_days: {
                             name: 'holding_days',
                             type: 'integer',
                             value: 125,
-                            display_value: 'Days of holding',
+                            display_value: 'none',
+                            class: 'upgradable'
                         },
                     },
                     conditions: {
@@ -845,7 +847,8 @@ describe('TierResolver', () => {
                     expect(body.data.attributeOverview.attributes.level.basic).toEqual(1);
 
                     expect(body.data.attributeOverview.upgrades).toBeDefined();
-                    expect(body.data.attributeOverview.upgrades.level).toEqual(1);
+                    expect(body.data.attributeOverview.upgrades.upgradable_level).toEqual(1);
+                    expect(body.data.attributeOverview.holding_days).toBeFalsy();
 
                     expect(body.data.attributeOverview.plugins).toBeDefined();
                     expect(body.data.attributeOverview.plugins['vibexyz/creator_scoring']).toEqual(1);
@@ -875,7 +878,8 @@ describe('TierResolver', () => {
                     expect(body.data.attributeOverview.attributes.level.basic).toEqual(1);
 
                     expect(body.data.attributeOverview.upgrades).toBeDefined();
-                    expect(body.data.attributeOverview.upgrades.level).toEqual(1);
+                    expect(body.data.attributeOverview.upgrades.upgradable_level).toEqual(1);
+                    expect(body.data.attributeOverview.holding_days).toBeFalsy();
 
                     expect(body.data.attributeOverview.plugins).toBeDefined();
                     expect(body.data.attributeOverview.plugins['vibexyz/creator_scoring']).toEqual(1);
@@ -905,7 +909,8 @@ describe('TierResolver', () => {
                     expect(body.data.attributeOverview.attributes.level.basic).toEqual(1);
 
                     expect(body.data.attributeOverview.upgrades).toBeDefined();
-                    expect(body.data.attributeOverview.upgrades.level).toEqual(1);
+                    expect(body.data.attributeOverview.upgrades.upgradable_level).toEqual(1);
+                    expect(body.data.attributeOverview.holding_days).toBeFalsy();
 
                     expect(body.data.attributeOverview.plugins).toBeDefined();
                     expect(body.data.attributeOverview.plugins['vibexyz/creator_scoring']).toEqual(1);

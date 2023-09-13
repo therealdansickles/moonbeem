@@ -204,7 +204,7 @@ export class AuthorizedUserGuard implements CanActivate {
         const ctx = GqlExecutionContext.create(context);
         const request: IGraphQLRequest = ctx.getContext().req;
         const userIdFromParameter = get(request.body.variables?.input, userParameter);
-        const userIdFromToken = getUserIdFromToken(request, this.jwtService, process.env.SESSION_SECRET);
+        const userIdFromToken = getUserIdFromToken(request.headers.authorization, this.jwtService, process.env.SESSION_SECRET);
         if (!userIdFromParameter || !userIdFromToken) return false;
         return userIdFromParameter === userIdFromToken;
     }
@@ -301,7 +301,7 @@ export class AuthorizedOrganizationGuard implements CanActivate {
         const ctx = GqlExecutionContext.create(context);
         const request: IGraphQLRequest = ctx.getContext().req;
         const organizationIdFromParameter = get(request.body.variables?.input, organizationIdParameter);
-        const userIdFromToken = getUserIdFromToken(request, this.jwtService, process.env.SESSION_SECRET);
+        const userIdFromToken = getUserIdFromToken(request.headers.authorization, this.jwtService, process.env.SESSION_SECRET);
         if (!userIdFromToken) return false;
 
         return await this.membershipService.checkMembershipByOrganizationIdAndUserId(
@@ -323,7 +323,7 @@ export class AuthorizedCollectionViewerGuard implements CanActivate {
     async canActivate (context: ExecutionContext): Promise<boolean> {
         const ctx = GqlExecutionContext.create(context);
         const request: IGraphQLRequest = ctx.getContext().req;
-        const userId = getUserIdFromToken(request, this.jwtService, process.env.SESSION_SECRET);
+        const userId = getUserIdFromToken(request.headers.authorization, this.jwtService, process.env.SESSION_SECRET);
         if (!userId) return false;
 
         const variables = request.body.variables;
@@ -364,7 +364,7 @@ export class VibeEmailGuard implements CanActivate {
         if (isPublic) return true;
 
         try {
-            const userId = getUserIdFromToken(request, this.jwtService, process.env.SESSION_SECRET);
+            const userId = getUserIdFromToken(request.headers.authorization, this.jwtService, process.env.SESSION_SECRET);
             const user = await this.userService.getUserByQuery({ id: userId });
             request.user = user;
             request.userId = userId;

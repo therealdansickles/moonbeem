@@ -4,6 +4,7 @@ import { faker } from '@faker-js/faker';
 
 import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
+import { MetadataPropertyClass } from '../metadata/metadata.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { TierService } from '../tier/tier.service';
 import { Plugin } from './plugin.entity';
@@ -175,7 +176,7 @@ describe('PluginService', () => {
                             type: 'number',
                             value: 0,
                             display_value: 'none',
-                            class: 'upgradable'
+                            class: MetadataPropertyClass.UPGRADABLE
                         },
                     },
                     conditions: {
@@ -269,7 +270,7 @@ describe('PluginService', () => {
                             type: 'number',
                             value: 0,
                             display_value: '0',
-                            class: 'upgradable'
+                            class: MetadataPropertyClass.UPGRADABLE
                         },
                     },
                     conditions: {

@@ -13,15 +13,12 @@ services:
     environment:
       V1_DATABASE_URL: postgresql://root:root@postgres:5432/platform_development?schema=public
       SYNC_CHAIN_DATABASE_URL: postgresql://root:root@sync_chain:5432/sync_chain_development?schema=public
-      REDIS_URL: redis://default:redis@redis:6379       # Redis.
       PORT: 3000
     depends_on:
       - postgres
-      - redis
       - sync_chain
     links:
       - postgres
-      - redis
       - sync_chain
   postgres:
     image: postgres:latest
@@ -49,10 +46,3 @@ services:
       POSTGRES_DB: sync_chain_development
       POSTGRES_HOST: localhost
       POSTGRES_PORT: 5432
-  redis:
-    image: redis:latest
-    container_name: redis
-    restart: always
-    command: redis-server --save 20 1 --loglevel warning
-    ports:
-      - 6379:6379

@@ -14,7 +14,6 @@ import { AlchemyModule } from './alchemy/alchemy.module';
 import { CoinMarketCapModule } from './coinmarketcap/coinmarketcap.module';
 import { CollaborationModule } from './collaboration/collaboration.module';
 import { CollectionModule } from './collection/collection.module';
-import { RedisAdapter } from './lib/adapters/redis.adapter';
 import { appConfig } from './lib/configs/app.config';
 import { postgresConfig } from './lib/configs/db.config';
 import { MembershipModule } from './membership/membership.module';
@@ -37,6 +36,7 @@ import { UserModule } from './user/user.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { WalletModule } from './wallet/wallet.module';
 import { SessionInterceptor } from './session/session.interceptor';
+import { CollectionPluginModule } from './collectionPlugin/collectionPlugin.module';
 
 dotenv.config();
 
@@ -66,6 +66,7 @@ dotenv.config();
         PluginModule,
         AlchemyModule,
         MerkleTreeModule,
+        CollectionPluginModule,
         // integration graphql
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver, // GraphQL server adapter
@@ -101,7 +102,6 @@ dotenv.config();
             provide: APP_GUARD,
             useClass: SessionGuard,
         },
-        RedisAdapter,
     ],
     exports: [],
 })

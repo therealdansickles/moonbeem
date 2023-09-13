@@ -19,7 +19,11 @@ import {
     MintSaleTransactionService
 } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { Collection } from '../collection/collection.entity';
-import { cursorToStrings, fromCursor, PaginatedImp } from '../pagination/pagination.utils';
+import {
+    cursorToStrings, dateAndStringToCursor,
+    PaginatedImp,
+    toPaginated
+} from '../pagination/pagination.utils';
 import { Tier } from '../tier/tier.entity';
 import { User } from '../user/user.entity';
 import {
@@ -387,92 +391,104 @@ export class OrganizationService {
         const collections = await this.collectionService.getCollectionsByOrganizationId(id);
         if (collections.length == 0) return PaginatedImp([], 0);
 
-        const addresses = collections.map((c) => {
-            if (c.address) return c.address;
-        });
+        const addresses = collections.map((collection) => collection.address);
 
-        if (addresses.length > 0) {
-            const builder = await this.mintSaleTransactionRepository
-                .createQueryBuilder('txn')
-                .select('txn.txHash', 'txHash')
-                .addSelect('COUNT(1)', 'quantity')
-                .addSelect('SUM("txn".price::decimal(30,0))', 'totalPrice')
-                .addSelect('txn.recipient', 'recipient')
-                .addSelect('txn.txTime', 'txTime')
-                .addSelect('txn.tierId', 'tierId')
-                .addSelect('txn.address', 'address')
-                .addSelect('txn.paymentToken', 'paymentToken')
-                .where('txn.address IN (:...addresses)', { addresses })
-                .groupBy('txn.txHash')
-                .addGroupBy('txn.txTime')
-                .addGroupBy('txn.recipient')
-                .addGroupBy('txn.tierId')
-                .addGroupBy('txn.address')
-                .addGroupBy('txn.paymentToken')
-                .orderBy('txn.txTime', 'DESC');
-
-            if (after) {
-                builder.andWhere('txn.txTime > :cursor', { cursor: new Date(fromCursor(after)).valueOf() / 1000 });
-                builder.limit(first);
-            } else if (before) {
-                builder.andWhere('txn.txTime < :cursor', { cursor: fromCursor(before) });
-                builder.limit(last);
-            } else {
-                const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
-                builder.limit(limit);
-            }
-
-            const subquery = this.mintSaleTransactionRepository
-                .createQueryBuilder('txn')
-                .select('txn.recipient', 'recipient')
-                .where('txn.address IN (:...addresses)', { addresses })
-                .groupBy('txn.txHash')
-                .addGroupBy('txn.txTime')
-                .addGroupBy('txn.recipient')
-                .addGroupBy('txn.tierId')
-                .addGroupBy('txn.address')
-                .addGroupBy('txn.paymentToken');
-
-            const [result, totalResult] = await Promise.all([
-                builder.getRawMany(),
-                this.mintSaleTransactionRepository.manager.query(
-                    `SELECT COUNT(1) AS "total" FROM (${subquery.getSql()}) AS subquery`,
-                    addresses
-                ),
-            ]);
-
-            const dd = await Promise.all(
-                result.map(async (item) => {
-                    const { tierId, paymentToken, totalPrice, quantity, ...rest } = item;
-                    const collection = collections.find((c) => c.address == item.address);
-                    const tier = await this.tierRepository.findOneBy({
-                        tierId: tierId,
-                        collection: { id: collection.id },
-                    });
-                    const coin = await this.coinService.getCoinByAddress(paymentToken);
-                    const quote = await this.coinService.getQuote(coin.symbol);
-                    const totalTokenPrice = new BigNumber(totalPrice).div(new BigNumber(10).pow(coin.decimals));
-                    const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(quote['USD'].price);
-
-                    const createdAt = new Date(item.txTime * 1000);
-                    return {
-                        quantity: parseInt(quantity),
-                        ...rest,
-                        tier,
-                        collection,
-                        paymentToken,
-                        totalPrice: {
-                            inPaymentToken: totalTokenPrice.toString(),
-                            inUSDC: totalUSDC.toString(),
-                        },
-                        createdAt: new Date(createdAt.getTime() + createdAt.getTimezoneOffset() * 60 * 1000),
-                    };
-                })
-            );
-            return PaginatedImp(dd, totalResult.length > 0 ? parseInt(totalResult[0].total ?? 0) : 0);
+        if (addresses.length === 0) {
+            return toPaginated([], 0);
         }
 
-        return PaginatedImp([], 0);
+        const builder = await this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .select('txn.txHash', 'txHash')
+            .addSelect('COUNT(1)', 'quantity')
+            .addSelect('SUM("txn".price::decimal(30,0))', 'totalPrice')
+            .addSelect('txn.recipient', 'recipient')
+            .addSelect('txn.txTime', 'txTime')
+            .addSelect('txn.tierId', 'tierId')
+            .addSelect('txn.address', 'address')
+            .addSelect('txn.paymentToken', 'paymentToken')
+            .where('txn.address IN (:...addresses)', { addresses })
+            .groupBy('txn.txHash')
+            .addGroupBy('txn.txTime')
+            .addGroupBy('txn.recipient')
+            .addGroupBy('txn.tierId')
+            .addGroupBy('txn.address')
+            .addGroupBy('txn.paymentToken');
+
+        if (after) {
+            const [createdAt, txHash] = cursorToStrings(after);
+            builder.andWhere('txn.txTime < :txTime', { txTime: new Date(createdAt).valueOf() / 1000 })
+                .orWhere('txn.txTime = :txTime AND txn.txHash < :txHash', { txTime: new Date(createdAt).valueOf() / 1000, txHash })
+                .orderBy('txn.txTime', 'DESC')
+                .addOrderBy('txn.txHash', 'DESC')
+                .limit(first);
+        } else if (before) {
+            const [createdAt, txHash] = cursorToStrings(before);
+            builder.andWhere('txn.txTime > :txTime', { txTime: new Date(createdAt).valueOf() / 1000 })
+                .orWhere('txn.txTime = :txTime AND txn.txHash > :txHash', { txTime: new Date(createdAt).valueOf() / 1000, txHash })
+                .orderBy('txn.txTime', 'ASC')
+                .addOrderBy('txn.txHash', 'ASC')
+                .limit(last);
+        } else {
+            const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
+            builder
+                .orderBy('txn.txTime', 'DESC')
+                .addOrderBy('txn.txHash', 'DESC')
+                .limit(limit);
+        }
+
+        const subquery = this.mintSaleTransactionRepository
+            .createQueryBuilder('txn')
+            .select('txn.recipient', 'recipient')
+            .where('txn.address IN (:...addresses)', { addresses })
+            .groupBy('txn.txHash')
+            .addGroupBy('txn.txTime')
+            .addGroupBy('txn.recipient')
+            .addGroupBy('txn.tierId')
+            .addGroupBy('txn.address')
+            .addGroupBy('txn.paymentToken');
+
+        const [result, totalResult] = await Promise.all([
+            builder.getRawMany(),
+            this.mintSaleTransactionRepository.manager.query(
+                `SELECT COUNT(1) AS "total" FROM (${subquery.getSql()}) AS subquery`,
+                addresses
+            ),
+        ]);
+
+        const organizationLatestSale = await Promise.all(
+            result.map(async (item) => {
+                const { tierId, paymentToken, totalPrice, quantity, ...rest } = item;
+                const collection = collections.find((c) => c.address == item.address);
+                const tier = await this.tierRepository.findOneBy({
+                    tierId: tierId,
+                    collection: { id: collection.id },
+                });
+                const coin = await this.coinService.getCoinByAddress(paymentToken);
+                const quote = await this.coinService.getQuote(coin.symbol);
+                const totalTokenPrice = new BigNumber(totalPrice).div(new BigNumber(10).pow(coin.decimals));
+                const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(quote['USD'].price);
+
+                const createdAt = new Date(item.txTime * 1000);
+                return {
+                    quantity: parseInt(quantity),
+                    ...rest,
+                    tier,
+                    collection,
+                    paymentToken,
+                    totalPrice: {
+                        inPaymentToken: totalTokenPrice.toString(),
+                        inUSDC: totalUSDC.toString(),
+                    },
+                    createdAt: new Date(createdAt.getTime() + createdAt.getTimezoneOffset() * 60 * 1000),
+                };
+            })
+        );
+        return toPaginated(
+            organizationLatestSale,
+            parseInt(totalResult[0].total ?? 0),
+            (entity) => dateAndStringToCursor(entity.createdAt, entity.txHash)
+        );
     }
 
     /**

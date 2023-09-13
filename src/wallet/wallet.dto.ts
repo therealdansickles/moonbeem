@@ -1,25 +1,5 @@
-import {
-    Field,
-    ObjectType,
-    InputType,
-    ID,
-    OmitType,
-    PartialType,
-    PickType,
-    registerEnumType,
-    Int,
-} from '@nestjs/graphql';
-import {
-    IsString,
-    IsEthereumAddress,
-    IsObject,
-    IsOptional,
-    IsEnum,
-    IsNumber,
-    IsArray,
-    IsDateString,
-    IsNumberString,
-} from 'class-validator';
+import { Field, ID, InputType, Int, ObjectType, OmitType, PartialType, PickType, registerEnumType } from '@nestjs/graphql';
+import { IsArray, IsDateString, IsEnum, IsEthereumAddress, IsNumber, IsNumberString, IsObject, IsOptional, IsString } from 'class-validator';
 import { User, UserInput } from '../user/user.dto';
 import { Tier } from '../tier/tier.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
@@ -98,6 +78,10 @@ export class Minted extends PickType(MintSaleTransaction, [
     @IsObject()
     @Field(() => Tier, { description: 'The tier of the minted token.', nullable: true })
     readonly tier: Tier;
+
+    @IsNumber()
+    @Field(() => Int, { description: 'The number of plugins installed.' })
+    readonly pluginsCount: number;
 }
 
 @ObjectType('MintPaginated')
@@ -114,16 +98,7 @@ registerEnumType(ActivityType, {
 
 @ObjectType('Activity', { description: 'The activity for a wallet.' })
 export class Activity extends PartialType(
-    PickType(MintSaleTransaction, [
-        'address',
-        'tokenAddress',
-        'paymentToken',
-        'tokenId',
-        'price',
-        'txTime',
-        'txHash',
-        'chainId',
-    ] as const)
+    PickType(MintSaleTransaction, ['address', 'tokenAddress', 'paymentToken', 'tokenId', 'price', 'txTime', 'txHash', 'chainId'] as const)
 ) {
     @IsObject()
     @Field(() => Tier, { description: 'The tier of the minted token.', nullable: true })
@@ -207,11 +182,7 @@ export class WalletInput {
 }
 
 @ObjectType('WalletOutput')
-export class WalletOutput extends OmitType(
-    Wallet,
-    ['websiteUrl', 'twitter', 'instagram', 'discord', 'spotify', 'owner'],
-    ObjectType
-) {}
+export class WalletOutput extends OmitType(Wallet, ['websiteUrl', 'twitter', 'instagram', 'discord', 'spotify', 'owner'], ObjectType) {}
 
 @ObjectType('SearchWallet')
 export class SearchWallet {
@@ -260,7 +231,7 @@ export class TierHolderData extends PartialType(OmitType(Wallet, ['owner'], Obje
     @IsObject()
     readonly asset?: Asset721;
 
-    @Field(() => Int, { description: 'The NFT balance of the holder'})
+    @Field(() => Int, { description: 'The NFT balance of the holder' })
     @IsNumber()
     readonly quantity: number;
 }
@@ -271,18 +242,7 @@ export class TierHoldersPaginated extends Paginated(TierHolderData) {}
 @ObjectType('WalletSold')
 export class WalletSold extends PickType(
     MintSaleTransaction,
-    [
-        'id',
-        'address',
-        'tokenAddress',
-        'paymentToken',
-        'tokenId',
-        'price',
-        'txTime',
-        'txHash',
-        'chainId',
-        'createdAt',
-    ] as const,
+    ['id', 'address', 'tokenAddress', 'paymentToken', 'tokenId', 'price', 'txTime', 'txHash', 'chainId', 'createdAt'] as const,
     ObjectType
 ) {
     @Field(() => Tier)

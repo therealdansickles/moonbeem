@@ -14,12 +14,9 @@ import { SessionModule } from '../session/session.module';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinModule } from '../sync-chain/coin/coin.module';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import {
-    MintSaleTransaction
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import {
-    MintSaleTransactionModule
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
+import { Plugin } from '../plugin/plugin.entity';
 import { Tier } from '../tier/tier.entity';
 import { TierModule } from '../tier/tier.module';
 import { User } from '../user/user.entity';
@@ -27,10 +24,14 @@ import { UserModule } from '../user/user.module';
 import { Wallet } from './wallet.entity';
 import { WalletResolver } from './wallet.resolver';
 import { WalletService } from './wallet.service';
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
+import { CollectionPluginModule } from '../collectionPlugin/collectionPlugin.module';
+import { MerkleTree } from '../merkleTree/merkleTree.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Wallet, Relationship, User, Collaboration, Collection, Tier]),
+        TypeOrmModule.forFeature([Wallet, Relationship, User, Collaboration, Collection, Tier, CollectionPlugin, Plugin, MerkleTree]),
         TypeOrmModule.forFeature([MintSaleTransaction, MintSaleContract, Coin], 'sync_chain'),
         forwardRef(() => SessionModule),
         forwardRef(() => CollaborationModule),
@@ -40,10 +41,11 @@ import { WalletService } from './wallet.service';
         forwardRef(() => TierModule),
         forwardRef(() => UserModule),
         forwardRef(() => CoinModule),
-        JwtModule
+        forwardRef(() => CollectionPluginModule),
+        JwtModule,
     ],
     exports: [WalletModule, WalletService],
-    providers: [JwtService, RelationshipService, WalletService, WalletResolver],
+    providers: [JwtService, RelationshipService, WalletService, WalletResolver, CollectionPluginService],
     controllers: [],
 })
 export class WalletModule {}

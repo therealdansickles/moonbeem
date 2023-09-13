@@ -1,7 +1,9 @@
 import { MetadataConfigs } from 'src/metadata/metadata.dto';
-import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 import { MetadataCondition, MetadataProperties } from '../metadata/metadata.entity';
+import { Organization } from '../organization/organization.entity';
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
 
 class PluginMetadata {
     properties: MetadataProperties;
@@ -19,7 +21,7 @@ export class Plugin extends BaseEntity {
 
     @Column({ comment: 'The display name of the plugin.' })
     readonly displayName: string;
-    
+
     @Column({ nullable: true, comment: 'The description of the plugin.' })
     readonly description?: string;
 
@@ -32,22 +34,41 @@ export class Plugin extends BaseEntity {
     @Column({ nullable: true, comment: 'The author of the plugin.' })
     readonly author?: string;
 
+    @ManyToOne(() => Organization, (organization) => organization.collaborations, {
+        createForeignKeyConstraints: false,
+        nullable: true,
+    })
+    public organization?: Organization;
+
+    @Column({
+        default: [],
+        type: 'jsonb',
+        comment: 'The categories of the plugin.',
+    })
+    readonly categories: string[];
+
+    @OneToMany(() => CollectionPlugin, (collectionPlugin) => collectionPlugin.plugin, {
+        createForeignKeyConstraints: false,
+        nullable: true,
+    })
+    readonly collectionPlugins: CollectionPlugin[];
+
     @Column({
         default: 'rule-engine',
         comment: 'The type of the plugin, can be `rule-engine` or `plugin`',
     })
     readonly type?: string;
 
-    @Column({ 
+    @Column({
         default: true,
-        comment: 'The status of the plugin, should not display when `isPublished` equals to false'
+        comment: 'The status of the plugin, should not display when `isPublished` equals to false',
     })
     readonly isPublished: boolean;
 
     @Column({
         default: {},
         type: 'jsonb',
-        comment: 'Metadata template.'
+        comment: 'Metadata template.',
     })
     readonly metadata: PluginMetadata;
 

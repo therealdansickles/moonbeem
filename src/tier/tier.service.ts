@@ -9,23 +9,21 @@ import { captureException } from '@sentry/node';
 
 import { Collection, CollectionKind } from '../collection/collection.entity';
 import { MetadataPropertySearchInput } from '../metadata/metadata.dto';
-import {
-    cursorToStrings, fromCursor, PaginatedImp, stringsToCursor, toPaginated
-} from '../pagination/pagination.utils';
+import { MetadataPropertyClass } from '../metadata/metadata.entity';
+import { cursorToStrings, fromCursor, PaginatedImp, stringsToCursor, toPaginated } from '../pagination/pagination.utils';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
-import {
-    MintSaleTransaction
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { TierHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    BasicPriceInfo, CreateTierInput, IAttributeOverview, IOverview, IPluginOverview,
-    IUpgradeOverview, Profit, Tier, TierSearchPaginated, UpdateTierInput
+    BasicPriceInfo, CreateTierInput, IAttributeOverview, IOverview, IPluginOverview, IUpgradeOverview, Profit, Tier, TierSearchPaginated,
+    UpdateTierInput
 } from './tier.dto';
 import * as tierEntity from './tier.entity';
+import { renderPropertyName } from './tier.utils';
 
 interface ITierSearch {
     collectionId?: string;
@@ -42,11 +40,13 @@ type AttributesOverviewQuery = {
     collectionSlug?: string;
 };
 
-export type ITierQuery = {
+export type ITierListQuery = {
     name?: string;
     collection?: { id: string };
     pluginName?: string;
 };
+
+export type ITierQuery = { id: string } | { collection: { id: string }, tierId: number };
 
 @Injectable()
 export class TierService {
@@ -74,10 +74,11 @@ export class TierService {
      * @param id The id of the tier.
      * @returns The tier.
      */
-    async getTier(id: string): Promise<Tier> {
-        const tier = await this.tierRepository.findOne({ where: { id }, relations: ['collection'] });
+    async getTier(query: ITierQuery): Promise<Tier> {
+        let tier = await this.tierRepository.findOne({ where: query, relations: ['collection'] });
+        if (!tier) return null;
+        tier = renderPropertyName(tier);
         const coin = await this.coinService.getCoinByAddress(tier.paymentTokenAddress.toLowerCase());
-
         return {
             ...tier,
             coin,
@@ -90,7 +91,7 @@ export class TierService {
      * @param query The query of the search
      * @returns Array of tiers
      */
-    async getTiers(query: ITierQuery): Promise<Tier[] | null> {
+    async getTiers(query: ITierListQuery): Promise<Tier[] | null> {
         query = omitBy(query, isNil);
         if (isEmpty(query)) return null;
 
@@ -102,9 +103,9 @@ export class TierService {
         const result: Tier[] = [];
         const tiers = await builder.getMany();
 
-        for (const tier of tiers) {
+        for (let tier of tiers) {
             const coin = await this.coinService.getCoinByAddress(tier.paymentTokenAddress.toLowerCase());
-
+            tier = renderPropertyName(tier);
             result.push({
                 ...tier,
                 coin,
@@ -192,7 +193,7 @@ export class TierService {
 
     async getTierTotalSold(id: string): Promise<number> {
         try {
-            const tier = await this.getTier(id);
+            const tier = await this.getTier({ id });
             const { collection } = tier;
             if (!collection.address) return 0;
 
@@ -216,7 +217,7 @@ export class TierService {
      */
     async getTierProfit(id: string): Promise<Profit> {
         try {
-            const tier = await this.getTier(id);
+            const tier = await this.getTier({ id });
             const { collection } = tier;
             if (!collection.address) return { inPaymentToken: '0', inUSDC: '0' };
 
@@ -450,7 +451,8 @@ export class TierService {
 
         builder.orderBy('tier.createdAt', 'ASC');
 
-        const [tiers, total] = await builder.getManyAndCount();
+        const [result, total] = await builder.getManyAndCount();
+        const tiers = result.map(tier => renderPropertyName(tier));
         return PaginatedImp(tiers, total);
     }
 
@@ -471,22 +473,20 @@ export class TierService {
         const plugins: IPluginOverview = {};
 
         tiers.forEach((tier) => {
+            tier = renderPropertyName(tier);
             if (tier.metadata) {
                 if (tier.metadata.properties) {
-                    Object.entries(tier.metadata.properties).forEach(([, value]) => {
-                        if (!attributes[value.name]) attributes[value.name] = {};
-                        attributes[value.name][value.value]
-                            ? attributes[value.name][value.value]++
-                            : (attributes[value.name][value.value] = 1);
-                    });
-                }
-
-                if (tier.metadata.conditions) {
-                    tier.metadata.conditions.rules.forEach((rule) => {
-                        rule.update.forEach((u) => {
-                            upgrades[u.property] ? upgrades[u.property]++ : (upgrades[u.property] = 1);
-                        });
-                    });
+                    for (const [, value] of Object.entries(tier.metadata.properties)) {
+                        if (value.display_value === 'none') continue;
+                        if (value.class === MetadataPropertyClass.UPGRADABLE) {
+                            upgrades[value.name] ? upgrades[value.name]++ : upgrades[value.name] = 1;
+                        } else {
+                            if (!attributes[value.name]) attributes[value.name] = {};
+                            attributes[value.name][value.value]
+                                ? attributes[value.name][value.value]++
+                                : (attributes[value.name][value.value] = 1);
+                        }
+                    }
                 }
 
                 if (tier.metadata.uses) {

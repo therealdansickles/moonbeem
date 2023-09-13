@@ -15,6 +15,7 @@ import { SaleHistory } from '../saleHistory/saleHistory.dto';
 import { getCurrentPrice } from '../saleHistory/saleHistory.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
+import { History721, History721Type } from '../sync-chain/history721/history721.entity';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import { BasicTokenPrice } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
@@ -30,6 +31,7 @@ import {
     Collection,
     CollectionActivities,
     CollectionActivityType,
+    CollectionAggregatedActivityPaginated,
     CollectionEarningsChartPaginated,
     CollectionPaginated,
     CollectionSold,
@@ -40,17 +42,18 @@ import {
     CreateCollectionInput,
     GrossEarnings,
     LandingPageCollection,
+    PropertyFilter,
+    SearchTokenIdsInput,
     SecondarySale,
     SevenDayVolume,
     UpdateCollectionInput,
     ZeroAccount,
-    CollectionAggregatedActivityPaginated,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
-import { generateSlug } from './collection.utils';
-import { History721, History721Type } from '../sync-chain/history721/history721.entity';
+import { filterTokenIdsByRanges, generateSlug } from './collection.utils';
+import { NftService } from '../nft/nft.service';
 
-type ICollectionQuery = Partial<Pick<Collection, 'id' | 'address' | 'name' | 'slug'>>;
+type ICollectionQuery = Partial<Pick<Collection, 'id' | 'tokenAddress' | 'address' | 'name' | 'slug'>>;
 
 @Injectable()
 export class CollectionService {
@@ -71,7 +74,8 @@ export class CollectionService {
         private tierService: TierService,
         private transactionService: MintSaleTransactionService,
         private openseaService: OpenseaService,
-        private coinService: CoinService
+        private coinService: CoinService,
+        private nftService: NftService
     ) {}
 
     /**
@@ -1150,5 +1154,56 @@ export class CollectionService {
         }
 
         return result;
+    }
+
+    async searchTokenIds(input: SearchTokenIdsInput): Promise<string[]> {
+        const { staticPropertyFilters, dynamicPropertyFilters, collectionId } = input;
+        const collection = await this.collectionRepository.findOneBy({ id: collectionId });
+        if (!collection) {
+            throw new Error(`Collection not found`);
+        }
+        const ranges = await this.getTokenIdRangesByStaticPropertiesFilters(collectionId, collection.address, staticPropertyFilters);
+        const tokenIds = await this.nftService.getNftsIdsByProperties(collectionId, dynamicPropertyFilters);
+        return filterTokenIdsByRanges(tokenIds, ranges);
+    }
+
+    async getTokenIdRangesByStaticPropertiesFilters(
+        collectionId: string,
+        collectionAddress: string,
+        propertyFilters: PropertyFilter[]
+    ): Promise<number[][]> {
+        const contracts = await this.mintSaleContractRepository.findBy({
+            address: collectionAddress,
+        });
+
+        const builder = this.tierRepository
+            .createQueryBuilder('tier')
+            .select('tier.tierId', 'tier_id')
+            .where('tier.collectionId = :collectionId', { collectionId })
+            .orderBy('tier.tierId', 'ASC');
+        const filterConditions = propertyFilters.map((propertyFilter) => {
+            const { name, value, range } = propertyFilter;
+            if (value) {
+                return `metadata->'properties'->'${name}'->>'value'='${value}'`;
+            }
+            if (range) {
+                const [min, max] = range;
+                return `(metadata->'properties'->'${name}'->>'value')::INTEGER>=${min} AND (metadata->'properties'->'${name}'->>'value')::INTEGER<=${max}`;
+            }
+            return '';
+        });
+        filterConditions.filter((condition) => condition !== '').map((condition) => builder.andWhere(condition));
+        const tiers = await builder.getRawMany();
+        return tiers
+            .map((tier) => {
+                const { tier_id } = tier;
+                const contract = contracts.find((contract) => contract.tierId === tier_id);
+                if (!contract) {
+                    return [];
+                }
+                const { startId, endId } = contract;
+                return [startId, endId];
+            })
+            .filter((range) => range.length > 0);
     }
 }

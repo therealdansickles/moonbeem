@@ -29,6 +29,7 @@ import { Collection } from './collection.entity';
 import { CollectionService } from './collection.service';
 import { History721Service } from '../sync-chain/history721/history721.service';
 import { History721Type } from '../sync-chain/history721/history721.entity';
+import { NftService } from '../nft/nft.service';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
@@ -43,6 +44,7 @@ describe('CollectionService', () => {
     let userService: UserService;
     let walletService: WalletService;
     let collaborationService: CollaborationService;
+    let nftService: NftService;
 
     beforeAll(async () => {
         repository = global.collectionRepository;
@@ -57,6 +59,7 @@ describe('CollectionService', () => {
         asset721Service = global.asset721Service;
         walletService = global.walletService;
         history721Service = global.history721Service;
+        nftService = global.nftService;
     });
 
     afterEach(async () => {
@@ -2962,6 +2965,273 @@ describe('CollectionService', () => {
             });
 
             await expect(service.getAggregatedCollectionSold(collectionAddress, tokenAddress)).rejects.toThrow(error);
+        });
+    });
+
+    describe('searchTokenIds', () => {
+        let user;
+        let wallet;
+        let organization;
+        let collection;
+        let tier;
+
+        beforeEach(async () => {
+            user = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            organization = await createOrganization(organizationService, { owner: user });
+
+            wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            collection = await createCollection(service, {
+                organization,
+                creator: { id: wallet.id },
+            });
+            await createTierAndMintSaleContract(
+                {
+                    tierId: 0,
+                    metadata: {
+                        properties: {
+                            height: {
+                                value: '200',
+                            },
+                        },
+                    },
+                },
+                {
+                    tierId: 0,
+                    startId: 0,
+                    endId: 2,
+                }
+            );
+
+            await createTierAndMintSaleContract(
+                {
+                    tierId: 1,
+                    metadata: {
+                        properties: {
+                            type: {
+                                value: 'silver',
+                            },
+                            height: {
+                                value: '100',
+                            },
+                        },
+                    },
+                },
+                {
+                    tierId: 1,
+                    startId: 3,
+                    endId: 5,
+                }
+            );
+
+            await createTierAndMintSaleContract(
+                {
+                    tierId: 2,
+                    metadata: {
+                        properties: {
+                            type: {
+                                value: 'golden',
+                            },
+                            height: {
+                                value: '100',
+                            },
+                        },
+                    },
+                },
+                {
+                    tierId: 2,
+                    startId: 6,
+                    endId: 8,
+                }
+            );
+
+            tier = await createTierAndMintSaleContract(
+                {
+                    tierId: 3,
+                    metadata: {
+                        properties: {
+                            type: {
+                                value: 'golden',
+                            },
+                            height: {
+                                value: '200',
+                            },
+                        },
+                    },
+                },
+                {
+                    tierId: 3,
+                    startId: 9,
+                    endId: 11,
+                }
+            );
+
+            await createTierAndMintSaleContract(
+                {
+                    tierId: 4,
+                    metadata: {
+                        properties: {
+                            type: {
+                                value: 'golden',
+                            },
+                            height: {
+                                value: '300',
+                            },
+                        },
+                    },
+                },
+                {
+                    tierId: 4,
+                    startId: 12,
+                    endId: 14,
+                }
+            );
+
+            await createTierAndMintSaleContract(
+                {
+                    tierId: 5,
+                    metadata: {
+                        properties: {
+                            type: {
+                                value: 'golden',
+                            },
+                            height: {
+                                value: '400',
+                            },
+                        },
+                    },
+                },
+                {
+                    tierId: 5,
+                    startId: 15,
+                    endId: 17,
+                }
+            );
+        });
+
+        const createTierAndMintSaleContract = async (tierData, mintSaleContractData) => {
+            await createMintSaleContract(mintSaleContractService, {
+                address: collection.address,
+                ...mintSaleContractData,
+            });
+
+            return await createTier(tierService, {
+                collection: { id: collection.id },
+                ...tierData,
+            });
+        };
+
+        it('should return the right ranges when getTokenIdRangesByStaticPropertiesFilters', async () => {
+            const allTokenIdsRange = await service.getTokenIdRangesByStaticPropertiesFilters(collection.id, collection.address, []);
+            expect(allTokenIdsRange.length).toBe(6);
+            expect(allTokenIdsRange).toEqual([
+                [0, 2],
+                [3, 5],
+                [6, 8],
+                [9, 11],
+                [12, 14],
+                [15, 17],
+            ]);
+            const typeFilter = [
+                {
+                    name: 'type',
+                    value: 'golden',
+                },
+            ];
+            const rangesWithTypeFilter = await service.getTokenIdRangesByStaticPropertiesFilters(collection.id, collection.address, typeFilter);
+            expect(rangesWithTypeFilter.length).toBe(4);
+            expect(rangesWithTypeFilter).toEqual([
+                [6, 8],
+                [9, 11],
+                [12, 14],
+                [15, 17],
+            ]);
+
+            const heightFilter = [
+                {
+                    name: 'height',
+                    range: [200, 300],
+                },
+            ];
+
+            const rangesWithHeightFilter = await service.getTokenIdRangesByStaticPropertiesFilters(collection.id, collection.address, heightFilter);
+            expect(rangesWithHeightFilter.length).toBe(3);
+            expect(rangesWithHeightFilter).toEqual([
+                [0, 2],
+                [9, 11],
+                [12, 14],
+            ]);
+
+            const combinedFilter = [...typeFilter, ...heightFilter];
+            const combinedRanges = await service.getTokenIdRangesByStaticPropertiesFilters(collection.id, collection.address, combinedFilter);
+            expect(combinedRanges.length).toBe(2);
+            expect(combinedRanges).toEqual([
+                [9, 11],
+                [12, 14],
+            ]);
+        });
+
+        it('should return the right tokenIds when searchTokenIds', async () => {
+            const collectionId = collection.id;
+            const tierId = tier.id;
+            await nftService.createOrUpdateNftByTokenId({
+                collectionId,
+                tierId,
+                tokenId: 9,
+                properties: {
+                    loyalty: {
+                        value: '150',
+                    },
+                },
+            });
+            await nftService.createOrUpdateNftByTokenId({
+                collectionId,
+                tierId,
+                tokenId: 10,
+                properties: {
+                    loyalty: {
+                        value: '50',
+                    },
+                },
+            });
+            await nftService.createOrUpdateNftByTokenId({
+                collectionId,
+                tierId,
+                tokenId: 11,
+                properties: {
+                    loyalty: {
+                        value: '250',
+                    },
+                },
+            });
+            const searchInput = {
+                collectionId: collection.id,
+                staticPropertyFilters: [
+                    {
+                        name: 'type',
+                        value: 'golden',
+                    },
+                    {
+                        name: 'height',
+                        range: [200, 300],
+                    },
+                ],
+                dynamicPropertyFilters: [
+                    {
+                        name: 'loyalty',
+                        range: [100, 400],
+                    },
+                ],
+            };
+            const tokenIds = await service.searchTokenIds(searchInput);
+            expect(tokenIds.length).toBe(2);
+            expect(tokenIds).toEqual(['9', '11']);
         });
     });
 });
