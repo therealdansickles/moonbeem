@@ -2,20 +2,9 @@ name: CI
 on: [push]
 
 env:
-    V1_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_test
-    V1_DATABASE_HOST: localhost
-    V1_DATABASE_PORT: 5432
-    V1_DATABASE_NAME: platform_test
-    V1_DATABASE_USERNAME: postgres
-    V1_DATABASE_PASSWORD: postgres
+    DATABASE_URL: postgresql://postgres:postgres@localhost:5432/platform_test
     SYNC_CHAIN_DATABASE_URL: postgresql://postgres:postgres@localhost:5442/sync_chain_test
-    SYNC_CHAIN_DATABASE_HOST: localhost
-    SYNC_CHAIN_DATABASE_PORT: 5442
-    SYNC_CHAIN_DATABASE_NAME: sync_chain_test
-    SYNC_CHAIN_DATABASE_USERNAME: postgres
-    SYNC_CHAIN_DATABASE_PASSWORD: postgres
     NODE_ENV: dev
-    DATABASE_URL: postgres://root:root@postgres/vibe-server
     SESSION_SECRET: secretKey
     INVITE_SECRET: secretInvite
     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
