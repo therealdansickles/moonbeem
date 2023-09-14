@@ -13,11 +13,6 @@ env:
     AWS_METADATA_BASE_URI: ${{ secrets.AWS_METADATA_BASE_URI }}
     AWS_IMAGE_BASE_URI: ${{ secrets.AWS_IMAGE_BASE_URI }}
     AWS_BASE_URL: ${{ secrets.AWS_BASE_URL }}
-    RPC_URL: https://goerli-rollup.arbitrum.io/rpc
-    CHAIN_ID: 421613
-    NETWORK: arbitrum
-    KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-    PROFILE_NFT_CONTRACT: '0x7961f5c879604dc0a291ff66efd3cab4ec2bcfc7'
     COIN_MARKET_CAP_API_KEY: ${{ secrets.COIN_MARKET_CAP_API_KEY }}
 
 jobs:
