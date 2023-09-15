@@ -24,8 +24,8 @@ export class MerkleTree {
     readonly merkleRoot?: string;
 
     @IsObject()
-    @Field(() => [MerkleDataOutput], { description: 'The wallet of the merkle tree.', nullable: true })
-    readonly data?: MerkleDataOutput[];
+    @Field(() => [JSON], { description: 'The wallet of the merkle tree.', nullable: true })
+    readonly data?: object[];
 
     @IsDateString()
     @Field({ description: 'The created datetime of the merkle tree.' })
