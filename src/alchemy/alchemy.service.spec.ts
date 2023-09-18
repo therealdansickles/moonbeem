@@ -248,4 +248,23 @@ describe('AlchemySerice', () => {
             expect(result.length).toEqual(3);
         });
     });
+
+    describe('#createWebhook', () => {
+        it('should create webhook from Alchemy', async () => {
+            const mockResponse = {
+                id: 'wh_k59xn8hy0id8wxax',
+                network: 'arb-goerli',
+                type: 'NFT_ACTIVITY',
+                url: 'https://ade0-139-226-93-94.ngrok-free.app/v1/webhook/nft-activity',
+                isActive: true,
+                timeCreated: '2023-09-15T01:53:32.000Z',
+                signingKey: 'whsec_JDKbDFhVi96OUCNeOICMO3hq',
+                version: 'V2'
+            };
+            jest.spyOn(service as any, '_createWebhook').mockImplementation(async () => mockResponse);
+            const result = await service.createWebhook(Network.ARB_GOERLI, collection.tokenAddress);
+            expect(result).toBeTruthy();
+            expect(result.id).toEqual(mockResponse.id);
+        });
+    });
 });

@@ -79,11 +79,7 @@ describe('MerkleTreeResolver', () => {
             const query = gql`
                 query GetMerkleTree($merkleRoot: String) {
                     merkleTree(merkleRoot: $merkleRoot) {
-                        data {
-                            address
-                            amount
-                            __typename
-                        }
+                        data
                         merkleRoot
                         __typename
                     }
@@ -96,6 +92,8 @@ describe('MerkleTreeResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.merkleTree.data.length).toBe(2);
+                    expect(body.data.merkleTree.data[0].address).toBeDefined();
+                    expect(body.data.merkleTree.data[0].amount).toBeDefined();
                 });
         });
 
@@ -103,11 +101,7 @@ describe('MerkleTreeResolver', () => {
             const query = gql`
                 query GetMerkleTree($merkleRoot: String) {
                     merkleTree(merkleRoot: $merkleRoot) {
-                        data {
-                            address
-                            amount
-                            __typename
-                        }
+                        data
                         merkleRoot
                         __typename
                     }

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Collection } from '../collection/collection.entity';
@@ -19,6 +20,7 @@ import { AlchemyService } from './alchemy.service';
 
 @Module({
     imports: [
+        ConfigModule,
         TypeOrmModule.forFeature([Collection, Tier, Wallet]),
         TypeOrmModule.forFeature([Coin, MintSaleContract, MintSaleTransaction, Asset721, History721], 'sync_chain'),
         CollectionModule,

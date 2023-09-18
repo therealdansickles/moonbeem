@@ -1,7 +1,9 @@
-import { Alchemy, GetBaseNftsForOwnerOptions, Network } from 'alchemy-sdk';
+import { Alchemy, AlchemySettings, GetBaseNftsForOwnerOptions, Network, WebhookType } from 'alchemy-sdk';
 import { get } from 'lodash';
+import { URL } from 'url';
 
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import { CollectionService } from '../collection/collection.service';
 import { alchemyConfig } from '../lib/configs/alchemy.config';
@@ -21,16 +23,19 @@ export enum EventType {
 
 @Injectable()
 export class AlchemyService {
-    private alchemy = {};
+    private alchemy: { [key: string]: Alchemy } = {};
     
     constructor(
+        private configService: ConfigService,
         private collectionService: CollectionService,
         private mintSaleContractService: MintSaleContractService,
         private tierService: TierService,
     ) {
         const apiKey = alchemyConfig.apiKey;
-        this.alchemy[Network.ARB_MAINNET] = new Alchemy({ apiKey, network: Network.ARB_MAINNET });
-        this.alchemy[Network.ARB_GOERLI] = new Alchemy({ apiKey, network: Network.ARB_GOERLI });
+        const authToken = alchemyConfig.authToken;
+        const baseSetting: Partial<AlchemySettings> = { apiKey, authToken };
+        this.alchemy[Network.ARB_MAINNET] = new Alchemy({ network: Network.ARB_MAINNET, ...baseSetting });
+        this.alchemy[Network.ARB_GOERLI] = new Alchemy({ network: Network.ARB_GOERLI, ...baseSetting });
     }
 
     private async _getNFTsForCollection(network: Network, tokenAddress: string, options?: GetBaseNftsForOwnerOptions) {
@@ -47,6 +52,25 @@ export class AlchemyService {
     async getNFTsForCollection(network: Network, tokenAddress: string) {
         const res = await this._getNFTsForCollection(network, tokenAddress, { omitMetadata: true });
         return res.map(nft => BigInt(nft.id.tokenId).toString());
+    }
+
+    private async _createWebhook(network: Network, tokenAddress: string) {
+        const url = '/v1/webhook/nft-activity';
+        const domain = this.configService.get('DOMAIN');
+        return await this.alchemy[network].notify.createWebhook(
+            new URL(url, domain).href,
+            WebhookType.NFT_ACTIVITY,
+            {
+                filters: [{
+                    contractAddress: tokenAddress
+                }],
+                network,
+            }
+        );
+    }
+
+    async createWebhook(network: Network, tokenAddress: string) {
+        return this._createWebhook(network, tokenAddress); 
     }
 
     getEventTypeByAddress(fromAddress: string, toAddress: string): string {
