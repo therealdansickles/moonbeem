@@ -4,10 +4,13 @@ import { GraphQLError } from 'graphql';
 import { isEmpty, isNil, omitBy } from 'lodash';
 import { DeepPartial, FindOptionsWhere, In, IsNull, Repository, UpdateResult } from 'typeorm';
 
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as Sentry from '@sentry/node';
 
+import { AlchemyService } from '../alchemy/alchemy.service';
+import { NetworkMapping } from '../network/network.constants';
+import { NftService } from '../nft/nft.service';
 import { OpenseaService } from '../opensea/opensea.service';
 import { AggregatedCollection } from '../organization/organization.dto';
 import { cursorToStrings, fromCursor, PaginatedImp, toPaginated } from '../pagination/pagination.utils';
@@ -27,31 +30,13 @@ import { User } from '../user/user.entity';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    AggregatedVolume,
-    Collection,
-    CollectionActivities,
-    CollectionActivityType,
-    CollectionAggregatedActivityPaginated,
-    CollectionEarningsChartPaginated,
-    CollectionPaginated,
-    CollectionSold,
-    CollectionSoldAggregated,
-    CollectionSoldPaginated,
-    CollectionStat,
-    CollectionStatus,
-    CreateCollectionInput,
-    GrossEarnings,
-    LandingPageCollection,
-    PropertyFilter,
-    SearchTokenIdsInput,
-    SecondarySale,
-    SevenDayVolume,
-    UpdateCollectionInput,
-    ZeroAccount,
+    AggregatedVolume, Collection, CollectionActivities, CollectionActivityType, CollectionAggregatedActivityPaginated,
+    CollectionEarningsChartPaginated, CollectionPaginated, CollectionSold, CollectionSoldAggregated, CollectionSoldPaginated, CollectionStat,
+    CollectionStatus, CreateCollectionInput, GrossEarnings, LandingPageCollection, PropertyFilter, SearchTokenIdsInput, SecondarySale, SevenDayVolume,
+    UpdateCollectionInput, ZeroAccount
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
 import { filterTokenIdsByRanges, generateSlug } from './collection.utils';
-import { NftService } from '../nft/nft.service';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'tokenAddress' | 'address' | 'name' | 'slug'>>;
 
@@ -75,7 +60,9 @@ export class CollectionService {
         private transactionService: MintSaleTransactionService,
         private openseaService: OpenseaService,
         private coinService: CoinService,
-        private nftService: NftService
+        private nftService: NftService,
+        @Inject(forwardRef(() => AlchemyService))
+        private alchemyService: AlchemyService,
     ) {}
 
     /**
@@ -261,10 +248,15 @@ export class CollectionService {
      */
     async createCollection(data: DeepPartial<collectionEntity.Collection>): Promise<Collection> {
         try {
-            return this.collectionRepository.save({
+            const collection = await this.collectionRepository.save({
                 slug: generateSlug(data.name),
                 ...data,
             });
+            // only create the webhook if we have the `tokenAddress`
+            if (collection.tokenAddress && collection.chainId) {
+                await this.alchemyService.createWebhook(NetworkMapping.get(collection.chainId), collection.tokenAddress);
+            }
+            return collection;
         } catch (e) {
             Sentry.captureException(e);
             throw new GraphQLError('Failed to create new collection.', {

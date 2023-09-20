@@ -2,7 +2,7 @@ import { Alchemy, AlchemySettings, GetBaseNftsForOwnerOptions, Network, WebhookT
 import { get } from 'lodash';
 import { URL } from 'url';
 
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { CollectionService } from '../collection/collection.service';
@@ -27,6 +27,7 @@ export class AlchemyService {
     
     constructor(
         private configService: ConfigService,
+        @Inject(forwardRef(() => CollectionService))
         private collectionService: CollectionService,
         private mintSaleContractService: MintSaleContractService,
         private tierService: TierService,
@@ -55,8 +56,10 @@ export class AlchemyService {
     }
 
     private async _createWebhook(network: Network, tokenAddress: string) {
+        const domain = this.configService.get('ALCHEMY_DOMAIN');
+        if (!domain || !this.configService.get('ALCHEMY_API_KEY') || !this.configService.get('ALCHEMY_AUTH_TOKEN'))
+            return;
         const url = '/v1/webhook/nft-activity';
-        const domain = this.configService.get('DOMAIN');
         return await this.alchemy[network].notify.createWebhook(
             new URL(url, domain).href,
             WebhookType.NFT_ACTIVITY,

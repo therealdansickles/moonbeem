@@ -37,6 +37,7 @@ import { WaitlistModule } from './waitlist/waitlist.module';
 import { WalletModule } from './wallet/wallet.module';
 import { SessionInterceptor } from './session/session.interceptor';
 import { CollectionPluginModule } from './collectionPlugin/collectionPlugin.module';
+import { NetworkModule } from './network/network.module';
 
 dotenv.config();
 
@@ -88,6 +89,7 @@ dotenv.config();
             signOptions: { expiresIn: '30d' },
         }),
         CacheModule.register({ isGlobal: true }),
+        NetworkModule,
     ],
     providers: [
         {

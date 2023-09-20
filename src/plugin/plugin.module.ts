@@ -1,23 +1,31 @@
 import { HttpModule } from '@nestjs/axios';
 import { forwardRef, Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { AlchemyModule } from '../alchemy/alchemy.module';
+import { AlchemyService } from '../alchemy/alchemy.service';
 import { CoinMarketCapModule } from '../coinmarketcap/coinmarketcap.module';
 import { CoinMarketCapService } from '../coinmarketcap/coinmarketcap.service';
 import { Collection } from '../collection/collection.entity';
 import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
 import { Nft } from '../nft/nft.entity';
+import { NftModule } from '../nft/nft.module';
+import { NftService } from '../nft/nft.service';
 import { OpenseaModule } from '../opensea/opensea.module';
 import { OpenseaService } from '../opensea/opensea.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
+import { Asset721Module } from '../sync-chain/asset721/asset721.module';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinModule } from '../sync-chain/coin/coin.module';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { History721 } from '../sync-chain/history721/history721.entity';
 import { History721Module } from '../sync-chain/history721/history721.module';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
+import { MintSaleContractModule } from '../sync-chain/mint-sale-contract/mint-sale-contract.module';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { MintSaleTransactionModule } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.module';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
@@ -28,10 +36,6 @@ import { Wallet } from '../wallet/wallet.entity';
 import { Plugin } from './plugin.entity';
 import { PluginResolver } from './plugin.resolver';
 import { PluginService } from './plugin.service';
-import { NftService } from '../nft/nft.service';
-import { NftModule } from '../nft/nft.module';
-import { Asset721Module } from '../sync-chain/asset721/asset721.module';
-import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 
 @Module({
     imports: [
@@ -43,11 +47,14 @@ import { Asset721Service } from '../sync-chain/asset721/asset721.service';
         forwardRef(() => CoinMarketCapModule),
         forwardRef(() => CoinModule),
         forwardRef(() => MintSaleTransactionModule),
+        forwardRef(() => MintSaleContractModule),
         forwardRef(() => History721Module),
         forwardRef(() => NftModule),
         forwardRef(() => Asset721Module),
+        forwardRef(() => AlchemyModule),
         HttpModule,
         JwtModule,
+        ConfigModule,
     ],
     providers: [
         PluginService,
@@ -61,6 +68,7 @@ import { Asset721Service } from '../sync-chain/asset721/asset721.service';
         JwtService,
         Asset721Service,
         NftService,
+        AlchemyService,
     ],
 })
 export class PluginModule {}

@@ -19,6 +19,8 @@ import { CollaborationModule } from './collaboration/collaboration.module';
 import { CollaborationService } from './collaboration/collaboration.service';
 import { CollectionModule } from './collection/collection.module';
 import { CollectionService } from './collection/collection.service';
+import { CollectionPluginModule } from './collectionPlugin/collectionPlugin.module';
+import { CollectionPluginService } from './collectionPlugin/collectionPlugin.service';
 import { AWSAdapter } from './lib/adapters/aws.adapter';
 import { postgresConfig } from './lib/configs/db.config';
 import { MailModule } from './mail/mail.module';
@@ -81,8 +83,6 @@ import { WaitlistService } from './waitlist/waitlist.service';
 import { Wallet } from './wallet/wallet.dto';
 import { WalletModule } from './wallet/wallet.module';
 import { WalletService } from './wallet/wallet.service';
-import { CollectionPluginModule } from './collectionPlugin/collectionPlugin.module';
-import { CollectionPluginService } from './collectionPlugin/collectionPlugin.service';
 
 @Resolver()
 export class TestResolver {

@@ -1,8 +1,11 @@
 import { HttpModule } from '@nestjs/axios';
 import { forwardRef, Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { AlchemyModule } from '../alchemy/alchemy.module';
+import { AlchemyService } from '../alchemy/alchemy.service';
 import { CoinMarketCapModule } from '../coinmarketcap/coinmarketcap.module';
 import { CoinMarketCapService } from '../coinmarketcap/coinmarketcap.service';
 import { Collaboration } from '../collaboration/collaboration.entity';
@@ -12,6 +15,8 @@ import { Membership } from '../membership/membership.entity';
 import { MembershipModule } from '../membership/membership.module';
 import { MembershipService } from '../membership/membership.service';
 import { Nft } from '../nft/nft.entity';
+import { NftModule } from '../nft/nft.module';
+import { NftService } from '../nft/nft.service';
 import { OpenseaModule } from '../opensea/opensea.module';
 import { OpenseaService } from '../opensea/opensea.service';
 import { Organization } from '../organization/organization.entity';
@@ -19,6 +24,7 @@ import { OrganizationModule } from '../organization/organization.module';
 import { Redeem } from '../redeem/redeem.entity';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Asset721Module } from '../sync-chain/asset721/asset721.module';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinModule } from '../sync-chain/coin/coin.module';
 import { CoinService } from '../sync-chain/coin/coin.service';
@@ -40,9 +46,6 @@ import { WalletModule } from '../wallet/wallet.module';
 import { Collection } from './collection.entity';
 import { CollectionResolver } from './collection.resolver';
 import { CollectionService } from './collection.service';
-import { NftService } from '../nft/nft.service';
-import { NftModule } from '../nft/nft.module';
-import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 
 @Module({
     imports: [
@@ -64,7 +67,9 @@ import { Asset721Service } from '../sync-chain/asset721/asset721.service';
         forwardRef(() => WalletModule),
         forwardRef(() => History721Module),
         forwardRef(() => NftModule),
+        forwardRef(() => AlchemyModule),
         JwtModule,
+        ConfigModule,
     ],
     exports: [CollectionModule, CollectionService],
     providers: [
@@ -80,6 +85,8 @@ import { Asset721Service } from '../sync-chain/asset721/asset721.service';
         MintSaleTransactionService,
         NftService,
         Asset721Service,
+        ConfigService,
+        AlchemyService,
     ],
     controllers: [],
 })
