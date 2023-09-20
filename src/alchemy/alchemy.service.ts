@@ -93,7 +93,7 @@ export class AlchemyService {
         }
     }
 
-    async serializeActivityEvent(req: any) {
+    async serializeNftActivityEvent(req: any) {
         const result = [];
         for (const activity of get(req, 'event.activity', [])) {
             const { contractAddress, toAddress, fromAddress, erc721TokenId } = activity;
@@ -113,6 +113,36 @@ export class AlchemyService {
                 tokenId,
                 eventType,
             });
+        }
+        return result;
+    }
+
+    private async _getLogs(network: Network, address: string, fromBlock: number, toBlock: number) {
+        return this.alchemy[network].core.getLogs({
+            address,
+            fromBlock,
+            toBlock,
+        });
+    }
+
+    async serializeAddressActivityEvent(req: any) {
+        const network = get<string>(req, 'event.network', '').toLowerCase().replace('_', '-');
+        const result = [];
+        for (const activity of get(req, 'event.activity', [])) {
+            const { blockNum, toAddress: factoryAddress, asset, value } = activity;
+            // do some simple filtering
+            if (asset != 'ETH' || value != 0) continue;
+            const block = parseInt(blockNum);
+
+            const logs = await this._getLogs(network, factoryAddress, block, block);
+
+            // another filtering
+            if (logs.length != 2) continue;
+            const [eventForCreateERC721, eventForMintSale] = logs;
+            const tokenAddress = `0x${eventForCreateERC721?.topics[2]?.slice(-40)}`;
+            const contractAddress = `0x${eventForMintSale?.topics[2]?.slice(-40)}`;
+            
+            result.push({ tokenAddress, contractAddress });
         }
         return result;
     }
