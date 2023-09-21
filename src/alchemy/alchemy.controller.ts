@@ -16,6 +16,7 @@ export class AlchemyController {
     @Public()
     @Post('/webhook/nft-activity')
     public async nftActivity(@Req() req: Request) {
+        if (req.body.type !== 'NFT_ACTIVITY') return;
         const nfts = await this.alchemyService.serializeNftActivityEvent(req.body);
         return nfts;
     }

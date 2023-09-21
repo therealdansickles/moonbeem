@@ -1,16 +1,17 @@
 import BigNumber from 'bignumber.js';
+import { addMinutes } from 'date-fns';
 import { sortBy } from 'lodash';
 import { Repository } from 'typeorm';
 
 import { faker } from '@faker-js/faker';
 
 import { CollectionService } from '../collection/collection.service';
+import { createCollection, createTier } from '../test-utils';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import { Nft } from './nft.entity';
 import { NftService } from './nft.service';
-import { createCollection, createTier } from '../test-utils';
 
 describe('NftService', () => {
     let nftRepository: Repository<Nft>;
@@ -1332,6 +1333,49 @@ describe('NftService', () => {
 
             const result = await nftService.renderMetadata(nftInfo);
             expect(result.metadata.image).toBeFalsy();
+        });
+    });
+
+    describe('initializePropertiesFromTier', () => {
+        it('should handle empty properties', async () => {
+            const result = nftService.initializePropertiesFromTier({});
+            expect(result).toEqual({});
+        });
+
+        it('should add `updated_at` for upgradable properties', async () => {
+            const properties = {
+                static_property: {
+                    name: faker.lorem.word(10),
+                    type: 'string',
+                    value: faker.lorem.word(10),
+                },
+                holding_days: {
+                    name: 'holding_days',
+                    type: 'integer',
+                    value: faker.number.int(100),
+                    class: 'upgradable',
+                    display_value: 'none',
+                },
+            };
+            const result = nftService.initializePropertiesFromTier(properties);
+            expect(result['holding_days']).toBeTruthy();
+            expect(result['holding_days'].updated_at).toBeTruthy();
+            expect(result['holding_days'].updated_at).toBeGreaterThan(addMinutes(new Date(), -1).valueOf());
+        });
+
+        it('should replace the template string to 0', async () => {
+            const properties = {
+                holding_days: {
+                    name: 'holding_days',
+                    type: 'integer',
+                    value: '{{holding_days}}',
+                    class: 'upgradable',
+                    display_value: 'none',
+                },
+            };
+            const result = nftService.initializePropertiesFromTier(properties);
+            expect(result['holding_days']).toBeTruthy();
+            expect(result['holding_days'].value).toEqual('0');
         });
     });
 

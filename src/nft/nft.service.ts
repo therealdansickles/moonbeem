@@ -5,11 +5,11 @@ import { In, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { Metadata } from '../metadata/metadata.dto';
+import { PropertyFilter } from '../collection/collection.dto';
+import { Metadata, MetadataProperties } from '../metadata/metadata.dto';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { Nft as NftDto } from './nft.dto';
 import { Nft } from './nft.entity';
-import { PropertyFilter } from '../collection/collection.dto';
 
 interface INFTQueryWithId {
     id: string;
@@ -181,6 +181,26 @@ export class NftService {
         filterConditions.filter((condition) => condition !== '').map((condition) => builder.andWhere(condition));
 
         return (await builder.getRawMany()).map((nft) => nft.token_id).sort((a, b) => parseInt(a) - parseInt(b));
+    }
+
+    /**
+     * generate properties from tier.metadata.properties for NFT records
+     * basically it will handle 2 things
+     * 1. if the property is upgradable, then add `updated_at` field
+     * 2. initialize the property value from template string to 0
+     * 
+     * @param candidateProperties
+     * @returns
+     */
+    initializePropertiesFromTier(candidateProperties: MetadataProperties) {
+        const properties: MetadataProperties = {};
+        for (const [key, value] of Object.entries(candidateProperties)) {
+            const property = Object.assign({}, value);
+            if (value.class === 'upgradable') property.updated_at = new Date().valueOf();
+            if (value.value?.toString().startsWith('{{') && value.value?.toString().endsWith('}}')) property.value = '0';
+            properties[key] = property;
+        }
+        return properties;
     }
 
     /**

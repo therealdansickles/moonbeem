@@ -109,7 +109,7 @@ export class MetadataProperty {
     readonly type: string;
 
     @Field(() => String, { description: 'The value of the property.' })
-    readonly value: string | number;
+    public value: string | number;
 
     @IsString()
     @IsOptional()
@@ -124,12 +124,12 @@ export class MetadataProperty {
     @IsNumber()
     @IsOptional()
     @Field({ nullable: true, description: 'The last time the property has been updated.' })
-    readonly updated_at?: number;
+    public updated_at?: number;
 }
 
 @ObjectType()
 export class MetadataProperties {
-    readonly [key: string]: MetadataProperty;
+    [key: string]: MetadataProperty;
 }
 
 @ObjectType()
