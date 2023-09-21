@@ -30,10 +30,27 @@ import { User } from '../user/user.entity';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    AggregatedVolume, Collection, CollectionActivities, CollectionActivityType, CollectionAggregatedActivityPaginated,
-    CollectionEarningsChartPaginated, CollectionPaginated, CollectionSold, CollectionSoldAggregated, CollectionSoldPaginated, CollectionStat,
-    CollectionStatus, CreateCollectionInput, GrossEarnings, LandingPageCollection, PropertyFilter, SearchTokenIdsInput, SecondarySale, SevenDayVolume,
-    UpdateCollectionInput, ZeroAccount
+    AggregatedVolume,
+    Collection,
+    CollectionActivities,
+    CollectionActivityType,
+    CollectionAggregatedActivityPaginated,
+    CollectionEarningsChartPaginated,
+    CollectionPaginated,
+    CollectionSold,
+    CollectionSoldAggregated,
+    CollectionSoldPaginated,
+    CollectionStat,
+    CollectionStatus,
+    CreateCollectionInput,
+    GrossEarnings,
+    LandingPageCollection,
+    PropertyFilter,
+    SearchTokenIdsInput,
+    SecondarySale,
+    SevenDayVolume,
+    UpdateCollectionInput,
+    ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
 import { filterTokenIdsByRanges, generateSlug } from './collection.utils';
@@ -62,7 +79,7 @@ export class CollectionService {
         private coinService: CoinService,
         private nftService: NftService,
         @Inject(forwardRef(() => AlchemyService))
-        private alchemyService: AlchemyService,
+        private alchemyService: AlchemyService
     ) {}
 
     /**
@@ -186,6 +203,7 @@ export class CollectionService {
         return await this.collectionRepository.find({
             where: { creator: { id: walletId } },
             relations: ['organization', 'tiers', 'creator', 'collaboration'],
+            order: { createdAt: 'DESC' },
         });
     }
 

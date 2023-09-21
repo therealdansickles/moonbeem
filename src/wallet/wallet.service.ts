@@ -312,22 +312,22 @@ export class WalletService {
         if (after) {
             const [createdAt, id] = cursorToStrings(after);
             // We assume that the createdAt can be duplicated, use >= instead of > here
-            builder.andWhere('tx.createdAt > :createdAt', { createdAt });
-            builder.orWhere('tx.createdAt = :createdAt AND tx.id > :id', { createdAt, id });
-            builder.orderBy('tx.createdAt', 'ASC');
-            builder.addOrderBy('tx.id', 'ASC');
-            builder.limit(first);
-        } else if (before) {
-            const [createdAt, id] = cursorToStrings(before);
             builder.andWhere('tx.createdAt < :createdAt', { createdAt });
             builder.orWhere('tx.createdAt = :createdAt AND tx.id < :id', { createdAt, id });
             builder.orderBy('tx.createdAt', 'DESC');
             builder.addOrderBy('tx.id', 'DESC');
+            builder.limit(first);
+        } else if (before) {
+            const [createdAt, id] = cursorToStrings(before);
+            builder.andWhere('tx.createdAt > :createdAt', { createdAt });
+            builder.orWhere('tx.createdAt = :createdAt AND tx.id > :id', { createdAt, id });
+            builder.orderBy('tx.createdAt', 'ASC');
+            builder.addOrderBy('tx.id', 'ASC');
             builder.limit(last);
         } else {
             const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
-            builder.orderBy('tx.createdAt', 'ASC');
-            builder.addOrderBy('tx.id', 'ASC');
+            builder.orderBy('tx.createdAt', 'DESC');
+            builder.addOrderBy('tx.id', 'DESC');
             builder.limit(limit);
         }
 

@@ -726,11 +726,17 @@ describe('CollectionService', () => {
                 creator: { id: wallet.id },
             });
 
-            const [result] = await service.getCreatedCollectionsByWalletId(wallet.id);
+            await createCollection(service, {
+                organization: { id: organization.id },
+                creator: { id: wallet.id },
+            });
 
-            expect(result).toBeDefined();
-            expect(result.creator.id).toEqual(wallet.id);
-            expect(result.organization.id).toEqual(organization.id);
+            const [first, second] = await service.getCreatedCollectionsByWalletId(wallet.id);
+
+            expect(first).toBeDefined();
+            expect(first.creator.id).toEqual(wallet.id);
+            expect(first.organization.id).toEqual(organization.id);
+            expect(first.createdAt.getTime()).toBeGreaterThanOrEqual(second.createdAt.getTime());
         });
     });
 
