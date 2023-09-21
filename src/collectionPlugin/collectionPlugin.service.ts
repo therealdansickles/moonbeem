@@ -101,4 +101,12 @@ export class CollectionPluginService {
         // check if there is a claim record for this plugin and tokenId
         return true;
     }
+
+    async getAppliedTokensCount(collectionPlugin: CollectionPlugin, totalSupply: number): Promise<number> {
+        const { merkleRoot } = collectionPlugin;
+        if (!merkleRoot) return totalSupply;
+        const merkleTree = await this.merkleTreeRepo.findOne({ where: { merkleRoot } });
+        if (!merkleTree) return 0;
+        return (merkleTree.data || []).length;
+    }
 }

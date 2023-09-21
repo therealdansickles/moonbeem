@@ -47,10 +47,15 @@ import { Wallet } from '../wallet/wallet.entity';
 import { WalletModule } from '../wallet/wallet.module';
 import { SessionResolver } from './session.resolver';
 import { SessionService } from './session.service';
+import { Plugin } from '../plugin/plugin.entity';
+import { MerkleTree } from '../merkleTree/merkleTree.entity';
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
+import { CollectionPluginModule } from '../collectionPlugin/collectionPlugin.module';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Wallet, User, Collection, Membership, Organization, Tier, Nft]),
+        TypeOrmModule.forFeature([Wallet, User, Collection, Membership, Organization, Tier, Nft, MerkleTree, CollectionPlugin, Plugin]),
         TypeOrmModule.forFeature([Asset721, Coin, MintSaleContract, MintSaleTransaction, History721, Factory], 'sync_chain'),
         forwardRef(() => Asset721Module),
         forwardRef(() => CoinMarketCapModule),
@@ -68,6 +73,7 @@ import { SessionService } from './session.service';
         forwardRef(() => History721Module),
         forwardRef(() => FactoryModule),
         forwardRef(() => NftModule),
+        forwardRef(() => CollectionPluginModule),
         forwardRef(() => AlchemyModule),
         JwtModule.register({
             secret: process.env.SESSION_SECRET,
@@ -90,6 +96,7 @@ import { SessionService } from './session.service';
         MintSaleContractService,
         FactoryService,
         NftService,
+        CollectionPluginService,
         ConfigService,
         AlchemyService,
     ],

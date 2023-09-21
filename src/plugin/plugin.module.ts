@@ -36,10 +36,14 @@ import { Wallet } from '../wallet/wallet.entity';
 import { Plugin } from './plugin.entity';
 import { PluginResolver } from './plugin.resolver';
 import { PluginService } from './plugin.service';
+import { MerkleTree } from '../merkleTree/merkleTree.entity';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
+import { CollectionPluginModule } from '../collectionPlugin/collectionPlugin.module';
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Plugin, Collection, Tier, Nft, Wallet]),
+        TypeOrmModule.forFeature([Plugin, Collection, Tier, Nft, Wallet, Collection, MerkleTree, CollectionPlugin]),
         TypeOrmModule.forFeature([Coin, MintSaleContract, MintSaleTransaction, Asset721, History721], 'sync_chain'),
         forwardRef(() => CollectionModule),
         forwardRef(() => TierModule),
@@ -51,6 +55,7 @@ import { PluginService } from './plugin.service';
         forwardRef(() => History721Module),
         forwardRef(() => NftModule),
         forwardRef(() => Asset721Module),
+        forwardRef(() => CollectionPluginModule),
         forwardRef(() => AlchemyModule),
         HttpModule,
         JwtModule,
@@ -69,6 +74,7 @@ import { PluginService } from './plugin.service';
         Asset721Service,
         NftService,
         AlchemyService,
+        CollectionPluginService,
     ],
 })
 export class PluginModule {}

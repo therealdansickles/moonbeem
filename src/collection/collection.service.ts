@@ -45,6 +45,9 @@ import {
     CreateCollectionInput,
     GrossEarnings,
     LandingPageCollection,
+    MetadataOverview,
+    MetadataOverviewInput,
+    PluginOverview,
     PropertyFilter,
     SearchTokenIdsInput,
     SecondarySale,
@@ -53,7 +56,8 @@ import {
     ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
-import { filterTokenIdsByRanges, generateSlug } from './collection.utils';
+import { filterTokenIdsByRanges, generateSlug, getCollectionAttributesOverview, getCollectionUpgradesOverview } from './collection.utils';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'tokenAddress' | 'address' | 'name' | 'slug'>>;
 
@@ -77,6 +81,7 @@ export class CollectionService {
         private transactionService: MintSaleTransactionService,
         private openseaService: OpenseaService,
         private coinService: CoinService,
+        private collectionPluginService: CollectionPluginService,
         private nftService: NftService,
         @Inject(forwardRef(() => AlchemyService))
         private alchemyService: AlchemyService
@@ -1215,5 +1220,54 @@ export class CollectionService {
                 return [startId, endId];
             })
             .filter((range) => range.length > 0);
+    }
+
+    async getMetadataOverview({ collectionId, collectionAddress, collectionSlug }: MetadataOverviewInput): Promise<MetadataOverview> {
+        const builder = await this.tierRepository.createQueryBuilder('tier').leftJoinAndSelect('tier.collection', 'collection');
+        if (collectionId) {
+            builder.where('collection.id = :collectionId', { collectionId });
+        } else if (collectionAddress) {
+            builder.where('collection.address = :collectionAddress', { collectionAddress });
+        } else if (collectionSlug) {
+            builder.where('collection.slug = :collectionSlug', { collectionSlug });
+        } else {
+            throw new Error('Invalid input');
+        }
+        const tiers = await builder.getMany();
+        if (tiers.length === 0) {
+            throw new Error('Collection not found');
+        }
+        collectionId = tiers[0].collection.id;
+        const tierTokenCountsMap: Record<number, number> = {};
+        const contracts = await this.mintSaleContractRepository.findBy({ collectionId });
+        contracts.map((contract) => {
+            const { tierId, startId, endId } = contract;
+            tierTokenCountsMap[tierId] = endId - startId + 1;
+        });
+        const totalSupply = Object.values(tierTokenCountsMap).reduce((acc, curr) => acc + curr, 0);
+
+        const attributes = getCollectionAttributesOverview(tiers, tierTokenCountsMap);
+        const upgrades = getCollectionUpgradesOverview(tiers, tierTokenCountsMap);
+        const plugins = await this.getPluginsOverview(collectionId, totalSupply);
+
+        return {
+            attributes,
+            upgrades,
+            plugins,
+        };
+    }
+
+    async getPluginsOverview(collectionId: string, totalSupply: number): Promise<PluginOverview[]> {
+        const collectionPlugins = await this.collectionPluginService.getCollectionPluginsByCollectionId(collectionId);
+        const plugins = [];
+        for (const collectionPlugin of collectionPlugins) {
+            const count = await this.collectionPluginService.getAppliedTokensCount(collectionPlugin, totalSupply);
+            plugins.push({
+                name: collectionPlugin.name,
+                count,
+            });
+        }
+
+        return plugins;
     }
 }

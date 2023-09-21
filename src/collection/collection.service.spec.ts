@@ -19,6 +19,7 @@ import {
     createMintSaleContract,
     createMintSaleTransaction,
     createOrganization,
+    createPlugin,
     createTier,
 } from '../test-utils';
 import { TierService } from '../tier/tier.service';
@@ -30,9 +31,14 @@ import { CollectionService } from './collection.service';
 import { History721Service } from '../sync-chain/history721/history721.service';
 import { History721Type } from '../sync-chain/history721/history721.entity';
 import { NftService } from '../nft/nft.service';
+import { MerkleTree } from '../merkleTree/merkleTree.entity';
+import { Plugin } from '../plugin/plugin.entity';
+import { MerkleTreeService } from '../merkleTree/merkleTree.service';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
+    let pluginRepository: Repository<Plugin>;
     let service: CollectionService;
     let coinService: CoinService;
     let mintSaleTransactionService: MintSaleTransactionService;
@@ -45,9 +51,12 @@ describe('CollectionService', () => {
     let walletService: WalletService;
     let collaborationService: CollaborationService;
     let nftService: NftService;
+    let merkleTreeService: MerkleTreeService;
+    let collectionPluginService: CollectionPluginService;
 
     beforeAll(async () => {
         repository = global.collectionRepository;
+        pluginRepository = global.pluginRepository;
         service = global.collectionService;
         organizationService = global.organizationService;
         collaborationService = global.collaborationService;
@@ -60,6 +69,8 @@ describe('CollectionService', () => {
         walletService = global.walletService;
         history721Service = global.history721Service;
         nftService = global.nftService;
+        merkleTreeService = global.merkleTreeService;
+        collectionPluginService = global.collectionPluginService;
     });
 
     afterEach(async () => {
@@ -3238,6 +3249,324 @@ describe('CollectionService', () => {
             const tokenIds = await service.searchTokenIds(searchInput);
             expect(tokenIds.length).toBe(2);
             expect(tokenIds).toEqual(['9', '11']);
+        });
+    });
+
+    describe('getPluginsOverview', function () {
+        let collection;
+        let plugin;
+        let merkleTree;
+
+        const createRecipientsMerkleTree = async (collectionAddress: string, tokenIds: string[]): Promise<MerkleTree> => {
+            const data = tokenIds.map((tokenId) => {
+                return { collection: collectionAddress, tokenId, quantity: '1' };
+            });
+            return merkleTreeService.createGeneralMerkleTree('recipients', data);
+        };
+
+        beforeEach(async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await createOrganization(organizationService, { owner: user });
+            collection = await createCollection(service, { organization });
+            merkleTree = await createRecipientsMerkleTree(collection.address, ['1', '2', '3']);
+            plugin = await createPlugin(pluginRepository, { organization });
+        });
+
+        it('should return right plugin overview', async () => {
+            const input = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: 'collection plugin without merkle root',
+                pluginDetail: {},
+            };
+            await collectionPluginService.createCollectionPlugin(input);
+            await collectionPluginService.createCollectionPlugin({
+                ...input,
+                merkleRoot: merkleTree.merkleRoot,
+                name: 'collection plugin with merkle root',
+            });
+            const result = await service.getPluginsOverview(collection.id, 100);
+            expect(result.length).toBe(2);
+            expect(result).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        name: 'collection plugin without merkle root',
+                        count: 100,
+                    }),
+                    expect.objectContaining({
+                        name: 'collection plugin with merkle root',
+                        count: 3,
+                    }),
+                ])
+            );
+        });
+    });
+
+    describe('getMetadataOverview', function () {
+        let user;
+        let wallet;
+        let organization;
+        let collection;
+        let plugin;
+        let merkleTree;
+
+        const createRecipientsMerkleTree = async (collectionAddress: string, tokenIds: string[]): Promise<MerkleTree> => {
+            const data = tokenIds.map((tokenId) => {
+                return { collection: collectionAddress, tokenId, quantity: '1' };
+            });
+            return merkleTreeService.createGeneralMerkleTree('recipients', data);
+        };
+
+        const createTierAndMintSaleContract = async (tierData, mintSaleContractData) => {
+            await createMintSaleContract(mintSaleContractService, {
+                address: collection.address,
+                ...mintSaleContractData,
+            });
+
+            return await createTier(tierService, {
+                collection: { id: collection.id },
+                ...tierData,
+            });
+        };
+
+        beforeEach(async () => {
+            // create collection
+            user = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+            organization = await createOrganization(organizationService, { owner: user });
+            wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+            collection = await createCollection(service, {
+                organization,
+                creator: { id: wallet.id },
+            });
+            // create tiers and mint sale contracts
+            await createTierAndMintSaleContract(
+                {
+                    tierId: 0,
+                    metadata: {
+                        properties: {
+                            Color: {
+                                name: 'Color',
+                                type: 'string',
+                                value: 'Red',
+                                class: 'upgradable',
+                            },
+                            Height: {
+                                name: 'Height',
+                                type: 'number',
+                                value: 180,
+                                class: 'upgradable',
+                            },
+                        },
+                        uses: ['@vibe_lab/loyalty_points', '@vibe_lab/magic_rule_engine', '@vibe_lab/airdrop'],
+                    },
+                },
+                {
+                    collectionId: collection.id,
+                    tierId: 0,
+                    startId: 1,
+                    endId: 9,
+                }
+            );
+
+            await createTierAndMintSaleContract(
+                {
+                    tierId: 1,
+                    metadata: {
+                        properties: {
+                            BgColor: {
+                                name: 'BgColor',
+                                type: 'string',
+                                value: 'Green',
+                            },
+                            Width: {
+                                name: 'Width',
+                                type: 'number',
+                                value: 30,
+                            },
+                        },
+                        uses: ['@vibe_lab/magic_rule_engine', '@vibe_lab/airdrop'],
+                    },
+                },
+                {
+                    collectionId: collection.id,
+                    tierId: 1,
+                    startId: 10,
+                    endId: 30,
+                }
+            );
+
+            await createTierAndMintSaleContract(
+                {
+                    tierId: 2,
+                    metadata: {
+                        properties: {
+                            Color: {
+                                name: 'Color',
+                                type: 'string',
+                                value: 'Green',
+                                class: 'upgradable',
+                            },
+                            Type: {
+                                name: 'Type',
+                                type: 'string',
+                                value: 'Golden',
+                            },
+                            Height: {
+                                name: 'Height',
+                                type: 'number',
+                                value: 190,
+                                class: 'upgradable',
+                            },
+                        },
+                        uses: ['@vibe_lab/loyalty_points', '@vibe_lab/airdrop'],
+                    },
+                },
+                {
+                    collectionId: collection.id,
+                    tierId: 2,
+                    startId: 31,
+                    endId: 99,
+                }
+            );
+            // create plugin
+            merkleTree = await createRecipientsMerkleTree(collection.address, ['1', '2', '20']);
+            plugin = await createPlugin(pluginRepository, { organization });
+            // create collection plugin
+            const input = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: 'collection plugin without merkle root',
+                pluginDetail: {},
+            };
+            await collectionPluginService.createCollectionPlugin(input);
+            await collectionPluginService.createCollectionPlugin({
+                ...input,
+                merkleRoot: merkleTree.merkleRoot,
+                name: 'collection plugin with merkle root',
+            });
+        });
+
+        it('should get metadata overview', async () => {
+            const result = await service.getMetadataOverview({
+                collectionId: collection.id,
+            });
+
+            expect(result.attributes.staticAttributes).toEqual(
+                expect.arrayContaining([
+                    {
+                        name: 'BgColor',
+                        type: 'string',
+                        valueCounts: [
+                            {
+                                value: 'Green',
+                                count: 21,
+                            },
+                        ],
+                    },
+                    {
+                        name: 'Width',
+                        type: 'number',
+                        valueCounts: [
+                            {
+                                value: 30,
+                                count: 21,
+                            },
+                        ],
+                    },
+                    {
+                        name: 'Type',
+                        type: 'string',
+                        valueCounts: [
+                            {
+                                value: 'Golden',
+                                count: 69,
+                            },
+                        ],
+                    },
+                ])
+            );
+
+            expect(result.attributes.dynamicAttributes).toEqual([
+                {
+                    name: 'Color',
+                    type: 'string',
+                    class: 'upgradable',
+                    valueCounts: [
+                        {
+                            value: 'Red',
+                            count: 9,
+                        },
+                        {
+                            value: 'Green',
+                            count: 69,
+                        },
+                    ],
+                },
+                {
+                    name: 'Height',
+                    type: 'number',
+                    class: 'upgradable',
+                    valueCounts: [
+                        {
+                            value: 180,
+                            count: 9,
+                        },
+                        {
+                            value: 190,
+                            count: 69,
+                        },
+                    ],
+                },
+            ]);
+            expect(result.plugins).toEqual(
+                expect.arrayContaining([
+                    {
+                        name: 'collection plugin without merkle root',
+                        count: 99,
+                    },
+                    {
+                        name: 'collection plugin with merkle root',
+                        count: 3,
+                    },
+                ])
+            );
+            expect(result.upgrades).toEqual(
+                expect.arrayContaining([
+                    {
+                        name: '@vibe_lab/loyalty_points',
+                        count: 78,
+                    },
+                    {
+                        name: '@vibe_lab/magic_rule_engine',
+                        count: 30,
+                    },
+                    {
+                        name: '@vibe_lab/airdrop',
+                        count: 99,
+                    },
+                ])
+            );
+
+            const getBySlugResult = await service.getMetadataOverview({
+                collectionSlug: collection.slug,
+            });
+
+            const getByAddressResult = await service.getMetadataOverview({
+                collectionAddress: collection.address,
+            });
+
+            expect(getBySlugResult).toEqual(result);
+            expect(getByAddressResult).toEqual(result);
         });
     });
 });

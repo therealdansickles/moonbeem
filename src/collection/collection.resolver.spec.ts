@@ -1693,4 +1693,115 @@ describe('CollectionResolver', () => {
                 });
         });
     });
+
+    describe('metadataOverview', () => {
+        let user;
+        let wallet;
+        let organization;
+        let collection;
+
+        beforeEach(async () => {
+            user = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            organization = await createOrganization(organizationService, { owner: user });
+
+            wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            collection = await createCollection(service, {
+                organization,
+                creator: { id: wallet.id },
+            });
+            await createTier(tierService, {
+                collection: { id: collection.id },
+                tierId: 0,
+                metadata: {
+                    properties: {
+                        height: {
+                            name: 'height',
+                            type: 'number',
+                            value: '200',
+                        },
+                    },
+                },
+            });
+            await createMintSaleContract(mintSaleContractService, {
+                collectionId: collection.id,
+                address: collection.address,
+                tierId: 0,
+                startId: 1,
+                endId: 16,
+            });
+        });
+
+        it('should return metadata overview', async () => {
+            // using one of the collection's id/slug/address
+            const input = {
+                collectionId: collection.id,
+                // collectionSlug: collection.slug
+                // collectionAddress: collection.address
+            };
+            const query = gql`
+                query MetadataOverview($input: MetadataOverviewInput!) {
+                    metadataOverview(input: $input) {
+                        attributes {
+                            staticAttributes {
+                                name
+                                type
+                                valueCounts {
+                                    value
+                                    count
+                                }
+                                displayValue
+                                class
+                            }
+                            dynamicAttributes {
+                                name
+                                type
+                                valueCounts {
+                                    value
+                                    count
+                                }
+                                displayValue
+                                class
+                            }
+                        }
+                        upgrades {
+                            name
+                            count
+                        }
+                        plugins {
+                            name
+                            count
+                        }
+                    }
+                }
+            `;
+
+            const variables = { input };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.metadataOverview).toBeDefined();
+                    expect(body.data.metadataOverview.attributes.staticAttributes).toEqual(
+                        expect.arrayContaining([
+                            {
+                                name: 'height',
+                                type: 'number',
+                                valueCounts: [{ value: '200', count: 16 }],
+                                displayValue: null,
+                                class: null,
+                            },
+                        ])
+                    );
+                });
+        });
+    });
 });

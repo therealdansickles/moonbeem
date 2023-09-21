@@ -24,6 +24,8 @@ import {
     CreateCollectionInput,
     GrossEarnings,
     LandingPageCollection,
+    MetadataOverview,
+    MetadataOverviewInput,
     SearchTokenIdsInput,
     SevenDayVolume,
     UpdateCollectionInput,
@@ -242,5 +244,11 @@ export class CollectionResolver {
     @Query(() => [String], { description: 'Returns the upcoming collections.' })
     async searchTokenIds(@Args('input', { nullable: true }) input: SearchTokenIdsInput): Promise<string[]> {
         return this.collectionService.searchTokenIds(input);
+    }
+
+    @Public()
+    @Query(() => MetadataOverview, { description: 'Returns the upcoming collections.' })
+    async metadataOverview(@Args('input') input: MetadataOverviewInput): Promise<MetadataOverview> {
+        return this.collectionService.getMetadataOverview(input);
     }
 }

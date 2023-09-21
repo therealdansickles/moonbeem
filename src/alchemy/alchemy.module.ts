@@ -31,11 +31,17 @@ import { TierService } from '../tier/tier.service';
 import { Wallet } from '../wallet/wallet.entity';
 import { AlchemyController } from './alchemy.controller';
 import { AlchemyService } from './alchemy.service';
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
+import { MerkleTree } from '../merkleTree/merkleTree.entity';
+import { CollectionPluginModule } from '../collectionPlugin/collectionPlugin.module';
+import { MerkleTreeModule } from '../merkleTree/merkleTree.module';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
+import { MerkleTreeService } from '../merkleTree/merkleTree.service';
 
 @Module({
     imports: [
         ConfigModule,
-        TypeOrmModule.forFeature([Collection, Tier, Nft, Wallet, Plugin]),
+        TypeOrmModule.forFeature([Collection, Tier, Nft, Wallet, Plugin, CollectionPlugin, MerkleTree]),
         TypeOrmModule.forFeature([Coin, MintSaleContract, MintSaleTransaction, Asset721, History721], 'sync_chain'),
         forwardRef(() => CollectionModule),
         forwardRef(() => CoinModule),
@@ -46,9 +52,22 @@ import { AlchemyService } from './alchemy.service';
         forwardRef(() => NftModule),
         forwardRef(() => Asset721Module),
         forwardRef(() => PluginModule),
-        HttpModule
+        forwardRef(() => CollectionPluginModule),
+        forwardRef(() => MerkleTreeModule),
+        HttpModule,
     ],
-    providers: [TierService, CollectionService, MintSaleTransactionService, OpenseaService, NftService, Asset721Service, PluginService, AlchemyService],
-    controllers: [AlchemyController]
+    providers: [
+        TierService,
+        CollectionService,
+        MintSaleTransactionService,
+        OpenseaService,
+        NftService,
+        Asset721Service,
+        PluginService,
+        AlchemyService,
+        CollectionPluginService,
+        MerkleTreeService,
+    ],
+    controllers: [AlchemyController],
 })
 export class AlchemyModule {}
