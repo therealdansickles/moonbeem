@@ -1,6 +1,5 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { Reflector } from '@nestjs/core';
 import { WalletService } from '../wallet/wallet.service';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
@@ -9,18 +8,15 @@ import { getJwtPayload } from './session.utils';
 
 @Injectable()
 export class SessionInterceptor implements NestInterceptor {
-    constructor(
-        private reflector: Reflector,
-        private readonly jwtService: JwtService,
-        private readonly walletService: WalletService,
-        private readonly userService: UserService
-    ) {}
+    constructor(private readonly jwtService: JwtService, private readonly walletService: WalletService, private readonly userService: UserService) {}
+
     async intercept(executionContext: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
         const ctx = GqlExecutionContext.create(executionContext);
         const context = ctx.getContext();
         let payload;
         try {
             payload = getJwtPayload(context.req.headers.authorization, this.jwtService, process.env.SESSION_SECRET);
+            context.verified = true;
         } catch (_e) {
             payload = {};
             context.verified = false;

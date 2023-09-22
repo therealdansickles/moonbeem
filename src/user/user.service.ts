@@ -55,8 +55,7 @@ export class UserService {
      * Create a new user with a default org / membership
      * the original `createUser` would be atomic service function
      *
-     * @param payload
-     * @param password
+     * @param input
      * @returns The newly created user.
      */
     async createUserWithOrganization(input: CreateUserInput): Promise<User> {
@@ -102,9 +101,7 @@ export class UserService {
 
         if (existedUser) {
             if (existedUser.provider !== payload.provider) {
-                throw new GraphQLError(
-                    `An account with this email already exists. Please log in with ${existedUser.provider}.`
-                );
+                throw new GraphQLError(`An account with this email already exists. Please log in with ${existedUser.provider}.`);
             } else {
                 throw new GraphQLError(`This email ${payload.email} is already taken.`);
             }

@@ -1,7 +1,15 @@
 import * as jwt from 'jwt-simple';
 import {
-    BaseEntity, BeforeInsert, Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne,
-    PrimaryGeneratedColumn, UpdateDateColumn
+    BaseEntity,
+    BeforeInsert,
+    Column,
+    CreateDateColumn,
+    Entity,
+    Index,
+    JoinColumn,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 
 import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
@@ -45,6 +53,9 @@ export class Membership extends BaseEntity {
     @Column({ default: false, comment: 'Can deploy collections to the platform.' })
     readonly canDeploy: boolean;
 
+    @Column({ default: 'member', comment: 'The role for this membership.' })
+    readonly role: string;
+
     @Column({ nullable: true, comment: 'Date the user accepted the invite' })
     public acceptedAt: Date;
 
@@ -65,6 +76,7 @@ export class Membership extends BaseEntity {
             displayName: this.organization?.displayName,
             avatarUrl: this.organization?.avatarUrl,
             isNewUser: !this.user?.id,
+            role: this.role,
         };
         this.inviteCode = jwt.encode(payload, process.env.INVITE_SECRET);
     }

@@ -7,13 +7,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { MailService } from '../mail/mail.service';
 import { Organization } from '../organization/organization.entity';
 import { User } from '../user/user.entity';
-import {
-    CreateMembershipInput,
-    ICreateMembership,
-    MembershipRequestInput,
-    UpdateMembershipInput
-} from './membership.dto';
+import { CreateMembershipInput, ICreateMembership, MembershipRequestInput, UpdateMembershipInput } from './membership.dto';
 import { Membership } from './membership.entity';
+import { Roles } from './membership.constant';
 
 @Injectable()
 export class MembershipService {
@@ -22,8 +18,7 @@ export class MembershipService {
         @InjectRepository(Membership) private membershipRepository: Repository<Membership>,
         @InjectRepository(User) private userRepository: Repository<User>,
         @InjectRepository(Organization) private organizationRepository: Repository<Organization>
-    ) {
-    }
+    ) {}
 
     /**
      * Retrieve a membership by id.
@@ -72,6 +67,7 @@ export class MembershipService {
     async getMembershipsByUserId(userId: string): Promise<Membership[]> {
         return await this.membershipRepository.find({
             where: { user: { id: userId } },
+            relations: ['organization', 'user'],
         });
     }
 
@@ -114,8 +110,13 @@ export class MembershipService {
         return await this.membershipRepository.findOneBy({ id: membership.id });
     }
 
+    /**
+     * Create multiple memberships.
+     * The emails passed in will share the same role and permissions.
+     * @param data The data to create the memberships with.
+     */
     async createMemberships(data: CreateMembershipInput): Promise<Membership[]> {
-        const { emails, organizationId, ...rest } = data;
+        const { emails, organizationId, role, ...rest } = data;
 
         const organization = await this.organizationRepository.findOneBy({ id: organizationId });
         if (!organization) {
@@ -128,7 +129,7 @@ export class MembershipService {
             emails
                 .filter((email) => !!email)
                 .map((email) =>
-                    this.createMembership(email, { organization, ...rest }).then((membership) => {
+                    this.createMembership(email, { organization, role: role || Roles.Member, ...rest }).then((membership) => {
                         this.mailService.sendInviteEmail(email, membership.inviteCode);
                         return membership;
                     })
@@ -140,6 +141,7 @@ export class MembershipService {
      * Update a membership.
      *
      * @param id The id of the membership to update.
+     * @param data The data to update the membership with.
      * @returns The updated membership.
      */
     async updateMembership(id: string, data: Omit<UpdateMembershipInput, 'id'>): Promise<Membership> {
@@ -150,7 +152,7 @@ export class MembershipService {
             });
         }
 
-        return this.membershipRepository.save({ ...membership, ...data });
+        return await this.membershipRepository.save({ ...membership, ...data });
     }
 
     /**
@@ -181,10 +183,9 @@ export class MembershipService {
             },
         });
         if (!membership) {
-            throw new GraphQLError(
-                `We couldn't find a membership request for ${input.email} to organization ${input.organizationId}.`, {
-                    extensions: { code: 'BAD_REQUEST' },
-                });
+            throw new GraphQLError(`We couldn't find a membership request for ${input.email} to organization ${input.organizationId}.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
         }
 
         membership.acceptedAt = new Date();
@@ -214,10 +215,9 @@ export class MembershipService {
         });
 
         if (!membership) {
-            throw new GraphQLError(
-                `We couldn't find a membership request for ${input.email} to organization ${input.organizationId}.`, {
-                    extensions: { code: 'BAD_REQUEST' },
-                });
+            throw new GraphQLError(`We couldn't find a membership request for ${input.email} to organization ${input.organizationId}.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
         }
 
         membership.declinedAt = new Date();

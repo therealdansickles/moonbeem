@@ -4,13 +4,16 @@ import { JwtService } from '@nestjs/jwt';
 import { Session } from './session.dto';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
+import { MembershipService } from '../membership/membership.service';
+import { User } from '../user/user.entity';
 
 @Injectable()
 export class SessionService {
     constructor(
         private readonly userService: UserService,
         private readonly walletService: WalletService,
-        private readonly jwtService: JwtService
+        private readonly jwtService: JwtService,
+        private readonly membershipService: MembershipService
     ) {}
 
     /**
@@ -42,11 +45,24 @@ export class SessionService {
         const user = await this.userService.authenticateUser(email, password);
 
         if (user) {
-            const token = await this.jwtService.signAsync({ userId: user.id });
-            return { token, user };
+            return this.createUserSession(user);
         }
 
         return null;
+    }
+
+    async createUserSession(user: User): Promise<Session | null> {
+        const memberships = await this.membershipService.getMembershipsByUserId(user.id);
+        const organizationRoles = memberships.map((membership) => {
+            const organizationId = membership.organization.id;
+            const role = membership.role;
+            return [organizationId, role].join('::');
+        });
+        const token = await this.jwtService.signAsync({
+            userId: user.id,
+            organizationRoles: organizationRoles,
+        });
+        return { token, user };
     }
 
     /**
@@ -59,8 +75,7 @@ export class SessionService {
         const user = await this.userService.authenticateUserFromGoogle(accessToken);
 
         if (user) {
-            const token = await this.jwtService.signAsync({ userId: user.id });
-            return { token, user };
+            return this.createUserSession(user);
         }
 
         return null;

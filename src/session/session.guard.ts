@@ -15,7 +15,12 @@ import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-s
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import {
-    COLLECTION_ID_PARAMETER, ORGANIZATION_ID_PARAMETER, TOKEN_ID_PARAMETER, USER_PARAMETER, WALLET_ADDRESS_PARAMETER, WALLET_PARAMETER
+    COLLECTION_ID_PARAMETER,
+    ORGANIZATION_ID_PARAMETER,
+    TOKEN_ID_PARAMETER,
+    USER_PARAMETER,
+    WALLET_ADDRESS_PARAMETER,
+    WALLET_PARAMETER,
 } from './session.decorator';
 import { IGraphQLRequest } from './session.types';
 import { getUserIdFromToken } from './session.utils';
@@ -29,11 +34,7 @@ const extractToken = (request) => {
 
 @Injectable()
 export class SigninByWalletGuard implements CanActivate {
-    constructor(
-        private reflector: Reflector,
-        private readonly jwtService: JwtService,
-        private readonly walletService: WalletService
-    ) {}
+    constructor(private reflector: Reflector, private readonly jwtService: JwtService, private readonly walletService: WalletService) {}
 
     /**
      * Checks if the user is authenticated via the JWT token that was given to them.
@@ -84,16 +85,17 @@ export class SigninByWalletGuard implements CanActivate {
     }
 }
 
+// TODO: Update this SessionGuard:
+//      1. Check both wallet session and email session
+//      2. Write the user to ctx.getContext() as session.interceptor does, as this Guard is executed before the interceptor
+//          See: https://docs.nestjs.com/faq/request-lifecycle
+//      3. Cleanup the code to remove the duplicated code used in other Guards
 @Injectable()
 export class SessionGuard extends SigninByWalletGuard {}
 
 @Injectable()
 export class SigninByEmailGuard implements CanActivate {
-    constructor(
-        private reflector: Reflector,
-        private readonly jwtService: JwtService,
-        private readonly userService: UserService
-    ) {}
+    constructor(private reflector: Reflector, private readonly jwtService: JwtService, private readonly userService: UserService) {}
 
     /**
      * Checks if the user is authenticated via the JWT token that was given to them.
@@ -212,11 +214,11 @@ export class AuthorizedUserGuard implements CanActivate {
 
 @Injectable()
 export class SignatureGuard implements CanActivate {
-    canActivate (context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+    canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
         const ctx = GqlExecutionContext.create(context);
         const request: IGraphQLRequest = ctx.getContext().req;
         // these 3 parameters could be fixed, don't need to inject extenally
-        const { address, message , signature } = request.body?.variables?.input || {};
+        const { address, message, signature } = request.body?.variables?.input || {};
         const addressFromSignature = ethers.verifyMessage(message, signature);
         if (address.toLowerCase() === addressFromSignature.toLowerCase()) return true;
         return false;
@@ -228,10 +230,10 @@ export class AuthorizedCollectionOwnerGuard implements CanActivate {
     constructor(
         private readonly reflector: Reflector,
         private readonly jwtService: JwtService,
-        private readonly collectionService: CollectionService,
+        private readonly collectionService: CollectionService
     ) {}
 
-    async canActivate (context: ExecutionContext): Promise<boolean> {
+    async canActivate(context: ExecutionContext): Promise<boolean> {
         const collectionIdParameter = this.reflector.get<string>(COLLECTION_ID_PARAMETER, context.getHandler());
         if (!collectionIdParameter) return false;
 
@@ -260,10 +262,10 @@ export class AuthorizedTokenGuard implements CanActivate {
         private readonly reflector: Reflector,
         private readonly collectionService: CollectionService,
         private readonly asset721Service: Asset721Service,
-        private readonly mintSaleContractService: MintSaleContractService,
+        private readonly mintSaleContractService: MintSaleContractService
     ) {}
 
-    async canActivate (context: ExecutionContext): Promise<boolean> {
+    async canActivate(context: ExecutionContext): Promise<boolean> {
         const tokenIdParameter = this.reflector.get<string>(TOKEN_ID_PARAMETER, context.getHandler());
         const collectionIdParameter = this.reflector.get<string>(COLLECTION_ID_PARAMETER, context.getHandler());
         const ownerAddressParameter = this.reflector.get<string>(WALLET_ADDRESS_PARAMETER, context.getHandler());
@@ -291,10 +293,10 @@ export class AuthorizedOrganizationGuard implements CanActivate {
     constructor(
         private readonly reflector: Reflector,
         private readonly jwtService: JwtService,
-        private readonly membershipService: MembershipService,
+        private readonly membershipService: MembershipService
     ) {}
 
-    async canActivate (context: ExecutionContext): Promise<boolean> {
+    async canActivate(context: ExecutionContext): Promise<boolean> {
         const organizationIdParameter = this.reflector.get<string>(ORGANIZATION_ID_PARAMETER, context.getHandler());
         if (!organizationIdParameter) return false;
 
@@ -304,12 +306,9 @@ export class AuthorizedOrganizationGuard implements CanActivate {
         const userIdFromToken = getUserIdFromToken(request.headers.authorization, this.jwtService, process.env.SESSION_SECRET);
         if (!userIdFromToken) return false;
 
-        return await this.membershipService.checkMembershipByOrganizationIdAndUserId(
-            organizationIdFromParameter, userIdFromToken);
+        return await this.membershipService.checkMembershipByOrganizationIdAndUserId(organizationIdFromParameter, userIdFromToken);
     }
 }
-
-
 
 @Injectable()
 export class AuthorizedCollectionViewerGuard implements CanActivate {
@@ -317,10 +316,10 @@ export class AuthorizedCollectionViewerGuard implements CanActivate {
         private readonly reflector: Reflector,
         private readonly jwtService: JwtService,
         private readonly collectionService: CollectionService,
-        private readonly membershipService: MembershipService,
+        private readonly membershipService: MembershipService
     ) {}
 
-    async canActivate (context: ExecutionContext): Promise<boolean> {
+    async canActivate(context: ExecutionContext): Promise<boolean> {
         const ctx = GqlExecutionContext.create(context);
         const request: IGraphQLRequest = ctx.getContext().req;
         const userId = getUserIdFromToken(request.headers.authorization, this.jwtService, process.env.SESSION_SECRET);
@@ -343,11 +342,7 @@ export class AuthorizedCollectionViewerGuard implements CanActivate {
 
 @Injectable()
 export class VibeEmailGuard implements CanActivate {
-    constructor(
-        private reflector: Reflector,
-        private readonly jwtService: JwtService,
-        private readonly userService: UserService
-    ) {}
+    constructor(private reflector: Reflector, private readonly jwtService: JwtService, private readonly userService: UserService) {}
 
     /**
      * Checks if the user is authenticated via the JWT token that registered with vibe email.
@@ -386,11 +381,13 @@ export class VibeEmailGuard implements CanActivate {
     }
 }
 
+// TODO: Update this OrganizationProtectionGuard:
+//      1. Use the roles from the ctx.getContext()
+//      2. Create a decorator to indicate the roles that can access the resource
+//      3. Get the decorator's parameter and compare with the Session's roles
 @Injectable()
 export class OrganizationProtectionGuard implements CanActivate {
-    constructor(
-        private readonly membershipService: MembershipService
-    ) {}
+    constructor(private readonly membershipService: MembershipService) {}
 
     /**
      * Checks if the user is authenticated via the JWT token that registered with vibe email.
