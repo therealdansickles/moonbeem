@@ -1,4 +1,4 @@
-import { Network } from 'alchemy-sdk';
+import { Network, WebhookType } from 'alchemy-sdk';
 
 import { faker } from '@faker-js/faker';
 
@@ -442,9 +442,82 @@ describe('AlchemySerice', () => {
                 version: 'V2'
             };
             jest.spyOn(service as any, '_createWebhook').mockImplementation(async () => mockResponse);
-            const result = await service.createWebhook(Network.ARB_GOERLI, collection.tokenAddress);
+            const result = await service.createNftActivityWebhook(Network.ARB_GOERLI, collection.tokenAddress);
             expect(result).toBeTruthy();
             expect(result.id).toEqual(mockResponse.id);
+        });
+    });
+
+    describe('#getWebhooks', () => {
+        it('should get all webhooks from Alchemy', async () => {
+            const mockResponse = [
+                {
+                    id: 'wh_yxctylpia8i3cs5y',
+                    network: 'arb-goerli',
+                    type: 'ADDRESS_ACTIVITY',
+                    url: 'https://platform-staging.vibe.xyz/v1/alchemy/webhook/address-activity',
+                    isActive: true,
+                    timeCreated: '2023-09-21T09:47:15.000Z',
+                    signingKey: 'whsec_SCMxX9WUtyi193ktToZ8h7dF',
+                    version: 'V2'
+                }
+            ];
+            jest.spyOn(service as any, '_getWebhooks').mockImplementation(async () => mockResponse);
+            const result = await service.getWebhooks(Network.ARB_GOERLI);
+            expect(result).toBeTruthy();
+            expect(result.length).toEqual(1);
+            expect(result[0].id).toEqual('wh_yxctylpia8i3cs5y');
+            expect(result[0].network).toEqual('arb-goerli');
+        });
+
+        it('should get filtered webhooks from Alchemy', async () => {
+            const mockResponse = [
+                {
+                    id: 'wh_yxctylpia8i3cs5y',
+                    network: Network.ARB_GOERLI,
+                    type: 'ADDRESS_ACTIVITY',
+                    url: 'https://platform-staging.vibe.xyz/v1/alchemy/webhook/address-activity',
+                    isActive: true,
+                    timeCreated: '2023-09-21T09:47:15.000Z',
+                    signingKey: 'whsec_SCMxX9WUtyi193ktToZ8h7dF',
+                    version: 'V2'
+                },
+                {
+                    id: 'wh_yxctylpia8i3cs5z',
+                    network: Network.ARB_GOERLI,
+                    type: 'NFT_ACTIVITY',
+                    url: 'https://platform-staging.vibe.xyz/v1/alchemy/webhook/address-activity',
+                    isActive: true,
+                    timeCreated: '2023-09-21T09:47:15.000Z',
+                    signingKey: 'whsec_SCMxX9WUtyi193ktToZ8h7dF',
+                    version: 'V2'
+                }
+            ];
+            jest.spyOn(service as any, '_getWebhooks').mockImplementation(async () => mockResponse);
+            const result = await service.getWebhooks(Network.ARB_GOERLI, WebhookType.NFT_ACTIVITY);
+            expect(result).toBeTruthy();
+            expect(result.length).toEqual(1);
+            expect(result[0].id).toEqual('wh_yxctylpia8i3cs5z');
+            expect(result[0].network).toEqual(Network.ARB_GOERLI);
+        });
+    });
+
+    describe('#initializeFactoryContractWebhooks', () => {
+        it('should work', async () => {
+            const mockResponseForArbGoerli = [
+                {
+                    id: 'wh_yxctylpia8i3cs5y',
+                    network: Network.ARB_GOERLI,
+                    type: 'ADDRESS_ACTIVITY',
+                    url: 'https://platform-staging.vibe.xyz/v1/alchemy/webhook/address-activity',
+                    isActive: true,
+                    timeCreated: '2023-09-21T09:47:15.000Z',
+                    signingKey: 'whsec_SCMxX9WUtyi193ktToZ8h7dF',
+                    version: 'V2'
+                }
+            ];
+            jest.spyOn(service as any, '_getWebhooks').mockImplementation(async () => mockResponseForArbGoerli);
+            // const result = await service.initializeFactoryContractWebhooks();
         });
     });
 });
