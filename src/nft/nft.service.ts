@@ -1,6 +1,5 @@
-import { pick } from 'lodash';
 import { render } from 'mustache';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -27,18 +26,26 @@ interface INftQueryWithTier {
 
 export type INftQuery = INFTQueryWithId | INftQueryWithCollection | INftQueryWithTier;
 
+interface INftPropertiesSearch {
+    name: string;
+    value: any;
+}
+
 interface INftListQueryWithIds {
     ids: string[];
+    properties?: Array<INftPropertiesSearch>;
 }
 
 interface INftListQueryWithCollection {
     collection: { id: string };
     tokenIds?: string[];
+    properties?: Array<INftPropertiesSearch>;
 }
 
 interface INftListQueryWithTier {
     tier: { id: string };
     tokenIds?: string[];
+    properties?: Array<INftPropertiesSearch>;
 }
 
 export type INftListQuery = INftListQueryWithIds | INftListQueryWithCollection | INftListQueryWithTier;
@@ -152,12 +159,23 @@ export class NftService {
      * @returns
      */
     async getNfts(query: INftListQuery) {
-        const where = pick(query, ['collection', 'tier']);
-        if ((query as INftListQueryWithIds).ids) where.id = In([...(query as INftListQueryWithIds).ids]);
-        if ((query as INftListQueryWithCollection | INftListQueryWithTier).tokenIds)
-            where.tokenId = In([...(query as INftListQueryWithCollection | INftListQueryWithTier).tokenIds]);
-
-        const nfts = await this.nftRepository.findBy(where);
+        const builder = this.nftRepository
+            .createQueryBuilder('nft')
+            .leftJoinAndSelect('nft.collection', 'collection')
+            .leftJoinAndSelect('nft.tier', 'tier');
+        if ((query as INftListQueryWithIds).ids) builder.andWhere('id IN(:...ids)', { ids: (query as INftListQueryWithIds).ids });
+        if ((query as INftListQueryWithCollection | INftListQueryWithTier).tokenIds) {
+            builder.andWhere('nft.tokenId IN(:...tokenIds)', { tokenIds: (query as INftListQueryWithCollection | INftListQueryWithTier).tokenIds });
+            if ((query as INftListQueryWithCollection).collection?.id) builder.andWhere('nft.collection.id = :collectionId', { collectionId: (query as INftListQueryWithCollection).collection.id });
+            if ((query as INftListQueryWithTier).tier?.id) builder.andWhere('nft.tier.id = :tierId', { tierId: (query as INftListQueryWithTier).tier.id });
+        }
+        if (query.properties) {
+            for (const condition of query.properties) {
+                const { name, value } = condition;
+                builder.andWhere(`nft.properties->'${name}'->>'value'='${value}'`);
+            }
+        }
+        const nfts = await builder.getMany();
         return (nfts || []).map((nft) => this.renderMetadata(nft));
     }
 

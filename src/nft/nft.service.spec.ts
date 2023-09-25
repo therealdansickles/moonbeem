@@ -163,7 +163,7 @@ describe('NftService', () => {
     });
 
     describe('#getNftListByQuery', () => {
-        it('should work', async () => {
+        it('should get NFT list by collection and tokenIds', async () => {
             await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',
@@ -247,6 +247,115 @@ describe('NftService', () => {
             expect(result.length).toEqual(2);
             expect(result[0].id).toEqual(nft1.id);
             expect(result[1].id).toEqual(nft3.id);
+        });
+
+        it('should get NFT list by collection and properties', async () => {
+            await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                creator: { id: wallet.id },
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '100',
+                tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'none',
+                        },
+                    },
+                },
+            });
+
+            const tokenId1 = faker.string.numeric({ length: 1, allowLeadingZeros: false });
+            const tokenId2 = faker.string.numeric({ length: 2, allowLeadingZeros: false });
+            const tokenId3 = faker.string.numeric({ length: 4, allowLeadingZeros: false });
+
+            const [, , nft3] = await Promise.all([
+                nftService.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: tokenId1,
+                    properties: {
+                        foo: {
+                            name: 'foo',
+                            value: 'foo0'
+                        },
+                        bar: {
+                            name: 'bar',
+                            value: 'bar0'
+                        },
+                    },
+                }),
+                nftService.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: tokenId2,
+                    properties: {
+                        foo: {
+                            name: 'foo',
+                            value: 'foo1'
+                        },
+                        bar: {
+                            name: 'bar',
+                            value: 'bar1'
+                        }
+                    },
+                }),
+                nftService.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: tokenId3,
+                    properties: {
+                        foo: {
+                            name: 'foo',
+                            value: 'foo2'
+                        },
+                        bar: {
+                            name: 'bar',
+                            value: 'bar2'
+                        }
+                    },
+                }),
+            ]);
+
+            const result = await nftService.getNfts({
+                collection: { id: collection.id },
+                tokenIds: [tokenId1, tokenId3],
+                properties: [
+                    { name: 'foo', value: 'foo2' },
+                    { name: 'bar', value: 'bar2' }
+                ]
+            });
+            expect(result.length).toEqual(1);
+            expect(result[0].id).toEqual(nft3.id);
         });
     });
 
