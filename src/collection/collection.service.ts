@@ -31,10 +31,30 @@ import { User } from '../user/user.entity';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    AggregatedVolume, Collection, CollectionActivities, CollectionActivityType, CollectionAggregatedActivityPaginated,
-    CollectionEarningsChartPaginated, CollectionPaginated, CollectionSold, CollectionSoldAggregated, CollectionSoldPaginated, CollectionStat,
-    CollectionStatus, CreateCollectionInput, GrossEarnings, LandingPageCollection, MetadataOverview, MetadataOverviewInput, PluginOverview,
-    PropertyFilter, SearchTokenIdsInput, SecondarySale, SevenDayVolume, UpdateCollectionInput, ZeroAccount
+    AggregatedVolume,
+    Collection,
+    CollectionActivities,
+    CollectionActivityType,
+    CollectionAggregatedActivityPaginated,
+    CollectionEarningsChartPaginated,
+    CollectionPaginated,
+    CollectionSold,
+    CollectionSoldAggregated,
+    CollectionSoldPaginated,
+    CollectionStat,
+    CollectionStatus,
+    CreateCollectionInput,
+    GrossEarnings,
+    LandingPageCollection,
+    MetadataOverview,
+    MetadataOverviewInput,
+    PluginOverview,
+    PropertyFilter,
+    SearchTokenIdsInput,
+    SecondarySale,
+    SevenDayVolume,
+    UpdateCollectionInput,
+    ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
 import { filterTokenIdsByRanges, generateSlug, getCollectionAttributesOverview, getCollectionUpgradesOverview } from './collection.utils';
@@ -91,7 +111,11 @@ export class CollectionService {
         if (isEmpty(query)) return null;
         return await this.collectionRepository.findOne({
             where: query,
-            relations: ['organization', 'creator', 'collaboration'],
+            relations: {
+                organization: true,
+                creator: true,
+                collaboration: true,
+            },
         });
     }
 
@@ -114,7 +138,11 @@ export class CollectionService {
     async getCollectionsByCollaborationId(collaborationId: string): Promise<Collection[]> {
         return await this.collectionRepository.find({
             where: { collaboration: { id: collaborationId } },
-            relations: ['organization', 'creator', 'collaboration'],
+            relations: {
+                organization: true,
+                creator: true,
+                collaboration: true,
+            },
         });
     }
 
@@ -133,7 +161,12 @@ export class CollectionService {
     async getCollectionByAddress(address: string): Promise<Collection | null> {
         const collection = await this.collectionRepository.findOne({
             where: { address },
-            relations: ['organization', 'tiers', 'creator', 'collaboration'],
+            relations: {
+                organization: true,
+                creator: true,
+                tiers: true,
+                collaboration: true,
+            },
         });
         const contract = await this.mintSaleContractRepository.findOne({ where: { collectionId: collection.id } });
 
@@ -153,7 +186,12 @@ export class CollectionService {
         const result: Collection[] = [];
         const collections = await this.collectionRepository.find({
             where: { organization: { id: organizationId } },
-            relations: ['organization', 'tiers', 'creator', 'collaboration'],
+            relations: {
+                organization: true,
+                creator: true,
+                tiers: true,
+                collaboration: true,
+            },
         });
 
         for (const collection of collections) {
@@ -187,7 +225,12 @@ export class CollectionService {
     async getCreatedCollectionsByWalletId(walletId: string): Promise<Collection[]> {
         return await this.collectionRepository.find({
             where: { creator: { id: walletId } },
-            relations: ['organization', 'tiers', 'creator', 'collaboration'],
+            relations: {
+                organization: true,
+                creator: true,
+                tiers: true,
+                collaboration: true,
+            },
             order: { createdAt: 'DESC' },
         });
     }
@@ -354,7 +397,11 @@ export class CollectionService {
 
         return await this.collectionRepository.findOne({
             where: { id: createResult.id },
-            relations: ['tiers', 'organization', 'collaboration'],
+            relations: {
+                organization: true,
+                tiers: true,
+                collaboration: true,
+            },
         });
     }
 
@@ -646,7 +693,12 @@ export class CollectionService {
                     })
                 ),
             },
-            relations: ['organization', 'tiers', 'creator', 'collaboration'],
+            relations: {
+                organization: true,
+                creator: true,
+                tiers: true,
+                collaboration: true,
+            },
         });
 
         const data = await Promise.all(

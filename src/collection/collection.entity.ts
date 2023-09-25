@@ -4,11 +4,12 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    Index,
     JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
-    UpdateDateColumn
+    UpdateDateColumn,
 } from 'typeorm';
 
 import { Collaboration } from '../collaboration/collaboration.entity';
@@ -37,9 +38,11 @@ export class Collection extends BaseEntity {
     readonly id: string;
 
     @Column({ length: 64, unique: true, comment: 'The unique URL-friendly name of the collection.' })
+    @Index()
     readonly name: string;
 
     @Column({ length: 64, unique: true, comment: 'The slug to use in the URL', nullable: true })
+    @Index()
     readonly slug: string;
 
     @Column({
@@ -62,6 +65,7 @@ export class Collection extends BaseEntity {
         createForeignKeyConstraints: false,
     })
     @JoinColumn()
+    @Index()
     readonly organization: Organization;
 
     @Column({ length: 64, comment: 'The displayed name for the collection.', nullable: true })
