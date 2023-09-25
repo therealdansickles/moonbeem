@@ -10,7 +10,6 @@ import * as Sentry from '@sentry/node';
 
 import { AlchemyService } from '../alchemy/alchemy.service';
 import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
-import { NetworkMapping } from '../network/network.constants';
 import { NftService } from '../nft/nft.service';
 import { OpenseaService } from '../opensea/opensea.service';
 import { AggregatedCollection } from '../organization/organization.dto';
@@ -31,30 +30,10 @@ import { User } from '../user/user.entity';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    AggregatedVolume,
-    Collection,
-    CollectionActivities,
-    CollectionActivityType,
-    CollectionAggregatedActivityPaginated,
-    CollectionEarningsChartPaginated,
-    CollectionPaginated,
-    CollectionSold,
-    CollectionSoldAggregated,
-    CollectionSoldPaginated,
-    CollectionStat,
-    CollectionStatus,
-    CreateCollectionInput,
-    GrossEarnings,
-    LandingPageCollection,
-    MetadataOverview,
-    MetadataOverviewInput,
-    PluginOverview,
-    PropertyFilter,
-    SearchTokenIdsInput,
-    SecondarySale,
-    SevenDayVolume,
-    UpdateCollectionInput,
-    ZeroAccount,
+    AggregatedVolume, Collection, CollectionActivities, CollectionActivityType, CollectionAggregatedActivityPaginated,
+    CollectionEarningsChartPaginated, CollectionPaginated, CollectionSold, CollectionSoldAggregated, CollectionSoldPaginated, CollectionStat,
+    CollectionStatus, CreateCollectionInput, GrossEarnings, LandingPageCollection, MetadataOverview, MetadataOverviewInput, PluginOverview,
+    PropertyFilter, SearchTokenIdsInput, SecondarySale, SevenDayVolume, UpdateCollectionInput, ZeroAccount
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
 import { filterTokenIdsByRanges, generateSlug, getCollectionAttributesOverview, getCollectionUpgradesOverview } from './collection.utils';
@@ -298,10 +277,6 @@ export class CollectionService {
                 slug: generateSlug(data.name),
                 ...data,
             });
-            // only create the webhook if we have the `tokenAddress`
-            if (collection.tokenAddress && collection.chainId) {
-                await this.alchemyService.createNftActivityWebhook(NetworkMapping.get(collection.chainId), collection.tokenAddress);
-            }
             return collection;
         } catch (e) {
             Sentry.captureException(e);
