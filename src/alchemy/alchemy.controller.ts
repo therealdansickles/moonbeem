@@ -30,11 +30,11 @@ export class AlchemyController {
         if (req.body.type !== 'ADDRESS_ACTIVITY') return;
         const events = await this.alchemyService.serializeAddressActivityEvent(req.body);
         for (const event of events) {
-            console.log(event);
             const { network, tokenAddress, contractAddress, collectionId } = event;
             const collection = await this.collectionService.getCollection(collectionId);
-            await this.collectionService.updateCollection(collection.id, { tokenAddress, address: contractAddress, ...collection });
-            await this.alchemyService.createWebhook(network, WebhookType.NFT_ACTIVITY, tokenAddress);
+            const updatedCollection = await this.collectionService.updateCollection(collection.id, { tokenAddress, address: contractAddress, ...collection });
+            const alchemyRs = await this.alchemyService.createWebhook(network, WebhookType.NFT_ACTIVITY, tokenAddress);
+            console.log(network, tokenAddress, updatedCollection, alchemyRs);
         }
         
         return 'ok';
