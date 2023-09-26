@@ -247,6 +247,41 @@ describe('NftResolver', () => {
                 },
             });
 
+            const anotherCollection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                creator: { id: wallet.id },
+            });
+
+            const anotherTier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: anotherCollection.id },
+                price: '100',
+                tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
+            });
+
             const tokenId1 = faker.string.numeric({ length: 1, allowLeadingZeros: false });
             const tokenId2 = faker.string.numeric({ length: 3, allowLeadingZeros: false });
             const tokenId3 = faker.string.numeric({ length: 4, allowLeadingZeros: false });
@@ -269,8 +304,8 @@ describe('NftResolver', () => {
                     },
                 }),
                 service.createOrUpdateNftByTokenId({
-                    collectionId: collection.id,
-                    tierId: tier.id,
+                    collectionId: anotherCollection.id,
+                    tierId: anotherTier.id,
                     tokenId: tokenId3,
                     properties: {
                         foo: 'bar',
@@ -303,9 +338,8 @@ describe('NftResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     body.data.nfts.sort((a, b) => a.tokenId - b.tokenId); // Sort first, otherwise there may be an order error
-                    expect(body.data.nfts.length).toEqual(2);
+                    expect(body.data.nfts.length).toEqual(1);
                     expect(body.data.nfts[0].id).toEqual(nft1.id);
-                    expect(body.data.nfts[1].id).toEqual(nft3.id);
                 });
         });
     });

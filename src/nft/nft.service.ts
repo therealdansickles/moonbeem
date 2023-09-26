@@ -101,7 +101,8 @@ export class NftService {
      */
     async getNft(query: INftQuery) {
         const nft = await this.nftRepository.findOne({ where: query, relations: ['collection', 'tier'] });
-        return this.renderMetadata(nft);
+        if (nft) return this.renderMetadata(nft);
+        return null;
     }
 
     /**
@@ -166,8 +167,12 @@ export class NftService {
         if ((query as INftListQueryWithIds).ids) builder.andWhere('id IN(:...ids)', { ids: (query as INftListQueryWithIds).ids });
         if ((query as INftListQueryWithCollection | INftListQueryWithTier).tokenIds) {
             builder.andWhere('nft.tokenId IN(:...tokenIds)', { tokenIds: (query as INftListQueryWithCollection | INftListQueryWithTier).tokenIds });
-            if ((query as INftListQueryWithCollection).collection?.id) builder.andWhere('nft.collection.id = :collectionId', { collectionId: (query as INftListQueryWithCollection).collection.id });
-            if ((query as INftListQueryWithTier).tier?.id) builder.andWhere('nft.tier.id = :tierId', { tierId: (query as INftListQueryWithTier).tier.id });
+        }
+        if ((query as INftListQueryWithCollection).collection?.id) {
+            builder.andWhere('nft.collection.id = :collectionId', { collectionId: (query as INftListQueryWithCollection).collection.id });
+        }
+        if ((query as INftListQueryWithTier).tier?.id) {
+            builder.andWhere('nft.tier.id = :tierId', { tierId: (query as INftListQueryWithTier).tier.id });
         }
         if (query.properties) {
             for (const condition of query.properties) {
@@ -176,7 +181,8 @@ export class NftService {
             }
         }
         const nfts = await builder.getMany();
-        return (nfts || []).map((nft) => this.renderMetadata(nft));
+        if (nfts && nfts.length > 0) return nfts.map((nft) => this.renderMetadata(nft));
+        return null;
     }
 
     async getNftsIdsByProperties(collectionId: string, propertyFilters: PropertyFilter[]): Promise<string[]> {
