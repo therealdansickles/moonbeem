@@ -79,7 +79,6 @@ export class AlchemyService {
     private async _createWebhook(network: Network, path: string, type, params) {
         if (!this.domain || !this.apiKey || !this.authToken) return;
         const url = new URL(path, this.domain).toString();
-        console.log('final url', url, type, params);
         return await this.alchemy[network].notify.createWebhook(url, type, params);
     }
 
