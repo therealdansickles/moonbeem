@@ -17,6 +17,7 @@ export class AlchemyController {
     @Public()
     @Post('/webhook/nft-activity')
     public async nftActivity(@Req() req: Request) {
+        console.log('we\'ve got hit', req.body);
         if (req.body.type !== 'NFT_ACTIVITY') return;
         const nfts = await this.alchemyService.serializeNftActivityEvent(req.body);
         return nfts;
@@ -25,18 +26,22 @@ export class AlchemyController {
     @Public()
     @Post('/webhook/address-activity')
     public async addressActivity(@Req() req: Request) {
-        console.log('we\'ve got hit');
-        console.log(req.body);
         if (req.body.type !== 'ADDRESS_ACTIVITY') return;
         const events = await this.alchemyService.serializeAddressActivityEvent(req.body);
-        for (const event of events) {
-            const { network, tokenAddress, contractAddress, collectionId } = event;
-            const collection = await this.collectionService.getCollection(collectionId);
-            const updatedCollection = await this.collectionService.updateCollection(collection.id, { tokenAddress, address: contractAddress, ...collection });
-            const alchemyRs = await this.alchemyService.createWebhook(network, WebhookType.NFT_ACTIVITY, tokenAddress);
-            console.log(network, tokenAddress, updatedCollection, alchemyRs);
+        try {
+            for (const event of events) {
+                const { network, tokenAddress, contractAddress, collectionId } = event;
+                const collection = await this.collectionService.getCollection(collectionId);
+                console.log(event);
+                const updatedCollection = await this.collectionService.updateCollection(collection.id, { tokenAddress, address: contractAddress });
+                const alchemyRs = await this.alchemyService.createWebhook(network, WebhookType.NFT_ACTIVITY, tokenAddress);
+                console.log(network, tokenAddress, updatedCollection, alchemyRs);
+            }
+            
+            return 'ok';
+        } catch (err) {
+            console.log(err);
+            return err.message;
         }
-        
-        return 'ok';
     }
 }
