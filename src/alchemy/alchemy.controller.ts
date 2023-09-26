@@ -25,9 +25,12 @@ export class AlchemyController {
     @Public()
     @Post('/webhook/address-activity')
     public async addressActivity(@Req() req: Request) {
+        console.log('we\'ve got hit');
+        console.log(req.body);
         if (req.body.type !== 'ADDRESS_ACTIVITY') return;
         const events = await this.alchemyService.serializeAddressActivityEvent(req.body);
         for (const event of events) {
+            console.log(event);
             const { network, tokenAddress, contractAddress, collectionId } = event;
             const collection = await this.collectionService.getCollection(collectionId);
             await this.collectionService.updateCollection(collection.id, { tokenAddress, address: contractAddress, ...collection });
