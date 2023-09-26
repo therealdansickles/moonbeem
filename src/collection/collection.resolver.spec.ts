@@ -155,6 +155,36 @@ describe('CollectionResolver', () => {
                 });
         });
 
+        it('should not be a public query', async () => {
+            const query = gql`
+                query GetCollection($id: String!) {
+                    collection(id: $id) {
+                        name
+                        displayName
+                        kind
+
+                        organization {
+                            name
+                        }
+
+                        collaboration {
+                            id
+                        }
+                    }
+                }
+            `;
+
+            const variables = { id: collection.id };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.collection).toBeNull();
+                });
+        });
+
         it('should get a collection by id with contract details', async () => {
             const beginTime = Math.floor(faker.date.recent().getTime() / 1000);
             const endTime = Math.floor(faker.date.recent().getTime() / 1000);

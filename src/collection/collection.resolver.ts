@@ -4,7 +4,7 @@ import { UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { OpenseaService } from '../opensea/opensea.service';
-import { AuthorizedOrganization, Public } from '../session/session.decorator';
+import { AuthorizedOrganization, AuthorizedCollectionViewer, Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
@@ -41,9 +41,20 @@ export class CollectionResolver {
         private readonly openseaService: OpenseaService
     ) {}
 
-    @Public()
-    @Query(() => Collection, { description: 'returns a collection for a given uuid', nullable: true })
+    @AuthorizedCollectionViewer()
+    @Query(() => Collection, { description: 'returns a collection for a given uuid (authorized endpoint)', nullable: true })
     async collection(
+        @Args({ name: 'id', nullable: true }) id: string,
+            @Args({ name: 'address', nullable: true }) address: string,
+            @Args({ name: 'name', nullable: true }) name: string,
+            @Args({ name: 'slug', nullable: true }) slug: string
+    ): Promise<Collection> {
+        return this.collectionService.getCollectionByQuery({ id, address, name, slug });
+    }
+
+    @Public()
+    @Query(() => Collection, { description: 'returns a collection for a given uuid (public endpoint)', nullable: true })
+    async marketCollection(
         @Args({ name: 'id', nullable: true }) id: string,
             @Args({ name: 'address', nullable: true }) address: string,
             @Args({ name: 'name', nullable: true }) name: string,
