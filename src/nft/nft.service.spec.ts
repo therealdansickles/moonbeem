@@ -183,6 +183,126 @@ describe('NftService', () => {
                 creator: { id: wallet.id },
             });
 
+            const anotherCollection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                creator: { id: wallet.id },
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '100',
+                tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'none',
+                        },
+                    },
+                },
+            });
+
+            const anotherTier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: anotherCollection.id },
+                price: '100',
+                tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'none',
+                        },
+                    },
+                },
+            });
+
+            const tokenId1 = faker.string.numeric({ length: 1, allowLeadingZeros: false });
+            const tokenId2 = faker.string.numeric({ length: 2, allowLeadingZeros: false });
+            const tokenId3 = faker.string.numeric({ length: 4, allowLeadingZeros: false });
+
+            const [nft1, ,] = await Promise.all([
+                nftService.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: tokenId1,
+                    properties: {
+                        foo: 'bar',
+                    },
+                }),
+                nftService.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: tokenId2,
+                    properties: {
+                        foo: 'bar',
+                    },
+                }),
+                nftService.createOrUpdateNftByTokenId({
+                    collectionId: anotherCollection.id,
+                    tierId: anotherTier.id,
+                    tokenId: tokenId3,
+                    properties: {
+                        foo: 'bar',
+                    },
+                }),
+            ]);
+
+            const result = await nftService.getNfts({
+                collection: { id: collection.id },
+                tokenIds: [tokenId1, tokenId3],
+            });
+            result.sort((a, b) => +a.tokenId - +b.tokenId); // Sort first, otherwise there may be an order error
+            expect(result.length).toEqual(1);
+            expect(result[0].id).toEqual(nft1.id);
+        });
+
+        it('should get NFT list by collection and tokenIds', async () => {
+            await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                creator: { id: wallet.id },
+            });
+
             const tier = await tierService.createTier({
                 name: faker.company.name(),
                 totalMints: 100,
