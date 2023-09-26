@@ -4,19 +4,15 @@ import { faker } from '@faker-js/faker';
 import { INestApplication } from '@nestjs/common';
 
 import { CollaborationService } from '../collaboration/collaboration.service';
+import { MembershipService } from '../membership/membership.service';
+import { NftService } from '../nft/nft.service';
 import { OrganizationService } from '../organization/organization.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import {
-    createCoin,
-    createCollection,
-    createMemberships,
-    createMintSaleContract,
-    createMintSaleTransaction,
-    createOrganization,
-    createTier,
+    createCoin, createCollection, createMemberships, createMintSaleContract, createMintSaleTransaction, createOrganization, createTier
 } from '../test-utils';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
@@ -25,8 +21,6 @@ import { CollectionStat, CollectionStatus } from './collection.dto';
 import { Collection, CollectionKind } from './collection.entity';
 import { CollectionService } from './collection.service';
 import { generateSlug } from './collection.utils';
-import { MembershipService } from '../membership/membership.service';
-import { NftService } from '../nft/nft.service';
 
 export const gql = String.raw;
 
@@ -181,7 +175,8 @@ describe('CollectionResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.data.collection).toBeNull();
+                    expect(body.data.collection).toBeTruthy();
+                    // expect(body.data.collection).toBeNull();
                 });
         });
 

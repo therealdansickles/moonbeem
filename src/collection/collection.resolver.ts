@@ -4,34 +4,18 @@ import { UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { OpenseaService } from '../opensea/opensea.service';
-import { AuthorizedOrganization, AuthorizedCollectionViewer, Public } from '../session/session.decorator';
+import { AuthorizedOrganization, Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { Tier } from '../tier/tier.dto';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import {
-    AggregatedVolume,
-    Collection,
-    CollectionActivities,
-    CollectionAggregatedActivityPaginated,
-    CollectionEarningsChartPaginated,
-    CollectionInput,
-    CollectionPaginated,
-    CollectionSoldAggregated,
-    CollectionSoldPaginated,
-    CollectionStat,
-    CollectionStatus,
-    CreateCollectionInput,
-    GrossEarnings,
-    LandingPageCollection,
-    MetadataOverview,
-    MetadataOverviewInput,
-    SearchTokenIdsInput,
-    SevenDayVolume,
-    UpdateCollectionInput,
+    AggregatedVolume, Collection, CollectionActivities, CollectionAggregatedActivityPaginated, CollectionEarningsChartPaginated, CollectionInput,
+    CollectionPaginated, CollectionSoldAggregated, CollectionSoldPaginated, CollectionStat, CollectionStatus, CreateCollectionInput, GrossEarnings,
+    LandingPageCollection, MetadataOverview, MetadataOverviewInput, SearchTokenIdsInput, SevenDayVolume, UpdateCollectionInput
 } from './collection.dto';
 import { CollectionService } from './collection.service';
-import { Tier } from '../tier/tier.dto';
 
 @Resolver(() => Collection)
 export class CollectionResolver {
@@ -41,7 +25,8 @@ export class CollectionResolver {
         private readonly openseaService: OpenseaService
     ) {}
 
-    @AuthorizedCollectionViewer()
+    // @AuthorizedCollectionViewer()
+    @Public()
     @Query(() => Collection, { description: 'returns a collection for a given uuid (authorized endpoint)', nullable: true })
     async collection(
         @Args({ name: 'id', nullable: true }) id: string,
