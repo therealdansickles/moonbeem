@@ -991,7 +991,7 @@ describe('UserResolver', () => {
             };
 
             const query = gql`
-                query AcceptPluginInvitation($pluginInviteCode: String!) {
+                mutation AcceptPluginInvitation($pluginInviteCode: String!) {
                     acceptPluginInvitation(pluginInviteCode: $pluginInviteCode) {
                         id
                         pluginInvited

@@ -129,7 +129,7 @@ export class UserResolver {
     }
 
     @Public()
-    @Query(() => User, { description: 'Accept plugin invitation' })
+    @Mutation(() => User, { description: 'Accept plugin invitation' })
     async acceptPluginInvitation(@SessionUser() user, @Args('pluginInviteCode') pluginInviteCode: string): Promise<User> {
         if (!user) {
             throw new ForbiddenException('Forbidden resource');
