@@ -1,25 +1,17 @@
-import {
-    Resolver,
-    Args,
-    Query,
-    Mutation,
-    ResolveField,
-    Parent,
-    Int,
-} from '@nestjs/graphql';
-import { Public, AuthorizedUser, SessionUser } from '../session/session.decorator';
+import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { AuthorizedUser, Public, SessionUser } from '../session/session.decorator';
 import { UserService } from './user.service';
 import {
-    User,
     CreateUserInput,
-    UpdateUserInput,
-    VerifyUserInput,
-    UserProfit,
     LatestSalePaginated,
+    OnboardUsersInput,
     PasswordResetLinkInput,
     ResetPasswordInput,
     ResetPasswordOutput,
-    OnboardUsersInput,
+    UpdateUserInput,
+    User,
+    UserProfit,
+    VerifyUserInput,
 } from './user.dto';
 import { Membership } from '../membership/membership.dto';
 import { MembershipService } from '../membership/membership.service';
@@ -134,5 +126,14 @@ export class UserResolver {
             @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
     ): Promise<LatestSalePaginated> {
         return await this.userService.getLatestSales(user.id, before, after, first, last);
+    }
+
+    @Public()
+    @Query(() => User, { description: 'Accept plugin invitation' })
+    async acceptPluginInvitation(@SessionUser() user, @Args('pluginInviteCode') pluginInviteCode: string): Promise<User> {
+        if (!user) {
+            throw new ForbiddenException('Forbidden resource');
+        }
+        return this.userService.acceptPluginInvitation(user, pluginInviteCode);
     }
 }

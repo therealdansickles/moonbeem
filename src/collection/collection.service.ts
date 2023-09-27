@@ -30,10 +30,30 @@ import { User } from '../user/user.entity';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    AggregatedVolume, Collection, CollectionActivities, CollectionActivityType, CollectionAggregatedActivityPaginated,
-    CollectionEarningsChartPaginated, CollectionPaginated, CollectionSold, CollectionSoldAggregated, CollectionSoldPaginated, CollectionStat,
-    CollectionStatus, CreateCollectionInput, GrossEarnings, LandingPageCollection, MetadataOverview, MetadataOverviewInput, PluginOverview,
-    PropertyFilter, SearchTokenIdsInput, SecondarySale, SevenDayVolume, UpdateCollectionInput, ZeroAccount
+    AggregatedVolume,
+    Collection,
+    CollectionActivities,
+    CollectionActivityType,
+    CollectionAggregatedActivityPaginated,
+    CollectionEarningsChartPaginated,
+    CollectionPaginated,
+    CollectionSold,
+    CollectionSoldAggregated,
+    CollectionSoldPaginated,
+    CollectionStat,
+    CollectionStatus,
+    CreateCollectionInput,
+    GrossEarnings,
+    LandingPageCollection,
+    MetadataOverview,
+    MetadataOverviewInput,
+    PluginOverview,
+    PropertyFilter,
+    SearchTokenIdsInput,
+    SecondarySale,
+    SevenDayVolume,
+    UpdateCollectionInput,
+    ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
 import { filterTokenIdsByRanges, generateSlug, getCollectionAttributesOverview, getCollectionUpgradesOverview } from './collection.utils';
@@ -161,6 +181,11 @@ export class CollectionService {
      * @param organizationId The id of the organization to retrieve.
      * @returns The collection associated with the given organization.
      */
+    // 15 collections
+    // 19 tiers
+    // tier ->
+    //      get contract
+    //      getCoinByAddress
     async getCollectionsByOrganizationId(organizationId: string): Promise<Collection[]> {
         const result: Collection[] = [];
         const collections = await this.collectionRepository.find({

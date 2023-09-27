@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js';
 import { google } from 'googleapis';
 import { GraphQLError } from 'graphql';
 import { isEmpty, isNil, omitBy } from 'lodash';
-import { IsNull, Repository } from 'typeorm';
+import { ArrayContains, IsNull, Repository } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -21,7 +21,7 @@ import { Tier } from '../tier/tier.entity';
 import { Wallet } from '../wallet/wallet.entity';
 import { CreateUserInput, LatestSalePaginated, PriceInfo, ResetPasswordOutput, UserProfit } from './user.dto';
 import { User } from './user.entity';
-import { generateRandomPassword } from './user.utils';
+import { generatePluginInviteCodes, generateRandomPassword } from './user.utils';
 
 type IUserQuery = Partial<Pick<User, 'id' | 'username'>>;
 
@@ -477,5 +477,43 @@ export class UserService {
         }
 
         return PaginatedImp([], 0);
+    }
+
+    /**
+     * Update plugin invite status
+     * Set the current user's pluginInvited to true
+     * Remove the pluginInviteCode from the original user's invite code list
+     * @param user
+     * @param pluginInviteCode
+     */
+    async acceptPluginInvitation(user: User, pluginInviteCode: string): Promise<User> {
+        if (user.pluginInvited) {
+            return user;
+        }
+
+        // find the original user who sent the invite
+        const originalUser = await this.userRepository.findOneBy({ pluginInviteCodes: ArrayContains([pluginInviteCode]) });
+        if (!originalUser) {
+            throw new GraphQLError(`Invalid invite code.`, {
+                extensions: { code: 'BAD_REQUEST' },
+            });
+        }
+
+        // remove the pluginInviteCode from the original user's invite code list
+        const pluginInviteCodes = originalUser.pluginInviteCodes.filter((code) => code !== pluginInviteCode);
+        await this.userRepository.save({ ...originalUser, pluginInviteCodes });
+
+        try {
+            return this.userRepository.save({
+                ...user,
+                pluginInvited: true,
+                pluginInviteCodes: generatePluginInviteCodes(3, 12),
+            });
+        } catch (e) {
+            captureException(e);
+            throw new GraphQLError(`Failed to accept plugin invitation`, {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
+        }
     }
 }

@@ -9,9 +9,7 @@ import { Organization } from '../organization/organization.dto';
 import { OrganizationService } from '../organization/organization.service';
 import { Coin, CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { Wallet } from '../wallet/wallet.dto';
 import { WalletService } from '../wallet/wallet.service';
 import { User } from './user.entity';
@@ -105,9 +103,7 @@ describe('UserService', () => {
                     provider: 'another-provider', // Different provider than the initial user
                 });
             } catch (error) {
-                expect((error as GraphQLError).message).toBe(
-                    `An account with this email already exists. Please log in with ${user.provider}.`
-                );
+                expect((error as GraphQLError).message).toBe(`An account with this email already exists. Please log in with ${user.provider}.`);
             }
         });
     });
@@ -1360,7 +1356,6 @@ describe('UserService', () => {
             const emails = [email];
             await service.onboardUsers(emails);
 
-
             const user = await repository.findOneBy({ email });
             expect(user.verificationToken).toBeDefined();
 
@@ -1386,6 +1381,64 @@ describe('UserService', () => {
             expect(link).toBeDefined();
             expect(link).toContain(updatedUser.verificationToken);
             expect(link).not.toContain(previousToken);
+        });
+    });
+
+    describe('acceptPluginInvitation', function () {
+        it('should update plugin invite', async () => {
+            const inviteCode1 = faker.string.sample(7);
+            const inviteCode2 = faker.string.sample(8);
+            const inviter = await service.createUser({
+                email: faker.internet.email().toLowerCase(),
+                password: 'password',
+                pluginInviteCodes: [inviteCode1, inviteCode2],
+            });
+            const invitee = await service.createUser({
+                email: faker.internet.email().toLowerCase(),
+                password: 'password',
+            });
+            const updatedInvitee = await service.acceptPluginInvitation(invitee, inviteCode1);
+            const updatedInviter = await service.getUserByQuery({
+                id: inviter.id,
+            });
+
+            expect(updatedInvitee.pluginInviteCodes).toHaveLength(3);
+            expect(updatedInvitee.pluginInvited).toEqual(true);
+            expect(updatedInviter.pluginInviteCodes).toHaveLength(1);
+            expect(updatedInviter.pluginInviteCodes).toEqual([inviteCode2]);
+        });
+
+        it('should not update plugin invite if invite code is invalid', async () => {
+            const inviteCode = faker.string.sample(7);
+            const invitee = await service.createUser({
+                email: faker.internet.email().toLowerCase(),
+                password: 'password',
+            });
+            try {
+                await service.acceptPluginInvitation(invitee, inviteCode);
+            } catch (error) {
+                expect(error.message).toMatch(/Invalid invite code./);
+            }
+        });
+
+        it('should do nothing if it is invited already', async () => {
+            const inviteCode = faker.string.sample(7);
+            const inviter = await service.createUser({
+                email: faker.internet.email().toLowerCase(),
+                password: 'password',
+                pluginInviteCodes: [inviteCode],
+            });
+            const invitee = await service.createUser({
+                email: faker.internet.email().toLowerCase(),
+                password: 'password',
+                pluginInvited: true,
+            });
+            await service.acceptPluginInvitation(invitee, inviteCode);
+            const updatedInviter = await service.getUserByQuery({
+                id: inviter.id,
+            });
+
+            expect(updatedInviter.pluginInviteCodes).toEqual([inviteCode]);
         });
     });
 });
