@@ -22,4 +22,9 @@ export class CollectionPluginResolver {
     async updateCollectionPlugin(@Args('input') input: UpdateCollectionPluginInput): Promise<CollectionPlugin> {
         return await this.collectionPluginService.updateCollectionPlugin(input);
     }
+
+    @Mutation(() => Boolean)
+    async deleteCollectionPlugin(@Args('id') id: string): Promise<boolean> {
+        return await this.collectionPluginService.deleteCollectionPlugin(id);
+    }
 }

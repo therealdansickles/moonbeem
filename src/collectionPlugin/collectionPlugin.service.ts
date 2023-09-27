@@ -63,6 +63,13 @@ export class CollectionPluginService {
         })) as CollectionPlugin;
     }
 
+    async deleteCollectionPlugin(id: string): Promise<boolean> {
+        const current = await this.collectionPluginRepository.findOne({ where: { id } });
+        if (!current) throw new Error(`CollectionPlugin ${id} doesn't exist.`);
+        await this.collectionPluginRepository.delete(id);
+        return true;
+    }
+
     async getCollectionPluginsByCollectionId(collectionId: string): Promise<CollectionPlugin[]> {
         return (await this.collectionPluginRepository.find({
             where: { collection: { id: collectionId } },

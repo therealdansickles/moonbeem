@@ -235,5 +235,41 @@ describe('MerkleTreeResolver', () => {
                     expect(updatedCollectionPlugin.collection.name).toBe(collection.name);
                 });
         });
+
+        it('should delete collection plugin', async () => {
+            const createCollectionPluginInput = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: faker.company.name(),
+                pluginDetail: {
+                    properties: {
+                        Color: 'red',
+                    },
+                    recipients: ['1', '2'],
+                    filters: {
+                        Color: 'red',
+                    },
+                },
+            };
+            const collectionPlugin = await collectionPluginService.createCollectionPlugin(createCollectionPluginInput);
+            const id = collectionPlugin.id;
+            const query = gql`
+                mutation DeleteCollectionPlugin($id: String!) {
+                    deleteCollectionPlugin(id: $id)
+                }
+            `;
+            const variables = { id };
+            const token = await getToken(app, user.email);
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    const deleteCollectionPlugin = body.data.deleteCollectionPlugin;
+                    expect(deleteCollectionPlugin).toBeTruthy();
+                });
+        });
     });
 });

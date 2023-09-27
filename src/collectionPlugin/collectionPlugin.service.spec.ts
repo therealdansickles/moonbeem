@@ -344,4 +344,22 @@ describe('CollectionPluginService', () => {
             expect(result).toEqual(3);
         });
     });
+
+    describe('deleteCollectionPlugin', function () {
+        it('should delete collection plugin', async () => {
+            const collection = await createCollection(collectionService);
+            const plugin = await createPlugin(pluginRepository);
+            const input = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: 'test collection plugin',
+                pluginDetail: {},
+            };
+            const collectionPlugin = await service.createCollectionPlugin(input);
+            const result = await service.deleteCollectionPlugin(collectionPlugin.id);
+            const deleted = await service.getCollectionPlugin(collectionPlugin.id);
+            expect(result).toBeTruthy();
+            expect(deleted).toBeNull();
+        });
+    });
 });
