@@ -114,6 +114,8 @@ export class CollectionService {
                 organization: true,
                 creator: true,
                 collaboration: true,
+                parent: true,
+                children: true,
             },
         });
     }
@@ -141,6 +143,8 @@ export class CollectionService {
                 organization: true,
                 creator: true,
                 collaboration: true,
+                parent: true,
+                children: true,
             },
         });
     }
@@ -165,6 +169,8 @@ export class CollectionService {
                 creator: true,
                 tiers: true,
                 collaboration: true,
+                parent: true,
+                children: true,
             },
         });
         const contract = await this.mintSaleContractRepository.findOne({ where: { collectionId: collection.id } });
@@ -195,6 +201,8 @@ export class CollectionService {
                 creator: true,
                 tiers: true,
                 collaboration: true,
+                parent: true,
+                children: true,
             },
         });
 
@@ -234,6 +242,8 @@ export class CollectionService {
                 creator: true,
                 tiers: true,
                 collaboration: true,
+                parent: true,
+                children: true,
             },
             order: { createdAt: 'DESC' },
         });
@@ -401,6 +411,8 @@ export class CollectionService {
                 organization: true,
                 tiers: true,
                 collaboration: true,
+                parent: true,
+                children: true,
             },
         });
     }
@@ -698,6 +710,8 @@ export class CollectionService {
                 creator: true,
                 tiers: true,
                 collaboration: true,
+                parent: true,
+                children: true,
             },
         });
 

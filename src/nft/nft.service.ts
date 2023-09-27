@@ -1,5 +1,5 @@
 import { render } from 'mustache';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,6 +9,7 @@ import { Metadata, MetadataProperties } from '../metadata/metadata.dto';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { Nft as NftDto } from './nft.dto';
 import { Nft } from './nft.entity';
+import { Collection } from '../collection/collection.entity';
 
 interface INFTQueryWithId {
     id: string;
@@ -57,7 +58,13 @@ export type INftWithPropertyAndCollection = {
 
 @Injectable()
 export class NftService {
-    constructor(private readonly asset721Service: Asset721Service, @InjectRepository(Nft) private readonly nftRepository: Repository<Nft>) {}
+    constructor(
+        private readonly asset721Service: Asset721Service,
+        @InjectRepository(Nft)
+        private readonly nftRepository: Repository<Nft>,
+        @InjectRepository(Collection)
+        private readonly collectionRepository: Repository<Collection>
+    ) {}
 
     /**
      * render metadata
@@ -180,7 +187,28 @@ export class NftService {
                 builder.andWhere(`nft.properties->'${name}'->>'value'='${value}'`);
             }
         }
-        const nfts = await builder.getMany();
+        const result = await builder.getMany();
+
+        const collections = await this.collectionRepository.find({
+            where: {
+                id: In([
+                    ...new Set(
+                        result.map((item) => {
+                            return item.collection.id;
+                        })
+                    ),
+                ]),
+            },
+            relations: { creator: true },
+        });
+
+        const nfts = result.map((item) => {
+            item.collection = collections.find((collection) => {
+                return item.collection.id == collection.id;
+            });
+            return item;
+        });
+
         if (nfts && nfts.length > 0) return nfts.map((nft) => this.renderMetadata(nft));
         return null;
     }
@@ -212,7 +240,7 @@ export class NftService {
      * basically it will handle 2 things
      * 1. if the property is upgradable, then add `updated_at` field
      * 2. initialize the property value from template string to 0
-     * 
+     *
      * @param candidateProperties
      * @returns
      */

@@ -17,7 +17,7 @@ export class Nft extends BaseEntity {
     })
     @JoinColumn()
     @Index()
-    readonly collection: Collection;
+    public collection: Collection;
 
     @ManyToOne(() => Tier, (tier) => tier.nfts, {
         eager: true,

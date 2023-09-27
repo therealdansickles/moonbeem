@@ -317,7 +317,7 @@ describe('WalletService', () => {
         it('should return minted transactions by address', async () => {
             const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
 
-            const collection = await createCollection(collectionService);
+            const collection = await createCollection(collectionService, { creator: { id: wallet.id } });
             const tier = await createTier(tierService, { collection: { id: collection.id } });
             const transaction = await createMintSaleTransaction(mintSaleTransactionService, {
                 recipient: wallet.address,
@@ -339,6 +339,8 @@ describe('WalletService', () => {
             expect(result.edges[0].node.txTime).toEqual(transaction.txTime);
             expect(result.edges[0].node.tier.id).toEqual(tier.id);
             expect(result.edges[0].node.tier.collection.id).toEqual(collection.id);
+            expect(result.edges[0].node.tier.collection.creator).toBeDefined();
+            expect(result.edges[0].node.tier.collection.creator.id).toBeDefined();
         });
 
         it('should return minted transactions by address with pagination', async () => {

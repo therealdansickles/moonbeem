@@ -30,6 +30,7 @@ export enum CollectionKind {
     whitelistEdition = 'whitelistEdition',
     whitelistTiered = 'whitelistTiered',
     whitelistBulk = 'whitelistBulk',
+    airdrop = 'airdrop',
 }
 
 @Entity({ name: 'Collection' })
@@ -141,6 +142,13 @@ export class Collection extends BaseEntity {
 
     @OneToMany(() => CollectionPlugin, (collectionPlugin) => collectionPlugin.collection, { nullable: true })
     readonly plugins: CollectionPlugin[];
+
+    @ManyToOne(() => Collection, (parent) => parent.children, { nullable: true })
+    @JoinColumn()
+    readonly parent?: Collection;
+
+    @OneToMany(() => Collection, (child) => child.parent)
+    readonly children?: Collection[];
 
     @CreateDateColumn()
     @Exclude()

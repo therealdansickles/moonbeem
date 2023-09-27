@@ -1829,4 +1829,112 @@ describe('CollectionResolver', () => {
                 });
         });
     });
+
+    describe('parentCollection', () => {
+        let user;
+        let organization;
+        beforeEach(async () => {
+            user = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            organization = await createOrganization(organizationService, {
+                owner: user,
+            });
+            await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
+        });
+
+        it('should create the sub-collection', async () => {
+            const collection1 = await createCollection(service, {
+                organization: organization,
+            });
+
+            const query1 = gql`
+                mutation CreateCollection($input: CreateCollectionInput!) {
+                    createCollection(input: $input) {
+                        id
+                        name
+                        slug
+                        displayName
+                        kind
+                        parent {
+                            id
+                        }
+                    }
+                }
+            `;
+            const variables1 = {
+                input: {
+                    name: faker.company.name(),
+                    displayName: 'The best collection',
+                    about: 'The best collection ever',
+                    kind: CollectionKind.edition,
+                    address: faker.finance.ethereumAddress(),
+                    organization: {
+                        id: organization.id,
+                    },
+                    tags: ['test'],
+                    parent: {
+                        id: collection1.id,
+                    },
+                },
+            };
+            const tokenVariables = {
+                input: {
+                    email: user.email,
+                    password: 'password',
+                },
+            };
+            const authToken = await getToken(tokenVariables);
+
+            let newCollectionId: string;
+            await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(authToken, { type: 'bearer' })
+                .send({ query: query1, variables: variables1 })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.createCollection.id).toBeDefined();
+                    newCollectionId = body.data.createCollection.id;
+                    expect(body.data.createCollection.parent.id).toBe(collection1.id);
+                });
+
+            const query = gql`
+                query GetCollection($id: String!) {
+                    collection(id: $id) {
+                        name
+                        displayName
+                        kind
+
+                        organization {
+                            name
+                        }
+
+                        collaboration {
+                            id
+                        }
+                        parent {
+                            id
+                        }
+                        children {
+                            id
+                        }
+                    }
+                }
+            `;
+
+            const variables = { id: collection1.id };
+            await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.collection).toBeDefined();
+                    expect(body.data.collection.children).toBeDefined();
+                    expect(body.data.collection.children.length).toBe(1);
+                    expect(body.data.collection.children[0].id).toBe(newCollectionId);
+                });
+        });
+    });
 });

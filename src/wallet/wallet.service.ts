@@ -347,6 +347,7 @@ export class WalletService {
 
                 let pluginsInstalled = [];
                 if (tier && tier.collection && tier.collection.id) {
+                    tier.collection = (await this.collectionService.getCollectionByQuery({ id: tier.collection.id })) as Collection;
                     pluginsInstalled = await this.collectionPluginService.getTokenInstalledPlugins(tier.collection.id, tokenId);
                 }
 
