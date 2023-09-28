@@ -15,6 +15,9 @@ export class AlchemyWebhook extends BaseEntity {
     @Column({ nullable: true, comment: 'The network of the address belongs to' })
     readonly network?: string;
 
+    @Column({ nullable: true, comment: 'The id generated from Alchemy' })
+    readonly alchemyId?: string;
+
     @CreateDateColumn()
     @Exclude()
     readonly createdAt: Date;

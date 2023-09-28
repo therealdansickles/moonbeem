@@ -1,7 +1,7 @@
 import { WebhookType } from 'alchemy-sdk';
 import { Request } from 'express';
 
-import { Controller, InternalServerErrorException, Post, Req } from '@nestjs/common';
+import { Controller, InternalServerErrorException, Logger, Post, Req } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 
 import { CollectionService } from '../collection/collection.service';
@@ -24,9 +24,12 @@ export class AlchemyController {
         private readonly maasService: MaasService,
     ) {}
 
+    private readonly logger = new Logger(AlchemyController.name);
+
     @Public()
     @Post('/webhook/nft-activity')
     public async nftActivity(@Req() req: Request) {
+        this.logger.log('receive nft activity', JSON.stringify(req.body));
         if (req.body.type !== 'NFT_ACTIVITY') return;
         const nfts = await this.alchemyService.serializeNftActivityEvent(req.body);
         try {
@@ -54,6 +57,7 @@ export class AlchemyController {
     @Public()
     @Post('/webhook/address-activity')
     public async addressActivity(@Req() req: Request) {
+        this.logger.log('receive address activity', JSON.stringify(req.body));
         if (req.body.type !== 'ADDRESS_ACTIVITY') return;
         const events = await this.alchemyService.serializeAddressActivityEvent(req.body);
         try {
@@ -62,8 +66,7 @@ export class AlchemyController {
                 const collection = await this.collectionService.getCollection(collectionId);
                 await this.collectionService.updateCollection(collection.id, { tokenAddress, address: contractAddress });
                 const res = await this.alchemyService.createWebhook(network, WebhookType.NFT_ACTIVITY, tokenAddress);
-                console.log(res);
-                await this.alchemyService.createLocalWebhook(network, WebhookType.NFT_ACTIVITY, tokenAddress);
+                await this.alchemyService.createLocalWebhook(network, WebhookType.NFT_ACTIVITY, tokenAddress, res.id);
             }
             return 'ok';
         } catch (err) {

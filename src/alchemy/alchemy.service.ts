@@ -126,8 +126,8 @@ export class AlchemyService {
         return this._createWebhook(network, endpointUrl, type, params);
     }
 
-    async createLocalWebhook(network: Network, type: WebhookType, address: string) {
-        await this.alchemyWebhookRepository.upsert({ network, type, address }, ['address']);
+    async createLocalWebhook(network: Network, type: WebhookType, address: string, alchemyId?: string) {
+        await this.alchemyWebhookRepository.upsert({ network, type, address, alchemyId }, ['address']);
         return this.alchemyWebhookRepository.findOneBy({ network, type, address });
     }
 
@@ -140,7 +140,10 @@ export class AlchemyService {
             const existedWebhooks = await this.getWebhooks(network, WebhookType.ADDRESS_ACTIVITY);
             // all environments webhook are mixed, so we need to filter by domain again
             const isExisted = existedWebhooks.find((webhook) => webhook.url?.startsWith(this.domain));
-            if (!isExisted) await this.createWebhook(network, WebhookType.ADDRESS_ACTIVITY, configAddress);
+            if (!isExisted) {
+                const res = await this.createWebhook(network, WebhookType.ADDRESS_ACTIVITY, configAddress);
+                res && (await this.createLocalWebhook(network, WebhookType.ADDRESS_ACTIVITY, configAddress, res.id));
+            }
         }
     }
 
