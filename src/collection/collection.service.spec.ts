@@ -752,13 +752,17 @@ describe('CollectionService', () => {
     });
 
     describe('precheckCollection', () => {
-        it('should validate startDate and endDate', async () => {
-            const owner = await userService.createUser({
+        let owner;
+        let organization;
+        let wallet;
+
+        beforeAll(async () => {
+            owner = await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',
             });
 
-            const organization = await organizationService.createOrganization({
+            organization = await organizationService.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
@@ -771,10 +775,11 @@ describe('CollectionService', () => {
                 owner: owner,
             });
 
-            const wallet = await walletService.createWallet({
+            wallet = await walletService.createWallet({
                 address: faker.finance.ethereumAddress(),
             });
-
+        });
+        it('should validate startDate and endDate', async () => {
             await expect(
                 async () =>
                     await service.precheckCollection({
@@ -800,28 +805,6 @@ describe('CollectionService', () => {
         });
 
         it('startDate should be greater than today', async () => {
-            const owner = await userService.createUser({
-                email: faker.internet.email(),
-                password: faker.internet.password(),
-            });
-
-            const organization = await organizationService.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
-
-            const wallet = await walletService.createWallet({
-                address: faker.finance.ethereumAddress(),
-            });
-
             await expect(
                 async () =>
                     await service.precheckCollection({
@@ -846,28 +829,6 @@ describe('CollectionService', () => {
         });
 
         it('should pass if startDate or endDate is not provided', async () => {
-            const owner = await userService.createUser({
-                email: faker.internet.email(),
-                password: 'password',
-            });
-
-            const organization = await organizationService.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
-
-            const wallet = await walletService.createWallet({
-                address: faker.finance.ethereumAddress(),
-            });
-
             const result = await service.precheckCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
@@ -890,28 +851,6 @@ describe('CollectionService', () => {
         });
 
         it('should pass if startDate and endDate are valid', async () => {
-            const owner = await userService.createUser({
-                email: faker.internet.email(),
-                password: faker.internet.password(),
-            });
-
-            const organization = await organizationService.createOrganization({
-                name: faker.company.name(),
-                displayName: faker.company.name(),
-                about: faker.company.catchPhrase(),
-                avatarUrl: faker.image.url(),
-                backgroundUrl: faker.image.url(),
-                websiteUrl: faker.internet.url(),
-                twitter: faker.internet.userName(),
-                instagram: faker.internet.userName(),
-                discord: faker.internet.userName(),
-                owner: owner,
-            });
-
-            const wallet = await walletService.createWallet({
-                address: faker.finance.ethereumAddress(),
-            });
-
             const startSaleAt = faker.date.future({ years: 1 });
             const endSaleAt = addDays(startSaleAt, 365);
             const payload = {
@@ -935,6 +874,41 @@ describe('CollectionService', () => {
             };
             const result = await service.precheckCollection(payload);
             expect(result).toEqual(true);
+        });
+
+        it('should validate name and slug', async () => {
+            const collectionInput = {
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                tags: [],
+                tiers: [
+                    {
+                        name: faker.company.name(),
+                        totalMints: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
+                    },
+                ],
+                organization: {
+                    id: organization.id,
+                },
+                creator: { id: wallet.id },
+                startSaleAt: faker.date.future().getTime() / 1000,
+            };
+            const collectionName = collectionInput.name;
+            await service.createCollection(collectionInput);
+            await expect(async () => await service.precheckCollection(collectionInput)).rejects.toThrow(
+                `The collection name ${collectionName} is already taken`
+            );
+
+            // for collection slug
+            await expect(
+                async () =>
+                    await service.precheckCollection({
+                        ...collectionInput,
+                        name: collectionInput.name.toUpperCase(),
+                    })
+            ).rejects.toThrow(`The collection name ${collectionName.toUpperCase()} is already taken`);
         });
     });
 
