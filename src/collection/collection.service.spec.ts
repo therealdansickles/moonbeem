@@ -877,6 +877,9 @@ describe('CollectionService', () => {
         });
 
         it('should validate name and slug', async () => {
+            const creator = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
             const collectionInput = {
                 name: faker.company.name(),
                 displayName: 'The best collection',
@@ -892,7 +895,7 @@ describe('CollectionService', () => {
                 organization: {
                     id: organization.id,
                 },
-                creator: { id: wallet.id },
+                creator: { id: creator.id },
                 startSaleAt: faker.date.future().getTime() / 1000,
             };
             const collectionName = collectionInput.name;
