@@ -6,6 +6,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Collection } from '../collection/collection.entity';
 import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
+import { CollectionPluginModule } from '../collectionPlugin/collectionPlugin.module';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
+import { MerkleTree } from '../merkleTree/merkleTree.entity';
+import { MerkleTreeModule } from '../merkleTree/merkleTree.module';
+import { MerkleTreeService } from '../merkleTree/merkleTree.service';
 import { Nft } from '../nft/nft.entity';
 import { NftModule } from '../nft/nft.module';
 import { NftService } from '../nft/nft.service';
@@ -29,19 +35,14 @@ import { Tier } from '../tier/tier.entity';
 import { TierModule } from '../tier/tier.module';
 import { TierService } from '../tier/tier.service';
 import { Wallet } from '../wallet/wallet.entity';
+import { AlchemyWebhook } from './alchemy-webhook.entity';
 import { AlchemyController } from './alchemy.controller';
 import { AlchemyService } from './alchemy.service';
-import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
-import { MerkleTree } from '../merkleTree/merkleTree.entity';
-import { CollectionPluginModule } from '../collectionPlugin/collectionPlugin.module';
-import { MerkleTreeModule } from '../merkleTree/merkleTree.module';
-import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
-import { MerkleTreeService } from '../merkleTree/merkleTree.service';
 
 @Module({
     imports: [
         ConfigModule,
-        TypeOrmModule.forFeature([Collection, Tier, Nft, Wallet, Plugin, CollectionPlugin, MerkleTree]),
+        TypeOrmModule.forFeature([Collection, Tier, Nft, Wallet, Plugin, CollectionPlugin, MerkleTree, AlchemyWebhook]),
         TypeOrmModule.forFeature([Coin, MintSaleContract, MintSaleTransaction, Asset721, History721], 'sync_chain'),
         forwardRef(() => CollectionModule),
         forwardRef(() => CoinModule),
@@ -56,6 +57,7 @@ import { MerkleTreeService } from '../merkleTree/merkleTree.service';
         forwardRef(() => MerkleTreeModule),
         HttpModule,
     ],
+    exports: [AlchemyModule],
     providers: [
         TierService,
         CollectionService,

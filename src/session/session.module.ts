@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { AlchemyWebhook } from '../alchemy/alchemy-webhook.entity';
 import { AlchemyModule } from '../alchemy/alchemy.module';
 import { AlchemyService } from '../alchemy/alchemy.service';
 import { CoinMarketCapModule } from '../coinmarketcap/coinmarketcap.module';
@@ -11,16 +12,21 @@ import { CoinMarketCapService } from '../coinmarketcap/coinmarketcap.service';
 import { Collection } from '../collection/collection.entity';
 import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
+import { CollectionPluginModule } from '../collectionPlugin/collectionPlugin.module';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 import { MailModule } from '../mail/mail.module';
 import { Membership } from '../membership/membership.entity';
 import { MembershipModule } from '../membership/membership.module';
 import { MembershipService } from '../membership/membership.service';
+import { MerkleTree } from '../merkleTree/merkleTree.entity';
 import { Nft } from '../nft/nft.entity';
 import { NftModule } from '../nft/nft.module';
 import { NftService } from '../nft/nft.service';
 import { OpenseaModule } from '../opensea/opensea.module';
 import { OpenseaService } from '../opensea/opensea.service';
 import { Organization } from '../organization/organization.entity';
+import { Plugin } from '../plugin/plugin.entity';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Asset721Module } from '../sync-chain/asset721/asset721.module';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
@@ -47,15 +53,10 @@ import { Wallet } from '../wallet/wallet.entity';
 import { WalletModule } from '../wallet/wallet.module';
 import { SessionResolver } from './session.resolver';
 import { SessionService } from './session.service';
-import { Plugin } from '../plugin/plugin.entity';
-import { MerkleTree } from '../merkleTree/merkleTree.entity';
-import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
-import { CollectionPluginModule } from '../collectionPlugin/collectionPlugin.module';
-import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Wallet, User, Collection, Membership, Organization, Tier, Nft, MerkleTree, CollectionPlugin, Plugin]),
+        TypeOrmModule.forFeature([Wallet, User, Collection, Membership, Organization, Tier, Nft, MerkleTree, CollectionPlugin, Plugin, AlchemyWebhook]),
         TypeOrmModule.forFeature([Asset721, Coin, MintSaleContract, MintSaleTransaction, History721, Factory], 'sync_chain'),
         forwardRef(() => Asset721Module),
         forwardRef(() => CoinMarketCapModule),

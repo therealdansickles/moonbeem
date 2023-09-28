@@ -228,6 +228,7 @@ export default async () => {
     global.collaborationRepository = module.get('CollaborationRepository');
     global.merkleTreeRepository = module.get('MerkleTreeRepository');
     global.collectionPluginRepository = module.get('CollectionPluginRepository');
+    global.alchemyWebhookRepository = module.get('AlchemyWebhookRepository');
 
     // sync chain repositories
     global.asset721Repository = module.get('sync_chain_Asset721Repository');

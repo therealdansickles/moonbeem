@@ -1,15 +1,18 @@
 import { AddressWebhookParams, Alchemy, AlchemySettings, GetBaseNftsForOwnerOptions, Network, NftWebhookParams, WebhookType } from 'alchemy-sdk';
 import { Interface, InterfaceAbi } from 'ethers';
 import { get } from 'lodash';
+import { Repository } from 'typeorm';
 import { URL } from 'url';
 
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
 
 import { CollectionService } from '../collection/collection.service';
 import * as VibeFactoryAbi from '../lib/abi/VibeFactory.json';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { TierService } from '../tier/tier.service';
+import { AlchemyWebhook } from './alchemy-webhook.entity';
 
 function sleep(duration) {
     return new Promise(resolve => setTimeout(resolve, duration));
@@ -31,6 +34,8 @@ export class AlchemyService {
     
     constructor(
         private configService: ConfigService,
+        @InjectRepository(AlchemyWebhook)
+        private readonly alchemyWebhookRepository: Repository<AlchemyWebhook>,
         @Inject(forwardRef(() => CollectionService))
         private collectionService: CollectionService,
         private mintSaleContractService: MintSaleContractService,
@@ -115,6 +120,11 @@ export class AlchemyService {
         }
 
         return this._createWebhook(network, endpointUrl, type, params);
+    }
+
+    async createLocalWebhook(network: Network, type: WebhookType, address: string) {
+        await this.alchemyWebhookRepository.upsert({ network, type, address }, ['address']);
+        return this.alchemyWebhookRepository.findOneBy({ network, type, address });
     }
 
     async initializeFactoryContractWebhooks() {

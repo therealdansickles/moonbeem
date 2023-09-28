@@ -1,10 +1,12 @@
 import { Network, WebhookType } from 'alchemy-sdk';
+import { Repository } from 'typeorm';
 
 import { faker } from '@faker-js/faker';
 
 import { CollectionService } from '../collection/collection.service';
 import { createCoin, createCollection, createMintSaleContract, createTier } from '../test-utils';
 import { TierService } from '../tier/tier.service';
+import { AlchemyWebhook } from './alchemy-webhook.entity';
 import { AlchemyService } from './alchemy.service';
 
 describe('AlchemySerice', () => {
@@ -13,9 +15,11 @@ describe('AlchemySerice', () => {
     let collection;
     let tierService: TierService;
     let tier;
+    let repository: Repository<AlchemyWebhook>;
 
     beforeAll(async () => {
         service = global.alchemyService;
+        repository = global.alchemyWebhookRepository;
         const coinService = global.coinService;
         const coin = await createCoin(coinService);
         collectionService = global.collectionService;
@@ -445,6 +449,22 @@ describe('AlchemySerice', () => {
             const result = await service.createNftActivityWebhook(Network.ARB_GOERLI, collection.tokenAddress);
             expect(result).toBeTruthy();
             expect(result.id).toEqual(mockResponse.id);
+        });
+    });
+
+    describe('#createLocalWebhook', () => {
+        it('should create record for address activity event', async () => {
+            const { id } = await service.createLocalWebhook(Network.OPT_GOERLI, WebhookType.ADDRESS_ACTIVITY, collection.tokenAddress);
+            const webhook = await repository.findOneBy({ id });
+            expect(webhook.type).toEqual(WebhookType.ADDRESS_ACTIVITY);
+            expect(webhook.network).toEqual(Network.OPT_GOERLI);
+        });
+
+        it('should create record for nft activity event', async () => {
+            const { id } = await service.createLocalWebhook(Network.MATIC_MUMBAI, WebhookType.NFT_ACTIVITY, collection.tokenAddress);
+            const webhook = await repository.findOneBy({ id });
+            expect(webhook.type).toEqual(WebhookType.NFT_ACTIVITY);
+            expect(webhook.network).toEqual(Network.MATIC_MUMBAI);
         });
     });
 

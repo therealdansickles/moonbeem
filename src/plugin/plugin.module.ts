@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { AlchemyWebhook } from '../alchemy/alchemy-webhook.entity';
 import { AlchemyModule } from '../alchemy/alchemy.module';
 import { AlchemyService } from '../alchemy/alchemy.service';
 import { CoinMarketCapModule } from '../coinmarketcap/coinmarketcap.module';
@@ -11,6 +12,10 @@ import { CoinMarketCapService } from '../coinmarketcap/coinmarketcap.service';
 import { Collection } from '../collection/collection.entity';
 import { CollectionModule } from '../collection/collection.module';
 import { CollectionService } from '../collection/collection.service';
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
+import { CollectionPluginModule } from '../collectionPlugin/collectionPlugin.module';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
+import { MerkleTree } from '../merkleTree/merkleTree.entity';
 import { Nft } from '../nft/nft.entity';
 import { NftModule } from '../nft/nft.module';
 import { NftService } from '../nft/nft.service';
@@ -36,14 +41,10 @@ import { Wallet } from '../wallet/wallet.entity';
 import { Plugin } from './plugin.entity';
 import { PluginResolver } from './plugin.resolver';
 import { PluginService } from './plugin.service';
-import { MerkleTree } from '../merkleTree/merkleTree.entity';
-import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
-import { CollectionPluginModule } from '../collectionPlugin/collectionPlugin.module';
-import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Plugin, Collection, Tier, Nft, Wallet, Collection, MerkleTree, CollectionPlugin]),
+        TypeOrmModule.forFeature([Plugin, Collection, Tier, Nft, Wallet, Collection, MerkleTree, CollectionPlugin, AlchemyWebhook]),
         TypeOrmModule.forFeature([Coin, MintSaleContract, MintSaleTransaction, Asset721, History721], 'sync_chain'),
         forwardRef(() => CollectionModule),
         forwardRef(() => TierModule),

@@ -31,7 +31,9 @@ export class AlchemyController {
             const { network, tokenAddress, contractAddress, collectionId } = event;
             const collection = await this.collectionService.getCollection(collectionId);
             await this.collectionService.updateCollection(collection.id, { tokenAddress, address: contractAddress });
-            await this.alchemyService.createWebhook(network, WebhookType.NFT_ACTIVITY, tokenAddress);
+            const res = await this.alchemyService.createWebhook(network, WebhookType.NFT_ACTIVITY, tokenAddress);
+            console.log(res);
+            await this.alchemyService.createLocalWebhook(network, WebhookType.NFT_ACTIVITY, tokenAddress);
         }
         return 'ok';
     }
