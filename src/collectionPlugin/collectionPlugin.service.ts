@@ -75,7 +75,10 @@ export class CollectionPluginService {
             where: { collection: { id: collectionId } },
             relations: {
                 plugin: true,
-                collection: true,
+                collection: {
+                    children: true,
+                    parent: true,
+                },
             },
         })) as CollectionPlugin[];
     }
