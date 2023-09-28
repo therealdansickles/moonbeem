@@ -10,19 +10,20 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { CollectionService } from '../collection/collection.service';
 import * as VibeFactoryAbi from '../lib/abi/VibeFactory.json';
+import { MaasService } from '../maas/maas.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { TierService } from '../tier/tier.service';
 import { AlchemyWebhook } from './alchemy-webhook.entity';
 
 function sleep(duration) {
-    return new Promise(resolve => setTimeout(resolve, duration));
+    return new Promise((resolve) => setTimeout(resolve, duration));
 }
 
 export enum EventType {
     MINT = 'mint',
     TRANSFER = 'transfer',
     BURN = 'burn',
-    UNKNOWN = 'unknown'
+    UNKNOWN = 'unknown',
 }
 
 @Injectable()
@@ -31,7 +32,7 @@ export class AlchemyService {
     private domain: string;
     private apiKey: string;
     private authToken: string;
-    
+
     constructor(
         private configService: ConfigService,
         @InjectRepository(AlchemyWebhook)
@@ -40,6 +41,7 @@ export class AlchemyService {
         private collectionService: CollectionService,
         private mintSaleContractService: MintSaleContractService,
         private tierService: TierService,
+        private maasService: MaasService,
     ) {
         this.apiKey = this.configService.get<string>('ALCHEMY_API_KEY');
         this.authToken = this.configService.get<string>('ALCHEMY_AUTH_TOKEN');
@@ -66,7 +68,7 @@ export class AlchemyService {
 
     async getNFTsForCollection(network: Network, tokenAddress: string) {
         const res = await this._getNFTsForCollection(network, tokenAddress, { omitMetadata: true });
-        return res.map(nft => BigInt(nft.id.tokenId).toString());
+        return res.map((nft) => BigInt(nft.id.tokenId).toString());
     }
 
     private async _getWebhooks(network: Network) {
@@ -77,8 +79,8 @@ export class AlchemyService {
 
     async getWebhooks(network: Network, type?: WebhookType) {
         const webhooks = await this._getWebhooks(network);
-        if (type) return webhooks.filter(webhook => webhook.type === type && webhook.network === network);
-        else return webhooks.filter(webhook => webhook.network === network);
+        if (type) return webhooks.filter((webhook) => webhook.type === type && webhook.network === network);
+        else return webhooks.filter((webhook) => webhook.network === network);
     }
 
     private async _createWebhook(network: Network, path: string, type, params) {
@@ -88,7 +90,7 @@ export class AlchemyService {
     }
 
     async createNftActivityWebhook(network: Network, address: string) {
-        return this.createWebhook(network, WebhookType.NFT_ACTIVITY, address); 
+        return this.createWebhook(network, WebhookType.NFT_ACTIVITY, address);
     }
 
     async createWebhook(network: Network, type: WebhookType, address: string) {
@@ -99,9 +101,11 @@ export class AlchemyService {
             case WebhookType.NFT_ACTIVITY: {
                 endpointUrl = '/v1/alchemy/webhook/nft-activity';
                 params = {
-                    filters: [{
-                        contractAddress: address
-                    }],
+                    filters: [
+                        {
+                            contractAddress: address,
+                        },
+                    ],
                     network,
                 } as NftWebhookParams;
                 break;
@@ -135,7 +139,7 @@ export class AlchemyService {
             if (!configAddress) continue;
             const existedWebhooks = await this.getWebhooks(network, WebhookType.ADDRESS_ACTIVITY);
             // all environments webhook are mixed, so we need to filter by domain again
-            const isExisted = existedWebhooks.find(webhook => webhook.url?.startsWith(this.domain));
+            const isExisted = existedWebhooks.find((webhook) => webhook.url?.startsWith(this.domain));
             if (!isExisted) await this.createWebhook(network, WebhookType.ADDRESS_ACTIVITY, configAddress);
         }
     }
@@ -176,7 +180,7 @@ export class AlchemyService {
                 tierId: tier.id,
                 tokenId,
                 eventType,
-                properties: tier.metadata?.properties || {}
+                properties: tier.metadata?.properties || {},
             });
         }
         return result;
@@ -218,8 +222,8 @@ export class AlchemyService {
 
             const transaction = await this._getTransaction(network, transactionHash);
             const { args } = this._parseTransaction(VibeFactoryAbi, transaction.data);
-            const collectionId = new URL(args[2]).pathname.replace(/\//ig, '');
-            
+            const collectionId = new URL(args[2]).pathname.replace(/\//gi, '');
+
             result.push({ network, tokenAddress, contractAddress, collectionId });
         }
         return result;

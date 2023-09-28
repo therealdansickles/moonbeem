@@ -14,6 +14,8 @@ import { CollaborationModule } from '../collaboration/collaboration.module';
 import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
 import { CollectionPluginModule } from '../collectionPlugin/collectionPlugin.module';
 import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
+import { MaasModule } from '../maas/maas.module';
+import { MaasService } from '../maas/maas.service';
 import { MailModule } from '../mail/mail.module';
 import { Membership } from '../membership/membership.entity';
 import { MembershipModule } from '../membership/membership.module';
@@ -89,6 +91,7 @@ import { CollectionService } from './collection.service';
         forwardRef(() => NftModule),
         forwardRef(() => AlchemyModule),
         forwardRef(() => CollectionPluginModule),
+        forwardRef(() => MaasModule),
         JwtModule,
         ConfigModule,
     ],
@@ -109,6 +112,7 @@ import { CollectionService } from './collection.service';
         ConfigService,
         AlchemyService,
         CollectionPluginService,
+        MaasService,
     ],
     controllers: [],
 })

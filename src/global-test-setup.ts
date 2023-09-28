@@ -23,6 +23,7 @@ import { CollectionPluginModule } from './collectionPlugin/collectionPlugin.modu
 import { CollectionPluginService } from './collectionPlugin/collectionPlugin.service';
 import { AWSAdapter } from './lib/adapters/aws.adapter';
 import { postgresConfig } from './lib/configs/db.config';
+import { MaasService } from './maas/maas.service';
 import { MailModule } from './mail/mail.module';
 import { MailService } from './mail/mail.service';
 import { MembershipModule } from './membership/membership.module';
@@ -94,8 +95,10 @@ export class TestResolver {
 
 export default async () => {
     // Should abort if it's not a local database
-    if ((!postgresConfig.url.includes('localhost') && !postgresConfig.url.includes('127.0.0.1')) ||
-        ( !postgresConfig.syncChain.url.includes('localhost')&& !postgresConfig.syncChain.url.includes('127.0.0.1'))) {
+    if (
+        (!postgresConfig.url.includes('localhost') && !postgresConfig.url.includes('127.0.0.1')) ||
+        (!postgresConfig.syncChain.url.includes('localhost') && !postgresConfig.syncChain.url.includes('127.0.0.1'))
+    ) {
         throw new Error('You are not running tests on a local database. Aborting.');
     }
     const module = await Test.createTestingModule({
@@ -198,6 +201,7 @@ export default async () => {
     global.coinmarketcapService = module.get<CoinMarketCapService>(CoinMarketCapService);
     global.jwtService = module.get<JwtService>(JwtService);
     global.collectionPluginService = module.get<CollectionPluginService>(CollectionPluginService);
+    global.maasService = module.get<MaasService>(MaasService);
 
     // platform controller
     global.alchemyController = module.get<AlchemyController>(AlchemyController);
@@ -255,7 +259,7 @@ export default async () => {
         new ValidationPipe({
             whitelist: true,
             transform: true,
-        })
+        }),
     );
     await global.app.init();
 };

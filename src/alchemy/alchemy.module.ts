@@ -9,6 +9,8 @@ import { CollectionService } from '../collection/collection.service';
 import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
 import { CollectionPluginModule } from '../collectionPlugin/collectionPlugin.module';
 import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
+import { MaasModule } from '../maas/maas.module';
+import { MaasService } from '../maas/maas.service';
 import { MerkleTree } from '../merkleTree/merkleTree.entity';
 import { MerkleTreeModule } from '../merkleTree/merkleTree.module';
 import { MerkleTreeService } from '../merkleTree/merkleTree.service';
@@ -55,6 +57,7 @@ import { AlchemyService } from './alchemy.service';
         forwardRef(() => PluginModule),
         forwardRef(() => CollectionPluginModule),
         forwardRef(() => MerkleTreeModule),
+        forwardRef(() => MaasModule),
         HttpModule,
     ],
     exports: [AlchemyModule],
@@ -69,6 +72,7 @@ import { AlchemyService } from './alchemy.service';
         AlchemyService,
         CollectionPluginService,
         MerkleTreeService,
+        MaasService,
     ],
     controllers: [AlchemyController],
 })

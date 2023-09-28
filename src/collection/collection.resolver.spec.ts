@@ -12,13 +12,7 @@ import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import {
-    createCoin,
-    createCollection,
-    createMemberships,
-    createMintSaleContract,
-    createMintSaleTransaction,
-    createOrganization,
-    createTier,
+    createCoin, createCollection, createMemberships, createMintSaleContract, createMintSaleTransaction, createOrganization, createTier
 } from '../test-utils';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';

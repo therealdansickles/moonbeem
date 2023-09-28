@@ -15,6 +15,8 @@ import { CollectionService } from '../collection/collection.service';
 import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
 import { CollectionPluginModule } from '../collectionPlugin/collectionPlugin.module';
 import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
+import { MaasModule } from '../maas/maas.module';
+import { MaasService } from '../maas/maas.service';
 import { MerkleTree } from '../merkleTree/merkleTree.entity';
 import { Nft } from '../nft/nft.entity';
 import { NftModule } from '../nft/nft.module';
@@ -58,6 +60,7 @@ import { PluginService } from './plugin.service';
         forwardRef(() => Asset721Module),
         forwardRef(() => CollectionPluginModule),
         forwardRef(() => AlchemyModule),
+        forwardRef(() => MaasModule),
         HttpModule,
         JwtModule,
         ConfigModule,
@@ -76,6 +79,7 @@ import { PluginService } from './plugin.service';
         NftService,
         AlchemyService,
         CollectionPluginService,
+        MaasService,
     ],
 })
 export class PluginModule {}

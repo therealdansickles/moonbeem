@@ -150,15 +150,15 @@ describe('PluginService', () => {
                             name: '{{level_name}}',
                             type: 'string',
                             value: '{{level}}',
-                            display_value: 'Basic'
-                        }
+                            display_value: 'Basic',
+                        },
                     },
                     configs: {
                         alias: {
-                            level_name: 'level'
-                        }
-                    }
-                }
+                            level_name: 'level',
+                        },
+                    },
+                },
             });
         });
 
@@ -176,7 +176,7 @@ describe('PluginService', () => {
                             type: 'number',
                             value: 0,
                             display_value: 'none',
-                            class: MetadataPropertyClass.UPGRADABLE
+                            class: MetadataPropertyClass.UPGRADABLE,
                         },
                     },
                     conditions: {
@@ -270,7 +270,7 @@ describe('PluginService', () => {
                             type: 'number',
                             value: 0,
                             display_value: '0',
-                            class: MetadataPropertyClass.UPGRADABLE
+                            class: MetadataPropertyClass.UPGRADABLE,
                         },
                     },
                     conditions: {
@@ -322,7 +322,7 @@ describe('PluginService', () => {
             expect(result.metadata.properties.level).toBeTruthy();
         });
 
-        it('shouldn\'t update the existed conditions of the metadata', async () => {
+        it("shouldn't update the existed conditions of the metadata", async () => {
             const tier = await tierService.createTier({
                 name: faker.company.name(),
                 totalMints: 100,
@@ -443,8 +443,8 @@ describe('PluginService', () => {
             const result = await pluginService.installOnTier({ tier, plugin });
             expect(result.metadata.conditions.rules.length).toEqual(2);
             const rules = result.metadata.conditions.rules;
-            expect(rules.find(rule => rule.property === 'holding_days' && rule.rule === 'greater_than').update[0].value).toEqual(99);
-            expect(rules.find(rule => rule.property === 'holding_days' && rule.rule === 'less_than').update[0].value).toEqual(99);
+            expect(rules.find((rule) => rule.property === 'holding_days' && rule.rule === 'greater_than').update[0].value).toEqual(99);
+            expect(rules.find((rule) => rule.property === 'holding_days' && rule.rule === 'less_than').update[0].value).toEqual(99);
             const trigger = result.metadata.conditions.trigger;
             expect(trigger[0].config.every).toEqual(99);
         });
@@ -515,9 +515,9 @@ describe('PluginService', () => {
                     },
                     configs: {
                         alias: {
-                            level_name: 'level'    
-                        }
-                    }
+                            level_name: 'level',
+                        },
+                    },
                 },
             });
             const plugin = await pluginRepository.save({
@@ -584,10 +584,10 @@ describe('PluginService', () => {
                 customizedMetadataParameters: {
                     configs: {
                         alias: {
-                            level_name: 'level11111'
-                        }
-                    }
-                }
+                            level_name: 'level11111',
+                        },
+                    },
+                },
             });
             expect(result.metadata.configs.alias.level_name).toEqual('level11111');
             expect(result.metadata.configs.alias.holding_days_name).toBeFalsy();

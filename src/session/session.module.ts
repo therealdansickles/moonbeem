@@ -15,6 +15,8 @@ import { CollectionService } from '../collection/collection.service';
 import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
 import { CollectionPluginModule } from '../collectionPlugin/collectionPlugin.module';
 import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
+import { MaasModule } from '../maas/maas.module';
+import { MaasService } from '../maas/maas.service';
 import { MailModule } from '../mail/mail.module';
 import { Membership } from '../membership/membership.entity';
 import { MembershipModule } from '../membership/membership.module';
@@ -76,6 +78,7 @@ import { SessionService } from './session.service';
         forwardRef(() => NftModule),
         forwardRef(() => CollectionPluginModule),
         forwardRef(() => AlchemyModule),
+        forwardRef(() => MaasModule),
         JwtModule.register({
             secret: process.env.SESSION_SECRET,
             signOptions: { expiresIn: '7d' },
@@ -100,6 +103,7 @@ import { SessionService } from './session.service';
         CollectionPluginService,
         ConfigService,
         AlchemyService,
+        MaasService,
     ],
     exports: [SessionModule, SessionResolver],
 })
