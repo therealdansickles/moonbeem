@@ -1006,7 +1006,7 @@ export class CollectionService {
         first: number,
         last: number
     ): Promise<CollectionEarningsChartPaginated> {
-        if (!address) toPaginated([], 0);
+        if (!address) return toPaginated([], 0);
 
         const builder = this.mintSaleTransactionRepository
             .createQueryBuilder('txn')

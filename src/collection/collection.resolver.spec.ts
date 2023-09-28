@@ -12,7 +12,13 @@ import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import {
-    createCoin, createCollection, createMemberships, createMintSaleContract, createMintSaleTransaction, createOrganization, createTier
+    createCoin,
+    createCollection,
+    createMemberships,
+    createMintSaleContract,
+    createMintSaleTransaction,
+    createOrganization,
+    createTier,
 } from '../test-utils';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
@@ -175,8 +181,7 @@ describe('CollectionResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.data.collection).toBeTruthy();
-                    // expect(body.data.collection).toBeNull();
+                    expect(body.errors[0].extensions.code).toEqual('FORBIDDEN');
                 });
         });
 
@@ -1846,7 +1851,7 @@ describe('CollectionResolver', () => {
         });
 
         it('should create the sub-collection', async () => {
-            const collection1 = await createCollection(service, {
+            const collection = await createCollection(service, {
                 organization: organization,
             });
 
@@ -1876,7 +1881,7 @@ describe('CollectionResolver', () => {
                     },
                     tags: ['test'],
                     parent: {
-                        id: collection1.id,
+                        id: collection.id,
                     },
                 },
             };
@@ -1897,7 +1902,7 @@ describe('CollectionResolver', () => {
                 .expect(({ body }) => {
                     expect(body.data.createCollection.id).toBeDefined();
                     newCollectionId = body.data.createCollection.id;
-                    expect(body.data.createCollection.parent.id).toBe(collection1.id);
+                    expect(body.data.createCollection.parent.id).toBe(collection.id);
                 });
 
             const query = gql`
@@ -1924,9 +1929,10 @@ describe('CollectionResolver', () => {
                 }
             `;
 
-            const variables = { id: collection1.id };
+            const variables = { id: collection.id };
             await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(authToken, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
