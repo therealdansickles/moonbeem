@@ -16,13 +16,15 @@ export class Nft extends BaseEntity {
         createForeignKeyConstraints: false,
     })
     @JoinColumn()
-    readonly collection: Collection;
+    @Index()
+    public collection: Collection;
 
     @ManyToOne(() => Tier, (tier) => tier.nfts, {
         eager: true,
         createForeignKeyConstraints: false,
     })
     @JoinColumn()
+    @Index()
     readonly tier?: Tier;
 
     @Column({ comment: 'The NFT tokenId' })

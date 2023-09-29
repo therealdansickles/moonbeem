@@ -11,6 +11,7 @@ export enum ContractType {
     mintSaleMultiple = 'mintSaleMultiple',
     mintSaleWhitelisting = 'mintSaleWhitelisting',
     mintSaleMultipleWhitelisting = 'mintSaleMultipleWhitelisting',
+    airdrop = 'airdrop',
     unknown = 'unknown',
 }
 

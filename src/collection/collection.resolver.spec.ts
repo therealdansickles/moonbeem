@@ -4,19 +4,15 @@ import { faker } from '@faker-js/faker';
 import { INestApplication } from '@nestjs/common';
 
 import { CollaborationService } from '../collaboration/collaboration.service';
+import { MembershipService } from '../membership/membership.service';
+import { NftService } from '../nft/nft.service';
 import { OrganizationService } from '../organization/organization.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import {
-    createCoin,
-    createCollection,
-    createMemberships,
-    createMintSaleContract,
-    createMintSaleTransaction,
-    createOrganization,
-    createTier,
+    createCoin, createCollection, createMemberships, createMintSaleContract, createMintSaleTransaction, createOrganization, createTier
 } from '../test-utils';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
@@ -25,8 +21,6 @@ import { CollectionStat, CollectionStatus } from './collection.dto';
 import { Collection, CollectionKind } from './collection.entity';
 import { CollectionService } from './collection.service';
 import { generateSlug } from './collection.utils';
-import { MembershipService } from '../membership/membership.service';
-import { NftService } from '../nft/nft.service';
 
 export const gql = String.raw;
 
@@ -152,6 +146,36 @@ describe('CollectionResolver', () => {
                     expect(body.data.collection.displayName).toEqual(collection.displayName);
                     expect(body.data.collection.organization.name).toEqual(organization.name);
                     expect(body.data.collection.collaboration).toBeNull();
+                });
+        });
+
+        it('should not be a public query', async () => {
+            const query = gql`
+                query GetCollection($id: String!) {
+                    collection(id: $id) {
+                        name
+                        displayName
+                        kind
+
+                        organization {
+                            name
+                        }
+
+                        collaboration {
+                            id
+                        }
+                    }
+                }
+            `;
+
+            const variables = { id: collection.id };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.errors[0].extensions.code).toEqual('FORBIDDEN');
                 });
         });
 
@@ -1690,6 +1714,226 @@ describe('CollectionResolver', () => {
                     expect(body.data.searchTokenIds).toBeDefined();
                     expect(body.data.searchTokenIds.length).toEqual(2);
                     expect(body.data.searchTokenIds).toEqual(['9', '11']);
+                });
+        });
+    });
+
+    describe('metadataOverview', () => {
+        let user;
+        let wallet;
+        let organization;
+        let collection;
+
+        beforeEach(async () => {
+            user = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            organization = await createOrganization(organizationService, { owner: user });
+
+            wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            collection = await createCollection(service, {
+                organization,
+                creator: { id: wallet.id },
+            });
+            await createTier(tierService, {
+                collection: { id: collection.id },
+                tierId: 0,
+                metadata: {
+                    properties: {
+                        height: {
+                            name: 'height',
+                            type: 'number',
+                            value: '200',
+                        },
+                    },
+                },
+            });
+            await createMintSaleContract(mintSaleContractService, {
+                collectionId: collection.id,
+                address: collection.address,
+                tierId: 0,
+                startId: 1,
+                endId: 16,
+            });
+        });
+
+        it('should return metadata overview', async () => {
+            // using one of the collection's id/slug/address
+            const input = {
+                collectionId: collection.id,
+                // collectionSlug: collection.slug
+                // collectionAddress: collection.address
+            };
+            const query = gql`
+                query MetadataOverview($input: MetadataOverviewInput!) {
+                    metadataOverview(input: $input) {
+                        attributes {
+                            staticAttributes {
+                                name
+                                type
+                                valueCounts {
+                                    value
+                                    count
+                                }
+                                displayValue
+                                class
+                            }
+                            dynamicAttributes {
+                                name
+                                type
+                                valueCounts {
+                                    value
+                                    count
+                                }
+                                displayValue
+                                class
+                            }
+                        }
+                        upgrades {
+                            name
+                            count
+                        }
+                        plugins {
+                            name
+                            count
+                        }
+                    }
+                }
+            `;
+
+            const variables = { input };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.metadataOverview).toBeDefined();
+                    expect(body.data.metadataOverview.attributes.staticAttributes).toEqual(
+                        expect.arrayContaining([
+                            {
+                                name: 'height',
+                                type: 'number',
+                                valueCounts: [{ value: '200', count: 16 }],
+                                displayValue: null,
+                                class: null,
+                            },
+                        ])
+                    );
+                });
+        });
+    });
+
+    describe('parentCollection', () => {
+        let user;
+        let organization;
+        beforeEach(async () => {
+            user = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            organization = await createOrganization(organizationService, {
+                owner: user,
+            });
+            await walletService.createWallet({ address: `arb:${faker.finance.ethereumAddress()}` });
+        });
+
+        it('should create the sub-collection', async () => {
+            const collection = await createCollection(service, {
+                organization: organization,
+            });
+
+            const query1 = gql`
+                mutation CreateCollection($input: CreateCollectionInput!) {
+                    createCollection(input: $input) {
+                        id
+                        name
+                        slug
+                        displayName
+                        kind
+                        parent {
+                            id
+                        }
+                    }
+                }
+            `;
+            const variables1 = {
+                input: {
+                    name: faker.company.name(),
+                    displayName: 'The best collection',
+                    about: 'The best collection ever',
+                    kind: CollectionKind.edition,
+                    address: faker.finance.ethereumAddress(),
+                    organization: {
+                        id: organization.id,
+                    },
+                    tags: ['test'],
+                    parent: {
+                        id: collection.id,
+                    },
+                },
+            };
+            const tokenVariables = {
+                input: {
+                    email: user.email,
+                    password: 'password',
+                },
+            };
+            const authToken = await getToken(tokenVariables);
+
+            let newCollectionId: string;
+            await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(authToken, { type: 'bearer' })
+                .send({ query: query1, variables: variables1 })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.createCollection.id).toBeDefined();
+                    newCollectionId = body.data.createCollection.id;
+                    expect(body.data.createCollection.parent.id).toBe(collection.id);
+                });
+
+            const query = gql`
+                query GetCollection($id: String!) {
+                    collection(id: $id) {
+                        name
+                        displayName
+                        kind
+
+                        organization {
+                            name
+                        }
+
+                        collaboration {
+                            id
+                        }
+                        parent {
+                            id
+                        }
+                        children {
+                            id
+                        }
+                    }
+                }
+            `;
+
+            const variables = { id: collection.id };
+            await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(authToken, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.collection).toBeDefined();
+                    expect(body.data.collection.children).toBeDefined();
+                    expect(body.data.collection.children.length).toBe(1);
+                    expect(body.data.collection.children[0].id).toBe(newCollectionId);
                 });
         });
     });

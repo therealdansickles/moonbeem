@@ -1,5 +1,5 @@
-import { Field, ObjectType, InputType, ID, PickType, OmitType, PartialType, Int } from '@nestjs/graphql';
-import { IsString, IsOptional, IsNumber, IsArray, IsObject, IsDateString, IsEmail } from 'class-validator';
+import { Field, ID, InputType, Int, ObjectType, OmitType, PartialType, PickType } from '@nestjs/graphql';
+import { IsArray, IsBoolean, IsDateString, IsEmail, IsNumber, IsObject, IsOptional, IsString } from 'class-validator';
 import { Collection } from '../collection/collection.dto';
 import Paginated from '../pagination/pagination.dto';
 
@@ -72,10 +72,18 @@ export class User {
 
     @Field(() => [Wallet], { description: 'The wallets of the user.', nullable: true })
     readonly wallets?: Wallet[];
+
+    @IsBoolean()
+    @Field(() => Boolean, { description: 'The plugin invited status of the user.', nullable: true })
+    readonly pluginInvited?: boolean;
+
+    @IsArray()
+    @Field(() => [String!], { description: 'The plugin invite code of the user.', nullable: true })
+    readonly pluginInviteCodes?: string[];
 }
 
 @InputType()
-export class CreateUserInput extends OmitType(User, ['id', 'wallets'] as const, InputType) {
+export class CreateUserInput extends OmitType(User, ['id', 'wallets', 'pluginInvited', 'pluginInviteCodes'] as const, InputType) {
     @Field({ description: 'The password for the user.', nullable: true })
     @IsString()
     @IsOptional()

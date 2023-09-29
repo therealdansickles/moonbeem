@@ -4,14 +4,21 @@ import { faker } from '@faker-js/faker';
 
 import { UserService } from '../user/user.service';
 import { SessionService } from './session.service';
+import { OrganizationService } from '../organization/organization.service';
+import { createOrganization } from '../test-utils';
+import { JwtService } from '@nestjs/jwt';
 
 describe('SessionService', () => {
     let service: SessionService;
     let userService: UserService;
+    let organizationService: OrganizationService;
+    let jwtService: JwtService;
 
     beforeAll(async () => {
         service = global.sessionService;
         userService = global.userService;
+        organizationService = global.organizationService;
+        jwtService = global.jwtService;
     });
 
     afterAll(async () => {
@@ -43,10 +50,12 @@ describe('SessionService', () => {
         it('should return a session', async () => {
             const email = 'engineering+sessionfromemail@vibe.xyz';
             const password = 'password';
-            await userService.createUser({ email, password });
+            const user = await userService.createUser({ email, password });
             const result = await service.createSessionFromEmail(email, password);
+            const token = jwtService.decode(result.token) as Record<string, string>;
 
             expect(result.user.email).toEqual(email);
+            expect(token.userId).toEqual(user.id);
         });
 
         it('should return null if invalid', async () => {
@@ -57,6 +66,23 @@ describe('SessionService', () => {
 
             expect(result).toBeNull();
         });
+
+        it('should include organization roles in the session', async () => {
+            const email = 'engineering+sessionfromemail+3@vibe.xyz';
+            const password = 'password';
+            const user = await userService.createUser({ email, password });
+            const organization = await createOrganization(organizationService, {
+                owner: user,
+            });
+            const result = await service.createSessionFromEmail(email, 'password');
+
+            // parse the token to get the organization roles
+            const token = jwtService.decode(result.token) as Record<string, string>;
+            expect(token).toBeDefined();
+            expect(token.organizationRoles).toBeDefined();
+            expect(token.organizationRoles).toHaveLength(1);
+            expect(token.organizationRoles[0]).toEqual(`${organization.id}::owner`);
+        });
     });
 
     describe('createSessionFromGoogle', () => {
@@ -64,7 +90,7 @@ describe('SessionService', () => {
             const mockResponse = {
                 name: faker.internet.userName(),
                 gmail: faker.internet.email(),
-                avatarUrl: faker.internet.avatar()
+                avatarUrl: faker.internet.avatar(),
             };
             jest.spyOn(userService as any, 'authenticateFromGoogle').mockImplementation(async () => mockResponse);
             const result = await service.createSessionFromGoogle('access_token');
@@ -76,12 +102,12 @@ describe('SessionService', () => {
             const mockResponse = {
                 name: faker.internet.userName(),
                 gmail: email,
-                avatarUrl: faker.internet.avatar()
+                avatarUrl: faker.internet.avatar(),
             };
             jest.spyOn(userService as any, 'authenticateFromGoogle').mockImplementation(async () => mockResponse);
             const user = await userService.createUser({
                 email,
-                password: 'password'
+                password: 'password',
             });
             const result = await service.createSessionFromGoogle('access_token');
             expect(result.token).toBeDefined();
@@ -95,7 +121,7 @@ describe('SessionService', () => {
             const mockResponse = {
                 name: faker.internet.userName(),
                 gmail: email,
-                avatarUrl: faker.internet.avatar()
+                avatarUrl: faker.internet.avatar(),
             };
             jest.spyOn(userService as any, 'authenticateFromGoogle').mockImplementation(async () => mockResponse);
             await userService.createUser({
@@ -103,7 +129,7 @@ describe('SessionService', () => {
             });
             const result = await service.createSessionFromGoogle('access_token');
             expect(result.token).toBeDefined();
-            
+
             try {
                 await expect(async () => await service.createSessionFromEmail(email, 'password'));
             } catch (err) {
@@ -116,16 +142,16 @@ describe('SessionService', () => {
             const mockResponse = {
                 name: faker.internet.userName(),
                 gmail: email,
-                avatarUrl: faker.internet.avatar()
+                avatarUrl: faker.internet.avatar(),
             };
             jest.spyOn(userService as any, 'authenticateFromGoogle').mockImplementation(async () => mockResponse);
             await userService.createUser({
                 email,
-                password: 'password'
+                password: 'password',
             });
             const result = await service.createSessionFromGoogle('access_token');
             expect(result.token).toBeDefined();
-            
+
             const authenticateByEmail = await service.createSessionFromEmail(email, 'password');
             expect(authenticateByEmail.token).toBeDefined();
             expect(authenticateByEmail.user.email).toEqual(email);

@@ -1,8 +1,9 @@
-import { Field, ObjectType, InputType } from '@nestjs/graphql';
-import { IsObject, IsString, IsBoolean, IsOptional, IsArray } from 'class-validator';
+import { Field, InputType, ObjectType } from '@nestjs/graphql';
+import { IsArray, IsBoolean, IsObject, IsOptional, IsString } from 'class-validator';
 import { Organization } from '../organization/organization.dto';
 import { Organization as OrganizationEntity } from '../organization/organization.entity';
 import { User } from '../user/user.dto';
+import { Roles } from './membership.constant';
 
 @ObjectType('Membership')
 export class Membership {
@@ -33,6 +34,11 @@ export class Membership {
     @IsBoolean()
     @Field(() => Boolean, { description: 'Whether or not this user can deploy a collection.' })
     readonly canDeploy: boolean;
+
+    @IsString()
+    @IsOptional()
+    @Field(() => String, { description: 'The role for this membership.', nullable: true })
+    readonly role: string;
 }
 
 @InputType()
@@ -75,6 +81,10 @@ export class CreateMembershipInput {
     @Field(() => Boolean, { description: 'Whether or not this user can deploy a collection.', nullable: true })
     @IsOptional()
     readonly canDeploy?: boolean;
+
+    @IsString()
+    @Field({ defaultValue: Roles.Member, description: 'The role for this membership.', nullable: true })
+    readonly role?: string;
 }
 
 @InputType()
@@ -97,6 +107,11 @@ export class UpdateMembershipInput {
     @IsOptional()
     @Field(() => Boolean, { description: 'Whether or not this user can deploy a collection.', nullable: true })
     readonly canDeploy?: boolean;
+
+    @IsString()
+    @IsOptional()
+    @Field(() => String, { description: 'The role for this membership.', nullable: true })
+    readonly role?: string;
 }
 
 @InputType()
@@ -111,4 +126,5 @@ export interface ICreateMembership {
     canEdit?: boolean;
     canManage?: boolean;
     canDeploy?: boolean;
+    role?: string;
 }

@@ -1,8 +1,5 @@
 import { hashSync } from 'bcryptjs';
-import {
-    BaseEntity, BeforeInsert, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn,
-    UpdateDateColumn
-} from 'typeorm';
+import { BaseEntity, BeforeInsert, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 import { Collaboration } from '../collaboration/collaboration.entity';
 import { lowercaseTransformer } from '../lib/transformer/lowercase.transformer';
@@ -77,6 +74,12 @@ export class User extends BaseEntity {
 
     @Column({ nullable: true, comment: 'The verified at time.' })
     readonly verifiedAt: Date;
+
+    @Column({ default: false, comment: 'Whether the user is invited to use plugin.' })
+    readonly pluginInvited: boolean;
+
+    @Column({ type: 'text', array: true, default: [], comment: 'The list of plugin invite code.' })
+    readonly pluginInviteCodes: string[];
 
     /**
      * Hashes the password and generate token before inserting it into the database.

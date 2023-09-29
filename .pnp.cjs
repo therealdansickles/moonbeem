@@ -98,7 +98,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["passport-jwt", "npm:4.0.1"],\
             ["passport-local", "npm:1.0.0"],\
             ["pg", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:8.11.0"],\
-            ["prettier", "npm:2.8.8"],\
+            ["prettier", "npm:3.0.3"],\
             ["randomstring", "npm:1.3.0"],\
             ["rate-limiter-flexible", "npm:2.4.1"],\
             ["reflect-metadata", "npm:0.1.13"],\
@@ -8534,7 +8534,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/prettier", null],\
             ["eslint", "npm:8.45.0"],\
             ["eslint-config-prettier", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:8.8.0"],\
-            ["prettier", "npm:2.8.8"],\
+            ["prettier", "npm:3.0.3"],\
             ["prettier-linter-helpers", "npm:1.0.0"],\
             ["synckit", "npm:0.8.5"]\
           ],\
@@ -13494,7 +13494,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["passport-jwt", "npm:4.0.1"],\
             ["passport-local", "npm:1.0.0"],\
             ["pg", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:8.11.0"],\
-            ["prettier", "npm:2.8.8"],\
+            ["prettier", "npm:3.0.3"],\
             ["randomstring", "npm:1.3.0"],\
             ["rate-limiter-flexible", "npm:2.4.1"],\
             ["reflect-metadata", "npm:0.1.13"],\
@@ -13573,10 +13573,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["prettier", [\
-        ["npm:2.8.8", {\
-          "packageLocation": "./.yarn/cache/prettier-npm-2.8.8-430828a36c-b49e409431.zip/node_modules/prettier/",\
+        ["npm:3.0.3", {\
+          "packageLocation": "./.yarn/unplugged/prettier-npm-3.0.3-fced695dae/node_modules/prettier/",\
           "packageDependencies": [\
-            ["prettier", "npm:2.8.8"]\
+            ["prettier", "npm:3.0.3"]\
           ],\
           "linkType": "HARD"\
         }]\

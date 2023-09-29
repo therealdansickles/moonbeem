@@ -63,12 +63,22 @@ export class CollectionPluginService {
         })) as CollectionPlugin;
     }
 
+    async deleteCollectionPlugin(id: string): Promise<boolean> {
+        const current = await this.collectionPluginRepository.findOne({ where: { id } });
+        if (!current) throw new Error(`CollectionPlugin ${id} doesn't exist.`);
+        await this.collectionPluginRepository.delete(id);
+        return true;
+    }
+
     async getCollectionPluginsByCollectionId(collectionId: string): Promise<CollectionPlugin[]> {
         return (await this.collectionPluginRepository.find({
             where: { collection: { id: collectionId } },
             relations: {
                 plugin: true,
-                collection: true,
+                collection: {
+                    children: true,
+                    parent: true,
+                },
             },
         })) as CollectionPlugin[];
     }
@@ -100,5 +110,13 @@ export class CollectionPluginService {
     async checkIfPluginClaimed(plugin: CollectionPlugin, tokenId: string): Promise<boolean> {
         // check if there is a claim record for this plugin and tokenId
         return true;
+    }
+
+    async getAppliedTokensCount(collectionPlugin: CollectionPlugin, totalSupply: number): Promise<number> {
+        const { merkleRoot } = collectionPlugin;
+        if (!merkleRoot) return totalSupply;
+        const merkleTree = await this.merkleTreeRepo.findOne({ where: { merkleRoot } });
+        if (!merkleTree) return 0;
+        return (merkleTree.data || []).length;
     }
 }

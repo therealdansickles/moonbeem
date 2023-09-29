@@ -4,11 +4,12 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    Index,
     JoinColumn,
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
-    UpdateDateColumn
+    UpdateDateColumn,
 } from 'typeorm';
 
 import { Collaboration } from '../collaboration/collaboration.entity';
@@ -29,6 +30,7 @@ export enum CollectionKind {
     whitelistEdition = 'whitelistEdition',
     whitelistTiered = 'whitelistTiered',
     whitelistBulk = 'whitelistBulk',
+    airdrop = 'airdrop',
 }
 
 @Entity({ name: 'Collection' })
@@ -37,9 +39,11 @@ export class Collection extends BaseEntity {
     readonly id: string;
 
     @Column({ length: 64, unique: true, comment: 'The unique URL-friendly name of the collection.' })
+    @Index()
     readonly name: string;
 
     @Column({ length: 64, unique: true, comment: 'The slug to use in the URL', nullable: true })
+    @Index()
     readonly slug: string;
 
     @Column({
@@ -62,6 +66,7 @@ export class Collection extends BaseEntity {
         createForeignKeyConstraints: false,
     })
     @JoinColumn()
+    @Index()
     readonly organization: Organization;
 
     @Column({ length: 64, comment: 'The displayed name for the collection.', nullable: true })
@@ -137,6 +142,13 @@ export class Collection extends BaseEntity {
 
     @OneToMany(() => CollectionPlugin, (collectionPlugin) => collectionPlugin.collection, { nullable: true })
     readonly plugins: CollectionPlugin[];
+
+    @ManyToOne(() => Collection, (parent) => parent.children, { nullable: true })
+    @JoinColumn()
+    readonly parent?: Collection;
+
+    @OneToMany(() => Collection, (child) => child.parent)
+    readonly children?: Collection[];
 
     @CreateDateColumn()
     @Exclude()

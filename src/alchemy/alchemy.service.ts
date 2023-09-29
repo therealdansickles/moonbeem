@@ -1,41 +1,58 @@
-import { Alchemy, AlchemySettings, GetBaseNftsForOwnerOptions, Network, WebhookType } from 'alchemy-sdk';
+import { AddressWebhookParams, Alchemy, AlchemySettings, GetBaseNftsForOwnerOptions, Network, NftWebhookParams, WebhookType } from 'alchemy-sdk';
+import { Interface, InterfaceAbi } from 'ethers';
 import { get } from 'lodash';
+import { Repository } from 'typeorm';
 import { URL } from 'url';
 
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
 
 import { CollectionService } from '../collection/collection.service';
-import { alchemyConfig } from '../lib/configs/alchemy.config';
+import * as VibeFactoryAbi from '../lib/abi/VibeFactory.json';
+import { MaasService } from '../maas/maas.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { TierService } from '../tier/tier.service';
+import { AlchemyWebhook } from './alchemy-webhook.entity';
 
 function sleep(duration) {
-    return new Promise(resolve => setTimeout(resolve, duration));
+    return new Promise((resolve) => setTimeout(resolve, duration));
 }
 
 export enum EventType {
     MINT = 'mint',
     TRANSFER = 'transfer',
     BURN = 'burn',
-    UNKNOWN = 'unknown'
+    UNKNOWN = 'unknown',
 }
 
 @Injectable()
 export class AlchemyService {
     private alchemy: { [key: string]: Alchemy } = {};
-    
+    private domain: string;
+    private apiKey: string;
+    private authToken: string;
+
     constructor(
         private configService: ConfigService,
+        @InjectRepository(AlchemyWebhook)
+        private readonly alchemyWebhookRepository: Repository<AlchemyWebhook>,
+        @Inject(forwardRef(() => CollectionService))
         private collectionService: CollectionService,
         private mintSaleContractService: MintSaleContractService,
         private tierService: TierService,
+        private maasService: MaasService,
     ) {
-        const apiKey = alchemyConfig.apiKey;
-        const authToken = alchemyConfig.authToken;
-        const baseSetting: Partial<AlchemySettings> = { apiKey, authToken };
+        this.apiKey = this.configService.get<string>('ALCHEMY_API_KEY');
+        this.authToken = this.configService.get<string>('ALCHEMY_AUTH_TOKEN');
+        this.domain = this.configService.get<string>('ALCHEMY_DOMAIN');
+        const baseSetting: Partial<AlchemySettings> = { apiKey: this.apiKey, authToken: this.authToken };
         this.alchemy[Network.ARB_MAINNET] = new Alchemy({ network: Network.ARB_MAINNET, ...baseSetting });
         this.alchemy[Network.ARB_GOERLI] = new Alchemy({ network: Network.ARB_GOERLI, ...baseSetting });
+    }
+
+    async onModuleInit() {
+        await this.initializeFactoryContractWebhooks();
     }
 
     private async _getNFTsForCollection(network: Network, tokenAddress: string, options?: GetBaseNftsForOwnerOptions) {
@@ -51,26 +68,83 @@ export class AlchemyService {
 
     async getNFTsForCollection(network: Network, tokenAddress: string) {
         const res = await this._getNFTsForCollection(network, tokenAddress, { omitMetadata: true });
-        return res.map(nft => BigInt(nft.id.tokenId).toString());
+        return res.map((nft) => BigInt(nft.id.tokenId).toString());
     }
 
-    private async _createWebhook(network: Network, tokenAddress: string) {
-        const url = '/v1/webhook/nft-activity';
-        const domain = this.configService.get('DOMAIN');
-        return await this.alchemy[network].notify.createWebhook(
-            new URL(url, domain).href,
-            WebhookType.NFT_ACTIVITY,
-            {
-                filters: [{
-                    contractAddress: tokenAddress
-                }],
-                network,
+    private async _getWebhooks(network: Network) {
+        const res = await this.alchemy[network].notify.getAllWebhooks();
+        if (res && res.webhooks) return res.webhooks;
+        else return [];
+    }
+
+    async getWebhooks(network: Network, type?: WebhookType) {
+        const webhooks = await this._getWebhooks(network);
+        if (type) return webhooks.filter((webhook) => webhook.type === type && webhook.network === network);
+        else return webhooks.filter((webhook) => webhook.network === network);
+    }
+
+    private async _createWebhook(network: Network, path: string, type, params) {
+        if (!this.domain || !this.apiKey || !this.authToken) return;
+        const url = new URL(path, this.domain).toString();
+        return await this.alchemy[network].notify.createWebhook(url, type, params);
+    }
+
+    async createNftActivityWebhook(network: Network, address: string) {
+        return this.createWebhook(network, WebhookType.NFT_ACTIVITY, address);
+    }
+
+    async createWebhook(network: Network, type: WebhookType, address: string) {
+        let endpointUrl;
+        let params;
+
+        switch (type) {
+            case WebhookType.NFT_ACTIVITY: {
+                endpointUrl = '/v1/alchemy/webhook/nft-activity';
+                params = {
+                    filters: [
+                        {
+                            contractAddress: address,
+                        },
+                    ],
+                    network,
+                } as NftWebhookParams;
+                break;
             }
-        );
+            case WebhookType.ADDRESS_ACTIVITY: {
+                endpointUrl = '/v1/alchemy/webhook/address-activity';
+                params = {
+                    addresses: [address],
+                    network,
+                } as AddressWebhookParams;
+                break;
+            }
+            default: {
+                throw Error(`Unsupported webhook type: ${type}`);
+            }
+        }
+
+        return this._createWebhook(network, endpointUrl, type, params);
     }
 
-    async createWebhook(network: Network, tokenAddress: string) {
-        return this._createWebhook(network, tokenAddress); 
+    async createLocalWebhook(network: Network, type: WebhookType, address: string, alchemyId?: string) {
+        await this.alchemyWebhookRepository.upsert({ network, type, address, alchemyId }, ['address']);
+        return this.alchemyWebhookRepository.findOneBy({ network, type, address });
+    }
+
+    async initializeFactoryContractWebhooks() {
+        for (const network of Object.values(Network)) {
+            const configKey = 'ALCHEMY_FACTORY_CONTRACT_ADDRESS_' + network.replace('-', '_').toUpperCase();
+            const configAddress = this.configService.get<string>(configKey);
+            // if address is not configured, then we don't need to check the existance.
+            if (!configAddress) continue;
+            const existedWebhooks = await this.getWebhooks(network, WebhookType.ADDRESS_ACTIVITY);
+            // all environments webhook are mixed, so we need to filter by domain again
+            const isExisted = existedWebhooks.find((webhook) => webhook.url?.startsWith(this.domain));
+            if (!isExisted) {
+                const res = await this.createWebhook(network, WebhookType.ADDRESS_ACTIVITY, configAddress);
+                res && (await this.createLocalWebhook(network, WebhookType.ADDRESS_ACTIVITY, configAddress, res.id));
+            }
+        }
     }
 
     getEventTypeByAddress(fromAddress: string, toAddress: string): string {
@@ -90,7 +164,7 @@ export class AlchemyService {
         }
     }
 
-    async serializeActivityEvent(req: any) {
+    async serializeNftActivityEvent(req: any) {
         const result = [];
         for (const activity of get(req, 'event.activity', [])) {
             const { contractAddress, toAddress, fromAddress, erc721TokenId } = activity;
@@ -109,7 +183,51 @@ export class AlchemyService {
                 tierId: tier.id,
                 tokenId,
                 eventType,
+                properties: tier.metadata?.properties || {},
             });
+        }
+        return result;
+    }
+
+    private async _getTransaction(network: Network, transactionHash: string) {
+        return this.alchemy[network].transact.getTransaction(transactionHash);
+    }
+
+    private async _getLogs(network: Network, address: string, fromBlock: number, toBlock: number) {
+        return this.alchemy[network].core.getLogs({
+            address,
+            fromBlock,
+            toBlock,
+        });
+    }
+
+    private _parseTransaction(abi: InterfaceAbi, data: string) {
+        const iface = new Interface(abi);
+        return iface.parseTransaction({ data });
+    }
+
+    async serializeAddressActivityEvent(req: any) {
+        const network = get<string>(req, 'event.network', '').toLowerCase().replace('_', '-');
+        const result = [];
+        for (const activity of get(req, 'event.activity', [])) {
+            const { hash: transactionHash, blockNum, toAddress: factoryAddress, asset, value } = activity;
+            // do some simple filtering
+            if (asset != 'ETH' || value != 0) continue;
+
+            const block = parseInt(blockNum);
+            const logs = await this._getLogs(network, factoryAddress, block, block);
+
+            // another filtering
+            if (logs.length != 2) continue;
+            const [eventForCreateERC721, eventForMintSale] = logs;
+            const tokenAddress = `0x${eventForCreateERC721?.topics[2]?.slice(-40)}`;
+            const contractAddress = `0x${eventForMintSale?.topics[2]?.slice(-40)}`;
+
+            const transaction = await this._getTransaction(network, transactionHash);
+            const { args } = this._parseTransaction(VibeFactoryAbi, transaction.data);
+            const collectionId = new URL(args[2]).pathname.replace(/\//gi, '');
+
+            result.push({ network, tokenAddress, contractAddress, collectionId });
         }
         return result;
     }

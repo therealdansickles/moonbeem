@@ -1,7 +1,15 @@
 import { Exclude } from 'class-transformer';
 import {
-    BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany,
-    PrimaryGeneratedColumn, UpdateDateColumn
+    BaseEntity,
+    Column,
+    CreateDateColumn,
+    Entity,
+    Index,
+    JoinColumn,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from 'typeorm';
 
 import { Collection } from '../collection/collection.entity';
@@ -40,6 +48,7 @@ export class Tier extends BaseEntity {
 
     @ManyToOne(() => Collection, (collection) => collection.tiers)
     @JoinColumn()
+    @Index()
     public collection: Collection;
 
     @OneToMany(() => Nft, (nft) => nft.collection, { nullable: true })
@@ -85,8 +94,7 @@ export class Tier extends BaseEntity {
     @Column({
         nullable: true,
         length: 500,
-        comment:
-            "This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the item on your site.",
+        comment: "This is the URL that will appear with the asset's image and allow users to leave the marketplace and view the item on your site.",
     })
     readonly externalUrl?: string;
 
@@ -119,7 +127,7 @@ export class Tier extends BaseEntity {
         default: {
             uses: [],
             properties: {},
-            conditions: {}
+            conditions: {},
         },
         type: 'jsonb',
         comment: 'Full metadata info for the tier.',

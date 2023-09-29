@@ -78,6 +78,12 @@ We have our test suite setup on GitHub Actions. Locally, you can just run `yarn 
 Before running test make sure database tables are in sync with schema objects. You can do that by running following commands:
 
 ```sh
+typeorm:sync
+```
+
+Or run it independently:
+
+```sh
 typeorm:schema:sync # for default postgres db
 typeorm:schema:sync-chain:sync # for sync chain postgres db
 ```

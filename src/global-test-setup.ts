@@ -19,8 +19,11 @@ import { CollaborationModule } from './collaboration/collaboration.module';
 import { CollaborationService } from './collaboration/collaboration.service';
 import { CollectionModule } from './collection/collection.module';
 import { CollectionService } from './collection/collection.service';
+import { CollectionPluginModule } from './collectionPlugin/collectionPlugin.module';
+import { CollectionPluginService } from './collectionPlugin/collectionPlugin.service';
 import { AWSAdapter } from './lib/adapters/aws.adapter';
 import { postgresConfig } from './lib/configs/db.config';
+import { MaasService } from './maas/maas.service';
 import { MailModule } from './mail/mail.module';
 import { MailService } from './mail/mail.service';
 import { MembershipModule } from './membership/membership.module';
@@ -81,8 +84,6 @@ import { WaitlistService } from './waitlist/waitlist.service';
 import { Wallet } from './wallet/wallet.dto';
 import { WalletModule } from './wallet/wallet.module';
 import { WalletService } from './wallet/wallet.service';
-import { CollectionPluginModule } from './collectionPlugin/collectionPlugin.module';
-import { CollectionPluginService } from './collectionPlugin/collectionPlugin.service';
 
 @Resolver()
 export class TestResolver {
@@ -94,8 +95,10 @@ export class TestResolver {
 
 export default async () => {
     // Should abort if it's not a local database
-    if ((!postgresConfig.url.includes('localhost') && !postgresConfig.url.includes('127.0.0.1')) ||
-        ( !postgresConfig.syncChain.url.includes('localhost')&& !postgresConfig.syncChain.url.includes('127.0.0.1'))) {
+    if (
+        (!postgresConfig.url.includes('localhost') && !postgresConfig.url.includes('127.0.0.1')) ||
+        (!postgresConfig.syncChain.url.includes('localhost') && !postgresConfig.syncChain.url.includes('127.0.0.1'))
+    ) {
         throw new Error('You are not running tests on a local database. Aborting.');
     }
     const module = await Test.createTestingModule({
@@ -198,6 +201,7 @@ export default async () => {
     global.coinmarketcapService = module.get<CoinMarketCapService>(CoinMarketCapService);
     global.jwtService = module.get<JwtService>(JwtService);
     global.collectionPluginService = module.get<CollectionPluginService>(CollectionPluginService);
+    global.maasService = module.get<MaasService>(MaasService);
 
     // platform controller
     global.alchemyController = module.get<AlchemyController>(AlchemyController);
@@ -228,6 +232,7 @@ export default async () => {
     global.collaborationRepository = module.get('CollaborationRepository');
     global.merkleTreeRepository = module.get('MerkleTreeRepository');
     global.collectionPluginRepository = module.get('CollectionPluginRepository');
+    global.alchemyWebhookRepository = module.get('AlchemyWebhookRepository');
 
     // sync chain repositories
     global.asset721Repository = module.get('sync_chain_Asset721Repository');
@@ -254,7 +259,7 @@ export default async () => {
         new ValidationPipe({
             whitelist: true,
             transform: true,
-        })
+        }),
     );
     await global.app.init();
 };

@@ -9,7 +9,7 @@ import { MerkleTree } from '../merkleTree/merkleTree.entity';
 
 @Module({
     imports: [TypeOrmModule.forFeature([CollectionPlugin, Plugin, Collection, MerkleTree])],
-    exports: [CollectionPluginModule, CollectionPluginResolver],
+    exports: [CollectionPluginModule, CollectionPluginResolver, CollectionPluginService],
     providers: [CollectionPluginService, CollectionPluginResolver],
 })
 export class CollectionPluginModule {}

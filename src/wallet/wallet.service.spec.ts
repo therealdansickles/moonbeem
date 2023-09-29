@@ -8,15 +8,9 @@ import { CollectionService } from '../collection/collection.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import {
-    createAsset721, createCollection, createMintSaleTransaction, createTier
-} from '../test-utils';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { createAsset721, createCollection, createMintSaleTransaction, createTier } from '../test-utils';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { Wallet } from './wallet.entity';
@@ -264,9 +258,7 @@ describe('WalletService', () => {
             try {
                 await service.unbindWallet(data);
             } catch (error) {
-                expect((error as Error).message).toBe(
-                    `Wallet ${newWallet.address.toLowerCase()} doesn't belong to the given user.`
-                );
+                expect((error as Error).message).toBe(`Wallet ${newWallet.address.toLowerCase()} doesn't belong to the given user.`);
             }
         });
     });
@@ -325,7 +317,7 @@ describe('WalletService', () => {
         it('should return minted transactions by address', async () => {
             const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
 
-            const collection = await createCollection(collectionService);
+            const collection = await createCollection(collectionService, { creator: { id: wallet.id } });
             const tier = await createTier(tierService, { collection: { id: collection.id } });
             const transaction = await createMintSaleTransaction(mintSaleTransactionService, {
                 recipient: wallet.address,
@@ -347,6 +339,8 @@ describe('WalletService', () => {
             expect(result.edges[0].node.txTime).toEqual(transaction.txTime);
             expect(result.edges[0].node.tier.id).toEqual(tier.id);
             expect(result.edges[0].node.tier.collection.id).toEqual(collection.id);
+            expect(result.edges[0].node.tier.collection.creator).toBeDefined();
+            expect(result.edges[0].node.tier.collection.creator.id).toBeDefined();
         });
 
         it('should return minted transactions by address with pagination', async () => {
@@ -382,6 +376,8 @@ describe('WalletService', () => {
             expect(firstPageEndCursor).not.toEqual(secondPageEndCursor);
             expect(secondPage.edges.length).toEqual(5);
             const sendPageStartCursor = secondPage.pageInfo.startCursor;
+            expect(firstPage.edges[0].node.createdAt.getTime()).toBeGreaterThanOrEqual(secondPage.edges[0].node.createdAt.getTime());
+            expect(firstPage.edges[0].node.id.localeCompare(secondPage.edges[0].node.id)).toBeGreaterThan(0);
             const previousPage = await service.getMintedByAddress(wallet.address, sendPageStartCursor, '', 0, 10);
             expect(previousPage.edges.length).toEqual(10);
             expect(previousPage.pageInfo.endCursor).toEqual(firstPageStartCursor);
@@ -863,10 +859,7 @@ describe('WalletService', () => {
             const result = await service.getWalletProfit(sender1);
             expect(result.length).toBeGreaterThan(0);
 
-            const totalProfitInToken = new BigNumber(price)
-                .plus(new BigNumber(price))
-                .div(new BigNumber(10).pow(coin.decimals))
-                .toString();
+            const totalProfitInToken = new BigNumber(price).plus(new BigNumber(price)).div(new BigNumber(10).pow(coin.decimals)).toString();
 
             expect(result[0].inPaymentToken).toBe(totalProfitInToken);
         });

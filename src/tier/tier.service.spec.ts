@@ -472,7 +472,7 @@ describe('TierService', () => {
         });
     });
 
-    describe('getHoldersOfTier', () => {
+    describe('getHolders', () => {
         const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
         const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
         const tierName = 'Test Tier';
@@ -738,7 +738,7 @@ describe('TierService', () => {
         });
     });
 
-    describe('getHoldersOfTier', () => {
+    describe('searchTier', () => {
         const collectionAddress = faker.finance.ethereumAddress().toLowerCase();
         const tokenAddress = faker.finance.ethereumAddress().toLowerCase();
         const tierName = 'Test Tier';

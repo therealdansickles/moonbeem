@@ -247,6 +247,41 @@ describe('NftResolver', () => {
                 },
             });
 
+            const anotherCollection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                creator: { id: wallet.id },
+            });
+
+            const anotherTier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: anotherCollection.id },
+                price: '100',
+                tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
+            });
+
             const tokenId1 = faker.string.numeric({ length: 1, allowLeadingZeros: false });
             const tokenId2 = faker.string.numeric({ length: 3, allowLeadingZeros: false });
             const tokenId3 = faker.string.numeric({ length: 4, allowLeadingZeros: false });
@@ -269,8 +304,8 @@ describe('NftResolver', () => {
                     },
                 }),
                 service.createOrUpdateNftByTokenId({
-                    collectionId: collection.id,
-                    tierId: tier.id,
+                    collectionId: anotherCollection.id,
+                    tierId: anotherTier.id,
                     tokenId: tokenId3,
                     properties: {
                         foo: 'bar',
@@ -284,6 +319,9 @@ describe('NftResolver', () => {
                         id
                         collection {
                             id
+                            creator {
+                                id
+                            }
                         }
                         properties
                         tokenId
@@ -303,9 +341,12 @@ describe('NftResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     body.data.nfts.sort((a, b) => a.tokenId - b.tokenId); // Sort first, otherwise there may be an order error
-                    expect(body.data.nfts.length).toEqual(2);
+                    expect(body.data.nfts.length).toEqual(1);
                     expect(body.data.nfts[0].id).toEqual(nft1.id);
-                    expect(body.data.nfts[1].id).toEqual(nft3.id);
+
+                    expect(body.data.nfts[0].collection).toBeDefined();
+                    expect(body.data.nfts[0].collection.creator).toBeDefined();
+                    expect(body.data.nfts[0].collection.creator.id).toBe(wallet.id);
                 });
         });
     });
@@ -361,7 +402,7 @@ describe('NftResolver', () => {
             const tokenId3 = faker.string.numeric({ length: 4, allowLeadingZeros: false });
             const tokenId4 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
 
-            const [nft1, , nft3, ] = await Promise.all([
+            const [nft1, , nft3] = await Promise.all([
                 service.createOrUpdateNftByTokenId({
                     collectionId: collection.id,
                     tierId: tier.id,
@@ -369,7 +410,7 @@ describe('NftResolver', () => {
                     properties: {
                         foo: {
                             name: '{{foo}}',
-                            value: '9'
+                            value: '9',
                         },
                     },
                 }),
@@ -380,7 +421,7 @@ describe('NftResolver', () => {
                     properties: {
                         bar: {
                             name: '{{bar}}',
-                            value: faker.string.numeric({ allowLeadingZeros: false })
+                            value: faker.string.numeric({ allowLeadingZeros: false }),
                         },
                     },
                 }),
@@ -391,12 +432,12 @@ describe('NftResolver', () => {
                     properties: {
                         foo: {
                             name: '{{foo}}',
-                            value: '100'
+                            value: '100',
                         },
                         bar: {
                             name: '{{bar}}',
-                            value: faker.string.numeric({ allowLeadingZeros: false })
-                        }
+                            value: faker.string.numeric({ allowLeadingZeros: false }),
+                        },
                     },
                 }),
                 service.createOrUpdateNftByTokenId({
@@ -498,7 +539,7 @@ describe('NftResolver', () => {
             const tokenId3 = faker.string.numeric({ length: 4, allowLeadingZeros: false });
             const tokenId4 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
 
-            const [nft1, , nft3, ] = await Promise.all([
+            const [nft1, , nft3] = await Promise.all([
                 service.createOrUpdateNftByTokenId({
                     collectionId: collection.id,
                     tierId: tier.id,
@@ -506,7 +547,7 @@ describe('NftResolver', () => {
                     properties: {
                         foo: {
                             name: '{{foo}}',
-                            value: faker.string.numeric({ length: 4, allowLeadingZeros: false })
+                            value: faker.string.numeric({ length: 4, allowLeadingZeros: false }),
                         },
                     },
                 }),
@@ -517,7 +558,7 @@ describe('NftResolver', () => {
                     properties: {
                         bar: {
                             name: '{{bar}}',
-                            value: faker.string.numeric({ allowLeadingZeros: false })
+                            value: faker.string.numeric({ allowLeadingZeros: false }),
                         },
                     },
                 }),
@@ -528,12 +569,12 @@ describe('NftResolver', () => {
                     properties: {
                         foo: {
                             name: '{{foo}}',
-                            value: faker.string.numeric({ length: 2, allowLeadingZeros: false })
+                            value: faker.string.numeric({ length: 2, allowLeadingZeros: false }),
                         },
                         bar: {
                             name: '{{bar}}',
-                            value: faker.string.numeric({ allowLeadingZeros: false })
-                        }
+                            value: faker.string.numeric({ allowLeadingZeros: false }),
+                        },
                     },
                 }),
                 service.createOrUpdateNftByTokenId({
@@ -549,12 +590,12 @@ describe('NftResolver', () => {
                     properties: {
                         foo: {
                             name: '{{foo}}',
-                            value: faker.string.numeric({ allowLeadingZeros: false })
+                            value: faker.string.numeric({ allowLeadingZeros: false }),
                         },
                         bar: {
                             name: '{{bar}}',
-                            value: faker.string.numeric({ allowLeadingZeros: false })
-                        }
+                            value: faker.string.numeric({ allowLeadingZeros: false }),
+                        },
                     },
                 }),
             ]);
@@ -591,7 +632,7 @@ describe('NftResolver', () => {
         it('should work', async () => {
             const owner = await userService.createUser({
                 email: faker.internet.email(),
-                password:'password',
+                password: 'password',
             });
 
             const wallet = await walletService.createWallet({
@@ -651,9 +692,7 @@ describe('NftResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 

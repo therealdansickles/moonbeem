@@ -3,8 +3,8 @@ import { isNil, omitBy } from 'lodash';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { Public } from '../session/session.decorator';
-import { CreateOrUpdateNftInput, Nft, NftPropertyOverview } from './nft.dto';
-import { INftListQuery, INftQuery, INftWithPropertyAndCollection, NftService } from './nft.service';
+import { CreateOrUpdateNftInput, Nft, NftPropertiesSearchInput, NftPropertyOverview } from './nft.dto';
+import { INftQuery, INftWithPropertyAndCollection, NftService } from './nft.service';
 
 @Resolver(() => Nft)
 export class NftResolver {
@@ -28,12 +28,15 @@ export class NftResolver {
     @Public()
     @Query(() => [Nft], { description: 'Get some NFTs by query.', nullable: true })
     async nfts(
-        @Args({ name: 'collectionId', nullable: true }) collectionId: string,
-            @Args({ name: 'tierId', nullable: true }) tierId: string,
-            @Args({ name: 'tokenIds', nullable: true, type: () => [String] }) tokenIds?: string[]
+        @Args({ name: 'collectionId', nullable: true }) collectionId?: string,
+            @Args({ name: 'tierId', nullable: true }) tierId?: string,
+            @Args({ name: 'tokenIds', nullable: true, type: () => [String] }) tokenIds?: string[],
+            @Args({ name: 'properties', nullable: true, type: () => [NftPropertiesSearchInput] }) properties?: NftPropertiesSearchInput[],
     ): Promise<Nft[]> {
-        let query: INftListQuery = { collection: { id: collectionId }, tier: { id: tierId }, tokenIds };
+        let query: any = { tokenIds, properties };
         query = omitBy(query, isNil);
+        if (collectionId) query.collection = { id: collectionId };
+        if (tierId) query.tier = { id: tierId };
         return await this.nftService.getNfts(query);
     }
 

@@ -8,9 +8,7 @@ import { CollectionService } from '../collection/collection.service';
 import { OrganizationService } from '../organization/organization.service';
 import { Coin, CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { User } from '../user/user.dto';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
@@ -168,9 +166,7 @@ describe('UserResolver', () => {
                     expect(body.errors[0].message).toBe('Bad Request Exception');
                     expect(body.errors[0].extensions.response.message).toBeDefined();
                     expect(body.errors[0].extensions.response.message.length).toBe(1);
-                    expect(body.errors[0].extensions.response.message[0]).toBe(
-                        'Invalid email address format for the email field.'
-                    );
+                    expect(body.errors[0].extensions.response.message[0]).toBe('Invalid email address format for the email field.');
                 });
         });
     });
@@ -201,9 +197,7 @@ describe('UserResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
             const query = gql`
@@ -862,7 +856,7 @@ describe('UserResolver', () => {
                 mutation OnboardUsers($input: OnboardUsersInput!) {
                     onboardUsers(input: $input) {
                         email
-                    } 
+                    }
                 }
             `;
 
@@ -945,7 +939,7 @@ describe('UserResolver', () => {
             const token = await getToken(app, email);
 
             const query = gql`
-                query GetResetPasswordLink{
+                query GetResetPasswordLink {
                     getResetPasswordLink
                 }
             `;
@@ -962,7 +956,7 @@ describe('UserResolver', () => {
 
         it('should return 403 if no valid token', async () => {
             const query = gql`
-                query GetResetPasswordLink{
+                query GetResetPasswordLink {
                     getResetPasswordLink
                 }
             `;
@@ -973,6 +967,50 @@ describe('UserResolver', () => {
                 .expect(({ body }) => {
                     expect(body.errors[0].message).toEqual('Forbidden resource');
                     expect(body.errors[0].extensions.response.statusCode).toEqual(403);
+                });
+        });
+    });
+
+    describe('acceptPluginInvitation', function () {
+        it('should accept plugin invitation', async () => {
+            const inviteCode = faker.string.sample(7);
+            const inviter = await service.createUser({
+                email: faker.internet.email().toLowerCase(),
+                password: 'password',
+                pluginInviteCodes: [inviteCode],
+            });
+
+            const invitee = await service.createUser({
+                email: faker.internet.email().toLowerCase(),
+                password: 'password',
+            });
+
+            const token = await getToken(app, invitee.email);
+            const variables = {
+                pluginInviteCode: inviter.pluginInviteCodes[0],
+            };
+
+            const query = gql`
+                mutation AcceptPluginInvitation($pluginInviteCode: String!) {
+                    acceptPluginInvitation(pluginInviteCode: $pluginInviteCode) {
+                        id
+                        pluginInvited
+                        pluginInviteCodes
+                    }
+                }
+            `;
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.acceptPluginInvitation).toBeDefined();
+                    const user = body.data.acceptPluginInvitation;
+                    expect(user.id).toEqual(invitee.id);
+                    expect(user.pluginInvited).toBeTruthy();
+                    expect(user.pluginInviteCodes).toHaveLength(3);
                 });
         });
     });

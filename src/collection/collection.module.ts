@@ -1,24 +1,38 @@
 import { HttpModule } from '@nestjs/axios';
 import { forwardRef, Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { AlchemyWebhook } from '../alchemy/alchemy-webhook.entity';
+import { AlchemyModule } from '../alchemy/alchemy.module';
+import { AlchemyService } from '../alchemy/alchemy.service';
 import { CoinMarketCapModule } from '../coinmarketcap/coinmarketcap.module';
 import { CoinMarketCapService } from '../coinmarketcap/coinmarketcap.service';
 import { Collaboration } from '../collaboration/collaboration.entity';
 import { CollaborationModule } from '../collaboration/collaboration.module';
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
+import { CollectionPluginModule } from '../collectionPlugin/collectionPlugin.module';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
+import { MaasModule } from '../maas/maas.module';
+import { MaasService } from '../maas/maas.service';
 import { MailModule } from '../mail/mail.module';
 import { Membership } from '../membership/membership.entity';
 import { MembershipModule } from '../membership/membership.module';
 import { MembershipService } from '../membership/membership.service';
+import { MerkleTree } from '../merkleTree/merkleTree.entity';
 import { Nft } from '../nft/nft.entity';
+import { NftModule } from '../nft/nft.module';
+import { NftService } from '../nft/nft.service';
 import { OpenseaModule } from '../opensea/opensea.module';
 import { OpenseaService } from '../opensea/opensea.service';
 import { Organization } from '../organization/organization.entity';
 import { OrganizationModule } from '../organization/organization.module';
+import { Plugin } from '../plugin/plugin.entity';
 import { Redeem } from '../redeem/redeem.entity';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Asset721Module } from '../sync-chain/asset721/asset721.module';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { Coin } from '../sync-chain/coin/coin.entity';
 import { CoinModule } from '../sync-chain/coin/coin.module';
 import { CoinService } from '../sync-chain/coin/coin.service';
@@ -40,14 +54,25 @@ import { WalletModule } from '../wallet/wallet.module';
 import { Collection } from './collection.entity';
 import { CollectionResolver } from './collection.resolver';
 import { CollectionService } from './collection.service';
-import { NftService } from '../nft/nft.service';
-import { NftModule } from '../nft/nft.module';
-import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 
 @Module({
     imports: [
         HttpModule,
-        TypeOrmModule.forFeature([Collaboration, Collection, Organization, Membership, Tier, Nft, Wallet, User, Redeem]),
+        TypeOrmModule.forFeature([
+            Collaboration,
+            Collection,
+            Organization,
+            Membership,
+            Tier,
+            Nft,
+            Wallet,
+            User,
+            Redeem,
+            Plugin,
+            MerkleTree,
+            CollectionPlugin,
+            AlchemyWebhook,
+        ]),
         TypeOrmModule.forFeature([Coin, MintSaleContract, MintSaleTransaction, Asset721, History721], 'sync_chain'),
         forwardRef(() => Asset721Module),
         forwardRef(() => CoinMarketCapModule),
@@ -64,7 +89,11 @@ import { Asset721Service } from '../sync-chain/asset721/asset721.service';
         forwardRef(() => WalletModule),
         forwardRef(() => History721Module),
         forwardRef(() => NftModule),
+        forwardRef(() => AlchemyModule),
+        forwardRef(() => CollectionPluginModule),
+        forwardRef(() => MaasModule),
         JwtModule,
+        ConfigModule,
     ],
     exports: [CollectionModule, CollectionService],
     providers: [
@@ -80,6 +109,10 @@ import { Asset721Service } from '../sync-chain/asset721/asset721.service';
         MintSaleTransactionService,
         NftService,
         Asset721Service,
+        ConfigService,
+        AlchemyService,
+        CollectionPluginService,
+        MaasService,
     ],
     controllers: [],
 })

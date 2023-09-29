@@ -4,10 +4,13 @@ import { GraphQLError } from 'graphql';
 import { isEmpty, isNil, omitBy } from 'lodash';
 import { DeepPartial, FindOptionsWhere, In, IsNull, Repository, UpdateResult } from 'typeorm';
 
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as Sentry from '@sentry/node';
 
+import { AlchemyService } from '../alchemy/alchemy.service';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
+import { NftService } from '../nft/nft.service';
 import { OpenseaService } from '../opensea/opensea.service';
 import { AggregatedCollection } from '../organization/organization.dto';
 import { cursorToStrings, fromCursor, PaginatedImp, toPaginated } from '../pagination/pagination.utils';
@@ -42,6 +45,9 @@ import {
     CreateCollectionInput,
     GrossEarnings,
     LandingPageCollection,
+    MetadataOverview,
+    MetadataOverviewInput,
+    PluginOverview,
     PropertyFilter,
     SearchTokenIdsInput,
     SecondarySale,
@@ -50,8 +56,7 @@ import {
     ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
-import { filterTokenIdsByRanges, generateSlug } from './collection.utils';
-import { NftService } from '../nft/nft.service';
+import { filterTokenIdsByRanges, generateSlug, getCollectionAttributesOverview, getCollectionUpgradesOverview } from './collection.utils';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'tokenAddress' | 'address' | 'name' | 'slug'>>;
 
@@ -75,7 +80,10 @@ export class CollectionService {
         private transactionService: MintSaleTransactionService,
         private openseaService: OpenseaService,
         private coinService: CoinService,
-        private nftService: NftService
+        private collectionPluginService: CollectionPluginService,
+        private nftService: NftService,
+        @Inject(forwardRef(() => AlchemyService))
+        private alchemyService: AlchemyService
     ) {}
 
     /**
@@ -102,7 +110,13 @@ export class CollectionService {
         if (isEmpty(query)) return null;
         return await this.collectionRepository.findOne({
             where: query,
-            relations: ['organization', 'creator', 'collaboration'],
+            relations: {
+                organization: true,
+                creator: true,
+                collaboration: true,
+                parent: true,
+                children: true,
+            },
         });
     }
 
@@ -125,7 +139,13 @@ export class CollectionService {
     async getCollectionsByCollaborationId(collaborationId: string): Promise<Collection[]> {
         return await this.collectionRepository.find({
             where: { collaboration: { id: collaborationId } },
-            relations: ['organization', 'creator', 'collaboration'],
+            relations: {
+                organization: true,
+                creator: true,
+                collaboration: true,
+                parent: true,
+                children: true,
+            },
         });
     }
 
@@ -144,7 +164,14 @@ export class CollectionService {
     async getCollectionByAddress(address: string): Promise<Collection | null> {
         const collection = await this.collectionRepository.findOne({
             where: { address },
-            relations: ['organization', 'tiers', 'creator', 'collaboration'],
+            relations: {
+                organization: true,
+                creator: true,
+                tiers: true,
+                collaboration: true,
+                parent: true,
+                children: true,
+            },
         });
         const contract = await this.mintSaleContractRepository.findOne({ where: { collectionId: collection.id } });
 
@@ -160,11 +187,23 @@ export class CollectionService {
      * @param organizationId The id of the organization to retrieve.
      * @returns The collection associated with the given organization.
      */
+    // 15 collections
+    // 19 tiers
+    // tier ->
+    //      get contract
+    //      getCoinByAddress
     async getCollectionsByOrganizationId(organizationId: string): Promise<Collection[]> {
         const result: Collection[] = [];
         const collections = await this.collectionRepository.find({
             where: { organization: { id: organizationId } },
-            relations: ['organization', 'tiers', 'creator', 'collaboration'],
+            relations: {
+                organization: true,
+                creator: true,
+                tiers: true,
+                collaboration: true,
+                parent: true,
+                children: true,
+            },
         });
 
         for (const collection of collections) {
@@ -198,7 +237,15 @@ export class CollectionService {
     async getCreatedCollectionsByWalletId(walletId: string): Promise<Collection[]> {
         return await this.collectionRepository.find({
             where: { creator: { id: walletId } },
-            relations: ['organization', 'tiers', 'creator', 'collaboration'],
+            relations: {
+                organization: true,
+                creator: true,
+                tiers: true,
+                collaboration: true,
+                parent: true,
+                children: true,
+            },
+            order: { createdAt: 'DESC' },
         });
     }
 
@@ -248,7 +295,7 @@ export class CollectionService {
                 throw new Error(`The endSaleAt should be greater than startSaleAt.`);
             }
         }
-        const existingCollection = await this.collectionRepository.findOneBy({ name: data.name });
+        const existingCollection = await this.collectionRepository.findOneBy([{ name: data.name }, { slug: generateSlug(data.name) }]);
         if (existingCollection) throw new Error(`The collection name ${data.name} is already taken`);
         return true;
     }
@@ -261,10 +308,11 @@ export class CollectionService {
      */
     async createCollection(data: DeepPartial<collectionEntity.Collection>): Promise<Collection> {
         try {
-            return this.collectionRepository.save({
+            const collection = await this.collectionRepository.save({
                 slug: generateSlug(data.name),
                 ...data,
             });
+            return collection;
         } catch (e) {
             Sentry.captureException(e);
             throw new GraphQLError('Failed to create new collection.', {
@@ -359,7 +407,13 @@ export class CollectionService {
 
         return await this.collectionRepository.findOne({
             where: { id: createResult.id },
-            relations: ['tiers', 'organization', 'collaboration'],
+            relations: {
+                organization: true,
+                tiers: true,
+                collaboration: true,
+                parent: true,
+                children: true,
+            },
         });
     }
 
@@ -651,7 +705,14 @@ export class CollectionService {
                     })
                 ),
             },
-            relations: ['organization', 'tiers', 'creator', 'collaboration'],
+            relations: {
+                organization: true,
+                creator: true,
+                tiers: true,
+                collaboration: true,
+                parent: true,
+                children: true,
+            },
         });
 
         const data = await Promise.all(
@@ -945,7 +1006,7 @@ export class CollectionService {
         first: number,
         last: number
     ): Promise<CollectionEarningsChartPaginated> {
-        if (!address) toPaginated([], 0);
+        if (!address) return toPaginated([], 0);
 
         const builder = this.mintSaleTransactionRepository
             .createQueryBuilder('txn')
@@ -1205,5 +1266,54 @@ export class CollectionService {
                 return [startId, endId];
             })
             .filter((range) => range.length > 0);
+    }
+
+    async getMetadataOverview({ collectionId, collectionAddress, collectionSlug }: MetadataOverviewInput): Promise<MetadataOverview> {
+        const builder = await this.tierRepository.createQueryBuilder('tier').leftJoinAndSelect('tier.collection', 'collection');
+        if (collectionId) {
+            builder.where('collection.id = :collectionId', { collectionId });
+        } else if (collectionAddress) {
+            builder.where('collection.address = :collectionAddress', { collectionAddress });
+        } else if (collectionSlug) {
+            builder.where('collection.slug = :collectionSlug', { collectionSlug });
+        } else {
+            throw new Error('Invalid input');
+        }
+        const tiers = await builder.getMany();
+        if (tiers.length === 0) {
+            throw new Error('Collection not found');
+        }
+        collectionId = tiers[0].collection.id;
+        const tierTokenCountsMap: Record<number, number> = {};
+        const contracts = await this.mintSaleContractRepository.findBy({ collectionId });
+        contracts.map((contract) => {
+            const { tierId, startId, endId } = contract;
+            tierTokenCountsMap[tierId] = endId - startId + 1;
+        });
+        const totalSupply = Object.values(tierTokenCountsMap).reduce((acc, curr) => acc + curr, 0);
+
+        const attributes = getCollectionAttributesOverview(tiers, tierTokenCountsMap);
+        const upgrades = getCollectionUpgradesOverview(tiers, tierTokenCountsMap);
+        const plugins = await this.getPluginsOverview(collectionId, totalSupply);
+
+        return {
+            attributes,
+            upgrades,
+            plugins,
+        };
+    }
+
+    async getPluginsOverview(collectionId: string, totalSupply: number): Promise<PluginOverview[]> {
+        const collectionPlugins = await this.collectionPluginService.getCollectionPluginsByCollectionId(collectionId);
+        const plugins = [];
+        for (const collectionPlugin of collectionPlugins) {
+            const count = await this.collectionPluginService.getAppliedTokensCount(collectionPlugin, totalSupply);
+            plugins.push({
+                name: collectionPlugin.name,
+                count,
+            });
+        }
+
+        return plugins;
     }
 }

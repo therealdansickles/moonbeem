@@ -197,6 +197,13 @@ describe('CollectionPluginService', () => {
         });
     });
 
+    const createRecipientsMerkleTree = async (collectionAddress: string, tokenIds: string[]): Promise<MerkleTree> => {
+        const data = tokenIds.map((tokenId) => {
+            return { collection: collectionAddress, tokenId, quantity: '1' };
+        });
+        return merkleTreeService.createGeneralMerkleTree('recipients', data);
+    };
+
     describe('TokenInstalledPlugins', () => {
         const token1 = '1';
         const token2 = '2';
@@ -208,13 +215,6 @@ describe('CollectionPluginService', () => {
         let pluginWithMerkleRoot1;
         let pluginWithMerkleRoot2;
         let pluginWithoutMerkleRoot;
-
-        const createRecipientsMerkleTree = async (collectionAddress: string, tokenIds: string[]): Promise<MerkleTree> => {
-            const data = tokenIds.map((tokenId) => {
-                return { collection: collectionAddress, tokenId, quantity: '1' };
-            });
-            return merkleTreeService.createGeneralMerkleTree('recipients', data);
-        };
 
         beforeEach(async () => {
             const user = await userService.createUser({
@@ -229,7 +229,6 @@ describe('CollectionPluginService', () => {
             const merkleTree1 = await createRecipientsMerkleTree(collection1.address, [token1]);
             const merkleTree2 = await createRecipientsMerkleTree(collection2.address, [token3]);
             plugin = await createPlugin(pluginRepository, { organization });
-            console.log(merkleTree1.merkleRoot, merkleTree1.data);
 
             const input1 = {
                 collectionId: collection1.id,
@@ -296,6 +295,71 @@ describe('CollectionPluginService', () => {
         it('should return all plugins applied to this token', async () => {
             const result = await service.getTokenInstalledPlugins(collection2.id, token3);
             expect(result.length).toEqual(2);
+        });
+    });
+
+    describe('getAppliedTokensCount', function () {
+        let collection;
+        let plugin;
+        let merkleTree;
+
+        beforeEach(async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await createOrganization(organizationService, { owner: user });
+            collection = await createCollection(collectionService, { organization });
+            const token1 = '1';
+            const token2 = '2';
+            const token3 = '3';
+            merkleTree = await createRecipientsMerkleTree(collection.address, [token1, token2, token3]);
+            plugin = await createPlugin(pluginRepository, { organization });
+        });
+
+        it('should return total supply if merkle root is empty', async () => {
+            const input = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: 'collection plugin without merkle root',
+                pluginDetail: {},
+            };
+            const collectionPlugin = await service.createCollectionPlugin(input);
+            const result = await service.getAppliedTokensCount(collectionPlugin, 100);
+            expect(result).toEqual(100);
+        });
+
+        it('should return the number of applied tokens if merkle root is present', async () => {
+            const input = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: 'collection plugin with merkle root',
+                merkleRoot: merkleTree.merkleRoot,
+                pluginDetail: {},
+            };
+            const collectionPlugin = await service.createCollectionPlugin(input);
+            const result = await service.getAppliedTokensCount(collectionPlugin, 100);
+            expect(result).toEqual(3);
+        });
+    });
+
+    describe('deleteCollectionPlugin', function () {
+        it('should delete collection plugin', async () => {
+            const collection = await createCollection(collectionService);
+            const plugin = await createPlugin(pluginRepository);
+            const input = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: 'test collection plugin',
+                pluginDetail: {},
+            };
+            const collectionPlugin = await service.createCollectionPlugin(input);
+            const result = await service.deleteCollectionPlugin(collectionPlugin.id);
+            const deleted = await service.getCollectionPlugin(collectionPlugin.id);
+            expect(result).toBeTruthy();
+            expect(deleted).toBeNull();
         });
     });
 });

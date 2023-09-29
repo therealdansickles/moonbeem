@@ -13,6 +13,7 @@ services:
     environment:
       DATABASE_URL: postgresql://root:root@postgres:5432/platform_development?schema=public
       SYNC_CHAIN_DATABASE_URL: postgresql://root:root@sync_chain:5432/sync_chain_development?schema=public
+      HOST: 0.0.0.0
       PORT: 3000
     depends_on:
       - postgres
@@ -22,11 +23,11 @@ services:
       - sync_chain
   postgres:
     image: postgres:latest
-    container_name: postgres
+    container_name: platform_postgres
     volumes:
-      - /tmp/postgres-data:/var/lib/postgresql/data
+      - /tmp/postgres-data-main:/var/lib/postgresql/data
     ports:
-      - 5432:5432
+      - 5452:5432
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
@@ -35,7 +36,7 @@ services:
       POSTGRES_PORT: 5432
   sync_chain:
     image: postgres:latest
-    container_name: sync_chain
+    container_name: sync_chain_postgres
     volumes:
       - /tmp/postgres-data-sync-chain:/var/lib/postgresql/data
     ports:

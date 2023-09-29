@@ -38,6 +38,7 @@ describe('MerkleTreeResolver', () => {
         let organization;
         let collection;
         let plugin;
+        let collection2;
 
         beforeEach(async () => {
             user = await userService.createUser({
@@ -49,6 +50,13 @@ describe('MerkleTreeResolver', () => {
             organization = await createOrganization(organizationService, { owner: user });
             collection = await createCollection(collectionService, { organization });
             plugin = await createPlugin(pluginRepository, { organization });
+
+            collection2 = await createCollection(collectionService, {
+                organization,
+                parent: {
+                    id: collection.id,
+                },
+            });
         });
 
         it('should create collection plugin', async () => {
@@ -145,6 +153,9 @@ describe('MerkleTreeResolver', () => {
                         }
                         collection {
                             name
+                            children {
+                                id
+                            }
                         }
                     }
                 }
@@ -160,6 +171,11 @@ describe('MerkleTreeResolver', () => {
                 .expect(({ body }) => {
                     expect(body.data.collectionPlugins).toBeDefined();
                     expect(body.data.collectionPlugins.length).toEqual(2);
+
+                    expect(body.data.collectionPlugins[0].collection).toBeDefined();
+                    expect(body.data.collectionPlugins[0].collection.children).toBeDefined();
+                    expect(body.data.collectionPlugins[0].collection.children.length).toBe(1);
+                    expect(body.data.collectionPlugins[0].collection.children[0].id).toEqual(collection2.id);
                 });
         });
 
@@ -233,6 +249,42 @@ describe('MerkleTreeResolver', () => {
                     expect(updatedCollectionPlugin.merkleRoot).toBe(input.merkleRoot);
                     expect(updatedCollectionPlugin.plugin.name).toBe(plugin.name);
                     expect(updatedCollectionPlugin.collection.name).toBe(collection.name);
+                });
+        });
+
+        it('should delete collection plugin', async () => {
+            const createCollectionPluginInput = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: faker.company.name(),
+                pluginDetail: {
+                    properties: {
+                        Color: 'red',
+                    },
+                    recipients: ['1', '2'],
+                    filters: {
+                        Color: 'red',
+                    },
+                },
+            };
+            const collectionPlugin = await collectionPluginService.createCollectionPlugin(createCollectionPluginInput);
+            const id = collectionPlugin.id;
+            const query = gql`
+                mutation DeleteCollectionPlugin($id: String!) {
+                    deleteCollectionPlugin(id: $id)
+                }
+            `;
+            const variables = { id };
+            const token = await getToken(app, user.email);
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    const deleteCollectionPlugin = body.data.deleteCollectionPlugin;
+                    expect(deleteCollectionPlugin).toBeTruthy();
                 });
         });
     });

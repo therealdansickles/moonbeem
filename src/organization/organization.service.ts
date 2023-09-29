@@ -12,26 +12,24 @@ import { CollectionService } from '../collection/collection.service';
 import { MembershipService } from '../membership/membership.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { BasicTokenPrice } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
-import {
-    MintSaleTransaction
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { Collection } from '../collection/collection.entity';
-import {
-    cursorToStrings, dateAndStringToCursor,
-    PaginatedImp,
-    toPaginated
-} from '../pagination/pagination.utils';
+import { cursorToStrings, dateAndStringToCursor, PaginatedImp, toPaginated } from '../pagination/pagination.utils';
 import { Tier } from '../tier/tier.entity';
 import { User } from '../user/user.entity';
 import {
-    AggregatedBuyer, AggregatedEarning, CollectionStatFromOrganization, CreateOrganizationInput,
-    OrganizationEarningsChartPaginated, OrganizationLatestSalePaginated, OrganizationProfit,
-    UpdateOrganizationInput
+    AggregatedBuyer,
+    AggregatedEarning,
+    CollectionStatFromOrganization,
+    CreateOrganizationInput,
+    OrganizationEarningsChartPaginated,
+    OrganizationLatestSalePaginated,
+    OrganizationProfit,
+    UpdateOrganizationInput,
 } from './organization.dto';
 import { Organization, OrganizationKind } from './organization.entity';
+import { Roles } from '../membership/membership.constant';
 
 @Injectable()
 export class OrganizationService {
@@ -80,6 +78,7 @@ export class OrganizationService {
             canEdit: true,
             canDeploy: true,
             canManage: true,
+            role: Roles.Owner,
         });
 
         return await this.organizationRepository.findOne({
@@ -228,18 +227,9 @@ export class OrganizationService {
         });
 
         const [monthly, weekly, daily] = await Promise.all([
-            this.mintSaleTransactionService.getBuyersByCollectionAddressesAndBeginTime(
-                addresses,
-                startOfMonth(new Date())
-            ),
-            this.mintSaleTransactionService.getBuyersByCollectionAddressesAndBeginTime(
-                addresses,
-                startOfWeek(new Date())
-            ),
-            this.mintSaleTransactionService.getBuyersByCollectionAddressesAndBeginTime(
-                addresses,
-                startOfDay(new Date())
-            ),
+            this.mintSaleTransactionService.getBuyersByCollectionAddressesAndBeginTime(addresses, startOfMonth(new Date())),
+            this.mintSaleTransactionService.getBuyersByCollectionAddressesAndBeginTime(addresses, startOfWeek(new Date())),
+            this.mintSaleTransactionService.getBuyersByCollectionAddressesAndBeginTime(addresses, startOfDay(new Date())),
         ]);
         return { monthly, weekly, daily };
     }
@@ -257,18 +247,9 @@ export class OrganizationService {
         });
 
         const [monthlyEarning, weeklyEarning, dailyEarning] = await Promise.all([
-            this.mintSaleTransactionService.getEarningsByCollectionAddressesAndBeginTime(
-                addresses,
-                startOfMonth(new Date())
-            ),
-            this.mintSaleTransactionService.getEarningsByCollectionAddressesAndBeginTime(
-                addresses,
-                startOfWeek(new Date())
-            ),
-            this.mintSaleTransactionService.getEarningsByCollectionAddressesAndBeginTime(
-                addresses,
-                startOfDay(new Date())
-            ),
+            this.mintSaleTransactionService.getEarningsByCollectionAddressesAndBeginTime(addresses, startOfMonth(new Date())),
+            this.mintSaleTransactionService.getEarningsByCollectionAddressesAndBeginTime(addresses, startOfWeek(new Date())),
+            this.mintSaleTransactionService.getEarningsByCollectionAddressesAndBeginTime(addresses, startOfDay(new Date())),
         ]);
 
         const [monthly, weekly, daily] = await Promise.all([
@@ -381,13 +362,7 @@ export class OrganizationService {
      * @param last limit
      * @returns LatestSalePaginated object
      */
-    async getLatestSales(
-        id: string,
-        before: string,
-        after: string,
-        first: number,
-        last: number
-    ): Promise<OrganizationLatestSalePaginated> {
+    async getLatestSales(id: string, before: string, after: string, first: number, last: number): Promise<OrganizationLatestSalePaginated> {
         const collections = await this.collectionService.getCollectionsByOrganizationId(id);
         if (collections.length == 0) return PaginatedImp([], 0);
 
@@ -417,24 +392,23 @@ export class OrganizationService {
 
         if (after) {
             const [createdAt, txHash] = cursorToStrings(after);
-            builder.andWhere('txn.txTime < :txTime', { txTime: new Date(createdAt).valueOf() / 1000 })
+            builder
+                .andWhere('txn.txTime < :txTime', { txTime: new Date(createdAt).valueOf() / 1000 })
                 .orWhere('txn.txTime = :txTime AND txn.txHash < :txHash', { txTime: new Date(createdAt).valueOf() / 1000, txHash })
                 .orderBy('txn.txTime', 'DESC')
                 .addOrderBy('txn.txHash', 'DESC')
                 .limit(first);
         } else if (before) {
             const [createdAt, txHash] = cursorToStrings(before);
-            builder.andWhere('txn.txTime > :txTime', { txTime: new Date(createdAt).valueOf() / 1000 })
+            builder
+                .andWhere('txn.txTime > :txTime', { txTime: new Date(createdAt).valueOf() / 1000 })
                 .orWhere('txn.txTime = :txTime AND txn.txHash > :txHash', { txTime: new Date(createdAt).valueOf() / 1000, txHash })
                 .orderBy('txn.txTime', 'ASC')
                 .addOrderBy('txn.txHash', 'ASC')
                 .limit(last);
         } else {
             const limit = Math.min(first, builder.expressionMap.take || Number.MAX_SAFE_INTEGER);
-            builder
-                .orderBy('txn.txTime', 'DESC')
-                .addOrderBy('txn.txHash', 'DESC')
-                .limit(limit);
+            builder.orderBy('txn.txTime', 'DESC').addOrderBy('txn.txHash', 'DESC').limit(limit);
         }
 
         const subquery = this.mintSaleTransactionRepository
@@ -451,7 +425,8 @@ export class OrganizationService {
         const [result, totalResult] = await Promise.all([
             builder.getRawMany(),
             this.mintSaleTransactionRepository.manager.query(
-                `SELECT COUNT(1) AS "total" FROM (${subquery.getSql()}) AS subquery`,
+                `SELECT COUNT(1) AS "total"
+                 FROM (${subquery.getSql()}) AS subquery`,
                 addresses
             ),
         ]);
@@ -484,10 +459,8 @@ export class OrganizationService {
                 };
             })
         );
-        return toPaginated(
-            organizationLatestSale,
-            parseInt(totalResult[0].total ?? 0),
-            (entity) => dateAndStringToCursor(entity.createdAt, entity.txHash)
+        return toPaginated(organizationLatestSale, parseInt(totalResult[0].total ?? 0), (entity) =>
+            dateAndStringToCursor(entity.createdAt, entity.txHash)
         );
     }
 
@@ -504,12 +477,12 @@ export class OrganizationService {
                 organization: { id },
                 publishedAt: LessThanOrEqual(new Date()),
                 beginSaleAt: LessThanOrEqual(current),
-                endSaleAt: MoreThanOrEqual(current)
+                endSaleAt: MoreThanOrEqual(current),
             }),
             this.collectionService.countCollections({
                 organization: { id },
                 publishedAt: LessThanOrEqual(new Date()),
-                endSaleAt: LessThanOrEqual(current)
+                endSaleAt: LessThanOrEqual(current),
             }),
         ]);
         return { total, live, closed };
@@ -563,7 +536,8 @@ export class OrganizationService {
         const [result, totalResult] = await Promise.all([
             builder.getRawMany(),
             this.mintSaleTransactionRepository.manager.query(
-                `SELECT COUNT(1) AS "total" FROM (${subquery.getSql()}) AS subquery`,
+                `SELECT COUNT(1) AS "total"
+                 FROM (${subquery.getSql()}) AS subquery`,
                 addresses
             ),
         ]);

@@ -143,7 +143,19 @@ export class Collection {
     @IsObject()
     @Field(() => Collaboration, { description: 'The collaboration of the collection.', nullable: true })
     readonly collaboration?: Collaboration;
+
+    @IsObject()
+    @Field(() => Collection, { description: 'The parent collection', nullable: true })
+    @IsOptional()
+    readonly parent?: Collection;
+
+    @IsArray()
+    @Field(() => [Collection], { description: 'The children collections', nullable: true })
+    readonly children?: Collection[];
 }
+
+@InputType()
+export class CollectionInput extends PickType(Collection, ['id'], InputType) {}
 
 @InputType()
 export class CreateCollectionInput extends OmitType(PartialType(Collection, InputType), [
@@ -153,6 +165,8 @@ export class CreateCollectionInput extends OmitType(PartialType(Collection, Inpu
     'contract',
     'creator',
     'collaboration',
+    'parent',
+    'children',
 ]) {
     @IsObject()
     @Field(() => WalletInput, { description: 'The wallet that created the collection.', nullable: true })
@@ -172,6 +186,11 @@ export class CreateCollectionInput extends OmitType(PartialType(Collection, Inpu
     @Field(() => [CreateTierInCollectionInput], { description: 'This tiers for collection', nullable: true })
     @IsOptional()
     readonly tiers?: CreateTierInCollectionInput[];
+
+    @IsObject()
+    @Field(() => CollectionInput, { description: 'The parent collection id of this collection', nullable: true })
+    @IsOptional()
+    readonly parent?: CollectionInput;
 }
 
 @InputType()
@@ -180,9 +199,6 @@ export class UpdateCollectionInput extends OmitType(CreateCollectionInput, ['org
     @Field({ description: 'The id for a collection.' })
     readonly id: string;
 }
-
-@InputType()
-export class CollectionInput extends PickType(Collection, ['id'], InputType) {}
 
 @InputType('CreateTierInCollectionInput')
 export class CreateTierInCollectionInput {
@@ -581,4 +597,107 @@ export class SearchTokenIdsInput {
     @IsArray()
     @Field(() => [PropertyFilter], { description: 'The dynamic property filters' })
     readonly dynamicPropertyFilters: Array<PropertyFilter>;
+}
+
+@ObjectType()
+export class AttributesOverview {
+    @IsArray()
+    @Field(() => [AttributeOverview], { description: 'The static attribute details', nullable: 'itemsAndList' })
+    readonly staticAttributes: AttributeOverview[];
+
+    @IsArray()
+    @Field(() => [AttributeOverview], { description: 'The dynamic attribute details.', nullable: 'itemsAndList' })
+    readonly dynamicAttributes: AttributeOverview[];
+}
+
+@ObjectType()
+export class UpgradeOverview {
+    @IsString()
+    @Field({ description: 'The name of the upgrade.' })
+    readonly name: string;
+
+    @IsNumber()
+    @Field(() => Int, { description: 'The count of the nft has this upgrade.' })
+    readonly count: number;
+}
+
+@ObjectType()
+export class PluginOverview {
+    @IsString()
+    @Field({ description: 'The name of the plugin installed.' })
+    readonly name: string;
+
+    @IsNumber()
+    @Field(() => Int, { description: 'The count of the nft has this plugin.' })
+    readonly count: number;
+}
+
+@ObjectType()
+export class MetadataOverview {
+    @IsObject()
+    @Field(() => AttributesOverview, { description: 'The attribute details' })
+    readonly attributes: AttributesOverview;
+
+    @IsArray()
+    @Field(() => [UpgradeOverview], { description: 'The upgrade details' })
+    readonly upgrades: UpgradeOverview[];
+
+    @IsArray()
+    @Field(() => [PluginOverview], { description: 'The plugin detail' })
+    readonly plugins: PluginOverview[];
+}
+
+@ObjectType()
+export class ValueCount {
+    @IsString()
+    @IsOptional()
+    @Field(() => String, { description: 'The value of the property.' })
+    readonly value?: string;
+
+    @IsNumber()
+    @Field(() => Int, { description: 'The count of the nft has this value.' })
+    readonly count: number;
+}
+
+@ObjectType()
+export class AttributeOverview {
+    @IsString()
+    @Field({ description: 'The name of the property.' })
+    readonly name: string;
+
+    @IsString()
+    @Field({ description: 'The type of the property.' })
+    readonly type: string;
+
+    @IsArray()
+    @Field(() => [ValueCount], { description: 'The value of the property.' })
+    readonly valueCounts: ValueCount[];
+
+    @IsString()
+    @IsOptional()
+    @Field({ nullable: true, description: 'The display value of the property.' })
+    readonly displayValue?: string;
+
+    @IsString()
+    @IsOptional()
+    @Field({ nullable: true, description: 'Mark if this property is upgradable.' })
+    readonly class?: string;
+}
+
+@InputType()
+export class MetadataOverviewInput {
+    @IsString()
+    @Field(() => String, { description: 'The collection id.', nullable: true })
+    @IsOptional()
+    readonly collectionId?: string;
+
+    @IsString()
+    @Field(() => String, { description: 'The collection slug.', nullable: true })
+    @IsOptional()
+    readonly collectionSlug?: string;
+
+    @IsString()
+    @Field(() => String, { description: 'The collection address.', nullable: true })
+    @IsOptional()
+    readonly collectionAddress?: string;
 }

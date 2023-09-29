@@ -40,6 +40,17 @@ export class Nft {
     public metadata?: Metadata;
 }
 
+@InputType('NftPropertiesSearchInput')
+export class NftPropertiesSearchInput {
+    @IsString()
+    @Field({ description: 'The property name for searching' })
+    readonly name: string;
+
+    @IsString()
+    @Field({ description: 'The property value for searching' })
+    readonly value: string;
+}
+
 @ObjectType('NftPropertyOverview')
 export class NftPropertyOverview {
     @IsString()

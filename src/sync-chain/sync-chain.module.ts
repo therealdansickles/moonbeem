@@ -28,7 +28,7 @@ import { Record721Module } from './record721/record721.module';
             url: postgresConfig.syncChain.url,
             autoLoadEntities: true,
             synchronize: false,
-            logging: true,
+            logging: false,
         }),
     ],
     controllers: [],

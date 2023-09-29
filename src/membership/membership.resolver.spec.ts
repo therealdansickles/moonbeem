@@ -7,6 +7,8 @@ import { OrganizationService } from '../organization/organization.service';
 import { UserService } from '../user/user.service';
 import { MembershipService } from './membership.service';
 import { createOrganization, getToken } from '../test-utils';
+import { Repository } from 'typeorm';
+import { Membership } from './membership.entity';
 
 export const gql = String.raw;
 
@@ -15,6 +17,7 @@ describe('MembershipResolver', () => {
     let service: MembershipService;
     let organizationService: OrganizationService;
     let userService: UserService;
+    let membershipRepository: Repository<Membership>;
 
     beforeAll(async () => {
         app = global.app;
@@ -22,6 +25,7 @@ describe('MembershipResolver', () => {
         service = global.membershipService;
         userService = global.userService;
         organizationService = global.organizationService;
+        membershipRepository = global.membershipRepository;
     });
 
     afterEach(async () => {
@@ -30,27 +34,33 @@ describe('MembershipResolver', () => {
     });
 
     describe('getMembership', () => {
-        it('should return a membership', async () => {
-            const user = await userService.createUser({
+        let user;
+        let owner;
+        let organization;
+
+        beforeEach(async () => {
+            user = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
                 password: 'password',
             });
 
-            const owner = await userService.createUser({
+            owner = await userService.createUser({
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
                 password: 'password',
             });
 
-            const organization = await organizationService.createOrganization({
+            organization = await organizationService.createOrganization({
                 name: faker.company.name(),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
                 avatarUrl: faker.image.url(),
                 owner: owner,
             });
+        });
 
+        it('should return a membership', async () => {
             const membership = await service.createMemberships({
                 organizationId: organization.id,
                 emails: [user.email],
@@ -61,7 +71,7 @@ describe('MembershipResolver', () => {
                     membership(id: $id) {
                         id
                         canEdit
-
+                        role
                         user {
                             id
                         }
@@ -89,6 +99,52 @@ describe('MembershipResolver', () => {
                     expect(body.data.membership.id).not.toBeNull();
                     expect(body.data.membership.canEdit).toBeFalsy();
                     expect(body.data.membership.user.id).not.toBeNull();
+                    expect(body.data.membership.organization.id).not.toBeNull();
+                    expect(body.data.membership.organization.owner.id).not.toBeNull();
+                });
+        });
+
+        it('should return a membership haven not added role', async () => {
+            const membership = await membershipRepository.save({
+                organization: organization,
+                user: user,
+                canEdit: false,
+                canManage: false,
+                canDeploy: false,
+            });
+
+            const query = gql`
+                query getMembership($id: String!) {
+                    membership(id: $id) {
+                        id
+                        canEdit
+                        role
+                        user {
+                            id
+                        }
+                        organization {
+                            id
+                            owner {
+                                id
+                            }
+                        }
+                    }
+                }
+            `;
+
+            const variables = {
+                id: membership.id,
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(async ({ body }) => {
+                    expect(body.data.membership.id).not.toBeNull();
+                    expect(body.data.membership.canEdit).toBeFalsy();
+                    expect(body.data.membership.user.id).not.toBeNull();
+                    expect(body.data.membership.role).toEqual('member');
                     expect(body.data.membership.organization.id).not.toBeNull();
                     expect(body.data.membership.organization.owner.id).not.toBeNull();
                 });
@@ -136,9 +192,7 @@ describe('MembershipResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -147,6 +201,7 @@ describe('MembershipResolver', () => {
                     createMembership(input: $input) {
                         id
                         canEdit
+                        role
                     }
                 }
             `;
@@ -156,6 +211,7 @@ describe('MembershipResolver', () => {
                     organizationId: organization.id,
                     emails: [user.email],
                     canEdit: true,
+                    role: 'admin',
                 },
             };
 
@@ -169,6 +225,7 @@ describe('MembershipResolver', () => {
                     expect(body.data.createMembership.length).toBe(1);
                     expect(body.data.createMembership[0].id).toBeDefined();
                     expect(body.data.createMembership[0].canEdit).toBeTruthy();
+                    expect(body.data.createMembership[0].role).toEqual('admin');
                 });
         });
     });
@@ -219,9 +276,7 @@ describe('MembershipResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -230,6 +285,7 @@ describe('MembershipResolver', () => {
                     updateMembership(input: $input) {
                         id
                         canEdit
+                        role
                     }
                 }
             `;
@@ -238,6 +294,7 @@ describe('MembershipResolver', () => {
                 input: {
                     id: membership[0].id,
                     canEdit: true,
+                    role: 'admin',
                 },
             };
 
@@ -246,10 +303,12 @@ describe('MembershipResolver', () => {
                 .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
-                .expect(({ body }) => {
+                .expect((result) => {
+                    const body = result.body;
                     expect(body.data.updateMembership).toEqual({
                         id: expect.any(String),
                         canEdit: true,
+                        role: 'admin',
                     });
                 });
         });
@@ -351,9 +410,7 @@ describe('MembershipResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -428,9 +485,7 @@ describe('MembershipResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -593,6 +648,7 @@ describe('MembershipResolver', () => {
                 organization: organization2,
                 canDeploy: true,
                 canManage: false,
+                role: 'admin',
             });
 
             const query = gql`
@@ -601,7 +657,7 @@ describe('MembershipResolver', () => {
                         id
                         canDeploy
                         canManage
-
+                        role
                         organization {
                             name
                             displayName
@@ -626,11 +682,13 @@ describe('MembershipResolver', () => {
                     const membershipForOrg2 = rs.find((item) => item.id === membership2.id);
                     expect(membershipForOrg1.canDeploy).toEqual(true);
                     expect(membershipForOrg1.canManage).toEqual(true);
+                    expect(membershipForOrg1.role).toEqual('member');
                     expect(membershipForOrg1.organization.name).toEqual(organization1.name);
                     expect(membershipForOrg1.organization.displayName).toEqual(organization1.displayName);
                     expect(membershipForOrg1.organization.kind).toEqual(organization1.kind);
                     expect(membershipForOrg2.canDeploy).toEqual(true);
                     expect(membershipForOrg2.canManage).toEqual(false);
+                    expect(membershipForOrg2.role).toEqual('admin');
                     expect(membershipForOrg2.organization.name).toEqual(organization2.name);
                 });
         });
