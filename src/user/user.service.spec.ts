@@ -103,7 +103,7 @@ describe('UserService', () => {
                     provider: 'another-provider', // Different provider than the initial user
                 });
             } catch (error) {
-                expect((error as GraphQLError).message).toBe(`An account with this email already exists. Please log in with ${user.provider}.`);
+                expect((error as GraphQLError).message).toBe(`An account with this email already exists. Please log in with your email directly.`);
             }
         });
     });

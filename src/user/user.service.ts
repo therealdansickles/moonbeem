@@ -101,7 +101,7 @@ export class UserService {
 
         if (existedUser) {
             if (existedUser.provider !== payload.provider) {
-                throw new GraphQLError(`An account with this email already exists. Please log in with ${existedUser.provider}.`);
+                throw new GraphQLError(`An account with this email already exists. Please log in with your email directly.`);
             } else {
                 throw new GraphQLError(`This email ${payload.email} is already taken.`);
             }
