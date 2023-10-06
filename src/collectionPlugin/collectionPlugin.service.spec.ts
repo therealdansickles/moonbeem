@@ -8,6 +8,7 @@ import { Plugin } from '../plugin/plugin.entity';
 import { Repository } from 'typeorm';
 import { MerkleTreeService } from '../merkleTree/merkleTree.service';
 import { MerkleTree } from '../merkleTree/merkleTree.entity';
+import { MerkleTreeType } from '../merkleTree/merkleTree.dto';
 
 describe('CollectionPluginService', () => {
     let service: CollectionPluginService;
@@ -201,7 +202,7 @@ describe('CollectionPluginService', () => {
         const data = tokenIds.map((tokenId) => {
             return { collection: collectionAddress, tokenId, quantity: '1' };
         });
-        return merkleTreeService.createGeneralMerkleTree('recipients', data);
+        return merkleTreeService.createGeneralMerkleTree(MerkleTreeType.recipients, data);
     };
 
     describe('TokenInstalledPlugins', () => {

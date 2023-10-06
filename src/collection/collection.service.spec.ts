@@ -35,6 +35,7 @@ import { MerkleTree } from '../merkleTree/merkleTree.entity';
 import { Plugin } from '../plugin/plugin.entity';
 import { MerkleTreeService } from '../merkleTree/merkleTree.service';
 import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
+import { MerkleTreeType } from '../merkleTree/merkleTree.dto';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
@@ -2386,7 +2387,8 @@ describe('CollectionService', () => {
                 createdAt: startOfDay(new Date()),
             });
 
-            const result = await service.getCollectionsByOrganizationIdAndBeginTime(organization.id, startOfDay(new Date()));
+            const result = await service.getCollectionsByOrganizationIdAndBeginTime(
+                organization.id, startOfDay(new Date()));
             expect(result).toBe(1);
         });
 
@@ -2420,7 +2422,8 @@ describe('CollectionService', () => {
                 createdAt: startOfWeek(new Date()),
             });
 
-            const result1 = await service.getCollectionsByOrganizationIdAndBeginTime(organization.id, startOfWeek(new Date()));
+            const result1 = await service.getCollectionsByOrganizationIdAndBeginTime(
+                organization.id, startOfWeek(new Date()));
             expect(result1).toBe(1);
         });
 
@@ -2454,7 +2457,8 @@ describe('CollectionService', () => {
                 createdAt: startOfMonth(new Date()),
             });
 
-            const result2 = await service.getCollectionsByOrganizationIdAndBeginTime(organization.id, startOfMonth(new Date()));
+            const result2 = await service.getCollectionsByOrganizationIdAndBeginTime(
+                organization.id, startOfMonth(new Date()));
             expect(result2).toBe(1);
         });
     });
@@ -2574,7 +2578,8 @@ describe('CollectionService', () => {
             });
             jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
 
-            const result = await service.getAggregatedCollectionActivities(collectionAddress, tokenAddress, '', '', 10, 10);
+            const result = await service.getAggregatedCollectionActivities(
+                collectionAddress, tokenAddress, '', '', 10, 10);
             expect(result.totalCount).toEqual(4);
             expect(result.edges.length).toEqual(4);
 
@@ -2623,11 +2628,13 @@ describe('CollectionService', () => {
             });
             jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
 
-            const result = await service.getAggregatedCollectionActivities(collectionAddress, tokenAddress, '', '', 1, 1);
+            const result = await service.getAggregatedCollectionActivities(
+                collectionAddress, tokenAddress, '', '', 1, 1);
             expect(result.edges.length).toBe(1);
             expect(result.edges[0].node.tokenId).toBe(tokenId1);
 
-            const result1 = await service.getAggregatedCollectionActivities(collectionAddress, tokenAddress, '', result.pageInfo.endCursor, 1, 1);
+            const result1 = await service.getAggregatedCollectionActivities(
+                collectionAddress, tokenAddress, '', result.pageInfo.endCursor, 1, 1);
             expect(result1.edges.length).toBe(1);
             expect(result1.edges[0].node.tokenId).toBe(tokenId2);
         });
@@ -3122,7 +3129,8 @@ describe('CollectionService', () => {
         };
 
         it('should return the right ranges when getTokenIdRangesByStaticPropertiesFilters', async () => {
-            const allTokenIdsRange = await service.getTokenIdRangesByStaticPropertiesFilters(collection.id, collection.address, []);
+            const allTokenIdsRange = await service.getTokenIdRangesByStaticPropertiesFilters(
+                collection.id, collection.address, []);
             expect(allTokenIdsRange.length).toBe(6);
             expect(allTokenIdsRange).toEqual([
                 [0, 2],
@@ -3138,7 +3146,8 @@ describe('CollectionService', () => {
                     value: 'golden',
                 },
             ];
-            const rangesWithTypeFilter = await service.getTokenIdRangesByStaticPropertiesFilters(collection.id, collection.address, typeFilter);
+            const rangesWithTypeFilter = await service.getTokenIdRangesByStaticPropertiesFilters(
+                collection.id, collection.address, typeFilter);
             expect(rangesWithTypeFilter.length).toBe(4);
             expect(rangesWithTypeFilter).toEqual([
                 [6, 8],
@@ -3154,7 +3163,8 @@ describe('CollectionService', () => {
                 },
             ];
 
-            const rangesWithHeightFilter = await service.getTokenIdRangesByStaticPropertiesFilters(collection.id, collection.address, heightFilter);
+            const rangesWithHeightFilter = await service.getTokenIdRangesByStaticPropertiesFilters(
+                collection.id, collection.address, heightFilter);
             expect(rangesWithHeightFilter.length).toBe(3);
             expect(rangesWithHeightFilter).toEqual([
                 [0, 2],
@@ -3163,11 +3173,16 @@ describe('CollectionService', () => {
             ]);
 
             const combinedFilter = [...typeFilter, ...heightFilter];
-            const combinedRanges = await service.getTokenIdRangesByStaticPropertiesFilters(collection.id, collection.address, combinedFilter);
-            expect(combinedRanges.length).toBe(2);
+            const combinedRanges = await service.getTokenIdRangesByStaticPropertiesFilters(
+                collection.id, collection.address, combinedFilter);
+            // It's OR condition now
+            expect(combinedRanges.length).toBe(5);
             expect(combinedRanges).toEqual([
+                [0, 2],
+                [6, 8],
                 [9, 11],
                 [12, 14],
+                [15, 17],
             ]);
         });
 
@@ -3224,8 +3239,9 @@ describe('CollectionService', () => {
                 ],
             };
             const tokenIds = await service.searchTokenIds(searchInput);
-            expect(tokenIds.length).toBe(2);
-            expect(tokenIds).toEqual(['9', '11']);
+            expect(tokenIds.length).toBe(15);
+            expect(tokenIds).toEqual(
+                ['0', '1', '2', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']);
         });
     });
 
@@ -3238,7 +3254,7 @@ describe('CollectionService', () => {
             const data = tokenIds.map((tokenId) => {
                 return { collection: collectionAddress, tokenId, quantity: '1' };
             });
-            return merkleTreeService.createGeneralMerkleTree('recipients', data);
+            return merkleTreeService.createGeneralMerkleTree(MerkleTreeType.recipients, data);
         };
 
         beforeEach(async () => {
@@ -3296,7 +3312,7 @@ describe('CollectionService', () => {
             const data = tokenIds.map((tokenId) => {
                 return { collection: collectionAddress, tokenId, quantity: '1' };
             });
-            return merkleTreeService.createGeneralMerkleTree('recipients', data);
+            return merkleTreeService.createGeneralMerkleTree(MerkleTreeType.recipients, data);
         };
 
         const createTierAndMintSaleContract = async (tierData, mintSaleContractData) => {

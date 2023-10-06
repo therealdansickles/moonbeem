@@ -35,8 +35,10 @@ describe('UserResolver', () => {
         walletService = global.walletService;
         mintSaleTransactionService = global.mintSaleTransactionService;
 
-        jest.spyOn(global.mailService, 'sendWelcomeEmail').mockImplementation(async () => {});
-        jest.spyOn(global.mailService, 'sendInviteEmail').mockImplementation(async () => {});
+        jest.spyOn(global.mailService, 'sendWelcomeEmail').mockImplementation(async () => {
+        });
+        jest.spyOn(global.mailService, 'sendInviteEmail').mockImplementation(async () => {
+        });
 
         basicUser = await service.createUser({
             email: faker.internet.email(),
@@ -166,7 +168,8 @@ describe('UserResolver', () => {
                     expect(body.errors[0].message).toBe('Bad Request Exception');
                     expect(body.errors[0].extensions.response.message).toBeDefined();
                     expect(body.errors[0].extensions.response.message.length).toBe(1);
-                    expect(body.errors[0].extensions.response.message[0]).toBe('Invalid email address format for the email field.');
+                    expect(body.errors[0].extensions.response.message[0]).toBe(
+                        'Invalid email address format for the email field.');
                 });
         });
     });
@@ -197,7 +200,8 @@ describe('UserResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
+                { query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
             const query = gql`
@@ -408,7 +412,7 @@ describe('UserResolver', () => {
                 });
         });
 
-        it("should calculate the user's profit", async () => {
+        it('should calculate the user\'s profit', async () => {
             await mintSaleTransactionService.createMintSaleTransaction({
                 height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
@@ -708,7 +712,7 @@ describe('UserResolver', () => {
                 ownerId: owner.id,
             });
             const organization = await organizationService.createOrganization({
-                name: faker.company.name(),
+                name: faker.string.sample(15),
                 displayName: faker.company.name(),
                 about: faker.company.catchPhrase(),
                 avatarUrl: faker.image.url(),

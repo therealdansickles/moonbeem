@@ -1,4 +1,4 @@
-import { Field, InputType, Int, ObjectType, OmitType } from '@nestjs/graphql';
+import { Field, InputType, Int, ObjectType, OmitType, registerEnumType } from '@nestjs/graphql';
 import { IsArray, IsDateString, IsNumber, IsNumberString, IsObject, IsString } from 'class-validator';
 import JSON from 'graphql-type-json';
 
@@ -12,6 +12,13 @@ export class MerkleDataOutput {
     @Field({ description: 'Amount available, using string, the merkleTree can be expanded to erc20 tokens' })
     readonly amount: string;
 }
+
+export enum MerkleTreeType {
+    recipients = 'recipients',
+    allowlist = 'allowlist',
+}
+
+registerEnumType(MerkleTreeType, { name: 'MerkleTreeType' });
 
 @ObjectType()
 export class MerkleTree {
@@ -44,7 +51,8 @@ export class CreateMerkleRootInput {
 }
 
 @InputType('CreateMerkleRootData')
-export class MerkleDataInput extends OmitType(MerkleDataOutput, [] as const, InputType) {}
+export class MerkleDataInput extends OmitType(MerkleDataOutput, [] as const, InputType) {
+}
 
 @ObjectType()
 export class MerkleProofOutput {
@@ -76,15 +84,15 @@ export class CreateGeneralMerkleRootInput {
     readonly data: object[];
 
     @IsString()
-    @Field(() => String, { description: 'Type for this merkle tree.' })
-    readonly type: string;
+    @Field(() => MerkleTreeType, { description: 'Type for this merkle tree.' })
+    readonly type: MerkleTreeType;
 }
 
 @InputType('GetGeneralMerkleProofInput')
 export class GetGeneralMerkleProofInput {
     @IsString()
     @Field(() => String, { description: 'Type for this merkle tree.' })
-    readonly type: string;
+    readonly type: MerkleTreeType;
 
     @IsString()
     @Field({ description: 'The merkle root for the merkle tree.', nullable: true })

@@ -12,7 +12,13 @@ import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import {
-    createCoin, createCollection, createMemberships, createMintSaleContract, createMintSaleTransaction, createOrganization, createTier
+    createCoin,
+    createCollection,
+    createMemberships,
+    createMintSaleContract,
+    createMintSaleTransaction,
+    createOrganization,
+    createTier
 } from '../test-utils';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
@@ -74,7 +80,8 @@ describe('CollectionResolver', () => {
             }
         `;
 
-        const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
+        const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
+            { query: tokenQuery, variables: tokenVariables });
 
         const { token } = tokenRs.body.data.createSessionFromEmail;
         return token;
@@ -225,7 +232,7 @@ describe('CollectionResolver', () => {
                 });
         });
 
-        it("should get a collection by id with no contract details, if contract doesn't exist", async () => {
+        it('should get a collection by id with no contract details, if contract doesn\'t exist', async () => {
             const query = gql`
                 query GetCollection($id: String!) {
                     collection(id: $id) {
@@ -673,7 +680,8 @@ describe('CollectionResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
+                { query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -720,7 +728,8 @@ describe('CollectionResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.errors[0].message).toMatch(`The collection name ${variables.input.name} is already taken`);
+                    expect(body.errors[0].message).toMatch(
+                        `The collection name ${variables.input.name} is already taken`);
                 });
         });
 
@@ -844,7 +853,8 @@ describe('CollectionResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
+                { query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -912,7 +922,8 @@ describe('CollectionResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
+                { query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -979,7 +990,8 @@ describe('CollectionResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
+                { query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -1712,8 +1724,9 @@ describe('CollectionResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data.searchTokenIds).toBeDefined();
-                    expect(body.data.searchTokenIds.length).toEqual(2);
-                    expect(body.data.searchTokenIds).toEqual(['9', '11']);
+                    expect(body.data.searchTokenIds.length).toEqual(15);
+                    expect(body.data.searchTokenIds).toEqual(
+                        ['0', '1', '2', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']);
                 });
         });
     });
