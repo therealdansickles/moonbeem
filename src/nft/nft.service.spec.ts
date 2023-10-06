@@ -88,9 +88,11 @@ describe('NftService', () => {
                 properties: {
                     foo: 'bar',
                 },
+                ownerAddress: faker.finance.ethereumAddress(),
             });
             expect(result.id).toBeTruthy();
             expect(result.properties.foo).toEqual('bar');
+            expect(result.ownerAddress).toBeTruthy();
         });
 
         it('should update a nft record if already exist', async () => {
@@ -138,7 +140,7 @@ describe('NftService', () => {
                 },
             });
 
-            const tokenId = +faker.string.numeric({ length: 1, allowLeadingZeros: false });
+            const tokenId = faker.string.numeric({ length: 1, allowLeadingZeros: false });
 
             await nftService.createOrUpdateNftByTokenId({
                 collectionId: collection.id,
@@ -426,11 +428,11 @@ describe('NftService', () => {
                     properties: {
                         foo: {
                             name: 'foo',
-                            value: 'foo0'
+                            value: 'foo0',
                         },
                         bar: {
                             name: 'bar',
-                            value: 'bar0'
+                            value: 'bar0',
                         },
                     },
                 }),
@@ -441,12 +443,12 @@ describe('NftService', () => {
                     properties: {
                         foo: {
                             name: 'foo',
-                            value: 'foo1'
+                            value: 'foo1',
                         },
                         bar: {
                             name: 'bar',
-                            value: 'bar1'
-                        }
+                            value: 'bar1',
+                        },
                     },
                 }),
                 nftService.createOrUpdateNftByTokenId({
@@ -456,12 +458,12 @@ describe('NftService', () => {
                     properties: {
                         foo: {
                             name: 'foo',
-                            value: 'foo2'
+                            value: 'foo2',
                         },
                         bar: {
                             name: 'bar',
-                            value: 'bar2'
-                        }
+                            value: 'bar2',
+                        },
                     },
                 }),
             ]);
@@ -471,8 +473,8 @@ describe('NftService', () => {
                 tokenIds: [tokenId1, tokenId3],
                 properties: [
                     { name: 'foo', value: 'foo2' },
-                    { name: 'bar', value: 'bar2' }
-                ]
+                    { name: 'bar', value: 'bar2' },
+                ],
             });
             expect(result.length).toEqual(1);
             expect(result[0].id).toEqual(nft3.id);
@@ -934,8 +936,8 @@ describe('NftService', () => {
             expect(
                 sortBy(
                     result.map((item) => item.tokenId),
-                    (item) => +item
-                )
+                    (item) => +item,
+                ),
             ).toEqual([tokenId, anotherTokenId]);
         });
 
@@ -1079,7 +1081,7 @@ describe('NftService', () => {
             expect(result.length).toEqual(1);
             expect(result[0].metadata).toBeTruthy();
             expect(Object.entries(result[0].metadata.properties).find((property) => property[0] === 'level')[1].value).toEqual(
-                nft.properties['level'].value
+                nft.properties['level'].value,
             );
         });
     });
@@ -1633,7 +1635,7 @@ describe('NftService', () => {
             await nftService.createOrUpdateNftByTokenId({
                 collectionId: collection.id,
                 tierId: tier.id,
-                tokenId: 1,
+                tokenId: '1',
                 properties: {
                     height: {
                         value: '200',
@@ -1645,7 +1647,7 @@ describe('NftService', () => {
             await nftService.createOrUpdateNftByTokenId({
                 collectionId: collection.id,
                 tierId: tier.id,
-                tokenId: 2,
+                tokenId: '2',
                 properties: {
                     type: {
                         value: 'silver',
@@ -1660,7 +1662,7 @@ describe('NftService', () => {
             await nftService.createOrUpdateNftByTokenId({
                 collectionId: collection.id,
                 tierId: tier.id,
-                tokenId: 3,
+                tokenId: '3',
                 properties: {
                     type: {
                         value: 'golden',
@@ -1675,7 +1677,7 @@ describe('NftService', () => {
             await nftService.createOrUpdateNftByTokenId({
                 collectionId: collection.id,
                 tierId: tier.id,
-                tokenId: 4,
+                tokenId: '4',
                 properties: {
                     type: {
                         value: 'golden',
@@ -1690,7 +1692,7 @@ describe('NftService', () => {
             await nftService.createOrUpdateNftByTokenId({
                 collectionId: collection.id,
                 tierId: tier.id,
-                tokenId: 5,
+                tokenId: '5',
                 properties: {
                     type: {
                         value: 'golden',
@@ -1705,7 +1707,7 @@ describe('NftService', () => {
             await nftService.createOrUpdateNftByTokenId({
                 collectionId: collection.id,
                 tierId: tier.id,
-                tokenId: 6,
+                tokenId: '6',
                 properties: {
                     type: {
                         value: 'golden',

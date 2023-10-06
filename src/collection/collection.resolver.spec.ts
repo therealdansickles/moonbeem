@@ -18,7 +18,7 @@ import {
     createMintSaleContract,
     createMintSaleTransaction,
     createOrganization,
-    createTier
+    createTier,
 } from '../test-utils';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
@@ -80,8 +80,7 @@ describe('CollectionResolver', () => {
             }
         `;
 
-        const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
-            { query: tokenQuery, variables: tokenVariables });
+        const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
         const { token } = tokenRs.body.data.createSessionFromEmail;
         return token;
@@ -232,7 +231,7 @@ describe('CollectionResolver', () => {
                 });
         });
 
-        it('should get a collection by id with no contract details, if contract doesn\'t exist', async () => {
+        it("should get a collection by id with no contract details, if contract doesn't exist", async () => {
             const query = gql`
                 query GetCollection($id: String!) {
                     collection(id: $id) {
@@ -680,8 +679,7 @@ describe('CollectionResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
-                { query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -728,8 +726,7 @@ describe('CollectionResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.errors[0].message).toMatch(
-                        `The collection name ${variables.input.name} is already taken`);
+                    expect(body.errors[0].message).toMatch(`The collection name ${variables.input.name} is already taken`);
                 });
         });
 
@@ -853,8 +850,7 @@ describe('CollectionResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
-                { query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -922,8 +918,7 @@ describe('CollectionResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
-                { query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -990,8 +985,7 @@ describe('CollectionResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
-                { query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -1538,7 +1532,7 @@ describe('CollectionResolver', () => {
                     tierId: 0,
                     startId: 0,
                     endId: 2,
-                }
+                },
             );
 
             await createTierAndMintSaleContract(
@@ -1559,7 +1553,7 @@ describe('CollectionResolver', () => {
                     tierId: 1,
                     startId: 3,
                     endId: 5,
-                }
+                },
             );
 
             await createTierAndMintSaleContract(
@@ -1580,7 +1574,7 @@ describe('CollectionResolver', () => {
                     tierId: 2,
                     startId: 6,
                     endId: 8,
-                }
+                },
             );
 
             tier = await createTierAndMintSaleContract(
@@ -1601,7 +1595,7 @@ describe('CollectionResolver', () => {
                     tierId: 3,
                     startId: 9,
                     endId: 11,
-                }
+                },
             );
 
             await createTierAndMintSaleContract(
@@ -1622,7 +1616,7 @@ describe('CollectionResolver', () => {
                     tierId: 4,
                     startId: 12,
                     endId: 14,
-                }
+                },
             );
 
             await createTierAndMintSaleContract(
@@ -1643,39 +1637,42 @@ describe('CollectionResolver', () => {
                     tierId: 5,
                     startId: 15,
                     endId: 17,
-                }
+                },
             );
             const collectionId = collection.id;
             const tierId = tier.id;
             await nftService.createOrUpdateNftByTokenId({
                 collectionId,
                 tierId,
-                tokenId: 9,
+                tokenId: '9',
                 properties: {
                     loyalty: {
                         value: '150',
                     },
                 },
+                ownerAddress: faker.finance.ethereumAddress(),
             });
             await nftService.createOrUpdateNftByTokenId({
                 collectionId,
                 tierId,
-                tokenId: 10,
+                tokenId: '10',
                 properties: {
                     loyalty: {
                         value: '50',
                     },
                 },
+                ownerAddress: faker.finance.ethereumAddress(),
             });
             await nftService.createOrUpdateNftByTokenId({
                 collectionId,
                 tierId,
-                tokenId: 11,
+                tokenId: '11',
                 properties: {
                     loyalty: {
                         value: '250',
                     },
                 },
+                ownerAddress: faker.finance.ethereumAddress(),
             });
         });
 
@@ -1725,8 +1722,7 @@ describe('CollectionResolver', () => {
                 .expect(({ body }) => {
                     expect(body.data.searchTokenIds).toBeDefined();
                     expect(body.data.searchTokenIds.length).toEqual(15);
-                    expect(body.data.searchTokenIds).toEqual(
-                        ['0', '1', '2', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']);
+                    expect(body.data.searchTokenIds).toEqual(['0', '1', '2', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']);
                 });
         });
     });
@@ -1836,7 +1832,7 @@ describe('CollectionResolver', () => {
                                 displayValue: null,
                                 class: null,
                             },
-                        ])
+                        ]),
                     );
                 });
         });

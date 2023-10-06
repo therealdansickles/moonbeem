@@ -38,6 +38,9 @@ export class Nft extends BaseEntity {
     })
     readonly properties: MetadataProperties;
 
+    @Column({ nullable: true, comment: 'The owner address of the NFT.' })
+    readonly ownerAddress: string;
+
     // @Column({
     //     default: {}
     // })
