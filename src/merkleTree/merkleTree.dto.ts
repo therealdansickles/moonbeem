@@ -91,7 +91,7 @@ export class CreateGeneralMerkleRootInput {
 @InputType('GetGeneralMerkleProofInput')
 export class GetGeneralMerkleProofInput {
     @IsString()
-    @Field(() => String, { description: 'Type for this merkle tree.' })
+    @Field(() => MerkleTreeType, { description: 'Type for this merkle tree.' })
     readonly type: MerkleTreeType;
 
     @IsString()
