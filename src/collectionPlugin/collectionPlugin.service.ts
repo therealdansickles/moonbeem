@@ -119,7 +119,7 @@ export class CollectionPluginService {
             .createQueryBuilder('merkleTree')
             .select('id')
             .where('merkleTree.merkleRoot = :merkleRoot', { merkleRoot })
-            .andWhere(`data @> '[{"tokenId": "${tokenId}"}]'`)
+            .andWhere(`data @> '[{"tokenId": ${tokenId}}]'`)
             .getExists();
     }
 

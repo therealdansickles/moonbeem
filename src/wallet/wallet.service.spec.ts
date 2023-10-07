@@ -349,7 +349,7 @@ describe('WalletService', () => {
             const collection = await createCollection(
                 collectionService, { creator: { id: wallet.id }, tokenAddress: faker.finance.ethereumAddress() });
             const merkleTree = await createRecipientsMerkleTree(
-                merkleTreeService, collection.address, [tokenId]);
+                merkleTreeService, collection.address, [parseInt(tokenId)]);
             const plugin = await createPlugin(pluginRepository, { organization });
 
             const input = {
