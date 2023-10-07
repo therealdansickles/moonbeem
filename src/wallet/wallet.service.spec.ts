@@ -355,6 +355,8 @@ describe('WalletService', () => {
             const input = {
                 collectionId: collection.id,
                 pluginId: plugin.id,
+                description: faker.lorem.paragraph(),
+                mediaUrl: faker.image.url(),
                 name: 'merkle root test collection plugin',
                 pluginDetail: {
                     collectionAddress: collection.address,
@@ -389,11 +391,14 @@ describe('WalletService', () => {
             expect(result.edges[0].node.tier.collection.creator.id).toBeDefined();
             expect(result.edges[0].node.pluginsInstalled).toEqual([{
                 name: collectionPlugin.name,
+                description: input.description,
+                mediaUrl: input.mediaUrl,
                 collectionAddress: collectionPlugin.pluginDetail.collectionAddress,
                 tokenAddress: collectionPlugin.pluginDetail.tokenAddress,
                 pluginName: collectionPlugin.plugin.name,
                 claimed: false,
             }]);
+            expect(result.edges[0].node.ownerAddress).toEqual(wallet.address);
         });
 
         it('should return minted transactions by address with pagination', async () => {
