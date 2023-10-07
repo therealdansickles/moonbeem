@@ -169,7 +169,7 @@ export const createPlugin = async (repo: Repository<Plugin>, plugin?: any) =>
         ...plugin,
     });
 
-export const createRecipientsMerkleTree = async (merkleTreeService: MerkleTreeService, collectionAddress: string, tokenIds: string[]): Promise<MerkleTree> => {
+export const createRecipientsMerkleTree = async (merkleTreeService: MerkleTreeService, collectionAddress: string, tokenIds: number[]): Promise<MerkleTree> => {
     const data = tokenIds.map((tokenId) => {
         return { collection: collectionAddress, tokenId, quantity: '1' };
     });

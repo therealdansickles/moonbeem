@@ -229,8 +229,10 @@ describe('CollectionPluginService', () => {
                 collectionService, { organization, tokenAddress: faker.finance.ethereumAddress() });
             collection2 = await createCollection(
                 collectionService, { organization, tokenAddress: faker.finance.ethereumAddress() });
-            const merkleTree1 = await createRecipientsMerkleTree(merkleTreeService, collection1.address, [token1]);
-            const merkleTree2 = await createRecipientsMerkleTree(merkleTreeService, collection2.address, [token3]);
+            const merkleTree1 = await createRecipientsMerkleTree(
+                merkleTreeService, collection1.address, [parseInt(token1)]);
+            const merkleTree2 = await createRecipientsMerkleTree(
+                merkleTreeService, collection2.address, [parseInt(token3)]);
             plugin = await createPlugin(pluginRepository, { organization });
 
             const input1 = {
@@ -337,7 +339,7 @@ describe('CollectionPluginService', () => {
             const token2 = '2';
             const token3 = '3';
             merkleTree = await createRecipientsMerkleTree(
-                merkleTreeService, collection.address, [token1, token2, token3]);
+                merkleTreeService, collection.address, [parseInt(token1), parseInt(token2), parseInt(token3)]);
             plugin = await createPlugin(pluginRepository, { organization });
         });
 
