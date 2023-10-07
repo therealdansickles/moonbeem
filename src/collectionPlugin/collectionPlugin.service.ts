@@ -2,7 +2,12 @@ import { Collection as CollectionEntity } from '../collection/collection.entity'
 import { CollectionPlugin as CollectionPluginEntity } from '../collectionPlugin/collectionPlugin.entity';
 import { Plugin as PluginEntity } from '../plugin/plugin.entity';
 
-import { CollectionPlugin, CreateCollectionPluginInput, UpdateCollectionPluginInput } from './collectionPlugin.dto';
+import {
+    CollectionPlugin,
+    CreateCollectionPluginInput,
+    InstalledPluginInfo,
+    UpdateCollectionPluginInput
+} from './collectionPlugin.dto';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
@@ -20,7 +25,8 @@ export class CollectionPluginService {
         private readonly collectionPluginRepository: Repository<CollectionPluginEntity>,
         @InjectRepository(MerkleTreeEntity)
         private readonly merkleTreeRepo: Repository<MerkleTreeEntity>
-    ) {}
+    ) {
+    }
 
     async createCollectionPlugin(createCollectionPluginInput: CreateCollectionPluginInput): Promise<CollectionPlugin> {
         const { collectionId, pluginId, pluginDetail, ...others } = createCollectionPluginInput;
@@ -83,13 +89,22 @@ export class CollectionPluginService {
         })) as CollectionPlugin[];
     }
 
-    async getTokenInstalledPlugins(collectionId: string, tokenId: string): Promise<CollectionPlugin[]> {
-        const plugins = await this.getCollectionPluginsByCollectionId(collectionId);
+    async getTokenInstalledPlugins(collectionId: string, tokenId: string): Promise<InstalledPluginInfo[]> {
+        const CollectionPlugins = await this.getCollectionPluginsByCollectionId(collectionId);
         const appliedPlugins = [];
-        for (const plugin of plugins) {
-            const applied = await this.checkIfPluginApplied(plugin, tokenId);
+        for (const collectionPlugin of CollectionPlugins) {
+            const applied = await this.checkIfPluginApplied(collectionPlugin, tokenId);
             if (applied) {
-                appliedPlugins.push(plugin);
+                const claimed = await this.checkIfPluginClaimed(collectionPlugin, tokenId);
+                const { name, pluginDetail, plugin } = collectionPlugin;
+                const { collectionAddress, tokenAddress } = pluginDetail || {};
+                appliedPlugins.push({
+                    name,
+                    collectionAddress,
+                    tokenAddress,
+                    pluginName: plugin.name,
+                    claimed,
+                });
             }
         }
         return appliedPlugins;
@@ -109,7 +124,7 @@ export class CollectionPluginService {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async checkIfPluginClaimed(plugin: CollectionPlugin, tokenId: string): Promise<boolean> {
         // check if there is a claim record for this plugin and tokenId
-        return true;
+        return false;
     }
 
     async getAppliedTokensCount(collectionPlugin: CollectionPlugin, totalSupply: number): Promise<number> {

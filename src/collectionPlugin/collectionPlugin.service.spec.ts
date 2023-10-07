@@ -1,14 +1,12 @@
 import { faker } from '@faker-js/faker';
 import { CollectionPluginService } from './collectionPlugin.service';
-import { createCollection, createOrganization, createPlugin } from '../test-utils';
+import { createCollection, createOrganization, createPlugin, createRecipientsMerkleTree } from '../test-utils';
 import { CollectionService } from '../collection/collection.service';
 import { UserService } from '../user/user.service';
 import { OrganizationService } from '../organization/organization.service';
 import { Plugin } from '../plugin/plugin.entity';
 import { Repository } from 'typeorm';
 import { MerkleTreeService } from '../merkleTree/merkleTree.service';
-import { MerkleTree } from '../merkleTree/merkleTree.entity';
-import { MerkleTreeType } from '../merkleTree/merkleTree.dto';
 
 describe('CollectionPluginService', () => {
     let service: CollectionPluginService;
@@ -198,13 +196,6 @@ describe('CollectionPluginService', () => {
         });
     });
 
-    const createRecipientsMerkleTree = async (collectionAddress: string, tokenIds: string[]): Promise<MerkleTree> => {
-        const data = tokenIds.map((tokenId) => {
-            return { collection: collectionAddress, tokenId, quantity: '1' };
-        });
-        return merkleTreeService.createGeneralMerkleTree(MerkleTreeType.recipients, data);
-    };
-
     describe('TokenInstalledPlugins', () => {
         const token1 = '1';
         const token2 = '2';
@@ -225,10 +216,12 @@ describe('CollectionPluginService', () => {
             });
 
             const organization = await createOrganization(organizationService, { owner: user });
-            collection1 = await createCollection(collectionService, { organization });
-            collection2 = await createCollection(collectionService, { organization });
-            const merkleTree1 = await createRecipientsMerkleTree(collection1.address, [token1]);
-            const merkleTree2 = await createRecipientsMerkleTree(collection2.address, [token3]);
+            collection1 = await createCollection(
+                collectionService, { organization, tokenAddress: faker.finance.ethereumAddress() });
+            collection2 = await createCollection(
+                collectionService, { organization, tokenAddress: faker.finance.ethereumAddress() });
+            const merkleTree1 = await createRecipientsMerkleTree(merkleTreeService, collection1.address, [token1]);
+            const merkleTree2 = await createRecipientsMerkleTree(merkleTreeService, collection2.address, [token3]);
             plugin = await createPlugin(pluginRepository, { organization });
 
             const input1 = {
@@ -248,7 +241,10 @@ describe('CollectionPluginService', () => {
                 collectionId: collection2.id,
                 pluginId: plugin.id,
                 name: 'merkle root 2 test collection plugin',
-                pluginDetail: {},
+                pluginDetail: {
+                    collectionAddress: collection2.address,
+                    tokenAddress: collection2.tokenAddress,
+                },
             };
             pluginWithMerkleRoot2 = await service.createCollectionPlugin(input2);
             const updateInput2 = {
@@ -261,7 +257,10 @@ describe('CollectionPluginService', () => {
                 collectionId: collection2.id,
                 pluginId: plugin.id,
                 name: 'test collection plugin',
-                pluginDetail: {},
+                pluginDetail: {
+                    collectionAddress: collection2.address,
+                    tokenAddress: collection2.tokenAddress,
+                },
             };
             pluginWithoutMerkleRoot = await service.createCollectionPlugin(input3);
         });
@@ -295,7 +294,19 @@ describe('CollectionPluginService', () => {
         // collection 2 -> token 3 -> apply pluginWithMerkleRoot2
         it('should return all plugins applied to this token', async () => {
             const result = await service.getTokenInstalledPlugins(collection2.id, token3);
-            expect(result.length).toEqual(2);
+            expect(result).toEqual([{
+                name: pluginWithoutMerkleRoot.name,
+                collectionAddress: collection2.address,
+                tokenAddress: collection2.tokenAddress,
+                pluginName: plugin.name,
+                claimed: false,
+            }, {
+                name: pluginWithMerkleRoot2.name,
+                collectionAddress: collection2.address,
+                tokenAddress: collection2.tokenAddress,
+                pluginName: plugin.name,
+                claimed: false,
+            }]);
         });
     });
 
@@ -316,7 +327,8 @@ describe('CollectionPluginService', () => {
             const token1 = '1';
             const token2 = '2';
             const token3 = '3';
-            merkleTree = await createRecipientsMerkleTree(collection.address, [token1, token2, token3]);
+            merkleTree = await createRecipientsMerkleTree(
+                merkleTreeService, collection.address, [token1, token2, token3]);
             plugin = await createPlugin(pluginRepository, { organization });
         });
 

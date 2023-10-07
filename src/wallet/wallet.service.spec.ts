@@ -10,14 +10,28 @@ import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import { createAsset721, createCollection, createMintSaleTransaction, createTier } from '../test-utils';
+import {
+    createAsset721,
+    createCollection,
+    createMintSaleTransaction,
+    createOrganization,
+    createPlugin,
+    createRecipientsMerkleTree,
+    createTier
+} from '../test-utils';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { Wallet } from './wallet.entity';
 import { WalletService } from './wallet.service';
+import { OrganizationService } from '../organization/organization.service';
+import { MerkleTreeService } from '../merkleTree/merkleTree.service';
+import { Repository } from 'typeorm';
+import { Plugin } from '../plugin/plugin.entity';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 
 describe('WalletService', () => {
     let address: string;
+    let organizationService: OrganizationService;
     let collectionService: CollectionService;
     let mintSaleTransactionService: MintSaleTransactionService;
     let mintSaleContractService: MintSaleContractService;
@@ -26,10 +40,14 @@ describe('WalletService', () => {
     let userService: UserService;
     let coinService: CoinService;
     let asset721Service: Asset721Service;
+    let merkleTreeService: MerkleTreeService;
+    let collectionPluginService: CollectionPluginService;
+    let pluginRepository: Repository<Plugin>;
 
     beforeAll(async () => {
         address = faker.finance.ethereumAddress().toLowerCase();
         service = global.walletService;
+        organizationService = global.organizationService;
         collectionService = global.collectionService;
         mintSaleTransactionService = global.mintSaleTransactionService;
         mintSaleContractService = global.mintSaleContractService;
@@ -37,6 +55,9 @@ describe('WalletService', () => {
         userService = global.userService;
         coinService = global.coinService;
         asset721Service = global.asset721Service;
+        pluginRepository = global.pluginRepository;
+        merkleTreeService = global.merkleTreeService;
+        collectionPluginService = global.collectionPluginService;
     });
 
     afterEach(async () => {
@@ -258,7 +279,8 @@ describe('WalletService', () => {
             try {
                 await service.unbindWallet(data);
             } catch (error) {
-                expect((error as Error).message).toBe(`Wallet ${newWallet.address.toLowerCase()} doesn't belong to the given user.`);
+                expect((error as Error).message).toBe(
+                    `Wallet ${newWallet.address.toLowerCase()} doesn't belong to the given user.`);
             }
         });
     });
@@ -315,14 +337,38 @@ describe('WalletService', () => {
 
     describe('getMintedByAddress', () => {
         it('should return minted transactions by address', async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: 'password',
+            });
+            const tokenId = '1';
             const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
 
-            const collection = await createCollection(collectionService, { creator: { id: wallet.id } });
+            const organization = await createOrganization(organizationService, { owner: user });
+            const collection = await createCollection(
+                collectionService, { creator: { id: wallet.id }, tokenAddress: faker.finance.ethereumAddress() });
+            const merkleTree = await createRecipientsMerkleTree(
+                merkleTreeService, collection.address, [tokenId]);
+            const plugin = await createPlugin(pluginRepository, { organization });
+
+            const input = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: 'merkle root test collection plugin',
+                pluginDetail: {
+                    collectionAddress: collection.address,
+                    tokenAddress: collection.tokenAddress,
+                },
+                merkleRoot: merkleTree.merkleRoot,
+            };
+            const collectionPlugin = await collectionPluginService.createCollectionPlugin(input);
             const tier = await createTier(tierService, { collection: { id: collection.id } });
             const transaction = await createMintSaleTransaction(mintSaleTransactionService, {
                 recipient: wallet.address,
                 address: collection.address,
                 tierId: tier.tierId,
+                tokenId,
             });
             await createAsset721(asset721Service, {
                 address: transaction.tokenAddress,
@@ -341,6 +387,13 @@ describe('WalletService', () => {
             expect(result.edges[0].node.tier.collection.id).toEqual(collection.id);
             expect(result.edges[0].node.tier.collection.creator).toBeDefined();
             expect(result.edges[0].node.tier.collection.creator.id).toBeDefined();
+            expect(result.edges[0].node.pluginsInstalled).toEqual([{
+                name: collectionPlugin.name,
+                collectionAddress: collectionPlugin.pluginDetail.collectionAddress,
+                tokenAddress: collectionPlugin.pluginDetail.tokenAddress,
+                pluginName: collectionPlugin.plugin.name,
+                claimed: false,
+            }]);
         });
 
         it('should return minted transactions by address with pagination', async () => {
@@ -376,7 +429,8 @@ describe('WalletService', () => {
             expect(firstPageEndCursor).not.toEqual(secondPageEndCursor);
             expect(secondPage.edges.length).toEqual(5);
             const sendPageStartCursor = secondPage.pageInfo.startCursor;
-            expect(firstPage.edges[0].node.createdAt.getTime()).toBeGreaterThanOrEqual(secondPage.edges[0].node.createdAt.getTime());
+            expect(firstPage.edges[0].node.createdAt.getTime()).toBeGreaterThanOrEqual(
+                secondPage.edges[0].node.createdAt.getTime());
             expect(firstPage.edges[0].node.id.localeCompare(secondPage.edges[0].node.id)).toBeGreaterThan(0);
             const previousPage = await service.getMintedByAddress(wallet.address, sendPageStartCursor, '', 0, 10);
             expect(previousPage.edges.length).toEqual(10);
@@ -859,7 +913,8 @@ describe('WalletService', () => {
             const result = await service.getWalletProfit(sender1);
             expect(result.length).toBeGreaterThan(0);
 
-            const totalProfitInToken = new BigNumber(price).plus(new BigNumber(price)).div(new BigNumber(10).pow(coin.decimals)).toString();
+            const totalProfitInToken = new BigNumber(price).plus(new BigNumber(price)).div(
+                new BigNumber(10).pow(coin.decimals)).toString();
 
             expect(result[0].inPaymentToken).toBe(totalProfitInToken);
         });
