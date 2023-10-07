@@ -86,7 +86,7 @@ describe('NftResolver', () => {
                 tierId: tier.id,
                 tokenId: faker.string.numeric({ length: 1, allowLeadingZeros: false }),
                 properties: {
-                    foo: 'bar',
+                    foo: { value: 'bar' },
                 },
             });
 
@@ -113,7 +113,7 @@ describe('NftResolver', () => {
                 .expect(({ body }) => {
                     expect(body.data.nft.id).toBeTruthy();
                     expect(body.data.nft.collection.id).toEqual(collection.id);
-                    expect(body.data.nft.properties.foo).toEqual('bar');
+                    expect(body.data.nft.properties.foo.value).toEqual('bar');
                 });
         });
 
@@ -167,7 +167,7 @@ describe('NftResolver', () => {
                 tierId: tier.id,
                 tokenId: faker.string.numeric({ length: 2, allowLeadingZeros: false }),
                 properties: {
-                    foo: 'baraaa',
+                    foo: { value: 'baraaa' },
                 },
             });
 
@@ -196,7 +196,7 @@ describe('NftResolver', () => {
                 .expect(({ body }) => {
                     expect(body.data.nft.id).toBeTruthy();
                     expect(body.data.nft.collection.id).toEqual(collection.id);
-                    expect(body.data.nft.properties.foo).toEqual('baraaa');
+                    expect(body.data.nft.properties.foo.value).toEqual('baraaa');
                 });
         });
     });
@@ -292,7 +292,7 @@ describe('NftResolver', () => {
                     tierId: tier.id,
                     tokenId: tokenId1,
                     properties: {
-                        foo: 'bar',
+                        foo: { value: 'bar' },
                     },
                 }),
                 service.createOrUpdateNftByTokenId({
@@ -300,7 +300,7 @@ describe('NftResolver', () => {
                     tierId: tier.id,
                     tokenId: tokenId2,
                     properties: {
-                        foo: 'bar',
+                        foo: { value: 'bar' },
                     },
                 }),
                 service.createOrUpdateNftByTokenId({
@@ -308,7 +308,7 @@ describe('NftResolver', () => {
                     tierId: anotherTier.id,
                     tokenId: tokenId3,
                     properties: {
-                        foo: 'bar',
+                        foo: { value: 'bar' },
                     },
                 }),
             ]);

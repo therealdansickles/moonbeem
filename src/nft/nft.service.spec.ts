@@ -86,12 +86,12 @@ describe('NftService', () => {
                 tierId: tier.id,
                 tokenId: faker.string.numeric({ length: 1, allowLeadingZeros: false }),
                 properties: {
-                    foo: 'bar',
+                    foo: { value: 'bar' },
                 },
                 ownerAddress: faker.finance.ethereumAddress(),
             });
             expect(result.id).toBeTruthy();
-            expect(result.properties.foo).toEqual('bar');
+            expect(result.properties.foo.value).toEqual('bar');
             expect(result.ownerAddress).toBeTruthy();
         });
 
@@ -147,7 +147,7 @@ describe('NftService', () => {
                 tierId: tier.id,
                 tokenId,
                 properties: {
-                    foo: 'bar',
+                    foo: { value: 'bar' },
                 },
             });
 
@@ -156,11 +156,11 @@ describe('NftService', () => {
                 tierId: tier.id,
                 tokenId,
                 properties: {
-                    foo: 'barrrrr',
+                    foo: { value: 'barrrrr' },
                 },
             });
             expect(result.id).toBeTruthy();
-            expect(result.properties.foo).toEqual('barrrrr');
+            expect(result.properties.foo.value).toEqual('barrrrr');
         });
     });
 
@@ -255,7 +255,7 @@ describe('NftService', () => {
                     tierId: tier.id,
                     tokenId: tokenId1,
                     properties: {
-                        foo: 'bar',
+                        foo: { value: 'bar' },
                     },
                 }),
                 nftService.createOrUpdateNftByTokenId({
@@ -263,7 +263,7 @@ describe('NftService', () => {
                     tierId: tier.id,
                     tokenId: tokenId2,
                     properties: {
-                        foo: 'bar',
+                        foo: { value: 'bar' },
                     },
                 }),
                 nftService.createOrUpdateNftByTokenId({
@@ -271,7 +271,7 @@ describe('NftService', () => {
                     tierId: anotherTier.id,
                     tokenId: tokenId3,
                     properties: {
-                        foo: 'bar',
+                        foo: { value: 'bar' },
                     },
                 }),
             ]);
@@ -340,7 +340,7 @@ describe('NftService', () => {
                     tierId: tier.id,
                     tokenId: tokenId1,
                     properties: {
-                        foo: 'bar',
+                        foo: { value: 'bar' },
                     },
                 }),
                 nftService.createOrUpdateNftByTokenId({
@@ -348,7 +348,7 @@ describe('NftService', () => {
                     tierId: tier.id,
                     tokenId: tokenId2,
                     properties: {
-                        foo: 'bar',
+                        foo: { value: 'bar' },
                     },
                 }),
                 nftService.createOrUpdateNftByTokenId({
@@ -356,7 +356,7 @@ describe('NftService', () => {
                     tierId: tier.id,
                     tokenId: tokenId3,
                     properties: {
-                        foo: 'bar',
+                        foo: { value: 'bar' },
                     },
                 }),
             ]);
@@ -787,7 +787,7 @@ describe('NftService', () => {
                 tierId: tier.id,
                 tokenId,
                 properties: {
-                    foo: 'bar',
+                    foo: { value: 'bar' },
                 },
             });
 
@@ -850,7 +850,7 @@ describe('NftService', () => {
                 tierId: tier.id,
                 tokenId,
                 properties: {
-                    foo: 'bar',
+                    foo: { value: 'bar' },
                 },
             });
 
@@ -915,7 +915,7 @@ describe('NftService', () => {
                 tierId: tier.id,
                 tokenId,
                 properties: {
-                    foo: 'bar',
+                    foo: { value: 'bar' },
                 },
             });
 
@@ -925,7 +925,7 @@ describe('NftService', () => {
                 tierId: tier.id,
                 tokenId: anotherTokenId,
                 properties: {
-                    foo: 'bar',
+                    foo: { value: 'bar' },
                 },
             });
 
@@ -994,7 +994,7 @@ describe('NftService', () => {
                 tierId: tier.id,
                 tokenId,
                 properties: {
-                    foo: 'bar',
+                    foo: { value: 'bar' },
                 },
             });
 
@@ -1004,7 +1004,7 @@ describe('NftService', () => {
                 tierId: tier.id,
                 tokenId: anotherTokenId,
                 properties: {
-                    foo: 'bar',
+                    foo: { value: 'bar' },
                 },
             });
 

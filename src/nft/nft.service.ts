@@ -252,7 +252,7 @@ export class NftService {
      * @param candidateProperties
      * @returns
      */
-    initializePropertiesFromTier(candidateProperties: MetadataProperties) {
+    initializePropertiesFromTier(candidateProperties: MetadataProperties): MetadataProperties {
         const properties: MetadataProperties = {};
         for (const [key, value] of Object.entries(candidateProperties)) {
             const property = Object.assign({}, value);
@@ -273,7 +273,8 @@ export class NftService {
      * @returns
      */
     async createOrUpdateNftByTokenId(payload: ICreateOrUpdateNft) {
-        const { tokenId, collectionId, tierId, properties, ownerAddress } = payload;
+        const { tokenId, collectionId, tierId, properties: candidateProperties, ownerAddress } = payload;
+        const properties = this.initializePropertiesFromTier(candidateProperties) as any;
         await this.nftRepository.upsert(
             {
                 tokenId,
