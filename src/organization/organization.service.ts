@@ -297,8 +297,8 @@ export class OrganizationService {
         const data = await Promise.all(
             result.map(async (item) => {
                 const coin = await this.coinService.getCoinByAddress(item.token);
-                const totalTokenPrice = new BigNumber(item.totalPrice).div(new BigNumber(10).pow(coin.decimals));
-                const quote = await this.coinService.getQuote(coin.symbol);
+                const totalTokenPrice = new BigNumber(item.totalPrice).div(new BigNumber(10).pow(coin ? coin.decimals : 18));
+                const quote = await this.coinService.getQuote(coin ? coin.symbol : 'ETH');
                 const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(quote['USD'].price);
                 return {
                     paymentToken: item.token,
@@ -440,8 +440,8 @@ export class OrganizationService {
                     collection: { id: collection.id },
                 });
                 const coin = await this.coinService.getCoinByAddress(paymentToken);
-                const quote = await this.coinService.getQuote(coin.symbol);
-                const totalTokenPrice = new BigNumber(totalPrice).div(new BigNumber(10).pow(coin.decimals));
+                const quote = await this.coinService.getQuote(coin ? coin.symbol : 'ETH');
+                const totalTokenPrice = new BigNumber(totalPrice).div(new BigNumber(10).pow(coin ? coin.decimals : 18));
                 const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(quote['USD'].price);
 
                 const createdAt = new Date(item.txTime * 1000);
@@ -545,8 +545,8 @@ export class OrganizationService {
         const data = await Promise.all(
             result.map(async (item) => {
                 const coin = await this.coinService.getCoinByAddress(item.paymentToken);
-                const quote = await this.coinService.getQuote(coin.symbol);
-                const totalTokenPrice = new BigNumber(item.totalPrice).div(new BigNumber(10).pow(coin.decimals));
+                const quote = await this.coinService.getQuote(coin ? coin.symbol : 'ETH');
+                const totalTokenPrice = new BigNumber(item.totalPrice).div(new BigNumber(10).pow(coin ? coin.decimals : 18));
                 const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(quote['USD'].price);
                 return {
                     id: item.time.toString(),
