@@ -1,12 +1,19 @@
 import { faker } from '@faker-js/faker';
 import { CollectionPluginService } from './collectionPlugin.service';
-import { createCollection, createOrganization, createPlugin, createRecipientsMerkleTree } from '../test-utils';
+import {
+    createAsset721,
+    createCollection,
+    createOrganization,
+    createPlugin,
+    createRecipientsMerkleTree
+} from '../test-utils';
 import { CollectionService } from '../collection/collection.service';
 import { UserService } from '../user/user.service';
 import { OrganizationService } from '../organization/organization.service';
 import { Plugin } from '../plugin/plugin.entity';
 import { Repository } from 'typeorm';
 import { MerkleTreeService } from '../merkleTree/merkleTree.service';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 
 describe('CollectionPluginService', () => {
     let service: CollectionPluginService;
@@ -15,6 +22,7 @@ describe('CollectionPluginService', () => {
     let organizationService: OrganizationService;
     let pluginRepository: Repository<Plugin>;
     let merkleTreeService: MerkleTreeService;
+    let asset721Service: Asset721Service;
 
     beforeAll(async () => {
         service = global.collectionPluginService;
@@ -23,6 +31,7 @@ describe('CollectionPluginService', () => {
         organizationService = global.organizationService;
         pluginRepository = global.pluginRepository;
         merkleTreeService = global.merkleTreeService;
+        asset721Service = global.asset721Service;
     });
 
     afterEach(async () => {
@@ -373,6 +382,44 @@ describe('CollectionPluginService', () => {
             const deleted = await service.getCollectionPlugin(collectionPlugin.id);
             expect(result).toBeTruthy();
             expect(deleted).toBeNull();
+        });
+    });
+
+    describe('checkIfPluginClaimed', function () {
+        it('should return true if the token is claimed', async () => {
+            const tokenId = '1';
+            const collection = await createCollection(
+                collectionService, { tokenAddress: faker.finance.ethereumAddress() });
+            const plugin = await createPlugin(pluginRepository);
+            const input = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: 'test collection plugin',
+                pluginDetail: {
+                    tokenAddress: collection.tokenAddress
+                },
+            };
+            const collectionPlugin = await service.createCollectionPlugin(input);
+            await createAsset721(asset721Service, {
+                tokenId,
+                address: collection.tokenAddress,
+            });
+            const result = await service.checkIfPluginClaimed(collectionPlugin, tokenId);
+            expect(result).toBeTruthy();
+        });
+
+        it('should return false if the token is not claimed', async () => {
+            const collection = await createCollection(collectionService);
+            const plugin = await createPlugin(pluginRepository);
+            const input = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: 'test collection plugin',
+                pluginDetail: {},
+            };
+            const collectionPlugin = await service.createCollectionPlugin(input);
+            const result = await service.checkIfPluginClaimed(collectionPlugin, '1');
+            expect(result).toBeFalsy();
         });
     });
 });

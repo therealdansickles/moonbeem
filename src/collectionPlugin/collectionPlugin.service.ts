@@ -13,6 +13,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { MerkleTree as MerkleTreeEntity } from '../merkleTree/merkleTree.entity';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 
 @Injectable()
 export class CollectionPluginService {
@@ -24,7 +25,8 @@ export class CollectionPluginService {
         @InjectRepository(CollectionPluginEntity)
         private readonly collectionPluginRepository: Repository<CollectionPluginEntity>,
         @InjectRepository(MerkleTreeEntity)
-        private readonly merkleTreeRepo: Repository<MerkleTreeEntity>
+        private readonly merkleTreeRepo: Repository<MerkleTreeEntity>,
+        private readonly asset721Service: Asset721Service,
     ) {
     }
 
@@ -121,10 +123,12 @@ export class CollectionPluginService {
             .getExists();
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async checkIfPluginClaimed(plugin: CollectionPlugin, tokenId: string): Promise<boolean> {
-        // check if there is a claim record for this plugin and tokenId
-        return false;
+        const { pluginDetail } = plugin;
+        const { tokenAddress } = pluginDetail || {};
+        if (!tokenAddress) return false;
+        const asset721 = await this.asset721Service.getAsset721({ tokenId, address: tokenAddress });
+        return !!asset721;
     }
 
     async getAppliedTokensCount(collectionPlugin: CollectionPlugin, totalSupply: number): Promise<number> {
