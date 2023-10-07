@@ -193,11 +193,6 @@ export class CollectionService {
      * @param organizationId The id of the organization to retrieve.
      * @returns The collection associated with the given organization.
      */
-    // 15 collections
-    // 19 tiers
-    // tier ->
-    //      get contract
-    //      getCoinByAddress
     async getCollectionsByOrganizationId(organizationId: string): Promise<Collection[]> {
         const result: Collection[] = [];
         const collections = await this.collectionRepository.find({

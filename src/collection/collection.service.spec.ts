@@ -1265,8 +1265,6 @@ describe('CollectionService', () => {
         it('should get tiers by collection id', async () => {
             const result = await service.getCollectionTiers(collection.id);
             expect(result.length).toEqual(1);
-            expect(result[0].coin).toBeDefined();
-            expect(result[0].coin.address).toEqual(coin.address);
         });
     });
 

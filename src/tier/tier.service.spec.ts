@@ -257,20 +257,20 @@ describe('TierService', () => {
                 metadata: {
                     configs: {
                         alias: {
-                            [propertyKey]: faker.string.uuid()
-                        }
+                            [propertyKey]: faker.string.uuid(),
+                        },
                     },
                     properties: {
                         [propertyKey]: {
                             name: `{{${propertyKey}}}`,
-                            value: faker.number.int(10)
+                            value: faker.number.int(10),
                         },
                         [anotherPropertyKey]: {
                             name: `{{${anotherPropertyKey}_name}}`,
-                            value: faker.number.int(8)
-                        }
-                    }
-                }
+                            value: faker.number.int(8),
+                        },
+                    },
+                },
             });
 
             const result = await service.getTier({ id: tier.id });
@@ -343,7 +343,7 @@ describe('TierService', () => {
                 collection: { id: collection.id },
                 paymentTokenAddress: coin.address,
                 metadata: {
-                    uses: [ pluginName1 ]
+                    uses: [pluginName1],
                 },
             });
 
@@ -352,7 +352,7 @@ describe('TierService', () => {
                 collection: { id: collection.id },
                 paymentTokenAddress: coin.address,
                 metadata: {
-                    uses: [ pluginName1, pluginName2 ]
+                    uses: [pluginName1, pluginName2],
                 },
             });
 
@@ -380,22 +380,22 @@ describe('TierService', () => {
                 collection: { id: collection.id },
                 paymentTokenAddress: coin.address,
                 metadata: {
-                    uses: [ pluginName1 ],
+                    uses: [pluginName1],
                     configs: {
                         alias: {
-                            [propertyKey]: faker.string.uuid()
-                        }
+                            [propertyKey]: faker.string.uuid(),
+                        },
                     },
                     properties: {
                         [propertyKey]: {
                             name: `{{${propertyKey}}}`,
-                            value: faker.number.int(10)
+                            value: faker.number.int(10),
                         },
                         [anotherPropertyKey]: {
                             name: `{{${anotherPropertyKey}_name}}`,
-                            value: faker.number.int(8)
-                        }
-                    }
+                            value: faker.number.int(8),
+                        },
+                    },
                 },
             });
 
@@ -435,6 +435,33 @@ describe('TierService', () => {
             const result = await service.deleteTier(tier.id);
 
             expect(result).toBeTruthy();
+        });
+    });
+
+    describe('getTierTotalSold', () => {
+        it('should get tier total sold', async () => {
+            const coin = await createCoin(coinService);
+            const collection = await createCollection(collectionService);
+
+            await createTier(service, {
+                collection: { id: collection.id },
+                address: collection.address,
+                paymentTokenAddress: coin.address,
+                tierId: 1,
+            });
+            const tier = await service.getTier({ collection: { id: collection.id }, tierId: 1 });
+
+            await createMintSaleContract(mintSaleContractService, {
+                address: collection.address,
+                collectionId: collection.id,
+                paymentToken: coin.address,
+                currentId: 33,
+                startId: 0,
+                tierId: 1,
+            });
+            const result = await service.getTierTotalSold(tier);
+
+            expect(result).toEqual(33);
         });
     });
 
@@ -495,7 +522,7 @@ describe('TierService', () => {
                 about: 'The draft collection',
                 address: null,
             });
-            
+
             tier = await createTier(service, {
                 name: tierName,
                 collection: { id: innerCollection.id },
@@ -504,8 +531,8 @@ describe('TierService', () => {
                     uses: ['vibexyz/creator_scoring', 'vibexyz/royalty_level'],
                     configs: {
                         alias: {
-                            level_name: propertyLevelName
-                        }
+                            level_name: propertyLevelName,
+                        },
                     },
                     properties: {
                         color: {
@@ -699,7 +726,7 @@ describe('TierService', () => {
         it('should get aggregated holders of tier with pagination', async () => {
             const firstTokenId = faker.number.int({ min: 10000, max: 99999 });
             const createAt = faker.date.past().toISOString();
-            const txTime = Math.floor(faker.date.past().getTime()/1000);
+            const txTime = Math.floor(faker.date.past().getTime() / 1000);
             for (let i = 0; i < 14; i++) {
                 const tokenId = firstTokenId + i;
                 const owner = faker.finance.ethereumAddress();
@@ -768,8 +795,8 @@ describe('TierService', () => {
                     uses: ['vibexyz/creator_scoring', 'vibexyz/royalty_level'],
                     configs: {
                         alias: {
-                            level_name: propertyLevelName
-                        }
+                            level_name: propertyLevelName,
+                        },
                     },
                     properties: {
                         color: {
@@ -897,13 +924,7 @@ describe('TierService', () => {
         });
 
         xit('should search by keyword and collection id', async () => {
-            const result = await service.searchTier(
-                { collectionId: innerCollection.id, keyword: 'test' },
-                '',
-                '',
-                10,
-                10
-            );
+            const result = await service.searchTier({ collectionId: innerCollection.id, keyword: 'test' }, '', '', 10, 10);
             expect(result).toBeDefined();
             expect(result.totalCount).toEqual(1);
             expect(result.edges).toBeDefined();
@@ -913,13 +934,7 @@ describe('TierService', () => {
         });
 
         it('should search by keyword and collection slug', async () => {
-            const result = await service.searchTier(
-                { collectionSlug: innerCollection.slug, keyword: 'test' },
-                '',
-                '',
-                10,
-                10
-            );
+            const result = await service.searchTier({ collectionSlug: innerCollection.slug, keyword: 'test' }, '', '', 10, 10);
             expect(result).toBeDefined();
             expect(result.totalCount).toEqual(1);
             expect(result.edges).toBeDefined();
@@ -945,13 +960,7 @@ describe('TierService', () => {
         });
 
         xit('should search by plugin', async () => {
-            const result = await service.searchTier(
-                { collectionId: innerCollection.id, plugins: ['vibexyz/creator_scoring'] },
-                '',
-                '',
-                10,
-                10
-            );
+            const result = await service.searchTier({ collectionId: innerCollection.id, plugins: ['vibexyz/creator_scoring'] }, '', '', 10, 10);
             expect(result).toBeDefined();
             expect(result.totalCount).toEqual(1);
             expect(result.edges).toBeDefined();
@@ -961,13 +970,7 @@ describe('TierService', () => {
         });
 
         xit('should search by upgrade attribute', async () => {
-            const result = await service.searchTier(
-                { collectionId: innerCollection.id, upgrades: ['holding_days'] },
-                '',
-                '',
-                10,
-                10
-            );
+            const result = await service.searchTier({ collectionId: innerCollection.id, upgrades: ['holding_days'] }, '', '', 10, 10);
             expect(result).toBeDefined();
             expect(result.totalCount).toEqual(1);
             expect(result.edges).toBeDefined();
@@ -1036,7 +1039,7 @@ describe('TierService', () => {
                 about: 'The draft collection',
                 address: null,
             });
-            
+
             await createTier(service, {
                 name: tierName,
                 collection: { id: innerCollection.id },
@@ -1045,8 +1048,8 @@ describe('TierService', () => {
                     uses: ['vibexyz/creator_scoring', 'vibexyz/royalty_level'],
                     configs: {
                         alias: {
-                            level_name: propertyLevelName
-                        }
+                            level_name: propertyLevelName,
+                        },
                     },
                     properties: {
                         color: {
@@ -1066,7 +1069,7 @@ describe('TierService', () => {
                             name: 'hidden_property',
                             type: 'string',
                             value: 'hidden',
-                            display_value: 'none'
+                            display_value: 'none',
                         },
                     },
                     conditions: {
@@ -1173,14 +1176,14 @@ describe('TierService', () => {
         });
 
         it('should hide the hidden properties', async () => {
-            const result = await service.getAttributesOverview({ collectionAddress } );
+            const result = await service.getAttributesOverview({ collectionAddress });
 
             expect(result.upgrades).toBeDefined();
             expect(result.upgrades['hidden_property']).toBeFalsy();
         });
 
         xit('should get attribute overview by collection slug', async () => {
-            const result = await service.getAttributesOverview({ collectionSlug: innerCollection.slug } );
+            const result = await service.getAttributesOverview({ collectionSlug: innerCollection.slug });
             expect(result).toBeDefined();
             expect(result.attributes).toBeDefined();
             expect(result.attributes['level']).toBeDefined();
