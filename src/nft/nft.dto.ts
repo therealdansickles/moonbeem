@@ -12,14 +12,14 @@ export class Nft {
     @IsString()
     @Field({ description: 'The ID for a collection' })
     readonly id: string;
-    
+
     @IsObject()
     @Field(() => Collection, { description: 'The collection of the NFT belongs to.' })
     readonly collection: Collection;
 
     @IsObject()
     @IsOptional()
-    @Field(() => Tier, { description: 'The tier of the NFT belongs to.' } )
+    @Field(() => Tier, { description: 'The tier of the NFT belongs to.' })
     readonly tier?: Tier;
 
     @IsString()
@@ -31,8 +31,13 @@ export class Nft {
     @Field({ nullable: true, description: 'The owner address of the NFT.' })
     public owner?: string;
 
+    @IsString()
+    @IsOptional()
+    @Field({ nullable: true, description: 'The ownerAddress of the NFT.' })
+    public ownerAddress?: string;
+
     @IsObject()
-    @Field(() => GraphQLJSONObject, { description:  'The properties of the NFT.', nullable: true })
+    @Field(() => GraphQLJSONObject, { description: 'The properties of the NFT.', nullable: true })
     readonly properties: MetadataProperties;
 
     @IsObject()
@@ -55,12 +60,12 @@ export class NftPropertiesSearchInput {
 export class NftPropertyOverview {
     @IsString()
     @IsOptional()
-    @Field({ nullable: true,  description: 'The max value of the property appears in a collection.' })
+    @Field({ nullable: true, description: 'The max value of the property appears in a collection.' })
     readonly max?: string;
 
     @IsString()
     @IsOptional()
-    @Field({ nullable: true,  description: 'The min value of the property appears in a collection.' })
+    @Field({ nullable: true, description: 'The min value of the property appears in a collection.' })
     readonly min?: string;
 
     @IsString()
@@ -76,6 +81,6 @@ export class CreateOrUpdateNftInput extends PickType(Nft, ['tokenId', 'propertie
     readonly collectionId: string;
 
     @IsString()
-    @Field({ description: 'The tier of the NFT belongs to.' } )
+    @Field({ description: 'The tier of the NFT belongs to.' })
     readonly tierId: string;
 }

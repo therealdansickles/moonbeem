@@ -5,10 +5,18 @@ import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
 
 import { CollaborationService } from '../collaboration/collaboration.service';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
+import { MerkleTreeType } from '../merkleTree/merkleTree.dto';
+import { MerkleTree } from '../merkleTree/merkleTree.entity';
+import { MerkleTreeService } from '../merkleTree/merkleTree.service';
+import { NftService } from '../nft/nft.service';
 import { OrganizationService } from '../organization/organization.service';
+import { Plugin } from '../plugin/plugin.entity';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
+import { History721Type } from '../sync-chain/history721/history721.entity';
+import { History721Service } from '../sync-chain/history721/history721.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import {
@@ -28,13 +36,6 @@ import { WalletService } from '../wallet/wallet.service';
 import { CollectionActivityType, CollectionStat, CollectionStatus } from './collection.dto';
 import { Collection } from './collection.entity';
 import { CollectionService } from './collection.service';
-import { History721Service } from '../sync-chain/history721/history721.service';
-import { History721Type } from '../sync-chain/history721/history721.entity';
-import { NftService } from '../nft/nft.service';
-import { MerkleTree } from '../merkleTree/merkleTree.entity';
-import { Plugin } from '../plugin/plugin.entity';
-import { MerkleTreeService } from '../merkleTree/merkleTree.service';
-import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
@@ -800,7 +801,7 @@ describe('CollectionService', () => {
                         creator: { id: wallet.id },
                         startSaleAt: faker.date.future().getTime() / 1000,
                         endSaleAt: faker.date.past().getTime() / 1000,
-                    })
+                    }),
             ).rejects.toThrow(`The endSaleAt should be greater than startSaleAt.`);
         });
 
@@ -824,7 +825,7 @@ describe('CollectionService', () => {
                         },
                         creator: { id: wallet.id },
                         startSaleAt: faker.date.past().getTime() / 1000,
-                    })
+                    }),
             ).rejects.toThrow(`The startSaleAt should be greater than today.`);
         });
 
@@ -901,7 +902,7 @@ describe('CollectionService', () => {
             const collectionName = collectionInput.name;
             await service.createCollection(collectionInput);
             await expect(async () => await service.precheckCollection(collectionInput)).rejects.toThrow(
-                `The collection name ${collectionName} is already taken`
+                `The collection name ${collectionName} is already taken`,
             );
 
             // for collection slug
@@ -910,7 +911,7 @@ describe('CollectionService', () => {
                     await service.precheckCollection({
                         ...collectionInput,
                         name: collectionInput.name.toUpperCase(),
-                    })
+                    }),
             ).rejects.toThrow(`The collection name ${collectionName.toUpperCase()} is already taken`);
         });
     });
@@ -3000,7 +3001,7 @@ describe('CollectionService', () => {
                     tierId: 0,
                     startId: 0,
                     endId: 2,
-                }
+                },
             );
 
             await createTierAndMintSaleContract(
@@ -3021,7 +3022,7 @@ describe('CollectionService', () => {
                     tierId: 1,
                     startId: 3,
                     endId: 5,
-                }
+                },
             );
 
             await createTierAndMintSaleContract(
@@ -3042,7 +3043,7 @@ describe('CollectionService', () => {
                     tierId: 2,
                     startId: 6,
                     endId: 8,
-                }
+                },
             );
 
             tier = await createTierAndMintSaleContract(
@@ -3063,7 +3064,7 @@ describe('CollectionService', () => {
                     tierId: 3,
                     startId: 9,
                     endId: 11,
-                }
+                },
             );
 
             await createTierAndMintSaleContract(
@@ -3084,7 +3085,7 @@ describe('CollectionService', () => {
                     tierId: 4,
                     startId: 12,
                     endId: 14,
-                }
+                },
             );
 
             await createTierAndMintSaleContract(
@@ -3105,7 +3106,7 @@ describe('CollectionService', () => {
                     tierId: 5,
                     startId: 15,
                     endId: 17,
-                }
+                },
             );
         });
 
@@ -3164,10 +3165,14 @@ describe('CollectionService', () => {
 
             const combinedFilter = [...typeFilter, ...heightFilter];
             const combinedRanges = await service.getTokenIdRangesByStaticPropertiesFilters(collection.id, collection.address, combinedFilter);
-            expect(combinedRanges.length).toBe(2);
+            // It's OR condition now
+            expect(combinedRanges.length).toBe(5);
             expect(combinedRanges).toEqual([
+                [0, 2],
+                [6, 8],
                 [9, 11],
                 [12, 14],
+                [15, 17],
             ]);
         });
 
@@ -3177,7 +3182,7 @@ describe('CollectionService', () => {
             await nftService.createOrUpdateNftByTokenId({
                 collectionId,
                 tierId,
-                tokenId: 9,
+                tokenId: '9',
                 properties: {
                     loyalty: {
                         value: '150',
@@ -3187,7 +3192,7 @@ describe('CollectionService', () => {
             await nftService.createOrUpdateNftByTokenId({
                 collectionId,
                 tierId,
-                tokenId: 10,
+                tokenId: '10',
                 properties: {
                     loyalty: {
                         value: '50',
@@ -3197,7 +3202,7 @@ describe('CollectionService', () => {
             await nftService.createOrUpdateNftByTokenId({
                 collectionId,
                 tierId,
-                tokenId: 11,
+                tokenId: '11',
                 properties: {
                     loyalty: {
                         value: '250',
@@ -3224,8 +3229,8 @@ describe('CollectionService', () => {
                 ],
             };
             const tokenIds = await service.searchTokenIds(searchInput);
-            expect(tokenIds.length).toBe(2);
-            expect(tokenIds).toEqual(['9', '11']);
+            expect(tokenIds.length).toBe(15);
+            expect(tokenIds).toEqual(['0', '1', '2', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']);
         });
     });
 
@@ -3238,7 +3243,7 @@ describe('CollectionService', () => {
             const data = tokenIds.map((tokenId) => {
                 return { collection: collectionAddress, tokenId, quantity: '1' };
             });
-            return merkleTreeService.createGeneralMerkleTree('recipients', data);
+            return merkleTreeService.createGeneralMerkleTree(MerkleTreeType.recipients, data);
         };
 
         beforeEach(async () => {
@@ -3279,7 +3284,7 @@ describe('CollectionService', () => {
                         name: 'collection plugin with merkle root',
                         count: 3,
                     }),
-                ])
+                ]),
             );
         });
     });
@@ -3296,7 +3301,7 @@ describe('CollectionService', () => {
             const data = tokenIds.map((tokenId) => {
                 return { collection: collectionAddress, tokenId, quantity: '1' };
             });
-            return merkleTreeService.createGeneralMerkleTree('recipients', data);
+            return merkleTreeService.createGeneralMerkleTree(MerkleTreeType.recipients, data);
         };
 
         const createTierAndMintSaleContract = async (tierData, mintSaleContractData) => {
@@ -3352,7 +3357,7 @@ describe('CollectionService', () => {
                     tierId: 0,
                     startId: 1,
                     endId: 9,
-                }
+                },
             );
 
             await createTierAndMintSaleContract(
@@ -3379,7 +3384,7 @@ describe('CollectionService', () => {
                     tierId: 1,
                     startId: 10,
                     endId: 30,
-                }
+                },
             );
 
             await createTierAndMintSaleContract(
@@ -3413,7 +3418,7 @@ describe('CollectionService', () => {
                     tierId: 2,
                     startId: 31,
                     endId: 99,
-                }
+                },
             );
             // create plugin
             merkleTree = await createRecipientsMerkleTree(collection.address, ['1', '2', '20']);
@@ -3470,7 +3475,7 @@ describe('CollectionService', () => {
                             },
                         ],
                     },
-                ])
+                ]),
             );
 
             expect(result.attributes.dynamicAttributes).toEqual([
@@ -3515,7 +3520,7 @@ describe('CollectionService', () => {
                         name: 'collection plugin with merkle root',
                         count: 3,
                     },
-                ])
+                ]),
             );
             expect(result.upgrades).toEqual(
                 expect.arrayContaining([
@@ -3531,7 +3536,7 @@ describe('CollectionService', () => {
                         name: '@vibe_lab/airdrop',
                         count: 99,
                     },
-                ])
+                ]),
             );
 
             const getBySlugResult = await service.getMetadataOverview({

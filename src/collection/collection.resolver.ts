@@ -39,10 +39,14 @@ export class CollectionResolver {
         private readonly collectionService: CollectionService,
         private readonly mintSaleContractService: MintSaleContractService,
         private readonly openseaService: OpenseaService
-    ) {}
+    ) {
+    }
 
     @AuthorizedCollectionViewer()
-    @Query(() => Collection, { description: 'returns a collection for a given uuid (authorized endpoint)', nullable: true })
+    @Query(
+        () => Collection,
+        { description: 'returns a collection for a given uuid (authorized endpoint)', nullable: true }
+    )
     async collection(
         @Args({ name: 'id', nullable: true }) id: string,
             @Args({ name: 'address', nullable: true }) address: string,
@@ -157,7 +161,8 @@ export class CollectionResolver {
             @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
             @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
     ): Promise<CollectionAggregatedActivityPaginated> {
-        return this.collectionService.getAggregatedCollectionActivities(collection.address, collection.tokenAddress, before, after, first, last);
+        return this.collectionService.getAggregatedCollectionActivities(
+            collection.address, collection.tokenAddress, before, after, first, last);
     }
 
     @Public()
@@ -251,13 +256,13 @@ export class CollectionResolver {
     }
 
     @Public()
-    @Query(() => [String], { description: 'Returns the upcoming collections.' })
+    @Query(() => [String], { description: 'Return the token ids match the given criteria.' })
     async searchTokenIds(@Args('input', { nullable: true }) input: SearchTokenIdsInput): Promise<string[]> {
         return this.collectionService.searchTokenIds(input);
     }
 
     @Public()
-    @Query(() => MetadataOverview, { description: 'Returns the upcoming collections.' })
+    @Query(() => MetadataOverview, { description: 'Returns the metadata overview of given collection.' })
     async metadataOverview(@Args('input') input: MetadataOverviewInput): Promise<MetadataOverview> {
         return this.collectionService.getMetadataOverview(input);
     }

@@ -46,6 +46,9 @@ export const filterTokenIdsByRanges = (tokenIds: string[], ranges: number[][]): 
     );
 };
 
+export const combineTokenIdsAndRanges = (tokenIds: string[], ranges: number[][]): string[] => Array.from(
+    new Set([...tokenIds, ...generateTokenIdsByRanges(ranges)])).sort((a, b) => parseInt(a) - parseInt(b));
+
 const filterUndefined = (obj: Record<string, any>) => omitBy(obj, isNil);
 
 export const getCollectionAttributesOverview = (tiers: Tier[], tierTokenCountsMap: Record<number, number>): AttributesOverview => {

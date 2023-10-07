@@ -5,11 +5,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { PropertyFilter } from '../collection/collection.dto';
+import { Collection } from '../collection/collection.entity';
 import { Metadata, MetadataProperties } from '../metadata/metadata.dto';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { Nft as NftDto } from './nft.dto';
 import { Nft } from './nft.entity';
-import { Collection } from '../collection/collection.entity';
 
 interface INFTQueryWithId {
     id: string;
@@ -56,6 +56,14 @@ export type INftWithPropertyAndCollection = {
     propertyName: string;
 };
 
+export type ICreateOrUpdateNft = {
+    collectionId: string;
+    tierId: string;
+    tokenId: string;
+    ownerAddress?: string;
+    properties: any;
+};
+
 @Injectable()
 export class NftService {
     constructor(
@@ -63,7 +71,7 @@ export class NftService {
         @InjectRepository(Nft)
         private readonly nftRepository: Repository<Nft>,
         @InjectRepository(Collection)
-        private readonly collectionRepository: Repository<Collection>
+        private readonly collectionRepository: Repository<Collection>,
     ) {}
 
     /**
@@ -195,7 +203,7 @@ export class NftService {
                     ...new Set(
                         result.map((item) => {
                             return item.collection.id;
-                        })
+                        }),
                     ),
                 ]),
             },
@@ -244,7 +252,7 @@ export class NftService {
      * @param candidateProperties
      * @returns
      */
-    initializePropertiesFromTier(candidateProperties: MetadataProperties) {
+    initializePropertiesFromTier(candidateProperties: MetadataProperties): MetadataProperties {
         const properties: MetadataProperties = {};
         for (const [key, value] of Object.entries(candidateProperties)) {
             const property = Object.assign({}, value);
@@ -264,15 +272,18 @@ export class NftService {
      * @param properties
      * @returns
      */
-    async createOrUpdateNftByTokenId({ collectionId, tierId, tokenId, properties }) {
+    async createOrUpdateNftByTokenId(payload: ICreateOrUpdateNft) {
+        const { tokenId, collectionId, tierId, properties: candidateProperties, ownerAddress } = payload;
+        const properties = this.initializePropertiesFromTier(candidateProperties) as any;
         await this.nftRepository.upsert(
             {
                 tokenId,
                 collection: { id: collectionId },
                 tier: { id: tierId },
+                ownerAddress,
                 properties,
             },
-            ['collection.id', 'tier.id', 'tokenId']
+            ['collection.id', 'tier.id', 'tokenId'],
         );
         return this.nftRepository.findOneBy({ collection: { id: collectionId }, tier: { id: tierId }, tokenId });
     }

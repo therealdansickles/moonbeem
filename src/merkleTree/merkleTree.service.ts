@@ -3,7 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { keccak256 } from 'ethers';
 import { Repository } from 'typeorm';
 import { encodeAddressAndAmount, encodeLeafData, generateMerkleRoot, isValidType } from '../lib/utilities/merkle';
-import { CreateMerkleRootInput, GeneralMerkleProofOutput, MerkleDataInput, MerkleProofOutput } from './merkleTree.dto';
+import {
+    CreateMerkleRootInput,
+    GeneralMerkleProofOutput,
+    MerkleDataInput,
+    MerkleProofOutput,
+    MerkleTreeType
+} from './merkleTree.dto';
 import { MerkleTree } from './merkleTree.entity';
 import { MerkleTree as MerkleTreejs } from 'merkletreejs';
 import { GraphQLError } from 'graphql';
@@ -18,7 +24,8 @@ export class MerkleTreeService {
         private readonly contractRepository: Repository<MintSaleContract>,
         @InjectRepository(MintSaleTransaction, 'sync_chain')
         private readonly transactionRepository: Repository<MintSaleTransaction>
-    ) {}
+    ) {
+    }
 
     async createMerkleTree(input: CreateMerkleRootInput): Promise<MerkleTree> {
         if (input.data.length == 0) {
@@ -84,7 +91,7 @@ export class MerkleTreeService {
         }
     }
 
-    async createGeneralMerkleTree(type: string, data: object[]): Promise<MerkleTree> {
+    async createGeneralMerkleTree(type: MerkleTreeType, data: object[]): Promise<MerkleTree> {
         if (data.length == 0) {
             throw new GraphQLError('The length of data cannot be 0.', { extensions: { code: 'BAD_REQUEST' } });
         }
@@ -104,7 +111,10 @@ export class MerkleTreeService {
         return this.repository.save(merkleTree);
     }
 
-    async getGeneralMerkleProof(merkleRoot: string, type: string, leaf: object): Promise<GeneralMerkleProofOutput> {
+    async getGeneralMerkleProof(merkleRoot: string, type: MerkleTreeType, leaf: object): Promise<GeneralMerkleProofOutput> {
+        if (!isValidType(type)) {
+            throw new GraphQLError('Invalid type provided.', { extensions: { code: 'BAD_REQUEST' } });
+        }
         const merkleTree = await this.repository.findOneBy({ merkleRoot });
         if (!merkleTree) return;
 

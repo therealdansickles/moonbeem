@@ -183,6 +183,7 @@ export class AlchemyService {
                 tierId: tier.id,
                 tokenId,
                 eventType,
+                ownerAddress: toAddress,
                 properties: tier.metadata?.properties || {},
             });
         }

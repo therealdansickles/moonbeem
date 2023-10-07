@@ -1,12 +1,13 @@
 import { ethers, keccak256 } from 'ethers';
 import { MerkleTree } from 'merkletreejs';
+import { MerkleTreeType } from '../../merkleTree/merkleTree.dto';
 
 const typeToSolidityTypes = {
-    allowlist: {
+    [MerkleTreeType.allowlist]: {
         address: 'address',
         amount: 'uint256',
     },
-    recipients: {
+    [MerkleTreeType.recipients]: {
         collection: 'address',
         tokenId: 'uint256',
         quantity: 'uint256',
@@ -59,7 +60,9 @@ export function encodeAddressAndAmount(address: string, max: number) {
 }
 
 export function encodeTokenAccountAmount(accountAddress: string, tokenAddress: string, amount: number) {
-    return keccak256(ethers.AbiCoder.defaultAbiCoder().encode(['address', 'address', 'uint256'], [accountAddress, tokenAddress, amount]));
+    return keccak256(ethers.AbiCoder.defaultAbiCoder().encode(['address', 'address', 'uint256'],
+        [accountAddress, tokenAddress, amount]
+    ));
 }
 
 export function encodeAddressAndERC20AndAmount(address: string, erc20: string, amount: string) {

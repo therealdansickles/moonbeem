@@ -1,4 +1,5 @@
 import {
+    combineTokenIdsAndRanges,
     filterTokenIdsByRanges,
     generateSlug,
     generateTokenIdsByRanges,
@@ -52,6 +53,24 @@ describe('CollectionServiceUtil', () => {
                 ]
             );
             expect(result).toEqual(['3', '4', '5', '7', '8', '10']);
+        });
+    });
+
+    describe('combineTokenIdsAndRanges', () => {
+        it('should combine them if no overlap', function () {
+            const result = combineTokenIdsAndRanges(['1', '2', '3', '4', '5', '7', '8', '9', '10'], [[11, 12]]);
+            expect(result).toEqual(['1', '2', '3', '4', '5', '7', '8', '9', '10', '11', '12']);
+        });
+
+        it('should return unique tokenIds', () => {
+            const result = combineTokenIdsAndRanges(
+                ['1', '2', '3', '4', '5', '7', '8', '9', '10'],
+                [
+                    [3, 8],
+                    [10, 12],
+                ]
+            );
+            expect(result).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']);
         });
     });
 

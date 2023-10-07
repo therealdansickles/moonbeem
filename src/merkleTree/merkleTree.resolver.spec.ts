@@ -4,6 +4,7 @@ import { faker } from '@faker-js/faker';
 import { INestApplication } from '@nestjs/common';
 
 import { MerkleTreeService } from './merkleTree.service';
+import { MerkleTreeType } from './merkleTree.dto';
 
 export const gql = String.raw;
 
@@ -120,7 +121,7 @@ describe('MerkleTreeResolver', () => {
 
     describe('GeneralMerkleTree', () => {
         it('should create merkle tree', async () => {
-            const type = 'recipients';
+            const type = MerkleTreeType.recipients;
             const data = [
                 {
                     collection: faker.finance.ethereumAddress(),
@@ -153,7 +154,7 @@ describe('MerkleTreeResolver', () => {
         });
 
         it('should get merkle tree proof', async () => {
-            const type = 'recipients';
+            const type = MerkleTreeType.recipients;
             const collection = faker.finance.ethereumAddress();
             const leafData = {
                 collection,

@@ -34,10 +34,10 @@ export class AlchemyController {
         const nfts = await this.alchemyService.serializeNftActivityEvent(req.body);
         try {
             for (const nft of nfts) {
-                const { collectionId, tierId, tokenId, properties, eventType } = nft;
+                const { collectionId, tierId, tokenId, properties, ownerAddress, eventType } = nft;
                 switch (eventType) {
                     case EventType.MINT: {
-                        await this.nftService.createOrUpdateNftByTokenId({ collectionId, tierId, tokenId, properties });
+                        await this.nftService.createOrUpdateNftByTokenId({ collectionId, tierId, tokenId, ownerAddress, properties });
                         break;
                     }
                     case EventType.TRANSFER: {

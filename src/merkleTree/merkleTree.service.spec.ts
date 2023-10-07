@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker';
 
 import { MerkleTreeService } from './merkleTree.service';
+import { MerkleTreeType } from './merkleTree.dto';
 
 describe('MerkleTreeService', () => {
     let service: MerkleTreeService;
@@ -95,8 +96,9 @@ describe('MerkleTreeService', () => {
             expect(result1.proof).toBeDefined();
         });
 
-        it('should return null, if merklet root not match', async () => {
-            const result = await service.getMerkleProof(faker.finance.ethereumAddress(), faker.string.hexadecimal({ length: 66 }));
+        it('should return null, if merkle root not match', async () => {
+            const result = await service.getMerkleProof(
+                faker.finance.ethereumAddress(), faker.string.hexadecimal({ length: 66 }));
             expect(result).toBeUndefined();
         });
 
@@ -125,14 +127,15 @@ describe('MerkleTreeService', () => {
                 ],
             });
 
-            const result = await service.getMerkleProof(address, merkleTree.merkleRoot, faker.finance.ethereumAddress());
+            const result = await service.getMerkleProof(
+                address, merkleTree.merkleRoot, faker.finance.ethereumAddress());
             expect(result.usable).toEqual(-1);
         });
     });
 
     describe('createGeneralMerkleTree', () => {
         it('should create a merkle tree', async () => {
-            const type = 'recipients';
+            const type = MerkleTreeType.recipients;
             const data = [
                 {
                     collection: faker.finance.ethereumAddress(),
@@ -152,7 +155,7 @@ describe('MerkleTreeService', () => {
         });
 
         it('should return the same merkle tree, if data is the same.', async () => {
-            const type = 'recipients';
+            const type = MerkleTreeType.recipients;
             const data = [
                 {
                     collection: faker.finance.ethereumAddress(),
@@ -168,7 +171,7 @@ describe('MerkleTreeService', () => {
 
         it('should throw an error, if data is empty', async () => {
             try {
-                await service.createGeneralMerkleTree('recipients', []);
+                await service.createGeneralMerkleTree(MerkleTreeType.recipients, []);
             } catch (error) {
                 expect(error.message).toMatch(/The length of data cannot be 0./);
             }
@@ -182,7 +185,7 @@ describe('MerkleTreeService', () => {
                 },
             ];
             try {
-                await service.createGeneralMerkleTree('not supported type', data);
+                await service.createGeneralMerkleTree('not supported type' as MerkleTreeType, data);
             } catch (error) {
                 expect(error.message).toMatch(/Invalid type provided./);
             }
@@ -196,7 +199,7 @@ describe('MerkleTreeService', () => {
                 },
             ];
             try {
-                await service.createGeneralMerkleTree('allowlist', data);
+                await service.createGeneralMerkleTree(MerkleTreeType.allowlist, data);
             } catch (error) {
                 expect(error.message).toMatch(/Invalid data provided./);
             }
