@@ -6,7 +6,6 @@ import { Field, InputType, Int, ObjectType, OmitType } from '@nestjs/graphql';
 import { Collection, CollectionInput } from '../collection/collection.dto';
 import Paginated from '../pagination/pagination.dto';
 import { Metadata, MetadataPropertySearchInput } from '../metadata/metadata.dto';
-import { Coin } from '../sync-chain/coin/coin.dto';
 
 @ObjectType('AttributeOutput')
 export class AttributeOutput {
@@ -133,10 +132,6 @@ export class Tier {
     @IsObject()
     @IsOptional()
     readonly metadata?: Metadata;
-
-    @Field(() => Coin, { description: 'The tier coin', nullable: true })
-    @IsOptional()
-    readonly coin?: Coin;
 }
 
 @InputType()

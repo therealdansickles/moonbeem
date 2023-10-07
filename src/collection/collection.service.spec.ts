@@ -702,8 +702,6 @@ describe('CollectionService', () => {
             expect(result[0].id).not.toBeNull();
             expect(result[0].organization.name).not.toBeNull();
             expect(result[0].tiers).not.toBeNull();
-            expect(result[0].tiers[0].coin).toBeTruthy();
-            expect(result[0].tiers[0].coin.symbol).toEqual(coin.symbol);
             expect(result[0].tiers.some((tier) => tier.totalMints === 200)).toBeTruthy();
         });
     });

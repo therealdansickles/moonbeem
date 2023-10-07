@@ -209,19 +209,8 @@ export class CollectionService {
 
         for (const collection of collections) {
             const contract = await this.mintSaleContractRepository.findOne({ where: { collectionId: collection.id } });
-            const tiers: TierDto[] = [];
-            for (const tier of collection.tiers) {
-                if (tier.paymentTokenAddress) {
-                    const coin = await this.coinService.getCoinByAddress(tier.paymentTokenAddress);
-                    tiers.push({
-                        ...tier,
-                        coin,
-                    });
-                }
-            }
-            const collectionInfo: Collection = { ...collection, tiers };
             result.push({
-                ...collectionInfo,
+                ...collection,
                 contract,
             });
         }
