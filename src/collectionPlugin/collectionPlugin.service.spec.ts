@@ -216,6 +216,8 @@ describe('CollectionPluginService', () => {
         let pluginWithMerkleRoot1;
         let pluginWithMerkleRoot2;
         let pluginWithoutMerkleRoot;
+        let input2;
+        let input3;
 
         beforeEach(async () => {
             const user = await userService.createUser({
@@ -248,9 +250,11 @@ describe('CollectionPluginService', () => {
             };
             pluginWithMerkleRoot1 = await service.updateCollectionPlugin(updateInput1);
 
-            const input2 = {
+            input2 = {
                 collectionId: collection2.id,
                 pluginId: plugin.id,
+                description: faker.lorem.paragraph(),
+                mediaUrl: faker.image.url(),
                 name: 'merkle root 2 test collection plugin',
                 pluginDetail: {
                     collectionAddress: collection2.address,
@@ -264,9 +268,11 @@ describe('CollectionPluginService', () => {
             };
             pluginWithMerkleRoot2 = await service.updateCollectionPlugin(updateInput2);
 
-            const input3 = {
+            input3 = {
                 collectionId: collection2.id,
                 pluginId: plugin.id,
+                description: faker.lorem.paragraph(),
+                mediaUrl: faker.image.url(),
                 name: 'test collection plugin',
                 pluginDetail: {
                     collectionAddress: collection2.address,
@@ -309,12 +315,16 @@ describe('CollectionPluginService', () => {
                 name: pluginWithoutMerkleRoot.name,
                 collectionAddress: collection2.address,
                 tokenAddress: collection2.tokenAddress,
+                description: input3.description,
+                mediaUrl: input3.mediaUrl,
                 pluginName: plugin.name,
                 claimed: false,
             }, {
                 name: pluginWithMerkleRoot2.name,
                 collectionAddress: collection2.address,
                 tokenAddress: collection2.tokenAddress,
+                description: input2.description,
+                mediaUrl: input2.mediaUrl,
                 pluginName: plugin.name,
                 claimed: false,
             }]);

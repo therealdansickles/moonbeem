@@ -6,6 +6,7 @@ import { Field, InputType, ObjectType, PickType } from '@nestjs/graphql';
 import { Collection } from '../collection/collection.dto';
 import { Metadata, MetadataProperties } from '../metadata/metadata.dto';
 import { Tier } from '../tier/tier.dto';
+import { InstalledPluginInfo } from '../collectionPlugin/collectionPlugin.dto';
 
 @ObjectType('Nft')
 export class Nft {
@@ -43,6 +44,11 @@ export class Nft {
     @IsObject()
     @Field(() => GraphQLJSONObject, { description: 'The full rendered metadata of the NFT', nullable: true })
     public metadata?: Metadata;
+
+    @IsObject()
+    @IsOptional()
+    @Field(() => [InstalledPluginInfo], { description: 'The installed plugin info', nullable: true })
+    public pluginsInstalled?: InstalledPluginInfo[];
 }
 
 @InputType('NftPropertiesSearchInput')

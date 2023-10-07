@@ -103,6 +103,10 @@ export class Minted extends PickType(MintSaleTransaction, [
     @IsObject()
     @Field(() => [InstalledPluginInfo], { description: 'The installed plugin info' })
     readonly pluginsInstalled: InstalledPluginInfo[];
+
+    @IsString()
+    @Field({ description: 'The ownerAddress of the NFT.' })
+    readonly ownerAddress: string;
 }
 
 @ObjectType('MintPaginated')

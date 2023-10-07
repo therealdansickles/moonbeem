@@ -104,13 +104,21 @@ export class InstalledPluginInfo {
     readonly tokenAddress?: string;
 
     @IsString()
-    @Field({ description: 'The address of the token.' })
+    @Field({ description: 'The name of the plugin.' })
     readonly pluginName: string;
 
     @IsBoolean()
     @IsOptional()
-    @Field({ description: 'The plugin is claimed or not', nullable: true })
+    @Field({ description: 'The plugin is claimed or not.', nullable: true })
     readonly claimed: boolean;
+
+    @IsString()
+    @Field({ description: 'The description of the collection plugin.' })
+    readonly description?: string;
+
+    @IsString()
+    @Field({ description: 'The media url of the collection plugin.' })
+    readonly mediaUrl?: string;
 }
 
 @InputType()

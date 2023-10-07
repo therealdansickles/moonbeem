@@ -98,13 +98,15 @@ export class CollectionPluginService {
             const applied = await this.checkIfPluginApplied(collectionPlugin, tokenId);
             if (applied) {
                 const claimed = await this.checkIfPluginClaimed(collectionPlugin, tokenId);
-                const { name, pluginDetail, plugin } = collectionPlugin;
+                const { name, pluginDetail, plugin, description, mediaUrl } = collectionPlugin;
                 const { collectionAddress, tokenAddress } = pluginDetail || {};
                 appliedPlugins.push({
                     name,
                     collectionAddress,
                     tokenAddress,
                     pluginName: plugin.name,
+                    description,
+                    mediaUrl,
                     claimed,
                 });
             }
