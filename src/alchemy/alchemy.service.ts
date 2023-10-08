@@ -210,26 +210,32 @@ export class AlchemyService {
     async serializeAddressActivityEvent(req: any) {
         const network = get<string>(req, 'event.network', '').toLowerCase().replace('_', '-');
         const result = [];
-        for (const activity of get(req, 'event.activity', [])) {
-            const { hash: transactionHash, blockNum, toAddress: factoryAddress, asset, value } = activity;
-            // do some simple filtering
-            if (asset != 'ETH' || value != 0) continue;
+        try {
+            for (const activity of get(req, 'event.activity', [])) {
+                const { hash: transactionHash, blockNum, toAddress: factoryAddress, asset, value } = activity;
+                // do some simple filtering
+                if (asset != 'ETH' || value != 0) continue;
 
-            const block = parseInt(blockNum);
-            const logs = await this._getLogs(network, factoryAddress, block, block);
+                const block = parseInt(blockNum);
+                const logs = await this._getLogs(network, factoryAddress, block, block);
 
-            // another filtering
-            if (logs.length != 2) continue;
-            const [eventForCreateERC721, eventForMintSale] = logs;
-            const tokenAddress = `0x${eventForCreateERC721?.topics[2]?.slice(-40)}`;
-            const contractAddress = `0x${eventForMintSale?.topics[2]?.slice(-40)}`;
+                // another filtering
+                if (logs.length != 2) continue;
+                const [eventForCreateERC721, eventForMintSale] = logs;
+                const tokenAddress = `0x${eventForCreateERC721?.topics[2]?.slice(-40)}`;
+                const contractAddress = `0x${eventForMintSale?.topics[2]?.slice(-40)}`;
 
-            const transaction = await this._getTransaction(network, transactionHash);
-            const { args } = this._parseTransaction(VibeFactoryAbi, transaction.data);
-            const collectionId = new URL(args[2]).pathname.replace(/\//gi, '');
+                const transaction = await this._getTransaction(network, transactionHash);
+                const { args } = this._parseTransaction(VibeFactoryAbi, transaction.data);
 
-            result.push({ network, tokenAddress, contractAddress, collectionId });
+                const collectionId = new URL(args[2]).pathname.replace(/\//gi, '');
+
+                result.push({ network, tokenAddress, contractAddress, collectionId });
+            }
+        } catch (err) {
+            console.error(err.message, err.stack);
+        } finally {
+            return result;
         }
-        return result;
     }
 }
