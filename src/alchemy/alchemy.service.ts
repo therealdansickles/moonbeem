@@ -1,6 +1,6 @@
 import { AddressWebhookParams, Alchemy, AlchemySettings, GetBaseNftsForOwnerOptions, Network, NftWebhookParams, WebhookType } from 'alchemy-sdk';
 import { Interface, InterfaceAbi } from 'ethers';
-import { get } from 'lodash';
+import { get, isString } from 'lodash';
 import { Repository } from 'typeorm';
 import { URL } from 'url';
 
@@ -229,10 +229,10 @@ export class AlchemyService {
                 const transaction = await this._getTransaction(network, transactionHash);
                 const { args } = this._parseTransaction(VibeFactoryAbi, transaction.data);
 
-                console.log(args);
-                const collectionId = new URL(args[2]).pathname.replace(/\//gi, '');
-
-                result.push({ network, tokenAddress, contractAddress, collectionId });
+                if (args && args[2] && isString(args[2])) {
+                    const collectionId = new URL(args[2]).pathname.replace(/\//gi, '');
+                    result.push({ network, tokenAddress, contractAddress, collectionId });
+                }
             }
         } catch (err) {
             console.error(err.message, err.stack);
