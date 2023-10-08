@@ -1,7 +1,27 @@
-import { IsArray, IsDateString, IsEnum, IsNumber, IsObject, IsOptional, IsString, IsUrl, ValidateIf } from 'class-validator';
+import {
+    IsArray,
+    IsDateString,
+    IsEnum,
+    IsNumber,
+    IsObject,
+    IsOptional,
+    IsString,
+    IsUrl,
+    ValidateIf
+} from 'class-validator';
 import { GraphQLJSONObject } from 'graphql-type-json';
 
-import { Field, Float, InputType, Int, ObjectType, OmitType, PartialType, PickType, registerEnumType } from '@nestjs/graphql';
+import {
+    Field,
+    Float,
+    InputType,
+    Int,
+    ObjectType,
+    OmitType,
+    PartialType,
+    PickType,
+    registerEnumType
+} from '@nestjs/graphql';
 
 import { Collaboration, CollaborationInput } from '../collaboration/collaboration.dto';
 import { Metadata } from '../metadata/metadata.dto';
@@ -155,7 +175,8 @@ export class Collection {
 }
 
 @InputType()
-export class CollectionInput extends PickType(Collection, ['id'], InputType) {}
+export class CollectionInput extends PickType(Collection, ['id'], InputType) {
+}
 
 @InputType()
 export class CreateCollectionInput extends OmitType(PartialType(Collection, InputType), [
@@ -439,7 +460,8 @@ export class CollectionAggregatedActivityData extends PickType(
 }
 
 @ObjectType('CollectionAggregatedActivities')
-export class CollectionAggregatedActivityPaginated extends Paginated(CollectionAggregatedActivityData) {}
+export class CollectionAggregatedActivityPaginated extends Paginated(CollectionAggregatedActivityData) {
+}
 
 @ObjectType('SecondarySale')
 export class SecondarySale {
@@ -460,7 +482,8 @@ export class LandingPageCollection {
 }
 
 @ObjectType('CollectionPaginated')
-export class CollectionPaginated extends Paginated(Collection) {}
+export class CollectionPaginated extends Paginated(Collection) {
+}
 
 @ObjectType('CollectionSold')
 export class CollectionSold extends PickType(
@@ -474,7 +497,8 @@ export class CollectionSold extends PickType(
 }
 
 @ObjectType('CollectionSoldPaginated')
-export class CollectionSoldPaginated extends Paginated(CollectionSold) {}
+export class CollectionSoldPaginated extends Paginated(CollectionSold) {
+}
 
 @ObjectType('Volume')
 export class Volume {
@@ -495,13 +519,16 @@ export class Volume {
 }
 
 @ObjectType('SevenDayVolume')
-export class SevenDayVolume extends Volume {}
+export class SevenDayVolume extends Volume {
+}
 
 @ObjectType('GrossEarnings')
-export class GrossEarnings extends Volume {}
+export class GrossEarnings extends Volume {
+}
 
 @ObjectType('EarningChartVolume')
-export class EarningChartVolume extends Volume {}
+export class EarningChartVolume extends Volume {
+}
 
 @ObjectType('CollectionEarningsChart')
 export class CollectionEarningsChart {
@@ -515,7 +542,8 @@ export class CollectionEarningsChart {
 }
 
 @ObjectType('CollectionEarningsChartPaginated')
-export class CollectionEarningsChartPaginated extends Paginated(CollectionEarningsChart) {}
+export class CollectionEarningsChartPaginated extends Paginated(CollectionEarningsChart) {
+}
 
 @ObjectType('AggregatedVolume')
 export class AggregatedVolume {
@@ -657,6 +685,10 @@ export class ValueCount {
     @IsNumber()
     @Field(() => Int, { description: 'The count of the nft has this value.' })
     readonly count: number;
+
+    @IsString()
+    @Field(() => String, { description: 'Type type of the value.' })
+    readonly type: string;
 }
 
 @ObjectType()
@@ -670,7 +702,7 @@ export class AttributeOverview {
     readonly type: string;
 
     @IsArray()
-    @Field(() => [ValueCount], { description: 'The value of the property.' })
+    @Field(() => [ValueCount], { description: 'The value counts of the property.' })
     readonly valueCounts: ValueCount[];
 
     @IsString()
@@ -682,6 +714,16 @@ export class AttributeOverview {
     @IsOptional()
     @Field({ nullable: true, description: 'Mark if this property is upgradable.' })
     readonly class?: string;
+
+    @IsNumber()
+    @IsOptional()
+    @Field({ nullable: true, description: 'The min value.' })
+    readonly min?: number;
+
+    @IsNumber()
+    @IsOptional()
+    @Field({ nullable: true, description: 'The max value.' })
+    readonly max?: number;
 }
 
 @InputType()

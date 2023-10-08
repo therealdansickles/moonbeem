@@ -1298,11 +1298,34 @@ export class CollectionService {
         const totalSupply = Object.values(tierTokenCountsMap).reduce((acc, curr) => acc + curr, 0);
 
         const attributes = getCollectionAttributesOverview(tiers, tierTokenCountsMap);
+        const dynamicAttributes = attributes.dynamicAttributes;
+        const enrichedDynamicAttributes = [];
+        for (const dynamicAttribute of dynamicAttributes) {
+            const { name, type } = dynamicAttribute;
+            if (type === 'number') {
+                const { min, max } = await this.nftService.getOverviewByCollectionAndProperty({
+                    collection: {
+                        id: collectionId,
+                    },
+                    propertyName: name,
+                });
+                enrichedDynamicAttributes.push({
+                    min,
+                    max,
+                    ...dynamicAttribute,
+                });
+            } else {
+                enrichedDynamicAttributes.push(dynamicAttribute);
+            }
+        }
         const upgrades = getCollectionUpgradesOverview(tiers, tierTokenCountsMap);
         const plugins = await this.getPluginsOverview(collectionId, totalSupply);
 
         return {
-            attributes,
+            attributes: {
+                staticAttributes: attributes.staticAttributes,
+                dynamicAttributes: enrichedDynamicAttributes,
+            },
             upgrades,
             plugins,
         };

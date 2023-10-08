@@ -3296,16 +3296,24 @@ describe('CollectionService', () => {
         let plugin;
         let merkleTree;
 
-        const createTierAndMintSaleContract = async (tierData, mintSaleContractData) => {
+        const createTierNftAndMintSaleContract = async (tierData, mintSaleContractData) => {
             await createMintSaleContract(mintSaleContractService, {
                 address: collection.address,
                 ...mintSaleContractData,
             });
 
-            return await createTier(tierService, {
+            await createTier(tierService, {
                 collection: { id: collection.id },
                 ...tierData,
             });
+            await nftService.createOrUpdateNftByTokenId({
+                collectionId: collection.id,
+                tierId: tierData.id,
+                tokenId: faker.string.numeric({ length: 1, allowLeadingZeros: false }),
+                properties: tierData.metadata.properties,
+                ownerAddress: faker.finance.ethereumAddress(),
+            });
+            return;
         };
 
         beforeEach(async () => {
@@ -3323,7 +3331,7 @@ describe('CollectionService', () => {
                 creator: { id: wallet.id },
             });
             // create tiers and mint sale contracts
-            await createTierAndMintSaleContract(
+            await createTierNftAndMintSaleContract(
                 {
                     tierId: 0,
                     metadata: {
@@ -3352,7 +3360,7 @@ describe('CollectionService', () => {
                 },
             );
 
-            await createTierAndMintSaleContract(
+            await createTierNftAndMintSaleContract(
                 {
                     tierId: 1,
                     metadata: {
@@ -3379,7 +3387,7 @@ describe('CollectionService', () => {
                 },
             );
 
-            await createTierAndMintSaleContract(
+            await createTierNftAndMintSaleContract(
                 {
                     tierId: 2,
                     metadata: {
@@ -3500,6 +3508,8 @@ describe('CollectionService', () => {
                             count: 69,
                         },
                     ],
+                    min: '180',
+                    max: '190',
                 },
             ]);
             expect(result.plugins).toEqual(
