@@ -459,7 +459,6 @@ describe('PluginResolver', () => {
                 .auth(tokenRs.body.data.createSession.token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(({ body }) => {
-                    console.log(body.data.installOnCollection[0].metadata.properties);
                     expect(body.data.installOnCollection.length).toEqual(2);
                     expect(body.data.installOnCollection[0].id).toEqual(tier.id);
                     expect(body.data.installOnCollection[0].metadata.properties.level).toBeTruthy();
