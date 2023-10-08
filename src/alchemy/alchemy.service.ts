@@ -229,6 +229,7 @@ export class AlchemyService {
                 const transaction = await this._getTransaction(network, transactionHash);
                 const { args } = this._parseTransaction(VibeFactoryAbi, transaction.data);
 
+                console.log(args);
                 const collectionId = new URL(args[2]).pathname.replace(/\//gi, '');
 
                 result.push({ network, tokenAddress, contractAddress, collectionId });
@@ -236,8 +237,7 @@ export class AlchemyService {
         } catch (err) {
             console.error(err.message, err.stack);
             captureException(err);
-        } finally {
-            return result;
         }
+        return result;
     }
 }
