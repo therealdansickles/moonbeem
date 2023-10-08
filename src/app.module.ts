@@ -82,7 +82,7 @@ dotenv.config();
             url: postgresConfig.url,
             autoLoadEntities: true,
             synchronize: false,
-            logging: true,
+            logging: appConfig.global.sql_logging,
         }),
         JwtModule.register({
             secret: process.env.SESSION_SECRET,
