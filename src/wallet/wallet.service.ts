@@ -435,6 +435,9 @@ export class WalletService {
 
         for (const group of priceTokenGroups) {
             const coin = await this.coinService.getCoinByAddress(group.token);
+            if (!coin) {
+                continue;
+            }
             const quote = await this.coinService.getQuote(coin.symbol);
             const usdPrice = quote['USD'].price;
             const price = group?.price || '0';

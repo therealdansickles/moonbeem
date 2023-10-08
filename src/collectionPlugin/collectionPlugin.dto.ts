@@ -113,10 +113,12 @@ export class InstalledPluginInfo {
     readonly claimed: boolean;
 
     @IsString()
+    @IsOptional()
     @Field({ description: 'The description of the collection plugin.' })
     readonly description?: string;
 
     @IsString()
+    @IsOptional()
     @Field({ description: 'The media url of the collection plugin.' })
     readonly mediaUrl?: string;
 }
