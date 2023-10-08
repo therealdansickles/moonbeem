@@ -7,6 +7,7 @@ import { URL } from 'url';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
+import { captureException } from '@sentry/node';
 
 import { CollectionService } from '../collection/collection.service';
 import * as VibeFactoryAbi from '../lib/abi/VibeFactory.json';
@@ -234,6 +235,7 @@ export class AlchemyService {
             }
         } catch (err) {
             console.error(err.message, err.stack);
+            captureException(err);
         } finally {
             return result;
         }
