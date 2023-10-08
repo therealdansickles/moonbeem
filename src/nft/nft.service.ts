@@ -29,7 +29,9 @@ export type INftQuery = INFTQueryWithId | INftQueryWithCollection | INftQueryWit
 
 interface INftPropertiesSearch {
     name: string;
-    value: any;
+    value?: any;
+    min?: number;
+    max?: number;
 }
 
 interface INftListQueryWithIds {
@@ -72,7 +74,8 @@ export class NftService {
         private readonly nftRepository: Repository<Nft>,
         @InjectRepository(Collection)
         private readonly collectionRepository: Repository<Collection>,
-    ) {}
+    ) {
+    }
 
     /**
      * render metadata
@@ -133,7 +136,8 @@ export class NftService {
             .leftJoinAndSelect('nft.tier', 'tier')
             .andWhere('collection.id = :collectionId', { collectionId: query.collection.id })
             .andWhere(`properties->>'${query.propertyName}' IS NOT NULL`)
-            .orderBy(`CAST(REGEXP_REPLACE(properties->'${query.propertyName}'->>'value', 'N/A', '0') AS NUMERIC)`, 'DESC')
+            .orderBy(
+                `CAST(REGEXP_REPLACE(properties->'${query.propertyName}'->>'value', 'N/A', '0') AS NUMERIC)`, 'DESC')
             .getMany();
         if (nfts.length > 0) {
             const assets = await this.asset721Service.getAssets(nfts[0].collection.tokenAddress);
@@ -179,20 +183,32 @@ export class NftService {
             .createQueryBuilder('nft')
             .leftJoinAndSelect('nft.collection', 'collection')
             .leftJoinAndSelect('nft.tier', 'tier');
-        if ((query as INftListQueryWithIds).ids) builder.andWhere('id IN(:...ids)', { ids: (query as INftListQueryWithIds).ids });
+        if ((query as INftListQueryWithIds).ids) builder.andWhere(
+            'id IN(:...ids)', { ids: (query as INftListQueryWithIds).ids });
         if ((query as INftListQueryWithCollection | INftListQueryWithTier).tokenIds) {
-            builder.andWhere('nft.tokenId IN(:...tokenIds)', { tokenIds: (query as INftListQueryWithCollection | INftListQueryWithTier).tokenIds });
+            builder.andWhere(
+                'nft.tokenId IN(:...tokenIds)',
+                { tokenIds: (query as INftListQueryWithCollection | INftListQueryWithTier).tokenIds }
+            );
         }
         if ((query as INftListQueryWithCollection).collection?.id) {
-            builder.andWhere('nft.collection.id = :collectionId', { collectionId: (query as INftListQueryWithCollection).collection.id });
+            builder.andWhere(
+                'nft.collection.id = :collectionId',
+                { collectionId: (query as INftListQueryWithCollection).collection.id }
+            );
         }
         if ((query as INftListQueryWithTier).tier?.id) {
             builder.andWhere('nft.tier.id = :tierId', { tierId: (query as INftListQueryWithTier).tier.id });
         }
         if (query.properties) {
             for (const condition of query.properties) {
-                const { name, value } = condition;
-                builder.andWhere(`nft.properties->'${name}'->>'value'='${value}'`);
+                const { name, value, min, max } = condition;
+                if (value) {
+                    builder.andWhere(`nft.properties->'${name}'->>'value'='${value}'`);
+                } else if (min && max) {
+                    builder.andWhere(
+                        `(nft.properties->'${name}'->>'value')::NUMERIC>=${min} AND (nft.properties->'${name}'->>'value')::NUMERIC<=${max}`);
+                }
             }
         }
         const result = await builder.getMany();
@@ -257,7 +273,8 @@ export class NftService {
         for (const [key, value] of Object.entries(candidateProperties)) {
             const property = Object.assign({}, value);
             if (value.class === 'upgradable') property.updated_at = new Date().valueOf();
-            if (value.value?.toString().startsWith('{{') && value.value?.toString().endsWith('}}')) property.value = '0';
+            if (value.value?.toString().startsWith('{{') && value.value?.toString().endsWith(
+                '}}')) property.value = '0';
             properties[key] = property;
         }
         return properties;

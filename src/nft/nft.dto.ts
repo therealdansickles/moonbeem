@@ -1,4 +1,4 @@
-import { IsObject, IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsObject, IsOptional, IsString } from 'class-validator';
 import { GraphQLJSONObject } from 'graphql-type-json';
 
 import { Field, InputType, ObjectType, PickType } from '@nestjs/graphql';
@@ -58,8 +58,19 @@ export class NftPropertiesSearchInput {
     readonly name: string;
 
     @IsString()
-    @Field({ description: 'The property value for searching' })
-    readonly value: string;
+    @IsOptional()
+    @Field({ description: 'The property value for searching', nullable: true })
+    readonly value?: string;
+
+    @IsNumber()
+    @IsOptional()
+    @Field({ description: 'The min value for searching', nullable: true })
+    readonly min?: number;
+
+    @IsNumber()
+    @IsOptional()
+    @Field({ description: 'The max value for searching', nullable: true })
+    readonly max?: number;
 }
 
 @ObjectType('NftPropertyOverview')
