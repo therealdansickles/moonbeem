@@ -14,6 +14,7 @@ import {
     BindWalletInput,
     CreateWalletInput,
     EstimatedValue,
+    Minted,
     MintPaginated,
     UnbindWalletInput,
     UpdateWalletInput,
@@ -21,14 +22,18 @@ import {
     WalletSoldPaginated,
 } from './wallet.dto';
 import { WalletService } from './wallet.service';
+import { InstalledPluginInfo } from '../collectionPlugin/collectionPlugin.dto';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 
 @Resolver(() => Wallet)
 export class WalletResolver {
     constructor(
         private readonly walletService: WalletService,
         private readonly collectionService: CollectionService,
-        private readonly relationshipService: RelationshipService
-    ) {}
+        private readonly relationshipService: RelationshipService,
+        private readonly collectionPluginService: CollectionPluginService,
+    ) {
+    }
 
     @Public()
     @Query(() => Wallet, {
@@ -156,5 +161,14 @@ export class WalletResolver {
     @ResolveField(() => Number, { description: 'Returns the monthly collections for given wallet' })
     async monthlyEarnings(@Parent() wallet: Wallet): Promise<number> {
         return await this.walletService.getMonthlyEarnings(wallet.address);
+    }
+
+    @ResolveField(() => [InstalledPluginInfo], { description: 'The installed plugin info' })
+    async pluginsInstalled(@Parent() minted: Minted): Promise<InstalledPluginInfo[]> {
+        const collectionId = minted.tier?.collection?.id;
+        console.log(`pluginsInstalled collectionId:`, collectionId);
+        if (!collectionId) return [];
+        const tokenId = minted.tokenId;
+        return await this.collectionPluginService.getTokenInstalledPlugins(collectionId, tokenId);
     }
 }

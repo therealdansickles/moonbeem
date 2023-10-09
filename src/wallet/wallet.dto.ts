@@ -101,8 +101,9 @@ export class Minted extends PickType(MintSaleTransaction, [
     readonly tier: Tier;
 
     @IsObject()
-    @Field(() => [InstalledPluginInfo], { description: 'The installed plugin info' })
-    readonly pluginsInstalled: InstalledPluginInfo[];
+    @IsOptional()
+    @Field(() => [InstalledPluginInfo], { description: 'The installed plugin info', nullable: true })
+    readonly pluginsInstalled?: InstalledPluginInfo[];
 
     @IsString()
     @Field({ description: 'The ownerAddress of the NFT.' })

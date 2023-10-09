@@ -337,7 +337,7 @@ export class WalletService {
 
         const mintedList: Minted[] = await Promise.all(
             mintSaleTransactions.map(async (mintSaleTransaction) => {
-                const { tierId, address: collectionAddress, tokenId } = mintSaleTransaction;
+                const { tierId, address: collectionAddress } = mintSaleTransaction;
 
                 const tier = await this.tierRepository
                     .createQueryBuilder('tier')
@@ -347,15 +347,12 @@ export class WalletService {
                     .andWhere('tier.tierId = :tierId', { tierId })
                     .getOne();
 
-                let pluginsInstalled = [];
                 if (tier && tier.collection && tier.collection.id) {
                     tier.collection = (await this.collectionService.getCollectionByQuery(
                         { id: tier.collection.id })) as Collection;
-                    pluginsInstalled = await this.collectionPluginService.getTokenInstalledPlugins(
-                        tier.collection.id, tokenId);
                 }
 
-                return { ...mintSaleTransaction, tier, pluginsInstalled, ownerAddress: address };
+                return { ...mintSaleTransaction, tier, ownerAddress: address };
             })
         );
 

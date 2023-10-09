@@ -15,9 +15,6 @@ import {
     createCollection,
     createMintSaleContract,
     createMintSaleTransaction,
-    createOrganization,
-    createPlugin,
-    createRecipientsMerkleTree,
     createTier
 } from '../test-utils';
 import { TierService } from '../tier/tier.service';
@@ -338,34 +335,11 @@ describe('WalletService', () => {
 
     describe('getMintedByAddress', () => {
         it('should return minted transactions by address', async () => {
-            const user = await userService.createUser({
-                username: faker.internet.userName(),
-                email: faker.internet.email(),
-                password: 'password',
-            });
             const tokenId = '1';
             const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
 
-            const organization = await createOrganization(organizationService, { owner: user });
             const collection = await createCollection(
                 collectionService, { creator: { id: wallet.id }, tokenAddress: faker.finance.ethereumAddress() });
-            const merkleTree = await createRecipientsMerkleTree(
-                merkleTreeService, collection.address, [parseInt(tokenId)]);
-            const plugin = await createPlugin(pluginRepository, { organization });
-
-            const input = {
-                collectionId: collection.id,
-                pluginId: plugin.id,
-                description: faker.lorem.paragraph(),
-                mediaUrl: faker.image.url(),
-                name: 'merkle root test collection plugin',
-                pluginDetail: {
-                    collectionAddress: collection.address,
-                    tokenAddress: collection.tokenAddress,
-                },
-                merkleRoot: merkleTree.merkleRoot,
-            };
-            const collectionPlugin = await collectionPluginService.createCollectionPlugin(input);
             const tier = await createTier(tierService, { collection: { id: collection.id } });
             const transaction = await createMintSaleTransaction(mintSaleTransactionService, {
                 recipient: wallet.address,
@@ -390,15 +364,6 @@ describe('WalletService', () => {
             expect(result.edges[0].node.tier.collection.id).toEqual(collection.id);
             expect(result.edges[0].node.tier.collection.creator).toBeDefined();
             expect(result.edges[0].node.tier.collection.creator.id).toBeDefined();
-            expect(result.edges[0].node.pluginsInstalled).toEqual([{
-                name: collectionPlugin.name,
-                description: input.description,
-                mediaUrl: input.mediaUrl,
-                collectionAddress: collectionPlugin.pluginDetail.collectionAddress,
-                tokenAddress: collectionPlugin.pluginDetail.tokenAddress,
-                pluginName: collectionPlugin.plugin.name,
-                claimed: false,
-            }]);
             expect(result.edges[0].node.ownerAddress).toEqual(wallet.address);
         });
 
