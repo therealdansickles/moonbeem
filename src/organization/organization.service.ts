@@ -269,10 +269,10 @@ export class OrganizationService {
         return await prices.reduce(async (accumulatorPromise, current) => {
             const accumulator = await accumulatorPromise;
             const coin = await this.coinService.getCoinByAddress(current.token);
-            const quote = await this.coinService.getQuote(coin.symbol);
+            const quote = await this.coinService.getQuote(coin ? coin.symbol : 'ETH');
             const usdPrice = quote['USD'].price;
 
-            const totalTokenPrice = new BigNumber(current.totalPrice).div(new BigNumber(10).pow(coin.decimals));
+            const totalTokenPrice = new BigNumber(current.totalPrice).div(new BigNumber(10).pow(coin ? coin.decimals : 18));
             const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(usdPrice);
             return accumulator.plus(totalUSDC);
         }, Promise.resolve(new BigNumber(0)));
