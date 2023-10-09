@@ -14,6 +14,7 @@ import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { MerkleTree as MerkleTreeEntity } from '../merkleTree/merkleTree.entity';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
+import { Asset721, Asset721 as Asset721Entity } from '../sync-chain/asset721/asset721.entity';
 
 @Injectable()
 export class CollectionPluginService {
@@ -26,6 +27,8 @@ export class CollectionPluginService {
         private readonly collectionPluginRepository: Repository<CollectionPluginEntity>,
         @InjectRepository(MerkleTreeEntity)
         private readonly merkleTreeRepo: Repository<MerkleTreeEntity>,
+        @InjectRepository(Asset721, 'sync_chain')
+        private readonly asset721Repository: Repository<Asset721Entity>,
         private readonly asset721Service: Asset721Service,
     ) {
     }
@@ -139,5 +142,12 @@ export class CollectionPluginService {
         const merkleTree = await this.merkleTreeRepo.findOne({ where: { merkleRoot } });
         if (!merkleTree) return 0;
         return (merkleTree.data || []).length;
+    }
+
+    async getClaimedCount(collectionPlugin: CollectionPlugin): Promise<number> {
+        const { pluginDetail } = collectionPlugin;
+        const { tokenAddress: address } = pluginDetail || {};
+        if (!address) return 0;
+        return await this.asset721Repository.countBy({ address });
     }
 }

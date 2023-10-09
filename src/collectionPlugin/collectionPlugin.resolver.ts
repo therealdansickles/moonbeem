@@ -1,11 +1,12 @@
 import { CollectionPlugin, CreateCollectionPluginInput, UpdateCollectionPluginInput } from './collectionPlugin.dto';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { CollectionPluginService } from './collectionPlugin.service';
 import { Public } from '../session/session.decorator';
 
 @Resolver(() => CollectionPlugin)
 export class CollectionPluginResolver {
-    constructor(private readonly collectionPluginService: CollectionPluginService) {}
+    constructor(private readonly collectionPluginService: CollectionPluginService) {
+    }
 
     @Public()
     @Query(() => [CollectionPlugin])
@@ -26,5 +27,10 @@ export class CollectionPluginResolver {
     @Mutation(() => Boolean)
     async deleteCollectionPlugin(@Args('id') id: string): Promise<boolean> {
         return await this.collectionPluginService.deleteCollectionPlugin(id);
+    }
+
+    @ResolveField(() => Int)
+    async claimedCount(@Parent() collectionPlugin: CollectionPlugin): Promise<number> {
+        return await this.collectionPluginService.getClaimedCount(collectionPlugin);
     }
 }

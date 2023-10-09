@@ -5,7 +5,7 @@ import {
     createCollection,
     createOrganization,
     createPlugin,
-    createRecipientsMerkleTree
+    createRecipientsMerkleTree,
 } from '../test-utils';
 import { CollectionService } from '../collection/collection.service';
 import { UserService } from '../user/user.service';
@@ -433,5 +433,36 @@ describe('CollectionPluginService', () => {
             const result = await service.checkIfPluginClaimed(collectionPlugin, '1');
             expect(result).toBeFalsy();
         });
+    });
+
+    describe('getClaimedCount', function () {
+        it('should return the claimed count', async () => {
+            const collection = await createCollection(
+                collectionService, { tokenAddress: faker.finance.ethereumAddress() });
+            const plugin = await createPlugin(pluginRepository);
+            const input = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: 'test collection plugin',
+                pluginDetail: {
+                    tokenAddress: collection.tokenAddress
+                },
+            };
+
+            const collectionPlugin = await service.createCollectionPlugin(input);
+
+            await asset721Service.createAsset721({
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address: collection.tokenAddress,
+                tokenId: '1',
+                owner: faker.finance.ethereumAddress(),
+            });
+
+            const result = await service.getClaimedCount(collectionPlugin);
+            expect(result).toEqual(1);
+        });
+
     });
 });
