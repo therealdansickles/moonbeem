@@ -9,10 +9,10 @@ import { OrganizationService } from '../organization/organization.service';
 import { Coin, CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { getToken } from '../test-utils';
 import { User } from '../user/user.dto';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
-import { getToken } from '../test-utils';
 
 export const gql = String.raw;
 
@@ -35,10 +35,8 @@ describe('UserResolver', () => {
         walletService = global.walletService;
         mintSaleTransactionService = global.mintSaleTransactionService;
 
-        jest.spyOn(global.mailService, 'sendWelcomeEmail').mockImplementation(async () => {
-        });
-        jest.spyOn(global.mailService, 'sendInviteEmail').mockImplementation(async () => {
-        });
+        jest.spyOn(global.mailService, 'sendWelcomeEmail').mockImplementation(async () => {});
+        jest.spyOn(global.mailService, 'sendInviteEmail').mockImplementation(async () => {});
 
         basicUser = await service.createUser({
             email: faker.internet.email(),
@@ -166,10 +164,9 @@ describe('UserResolver', () => {
                     expect(body.errors).toBeDefined();
                     expect(body.errors.length).toBe(1);
                     expect(body.errors[0].message).toBe('Bad Request Exception');
-                    expect(body.errors[0].extensions.response.message).toBeDefined();
-                    expect(body.errors[0].extensions.response.message.length).toBe(1);
-                    expect(body.errors[0].extensions.response.message[0]).toBe(
-                        'Invalid email address format for the email field.');
+                    expect(body.errors[0].extensions.originalError.message).toBeDefined();
+                    expect(body.errors[0].extensions.originalError.message.length).toBe(1);
+                    expect(body.errors[0].extensions.originalError.message[0]).toBe('Invalid email address format for the email field.');
                 });
         });
     });
@@ -200,8 +197,7 @@ describe('UserResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
-                { query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
             const query = gql`
@@ -412,7 +408,7 @@ describe('UserResolver', () => {
                 });
         });
 
-        it('should calculate the user\'s profit', async () => {
+        it("should calculate the user's profit", async () => {
             await mintSaleTransactionService.createMintSaleTransaction({
                 height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
                 txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
@@ -927,7 +923,7 @@ describe('UserResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.errors[0].message).toEqual('Forbidden resource');
-                    expect(body.errors[0].extensions.response.statusCode).toEqual(403);
+                    expect(body.errors[0].extensions.originalError.statusCode).toEqual(403);
                 });
         });
     });
@@ -970,7 +966,7 @@ describe('UserResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.errors[0].message).toEqual('Forbidden resource');
-                    expect(body.errors[0].extensions.response.statusCode).toEqual(403);
+                    expect(body.errors[0].extensions.originalError.statusCode).toEqual(403);
                 });
         });
     });
