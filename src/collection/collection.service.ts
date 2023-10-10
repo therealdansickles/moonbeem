@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js';
 import { startOfDay, startOfMonth, startOfWeek, subDays } from 'date-fns';
 import { GraphQLError } from 'graphql';
-import { isEmpty, isNil, omitBy } from 'lodash';
+import { isEmpty, isNil, omitBy, union } from 'lodash';
 import { Brackets, DeepPartial, FindOptionsWhere, In, IsNull, Repository, UpdateResult } from 'typeorm';
 
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
@@ -57,7 +57,7 @@ import {
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
 import {
-    combineTokenIdsAndRanges,
+    filterTokenIdsByRanges,
     generateSlug,
     getCollectionAttributesOverview,
     getCollectionUpgradesOverview
@@ -1219,8 +1219,11 @@ export class CollectionService {
         }
         const ranges = await this.getTokenIdRangesByStaticPropertiesFilters(
             collectionId, collection.address, staticPropertyFilters);
-        const tokenIds = await this.nftService.getNftsIdsByProperties(collectionId, dynamicPropertyFilters);
-        return combineTokenIdsAndRanges(tokenIds, ranges);
+        const mintedTokenIds = await this.nftService.getNftsIdsByProperties(collectionId, []);
+        const mintedTokenIdsInRanges = filterTokenIdsByRanges(mintedTokenIds, ranges);
+        const tokenIdsWithDynamicProperties = await this.nftService.getNftsIdsByProperties(
+            collectionId, dynamicPropertyFilters);
+        return union(tokenIdsWithDynamicProperties, mintedTokenIdsInRanges);
     }
 
     async getTokenIdRangesByStaticPropertiesFilters(
