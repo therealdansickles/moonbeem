@@ -50,6 +50,9 @@ export class AlchemyService {
         const baseSetting: Partial<AlchemySettings> = { apiKey: this.apiKey, authToken: this.authToken };
         this.alchemy[Network.ARB_MAINNET] = new Alchemy({ network: Network.ARB_MAINNET, ...baseSetting });
         this.alchemy[Network.ARB_GOERLI] = new Alchemy({ network: Network.ARB_GOERLI, ...baseSetting });
+
+        this.alchemy[Network.ETH_MAINNET] = new Alchemy({ network: Network.ETH_MAINNET, ...baseSetting });
+        this.alchemy[Network.ETH_GOERLI] = new Alchemy({ network: Network.ETH_GOERLI, ...baseSetting });
     }
 
     async onModuleInit() {

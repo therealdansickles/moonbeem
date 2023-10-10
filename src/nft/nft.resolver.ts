@@ -40,11 +40,17 @@ export class NftResolver {
                 nullable: true,
                 type: () => [NftPropertiesSearchInput]
             }) properties?: NftPropertiesSearchInput[],
+            @Args({
+                name: 'plugins',
+                nullable: true,
+                type: () => [String]
+            }) plugins?: string[],
     ): Promise<Nft[]> {
         let query: any = { tokenIds, properties };
         query = omitBy(query, isNil);
         if (collectionId) query.collection = { id: collectionId };
         if (tierId) query.tier = { id: tierId };
+        if (plugins) query.plugins = plugins;
         return await this.nftService.getNfts(query);
     }
 

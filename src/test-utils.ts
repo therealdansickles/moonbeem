@@ -20,6 +20,10 @@ import { Plugin } from './plugin/plugin.entity';
 import { MerkleTree } from './merkleTree/merkleTree.entity';
 import { MerkleTreeType } from './merkleTree/merkleTree.dto';
 import { MerkleTreeService } from './merkleTree/merkleTree.service';
+import { CollectionPluginService } from './collectionPlugin/collectionPlugin.service';
+
+const collectionPluginService: CollectionPluginService = global.collectionPluginService;
+const pluginRepository: Repository<Plugin> = global.pluginRepository;
 
 export const createCoin = async (coinService: CoinService, coin?: any) =>
     coinService.createCoin({
@@ -158,6 +162,18 @@ export const createHistory721 = async (service: History721Service, history?: any
         ...history,
     });
 
+export const createPlugin2 = async (plugin?: any) =>
+    pluginRepository.save({
+        name: faker.commerce.productName(),
+        displayName: faker.commerce.productName(),
+        description: faker.commerce.productDescription(),
+        author: faker.commerce.department(),
+        version: faker.git.commitSha(),
+        isPublished: false,
+        ...plugin,
+    });
+
+
 export const createPlugin = async (repo: Repository<Plugin>, plugin?: any) =>
     repo.save({
         name: faker.commerce.productName(),
@@ -174,6 +190,22 @@ export const createRecipientsMerkleTree = async (merkleTreeService: MerkleTreeSe
         return { collection: collectionAddress, tokenId, quantity: '1' };
     });
     return merkleTreeService.createGeneralMerkleTree(MerkleTreeType.recipients, data);
+};
+
+export const createCollectionPlugin = async (collectionId: string, pluginId: string, collectionPlugin?: any) => {
+    return await collectionPluginService.createCollectionPlugin({
+        collectionId,
+        pluginId,
+        description: faker.lorem.paragraph(),
+        mediaUrl: faker.image.url(),
+        name: faker.string.symbol(12),
+        pluginDetail: {
+            collectionAddress: faker.finance.ethereumAddress(),
+            tokenAddress: faker.finance.ethereumAddress(),
+        },
+        merkleRoot: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
+        ...collectionPlugin
+    });
 };
 
 /**

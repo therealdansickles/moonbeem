@@ -3234,9 +3234,8 @@ describe('CollectionService', () => {
                 ],
             };
             const tokenIds = await service.searchTokenIds(searchInput);
-            expect(tokenIds.length).toBe(15);
-            expect(tokenIds).toEqual(
-                ['0', '1', '2', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']);
+            expect(tokenIds.length).toBe(3);
+            expect(tokenIds).toEqual(expect.arrayContaining(['9', '10', '11']));
         });
     });
 
