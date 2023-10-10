@@ -6,12 +6,19 @@ import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
 
 import { CollectionService } from '../collection/collection.service';
-import { createCollection, createTier } from '../test-utils';
+import {
+    createCollection,
+    createCollectionPlugin,
+    createPlugin2,
+    createRecipientsMerkleTree,
+    createTier
+} from '../test-utils';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import { Nft } from './nft.entity';
 import { NftService } from './nft.service';
+import { MerkleTreeService } from '../merkleTree/merkleTree.service';
 
 describe('NftService', () => {
     let nftRepository: Repository<Nft>;
@@ -20,6 +27,7 @@ describe('NftService', () => {
     let collectionService: CollectionService;
     let userService: UserService;
     let walletService: WalletService;
+    let merkleTreeService: MerkleTreeService;
 
     beforeAll(async () => {
         nftRepository = global.nftRepository;
@@ -28,6 +36,7 @@ describe('NftService', () => {
         walletService = global.walletService;
         collectionService = global.collectionService;
         tierService = global.tierService;
+        merkleTreeService = global.merkleTreeService;
     });
 
     afterEach(async () => {
@@ -547,6 +556,85 @@ describe('NftService', () => {
             });
             expect(result.length).toEqual(2);
             expect(result.map((nft) => nft.id)).toEqual(expect.arrayContaining([nft2.id, nft3.id]));
+        });
+
+        it('should get NFT list by collection and plugins', async () => {
+            await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await createCollection(collectionService, {
+                creator: { id: wallet.id },
+            });
+
+            const plugins = ['pluginA', 'pluginB'];
+
+            const tier = await createTier(tierService, {
+                collection: { id: collection.id },
+            });
+
+            await Promise.all([
+                nftService.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: '2',
+                    properties: {},
+                }),
+                nftService.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: '3',
+                    properties: {},
+                }),
+                nftService.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: '4',
+                    properties: {},
+                }),
+                nftService.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: '5',
+                    properties: {},
+                }),
+            ]);
+
+            const merkleTree1 = await createRecipientsMerkleTree(
+                merkleTreeService, collection.address, [1, 2, 3, 4]);
+            const merkleTree2 = await createRecipientsMerkleTree(
+                merkleTreeService, collection.address, [3, 4, 5, 6]);
+            const plugin1 = await createPlugin2();
+            await createCollectionPlugin(
+                collection.id,
+                plugin1.id,
+                {
+                    name: plugins[0],
+                    merkleRoot: merkleTree1.merkleRoot,
+                }
+            );
+            const pluginB = await createPlugin2({ name: plugins[1] });
+            await createCollectionPlugin(
+                collection.id,
+                pluginB.id,
+                {
+                    name: plugins[1],
+                    merkleRoot: merkleTree2.merkleRoot,
+                }
+            );
+
+            const result = await nftService.getNfts({
+                collection: { id: collection.id },
+                tokenIds: ['2', '3', '4', '5'],
+                plugins
+            });
+            expect(result.length).toEqual(2);
+            expect(result.map((nft) => nft.tokenId)).toEqual(expect.arrayContaining(['3', '4']));
         });
 
     });
@@ -1826,6 +1914,38 @@ describe('NftService', () => {
 
             const nftIds = await nftService.getNftsIdsByProperties(collection.id, combinedFiler);
             expect(nftIds).toEqual(['4', '5']);
+        });
+    });
+
+    describe('getNftsIdsByPlugins', () => {
+        it('should return the nfts ids filtered', async () => {
+            const plugins = ['pluginA', 'pluginB'];
+            const collection = await createCollection(
+                collectionService, { tokenAddress: faker.finance.ethereumAddress() });
+            const merkleTree1 = await createRecipientsMerkleTree(
+                merkleTreeService, collection.address, [1, 2, 3, 4]);
+            const merkleTree2 = await createRecipientsMerkleTree(
+                merkleTreeService, collection.address, [3, 4, 5, 6]);
+            const plugin1 = await createPlugin2();
+            await createCollectionPlugin(
+                collection.id,
+                plugin1.id,
+                {
+                    name: plugins[0],
+                    merkleRoot: merkleTree1.merkleRoot,
+                }
+            );
+            const pluginB = await createPlugin2({ name: plugins[1] });
+            await createCollectionPlugin(
+                collection.id,
+                pluginB.id,
+                {
+                    name: plugins[1],
+                    merkleRoot: merkleTree2.merkleRoot,
+                }
+            );
+            const tokenIds = await nftService.getNftsIdsByPlugins(plugins);
+            expect(tokenIds).toEqual([3, 4]);
         });
     });
 });

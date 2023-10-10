@@ -9,12 +9,22 @@ import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import { NftService } from './nft.service';
-import { createAsset721, createCollection, createMintSaleTransaction, createPlugin, createTier } from '../test-utils';
+import {
+    createAsset721,
+    createCollection,
+    createCollectionPlugin,
+    createMintSaleTransaction,
+    createPlugin,
+    createPlugin2,
+    createRecipientsMerkleTree,
+    createTier
+} from '../test-utils';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { Repository } from 'typeorm';
 import { Plugin } from '../plugin/plugin.entity';
 import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
+import { MerkleTreeService } from '../merkleTree/merkleTree.service';
 
 export const gql = String.raw;
 
@@ -29,6 +39,7 @@ describe('NftResolver', () => {
     let asset721Service: Asset721Service;
     let collectionPluginService: CollectionPluginService;
     let pluginRepository: Repository<Plugin>;
+    let merkleTreeService: MerkleTreeService;
 
     beforeAll(async () => {
         app = global.app;
@@ -42,6 +53,7 @@ describe('NftResolver', () => {
         asset721Service = global.asset721Service;
         collectionPluginService = global.collectionPluginService;
         pluginRepository = global.pluginRepository;
+        merkleTreeService = global.merkleTreeService;
     });
 
     afterEach(async () => {
@@ -361,6 +373,107 @@ describe('NftResolver', () => {
                     expect(body.data.nfts[0].collection).toBeDefined();
                     expect(body.data.nfts[0].collection.creator).toBeDefined();
                     expect(body.data.nfts[0].collection.creator.id).toBe(wallet.id);
+                });
+        });
+
+        it('query by tokenIds and plugins', async () => {
+            await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await createCollection(collectionService, {
+                creator: { id: wallet.id },
+            });
+
+            const tier = await createTier(tierService, {
+                collection: { id: collection.id },
+            });
+
+            const tokenId1 = '1';
+            const tokenId2 = '2';
+            const tokenId3 = '3';
+
+            const [nft1, , nft3] = await Promise.all([
+                service.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: tokenId1,
+                    properties: {},
+                }),
+                service.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: tokenId2,
+                    properties: {},
+                }),
+                service.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: tokenId3,
+                    properties: {},
+                }),
+            ]);
+
+            const plugins = ['pluginA', 'pluginB'];
+            const merkleTree1 = await createRecipientsMerkleTree(
+                merkleTreeService, collection.address, [1, 2, 3, 4]);
+            const merkleTree2 = await createRecipientsMerkleTree(
+                merkleTreeService, collection.address, [3, 4, 5, 6]);
+            const plugin1 = await createPlugin2();
+            await createCollectionPlugin(
+                collection.id,
+                plugin1.id,
+                {
+                    name: plugins[0],
+                    merkleRoot: merkleTree1.merkleRoot,
+                }
+            );
+            const pluginB = await createPlugin2({ name: plugins[1] });
+            await createCollectionPlugin(
+                collection.id,
+                pluginB.id,
+                {
+                    name: plugins[1],
+                    merkleRoot: merkleTree2.merkleRoot,
+                }
+            );
+
+            const query = gql`
+                query Nfts($collectionId: String, $tokenIds: [String!], $plugins: [String!]) {
+                    nfts(collectionId: $collectionId, tokenIds: $tokenIds, plugins: $plugins) {
+                        id
+                        collection {
+                            id
+                            creator {
+                                id
+                            }
+                        }
+                        properties
+                        tokenId
+                    }
+                }
+            `;
+
+            const variables = {
+                collectionId: collection.id,
+                tokenIds: [nft1.tokenId, nft3.tokenId],
+                plugins,
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.nfts.length).toEqual(1);
+                    expect(body.data.nfts[0].id).toEqual(nft3.id);
+                    expect(body.data.nfts[0].tokenId).toEqual('3');
+                    expect(body.data.nfts[0].collection).toBeDefined();
                 });
         });
     });
