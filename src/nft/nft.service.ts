@@ -1,3 +1,4 @@
+import { intersection, isNil } from 'lodash';
 import { render } from 'mustache';
 import { In, Repository } from 'typeorm';
 
@@ -6,12 +7,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { PropertyFilter } from '../collection/collection.dto';
 import { Collection } from '../collection/collection.entity';
+import { MerkleTree } from '../merkleTree/merkleTree.entity';
 import { Metadata, MetadataProperties } from '../metadata/metadata.dto';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { Nft as NftDto } from './nft.dto';
 import { Nft } from './nft.entity';
-import { MerkleTree } from '../merkleTree/merkleTree.entity';
-import { intersection, isNil } from 'lodash';
 
 interface INFTQueryWithId {
     id: string;
@@ -81,8 +81,7 @@ export class NftService {
         private readonly collectionRepository: Repository<Collection>,
         @InjectRepository(MerkleTree)
         private readonly merkleTreeRepository: Repository<MerkleTree>,
-    ) {
-    }
+    ) {}
 
     /**
      * render metadata
@@ -126,7 +125,7 @@ export class NftService {
      */
     async getNft(query: INftQuery) {
         const nft = await this.nftRepository.findOne({ where: query, relations: ['collection', 'tier'] });
-        if (nft) return this.renderMetadata(nft);
+        if (nft) return await this.renderMetadata(nft);
         return null;
     }
 
@@ -143,8 +142,7 @@ export class NftService {
             .leftJoinAndSelect('nft.tier', 'tier')
             .andWhere('collection.id = :collectionId', { collectionId: query.collection.id })
             .andWhere(`properties->>'${query.propertyName}' IS NOT NULL`)
-            .orderBy(
-                `CAST(REGEXP_REPLACE(properties->'${query.propertyName}'->>'value', 'N/A', '0') AS NUMERIC)`, 'DESC')
+            .orderBy(`CAST(REGEXP_REPLACE(properties->'${query.propertyName}'->>'value', 'N/A', '0') AS NUMERIC)`, 'DESC')
             .getMany();
         if (nfts.length > 0) {
             const assets = await this.asset721Service.getAssets(nfts[0].collection.tokenAddress);
@@ -194,24 +192,16 @@ export class NftService {
         if (query.plugins) {
             tokenIds = await this.getNftsIdsByPlugins(query.plugins);
         }
-        if ((query as INftListQueryWithIds).ids) builder.andWhere(
-            'id IN(:...ids)', { ids: (query as INftListQueryWithIds).ids });
+        if ((query as INftListQueryWithIds).ids) builder.andWhere('id IN(:...ids)', { ids: (query as INftListQueryWithIds).ids });
         if ((query as INftListQueryWithCollection | INftListQueryWithTier).tokenIds) {
-            const tokenIdsFromFilter = (query as INftListQueryWithCollection | INftListQueryWithTier)
-                .tokenIds.map((id) => parseInt(id));
+            const tokenIdsFromFilter = (query as INftListQueryWithCollection | INftListQueryWithTier).tokenIds.map((id) => parseInt(id));
             tokenIds = tokenIds.length > 0 ? intersection(tokenIds, tokenIdsFromFilter) : tokenIdsFromFilter;
         }
         if (tokenIds.length > 0) {
-            builder.andWhere(
-                'nft.tokenId IN(:...tokenIds)',
-                { tokenIds }
-            );
+            builder.andWhere('nft.tokenId IN(:...tokenIds)', { tokenIds });
         }
         if ((query as INftListQueryWithCollection).collection?.id) {
-            builder.andWhere(
-                'nft.collection.id = :collectionId',
-                { collectionId: (query as INftListQueryWithCollection).collection.id }
-            );
+            builder.andWhere('nft.collection.id = :collectionId', { collectionId: (query as INftListQueryWithCollection).collection.id });
         }
         if ((query as INftListQueryWithTier).tier?.id) {
             builder.andWhere('nft.tier.id = :tierId', { tierId: (query as INftListQueryWithTier).tier.id });
@@ -223,7 +213,8 @@ export class NftService {
                     builder.andWhere(`nft.properties->'${name}'->>'value'='${value}'`);
                 } else if (min && max) {
                     builder.andWhere(
-                        `(nft.properties->'${name}'->>'value')::NUMERIC>=${min} AND (nft.properties->'${name}'->>'value')::NUMERIC<=${max}`);
+                        `(nft.properties->'${name}'->>'value')::NUMERIC>=${min} AND (nft.properties->'${name}'->>'value')::NUMERIC<=${max}`,
+                    );
                 }
             }
         }
@@ -254,16 +245,13 @@ export class NftService {
     }
 
     async getNftsIdsByPlugins(plugins: string[]): Promise<string[]> {
-        const merkleDatas = await this.merkleTreeRepository.createQueryBuilder('merkleTree')
+        const merkleDatas = await this.merkleTreeRepository
+            .createQueryBuilder('merkleTree')
             .select('merkleTree.data', 'data')
             .innerJoin('CollectionPlugin', 'collectionPlugin', 'collectionPlugin.merkleRoot = merkleTree.merkleRoot')
             .where('collectionPlugin.name IN (:...plugins)', { plugins })
             .getRawMany();
-        return intersection(...(merkleDatas.map((merkleData) =>
-            merkleData.data
-                .map((item) => item.tokenId)
-                .filter((id) => !isNil(id))
-        )));
+        return intersection(...merkleDatas.map((merkleData) => merkleData.data.map((item) => item.tokenId).filter((id) => !isNil(id))));
     }
 
     async getNftsIdsByProperties(collectionId: string, propertyFilters: PropertyFilter[]): Promise<string[]> {
@@ -302,8 +290,7 @@ export class NftService {
         for (const [key, value] of Object.entries(candidateProperties)) {
             const property = Object.assign({}, value);
             if (value.class === 'upgradable') property.updated_at = new Date().valueOf();
-            if (value.value?.toString().startsWith('{{') && value.value?.toString().endsWith(
-                '}}')) property.value = '0';
+            if (value.value?.toString().startsWith('{{') && value.value?.toString().endsWith('}}')) property.value = '0';
             properties[key] = property;
         }
         return properties;

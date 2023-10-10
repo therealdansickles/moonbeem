@@ -279,6 +279,7 @@ async function clearDatabase() {
     await global.walletRepository.query('TRUNCATE TABLE "Wallet" CASCADE;');
     await global.pluginRepository.query('TRUNCATE TABLE "Plugin" CASCADE;');
     await global.collectionPluginRepository.query('TRUNCATE TABLE "CollectionPlugin" CASCADE;');
+    await global.alchemyWebhookRepository.query('TRUNCATE TABLE "AlchemyWebhook" CASCADE;');
 
     // sync chain database clear
     await global.asset721Repository.query('TRUNCATE TABLE "Asset721" CASCADE;');
