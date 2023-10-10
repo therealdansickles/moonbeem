@@ -16,7 +16,7 @@ export class PluginResolver {
     constructor(
         private readonly pluginService: PluginService,
         private readonly collectionService: CollectionService,
-        private readonly tierService: TierService
+        private readonly tierService: TierService,
     ) {}
 
     @Public()
@@ -53,10 +53,17 @@ export class PluginResolver {
         const plugin = await this.pluginService.getPlugin(input.pluginId);
         if (!plugin) throw new GraphQLError(`Plugin ${input.pluginId} doesn't exist.`);
 
-        return Promise.all(tiers.map(tier => {
-            const pluginData = cloneDeep(plugin);
-            return this.pluginService.installOnTier({ tier, plugin: pluginData, customizedMetadataParameters: input.metadata });
-        }));
+        return Promise.all(
+            tiers.map((tier) => {
+                const pluginData = cloneDeep(plugin);
+                return this.pluginService.installOnTier({
+                    tier,
+                    plugin: pluginData,
+                    customizedPluginName: input.pluginName,
+                    customizedMetadataParameters: input.metadata,
+                });
+            }),
+        );
     }
 
     @Mutation(() => Tier)
@@ -67,6 +74,11 @@ export class PluginResolver {
         const plugin = await this.pluginService.getPlugin(input.pluginId);
         if (!plugin) throw new GraphQLError(`Plugin ${input.pluginId} doesn't exist.`);
 
-        return this.pluginService.installOnTier({ tier, plugin, customizedMetadataParameters: input.metadata });
+        return this.pluginService.installOnTier({
+            tier,
+            plugin,
+            customizedPluginName: input.pluginName,
+            customizedMetadataParameters: input.metadata,
+        });
     }
 }

@@ -1,6 +1,6 @@
 import { ApolloDriver } from '@nestjs/apollo';
 import { HttpModule, HttpService } from '@nestjs/axios';
-import { CacheModule } from '@nestjs/cache-manager';
+import { CACHE_MANAGER, CacheModule } from '@nestjs/cache-manager';
 import { ValidationPipe } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { GraphQLModule, Query, Resolver } from '@nestjs/graphql';
@@ -247,6 +247,7 @@ export default async () => {
 
     global.awsAdapter = module.get<AWSAdapter>(AWSAdapter);
     global.httpService = module.get<HttpService>(HttpService);
+    global.cacheManager = module.get(CACHE_MANAGER);
 
     // global function
     global.clearDatabase = clearDatabase;

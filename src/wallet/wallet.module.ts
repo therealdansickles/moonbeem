@@ -28,11 +28,15 @@ import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
 import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 import { CollectionPluginModule } from '../collectionPlugin/collectionPlugin.module';
 import { MerkleTree } from '../merkleTree/merkleTree.entity';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
+import { Asset721Module } from '../sync-chain/asset721/asset721.module';
+import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Wallet, Relationship, User, Collaboration, Collection, Tier, CollectionPlugin, Plugin, MerkleTree]),
-        TypeOrmModule.forFeature([MintSaleTransaction, MintSaleContract, Coin], 'sync_chain'),
+        TypeOrmModule.forFeature(
+            [Wallet, Relationship, User, Collaboration, Collection, Tier, CollectionPlugin, Plugin, MerkleTree]),
+        TypeOrmModule.forFeature([MintSaleTransaction, MintSaleContract, Coin, Asset721], 'sync_chain'),
         forwardRef(() => SessionModule),
         forwardRef(() => CollaborationModule),
         forwardRef(() => CollectionModule),
@@ -41,11 +45,13 @@ import { MerkleTree } from '../merkleTree/merkleTree.entity';
         forwardRef(() => TierModule),
         forwardRef(() => UserModule),
         forwardRef(() => CoinModule),
+        forwardRef(() => Asset721Module),
         forwardRef(() => CollectionPluginModule),
         JwtModule,
     ],
     exports: [WalletModule, WalletService],
-    providers: [JwtService, RelationshipService, WalletService, WalletResolver, CollectionPluginService],
+    providers: [JwtService, RelationshipService, WalletService, WalletResolver, CollectionPluginService, Asset721Service],
     controllers: [],
 })
-export class WalletModule {}
+export class WalletModule {
+}

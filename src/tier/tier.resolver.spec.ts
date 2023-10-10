@@ -13,7 +13,13 @@ import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import {
-    createAsset721, createCoin, createCollection, createMintSaleContract, createMintSaleTransaction, createOrganization, createTier
+    createAsset721,
+    createCoin,
+    createCollection,
+    createMintSaleContract,
+    createMintSaleTransaction,
+    createOrganization,
+    createTier,
 } from '../test-utils';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
@@ -54,7 +60,6 @@ describe('TierResolver', () => {
     });
 
     const getToken = async (tokenVariables) => {
-
         const tokenQuery = gql`
             mutation CreateSessionFromEmail($input: CreateSessionFromEmailInput!) {
                 createSessionFromEmail(input: $input) {
@@ -67,9 +72,7 @@ describe('TierResolver', () => {
             }
         `;
 
-        const tokenRs = await request(app.getHttpServer())
-            .post('/graphql')
-            .send({ query: tokenQuery, variables: tokenVariables });
+        const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
         const { token } = tokenRs.body.data.createSessionFromEmail;
         return token;
@@ -148,7 +151,7 @@ describe('TierResolver', () => {
                 .expect(({ body }) => {
                     expect(body.data.tier.id).toBe(tier.id);
                     expect(body.data.tier.name).toBe(tier.name);
-                    expect(body.data.tier.coin).toBeDefined();
+                    expect(body.data.tier.coin).not.toBeNull();
                     expect(body.data.tier.coin.address).toEqual(coin.address);
                     expect(body.data.tier.profit).toBeDefined();
                     expect(body.data.tier.profit.inPaymentToken).toEqual('0');
@@ -646,7 +649,7 @@ describe('TierResolver', () => {
             const tokenId1 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
             await walletService.createWallet({ address: owner1 });
             const owner = await userService.createUser({
-                email:  faker.internet.email(),
+                email: faker.internet.email(),
                 password: 'password',
             });
 
@@ -686,14 +689,14 @@ describe('TierResolver', () => {
                             type: 'string',
                             value: 'advanced',
                             display_value: 'Basic',
-                            class: 'upgradable'
+                            class: 'upgradable',
                         },
                         holding_days: {
                             name: 'holding_days',
                             type: 'integer',
                             value: 125,
                             display_value: 'none',
-                            class: 'upgradable'
+                            class: 'upgradable',
                         },
                     },
                     conditions: {

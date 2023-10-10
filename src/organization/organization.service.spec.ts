@@ -452,6 +452,34 @@ describe('OrganizationService', () => {
             expect(result[0].inUSDC).toBe(tokenPriceUSD.toString());
         });
 
+        it('should used eth, if no coin is found', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await createOrganization(service, { owner });
+            const collection = await createCollection(collectionService, { organization });
+            await createMintSaleTransaction(transactionService, {
+                address: collection.address,
+                paymentToken: '0x0000000000000000000000000000000000000000',
+                price: '1000000000000000000',
+            });
+
+            const tokenPriceUSD = faker.number.int({ max: 1000 });
+            const mockPriceQuote: CoinQuotes = Object.assign(new CoinQuotes(), {
+                USD: { price: tokenPriceUSD },
+            });
+
+            jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
+
+            const result = await service.getOrganizationProfit(organization.id);
+            expect(result.length).toBe(1);
+            expect(result[0].paymentToken).toBe('0x0000000000000000000000000000000000000000');
+            expect(result[0].inPaymentToken).toBe('1');
+            expect(result[0].inUSDC).toBe(tokenPriceUSD.toString());
+        });
+
         it('should get profit by organization, multiple collections and multiple payment tokens', async () => {
             const coin = await createCoin(coinService);
             const coin2 = await createCoin(coinService, {

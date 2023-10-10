@@ -449,7 +449,187 @@ describe('PluginService', () => {
             expect(trigger[0].config.every).toEqual(99);
         });
 
-        it('should allow user to customize the configs', async () => {
+        it('should allow user to customize the configs for property name alias', async () => {
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '100',
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+            });
+            const plugin = await pluginRepository.save({
+                name: faker.commerce.productName(),
+                displayName: faker.commerce.productName(),
+                description: faker.commerce.productDescription(),
+                author: faker.commerce.department(),
+                version: faker.git.commitSha(),
+                metadata: {
+                    properties: {
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'number',
+                            value: 0,
+                            display_value: '0',
+                        },
+                        level_name: {
+                            name: '{{level_name}}',
+                            type: 'number',
+                            value: 0,
+                            display_value: '0',
+                        },
+                    },
+                    conditions: {
+                        operator: 'and',
+                        rules: [
+                            {
+                                property: 'holding_days',
+                                rule: 'greater_than',
+                                value: -1,
+                                update: [
+                                    {
+                                        property: 'holding_days',
+                                        action: 'increase',
+                                        value: 1,
+                                    },
+                                ],
+                            },
+                            {
+                                property: 'holding_days',
+                                rule: 'less_than',
+                                value: 999,
+                                update: [
+                                    {
+                                        property: 'holding_days',
+                                        action: 'increase',
+                                        value: 1,
+                                    },
+                                ],
+                            },
+                        ],
+                        trigger: [
+                            {
+                                type: 'schedule',
+                                updatedAt: new Date().toISOString(),
+                                config: {
+                                    startAt: new Date().toISOString(),
+                                    endAt: new Date().toISOString(),
+                                    every: 1,
+                                    unit: 'minutes',
+                                },
+                            },
+                        ],
+                    },
+                },
+            });
+            const result = await pluginService.installOnTier({
+                tier,
+                plugin,
+                customizedMetadataParameters: {
+                    configs: {
+                        alias: {
+                            level_name: 'level11111',
+                        },
+                    },
+                },
+            });
+            expect(result.metadata.configs.alias.level_name).toEqual('level11111');
+            expect(result.metadata.configs.alias.holding_days_name).toBeFalsy();
+            expect(result.metadata.properties.level_name.name).toEqual('level11111');
+        });
+
+        it('should allow user to customize the configs for property key alias', async () => {
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '100',
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+            });
+            const plugin = await pluginRepository.save({
+                name: faker.commerce.productName(),
+                displayName: faker.commerce.productName(),
+                description: faker.commerce.productDescription(),
+                author: faker.commerce.department(),
+                version: faker.git.commitSha(),
+                metadata: {
+                    properties: {
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'number',
+                            value: 0,
+                            display_value: '0',
+                        },
+                        [`{{level_name}}`]: {
+                            name: '{{level_name}}',
+                            type: 'number',
+                            value: 0,
+                            display_value: '0',
+                        },
+                    },
+                    conditions: {
+                        operator: 'and',
+                        rules: [
+                            {
+                                property: 'holding_days',
+                                rule: 'greater_than',
+                                value: -1,
+                                update: [
+                                    {
+                                        property: 'holding_days',
+                                        action: 'increase',
+                                        value: 1,
+                                    },
+                                ],
+                            },
+                            {
+                                property: 'holding_days',
+                                rule: 'less_than',
+                                value: 999,
+                                update: [
+                                    {
+                                        property: 'holding_days',
+                                        action: 'increase',
+                                        value: 1,
+                                    },
+                                ],
+                            },
+                        ],
+                        trigger: [
+                            {
+                                type: 'schedule',
+                                updatedAt: new Date().toISOString(),
+                                config: {
+                                    startAt: new Date().toISOString(),
+                                    endAt: new Date().toISOString(),
+                                    every: 1,
+                                    unit: 'minutes',
+                                },
+                            },
+                        ],
+                    },
+                },
+            });
+            const realLevelName = 'level11111';
+            const result = await pluginService.installOnTier({
+                tier,
+                plugin,
+                customizedMetadataParameters: {
+                    configs: {
+                        alias: {
+                            level_name: realLevelName,
+                        },
+                    },
+                },
+            });
+            expect(result.metadata.configs.alias.level_name).toEqual(realLevelName);
+            expect(result.metadata.configs.alias.holding_days_name).toBeFalsy();
+            expect(result.metadata.properties[realLevelName]).toBeTruthy();
+            expect(result.metadata.properties[realLevelName].name).toEqual(realLevelName);
+        });
+
+        it('should allow user to customize the plugin name', async () => {
             const tier = await tierService.createTier({
                 name: faker.company.name(),
                 totalMints: 100,
@@ -578,9 +758,11 @@ describe('PluginService', () => {
                     },
                 },
             });
+            const customizedPluginName = faker.lorem.word(20);
             const result = await pluginService.installOnTier({
                 tier,
                 plugin,
+                customizedPluginName,
                 customizedMetadataParameters: {
                     configs: {
                         alias: {
@@ -589,8 +771,7 @@ describe('PluginService', () => {
                     },
                 },
             });
-            expect(result.metadata.configs.alias.level_name).toEqual('level11111');
-            expect(result.metadata.configs.alias.holding_days_name).toBeFalsy();
+            expect(result.metadata.uses[0]).toEqual(customizedPluginName);
         });
     });
 });

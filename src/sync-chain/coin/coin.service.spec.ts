@@ -1,12 +1,15 @@
 import { faker } from '@faker-js/faker';
 
+import { Cache } from 'cache-manager';
 import { CoinService } from './coin.service';
 
 describe('CoinService', () => {
     let service: CoinService;
+    let cacheManager: Cache;
 
     beforeAll(async () => {
         service = global.coinService;
+        cacheManager = global.cacheManager;
     });
 
     afterEach(async () => {
@@ -45,6 +48,23 @@ describe('CoinService', () => {
             });
             const result = await service.getCoinByAddress(coin.address);
             expect(result.address).toEqual(coin.address);
+        });
+
+        it('should be able to get coin from cache', async () => {
+            const address = faker.finance.ethereumAddress();
+            const coinData = {
+                address,
+                name: 'USD Coin',
+                symbol: 'USDC',
+                decimals: 6,
+                native: false,
+                enable: true,
+                derivedETH: faker.string.numeric({ length: 5, allowLeadingZeros: false }),
+                derivedUSDC: faker.string.numeric({ length: 5, allowLeadingZeros: false }),
+            };
+            await cacheManager.set(`coin::${address}`, JSON.stringify(coinData), 60 * 1000);
+            const result = await service.getCoinByAddress(address);
+            expect(result).toEqual(coinData);
         });
 
         it('should get coin list for chainId', async () => {

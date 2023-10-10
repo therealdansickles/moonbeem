@@ -193,11 +193,6 @@ export class CollectionService {
      * @param organizationId The id of the organization to retrieve.
      * @returns The collection associated with the given organization.
      */
-    // 15 collections
-    // 19 tiers
-    // tier ->
-    //      get contract
-    //      getCoinByAddress
     async getCollectionsByOrganizationId(organizationId: string): Promise<Collection[]> {
         const result: Collection[] = [];
         const collections = await this.collectionRepository.find({
@@ -214,19 +209,8 @@ export class CollectionService {
 
         for (const collection of collections) {
             const contract = await this.mintSaleContractRepository.findOne({ where: { collectionId: collection.id } });
-            const tiers: TierDto[] = [];
-            for (const tier of collection.tiers) {
-                if (tier.paymentTokenAddress) {
-                    const coin = await this.coinService.getCoinByAddress(tier.paymentTokenAddress);
-                    tiers.push({
-                        ...tier,
-                        coin,
-                    });
-                }
-            }
-            const collectionInfo: Collection = { ...collection, tiers };
             result.push({
-                ...collectionInfo,
+                ...collection,
                 contract,
             });
         }
@@ -1314,11 +1298,34 @@ export class CollectionService {
         const totalSupply = Object.values(tierTokenCountsMap).reduce((acc, curr) => acc + curr, 0);
 
         const attributes = getCollectionAttributesOverview(tiers, tierTokenCountsMap);
+        const dynamicAttributes = attributes.dynamicAttributes;
+        const enrichedDynamicAttributes = [];
+        for (const dynamicAttribute of dynamicAttributes) {
+            const { name, type } = dynamicAttribute;
+            if (type === 'number') {
+                const { min, max } = await this.nftService.getOverviewByCollectionAndProperty({
+                    collection: {
+                        id: collectionId,
+                    },
+                    propertyName: name,
+                });
+                enrichedDynamicAttributes.push({
+                    min,
+                    max,
+                    ...dynamicAttribute,
+                });
+            } else {
+                enrichedDynamicAttributes.push(dynamicAttribute);
+            }
+        }
         const upgrades = getCollectionUpgradesOverview(tiers, tierTokenCountsMap);
         const plugins = await this.getPluginsOverview(collectionId, totalSupply);
 
         return {
-            attributes,
+            attributes: {
+                staticAttributes: attributes.staticAttributes,
+                dynamicAttributes: enrichedDynamicAttributes,
+            },
             upgrades,
             plugins,
         };

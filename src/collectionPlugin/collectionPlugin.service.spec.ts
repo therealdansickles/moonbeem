@@ -1,14 +1,19 @@
 import { faker } from '@faker-js/faker';
 import { CollectionPluginService } from './collectionPlugin.service';
-import { createCollection, createOrganization, createPlugin } from '../test-utils';
+import {
+    createAsset721,
+    createCollection,
+    createOrganization,
+    createPlugin,
+    createRecipientsMerkleTree,
+} from '../test-utils';
 import { CollectionService } from '../collection/collection.service';
 import { UserService } from '../user/user.service';
 import { OrganizationService } from '../organization/organization.service';
 import { Plugin } from '../plugin/plugin.entity';
 import { Repository } from 'typeorm';
 import { MerkleTreeService } from '../merkleTree/merkleTree.service';
-import { MerkleTree } from '../merkleTree/merkleTree.entity';
-import { MerkleTreeType } from '../merkleTree/merkleTree.dto';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 
 describe('CollectionPluginService', () => {
     let service: CollectionPluginService;
@@ -17,6 +22,7 @@ describe('CollectionPluginService', () => {
     let organizationService: OrganizationService;
     let pluginRepository: Repository<Plugin>;
     let merkleTreeService: MerkleTreeService;
+    let asset721Service: Asset721Service;
 
     beforeAll(async () => {
         service = global.collectionPluginService;
@@ -25,6 +31,7 @@ describe('CollectionPluginService', () => {
         organizationService = global.organizationService;
         pluginRepository = global.pluginRepository;
         merkleTreeService = global.merkleTreeService;
+        asset721Service = global.asset721Service;
     });
 
     afterEach(async () => {
@@ -198,13 +205,6 @@ describe('CollectionPluginService', () => {
         });
     });
 
-    const createRecipientsMerkleTree = async (collectionAddress: string, tokenIds: string[]): Promise<MerkleTree> => {
-        const data = tokenIds.map((tokenId) => {
-            return { collection: collectionAddress, tokenId, quantity: '1' };
-        });
-        return merkleTreeService.createGeneralMerkleTree(MerkleTreeType.recipients, data);
-    };
-
     describe('TokenInstalledPlugins', () => {
         const token1 = '1';
         const token2 = '2';
@@ -216,6 +216,8 @@ describe('CollectionPluginService', () => {
         let pluginWithMerkleRoot1;
         let pluginWithMerkleRoot2;
         let pluginWithoutMerkleRoot;
+        let input2;
+        let input3;
 
         beforeEach(async () => {
             const user = await userService.createUser({
@@ -225,10 +227,14 @@ describe('CollectionPluginService', () => {
             });
 
             const organization = await createOrganization(organizationService, { owner: user });
-            collection1 = await createCollection(collectionService, { organization });
-            collection2 = await createCollection(collectionService, { organization });
-            const merkleTree1 = await createRecipientsMerkleTree(collection1.address, [token1]);
-            const merkleTree2 = await createRecipientsMerkleTree(collection2.address, [token3]);
+            collection1 = await createCollection(
+                collectionService, { organization, tokenAddress: faker.finance.ethereumAddress() });
+            collection2 = await createCollection(
+                collectionService, { organization, tokenAddress: faker.finance.ethereumAddress() });
+            const merkleTree1 = await createRecipientsMerkleTree(
+                merkleTreeService, collection1.address, [parseInt(token1)]);
+            const merkleTree2 = await createRecipientsMerkleTree(
+                merkleTreeService, collection2.address, [parseInt(token3)]);
             plugin = await createPlugin(pluginRepository, { organization });
 
             const input1 = {
@@ -244,11 +250,16 @@ describe('CollectionPluginService', () => {
             };
             pluginWithMerkleRoot1 = await service.updateCollectionPlugin(updateInput1);
 
-            const input2 = {
+            input2 = {
                 collectionId: collection2.id,
                 pluginId: plugin.id,
+                description: faker.lorem.paragraph(),
+                mediaUrl: faker.image.url(),
                 name: 'merkle root 2 test collection plugin',
-                pluginDetail: {},
+                pluginDetail: {
+                    collectionAddress: collection2.address,
+                    tokenAddress: collection2.tokenAddress,
+                },
             };
             pluginWithMerkleRoot2 = await service.createCollectionPlugin(input2);
             const updateInput2 = {
@@ -257,11 +268,16 @@ describe('CollectionPluginService', () => {
             };
             pluginWithMerkleRoot2 = await service.updateCollectionPlugin(updateInput2);
 
-            const input3 = {
+            input3 = {
                 collectionId: collection2.id,
                 pluginId: plugin.id,
+                description: faker.lorem.paragraph(),
+                mediaUrl: faker.image.url(),
                 name: 'test collection plugin',
-                pluginDetail: {},
+                pluginDetail: {
+                    collectionAddress: collection2.address,
+                    tokenAddress: collection2.tokenAddress,
+                },
             };
             pluginWithoutMerkleRoot = await service.createCollectionPlugin(input3);
         });
@@ -295,7 +311,23 @@ describe('CollectionPluginService', () => {
         // collection 2 -> token 3 -> apply pluginWithMerkleRoot2
         it('should return all plugins applied to this token', async () => {
             const result = await service.getTokenInstalledPlugins(collection2.id, token3);
-            expect(result.length).toEqual(2);
+            expect(result).toEqual([{
+                name: pluginWithoutMerkleRoot.name,
+                collectionAddress: collection2.address,
+                tokenAddress: collection2.tokenAddress,
+                description: input3.description,
+                mediaUrl: input3.mediaUrl,
+                pluginName: plugin.name,
+                claimed: false,
+            }, {
+                name: pluginWithMerkleRoot2.name,
+                collectionAddress: collection2.address,
+                tokenAddress: collection2.tokenAddress,
+                description: input2.description,
+                mediaUrl: input2.mediaUrl,
+                pluginName: plugin.name,
+                claimed: false,
+            }]);
         });
     });
 
@@ -316,7 +348,8 @@ describe('CollectionPluginService', () => {
             const token1 = '1';
             const token2 = '2';
             const token3 = '3';
-            merkleTree = await createRecipientsMerkleTree(collection.address, [token1, token2, token3]);
+            merkleTree = await createRecipientsMerkleTree(
+                merkleTreeService, collection.address, [parseInt(token1), parseInt(token2), parseInt(token3)]);
             plugin = await createPlugin(pluginRepository, { organization });
         });
 
@@ -362,5 +395,74 @@ describe('CollectionPluginService', () => {
             expect(result).toBeTruthy();
             expect(deleted).toBeNull();
         });
+    });
+
+    describe('checkIfPluginClaimed', function () {
+        it('should return true if the token is claimed', async () => {
+            const tokenId = '1';
+            const collection = await createCollection(
+                collectionService, { tokenAddress: faker.finance.ethereumAddress() });
+            const plugin = await createPlugin(pluginRepository);
+            const input = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: 'test collection plugin',
+                pluginDetail: {
+                    tokenAddress: collection.tokenAddress
+                },
+            };
+            const collectionPlugin = await service.createCollectionPlugin(input);
+            await createAsset721(asset721Service, {
+                tokenId,
+                address: collection.tokenAddress,
+            });
+            const result = await service.checkIfPluginClaimed(collectionPlugin, tokenId);
+            expect(result).toBeTruthy();
+        });
+
+        it('should return false if the token is not claimed', async () => {
+            const collection = await createCollection(collectionService);
+            const plugin = await createPlugin(pluginRepository);
+            const input = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: 'test collection plugin',
+                pluginDetail: {},
+            };
+            const collectionPlugin = await service.createCollectionPlugin(input);
+            const result = await service.checkIfPluginClaimed(collectionPlugin, '1');
+            expect(result).toBeFalsy();
+        });
+    });
+
+    describe('getClaimedCount', function () {
+        it('should return the claimed count', async () => {
+            const collection = await createCollection(
+                collectionService, { tokenAddress: faker.finance.ethereumAddress() });
+            const plugin = await createPlugin(pluginRepository);
+            const input = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: 'test collection plugin',
+                pluginDetail: {
+                    tokenAddress: collection.tokenAddress
+                },
+            };
+
+            const collectionPlugin = await service.createCollectionPlugin(input);
+
+            await asset721Service.createAsset721({
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address: collection.tokenAddress,
+                tokenId: '1',
+                owner: faker.finance.ethereumAddress(),
+            });
+
+            const result = await service.getClaimedCount(collectionPlugin);
+            expect(result).toEqual(1);
+        });
+
     });
 });

@@ -7,13 +7,23 @@ import { Public } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
 import { TierHoldersPaginated } from '../wallet/wallet.dto';
 import {
-    AttributeOverviewInput, CreateTierInput, DeleteTierInput, IOverview, Profit, Tier, TierSearchInput, TierSearchPaginated, UpdateTierInput
+    AttributeOverviewInput,
+    CreateTierInput,
+    DeleteTierInput,
+    IOverview,
+    Profit,
+    Tier,
+    TierSearchInput,
+    TierSearchPaginated,
+    UpdateTierInput,
 } from './tier.dto';
 import { ITierListQuery, TierService } from './tier.service';
+import { CoinService } from '../sync-chain/coin/coin.service';
+import { Coin } from '../sync-chain/coin/coin.dto';
 
 @Resolver(() => Tier)
 export class TierResolver {
-    constructor(private readonly tierService: TierService) {}
+    constructor(private readonly tierService: TierService, private readonly coinService: CoinService) {}
 
     @Public()
     @Query(() => Tier, { description: 'Get a specific tier by id.', nullable: true })
@@ -26,7 +36,7 @@ export class TierResolver {
     async tiers(
         @Args({ name: 'collectionId', nullable: true }) collectionId?: string,
             @Args({ name: 'name', nullable: true }) name?: string,
-            @Args({ name: 'pluginName', nullable: true }) pluginName?: string,
+            @Args({ name: 'pluginName', nullable: true }) pluginName?: string
     ): Promise<Tier[]> {
         const query: ITierListQuery = { name, pluginName };
         if (collectionId) query.collection = { id: collectionId };
@@ -51,19 +61,16 @@ export class TierResolver {
         return await this.tierService.deleteTier(id);
     }
 
-    @Public()
     @ResolveField(() => Int, { description: 'Returns the total sold for the given tier' })
     async totalSold(@Parent() tier: Tier): Promise<number> {
-        return await this.tierService.getTierTotalSold(tier.id);
+        return await this.tierService.getTierTotalSold(tier);
     }
 
-    @Public()
     @ResolveField(() => Profit, { description: 'Returns the total raised for the given tier' })
     async profit(@Parent() tier: Tier): Promise<Profit> {
         return await this.tierService.getTierProfit(tier.id);
     }
 
-    @Public()
     @ResolveField(() => TierHoldersPaginated, { description: 'Returns the holder data for a tier.' })
     async holders(
         @Parent() tier: Tier,
@@ -73,6 +80,11 @@ export class TierResolver {
             @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
     ): Promise<TierHoldersPaginated> {
         return this.tierService.getHolders(tier.id, before, after, first, last);
+    }
+
+    @ResolveField(() => Coin, { description: 'Returns the coin for the given tier' })
+    async coin(@Parent() tier: Tier): Promise<Coin> {
+        return this.coinService.getCoinByAddress(tier.paymentTokenAddress.toLowerCase());
     }
 
     @Public()
@@ -103,7 +115,7 @@ export class TierResolver {
     @Query(() => GraphQLJSONObject, { description: 'Returns attributes overview for collection/tier' })
     async attributeOverview(
         @Args('collectionAddress', { nullable: true }) collectionAddress: string,
-            @Args('input', { nullable: true }) input?: AttributeOverviewInput,
+            @Args('input', { nullable: true }) input?: AttributeOverviewInput
     ): Promise<IOverview> {
         const mergedCollectionAddress = input.collectionAddress || collectionAddress;
         const collectionSlug = input.collectionSlug;

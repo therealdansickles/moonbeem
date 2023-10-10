@@ -10,14 +10,29 @@ import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import { createAsset721, createCollection, createMintSaleTransaction, createTier } from '../test-utils';
+import {
+    createAsset721,
+    createCollection,
+    createMintSaleContract,
+    createMintSaleTransaction,
+    createOrganization,
+    createPlugin,
+    createRecipientsMerkleTree,
+    createTier
+} from '../test-utils';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { Wallet } from './wallet.entity';
 import { WalletService } from './wallet.service';
+import { OrganizationService } from '../organization/organization.service';
+import { MerkleTreeService } from '../merkleTree/merkleTree.service';
+import { Repository } from 'typeorm';
+import { Plugin } from '../plugin/plugin.entity';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 
 describe('WalletService', () => {
     let address: string;
+    let organizationService: OrganizationService;
     let collectionService: CollectionService;
     let mintSaleTransactionService: MintSaleTransactionService;
     let mintSaleContractService: MintSaleContractService;
@@ -26,10 +41,14 @@ describe('WalletService', () => {
     let userService: UserService;
     let coinService: CoinService;
     let asset721Service: Asset721Service;
+    let merkleTreeService: MerkleTreeService;
+    let collectionPluginService: CollectionPluginService;
+    let pluginRepository: Repository<Plugin>;
 
     beforeAll(async () => {
         address = faker.finance.ethereumAddress().toLowerCase();
         service = global.walletService;
+        organizationService = global.organizationService;
         collectionService = global.collectionService;
         mintSaleTransactionService = global.mintSaleTransactionService;
         mintSaleContractService = global.mintSaleContractService;
@@ -37,6 +56,9 @@ describe('WalletService', () => {
         userService = global.userService;
         coinService = global.coinService;
         asset721Service = global.asset721Service;
+        pluginRepository = global.pluginRepository;
+        merkleTreeService = global.merkleTreeService;
+        collectionPluginService = global.collectionPluginService;
     });
 
     afterEach(async () => {
@@ -258,7 +280,8 @@ describe('WalletService', () => {
             try {
                 await service.unbindWallet(data);
             } catch (error) {
-                expect((error as Error).message).toBe(`Wallet ${newWallet.address.toLowerCase()} doesn't belong to the given user.`);
+                expect((error as Error).message).toBe(
+                    `Wallet ${newWallet.address.toLowerCase()} doesn't belong to the given user.`);
             }
         });
     });
@@ -315,14 +338,40 @@ describe('WalletService', () => {
 
     describe('getMintedByAddress', () => {
         it('should return minted transactions by address', async () => {
+            const user = await userService.createUser({
+                username: faker.internet.userName(),
+                email: faker.internet.email(),
+                password: 'password',
+            });
+            const tokenId = '1';
             const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
 
-            const collection = await createCollection(collectionService, { creator: { id: wallet.id } });
+            const organization = await createOrganization(organizationService, { owner: user });
+            const collection = await createCollection(
+                collectionService, { creator: { id: wallet.id }, tokenAddress: faker.finance.ethereumAddress() });
+            const merkleTree = await createRecipientsMerkleTree(
+                merkleTreeService, collection.address, [parseInt(tokenId)]);
+            const plugin = await createPlugin(pluginRepository, { organization });
+
+            const input = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                description: faker.lorem.paragraph(),
+                mediaUrl: faker.image.url(),
+                name: 'merkle root test collection plugin',
+                pluginDetail: {
+                    collectionAddress: collection.address,
+                    tokenAddress: collection.tokenAddress,
+                },
+                merkleRoot: merkleTree.merkleRoot,
+            };
+            const collectionPlugin = await collectionPluginService.createCollectionPlugin(input);
             const tier = await createTier(tierService, { collection: { id: collection.id } });
             const transaction = await createMintSaleTransaction(mintSaleTransactionService, {
                 recipient: wallet.address,
                 address: collection.address,
                 tierId: tier.tierId,
+                tokenId,
             });
             await createAsset721(asset721Service, {
                 address: transaction.tokenAddress,
@@ -341,6 +390,16 @@ describe('WalletService', () => {
             expect(result.edges[0].node.tier.collection.id).toEqual(collection.id);
             expect(result.edges[0].node.tier.collection.creator).toBeDefined();
             expect(result.edges[0].node.tier.collection.creator.id).toBeDefined();
+            expect(result.edges[0].node.pluginsInstalled).toEqual([{
+                name: collectionPlugin.name,
+                description: input.description,
+                mediaUrl: input.mediaUrl,
+                collectionAddress: collectionPlugin.pluginDetail.collectionAddress,
+                tokenAddress: collectionPlugin.pluginDetail.tokenAddress,
+                pluginName: collectionPlugin.plugin.name,
+                claimed: false,
+            }]);
+            expect(result.edges[0].node.ownerAddress).toEqual(wallet.address);
         });
 
         it('should return minted transactions by address with pagination', async () => {
@@ -376,7 +435,8 @@ describe('WalletService', () => {
             expect(firstPageEndCursor).not.toEqual(secondPageEndCursor);
             expect(secondPage.edges.length).toEqual(5);
             const sendPageStartCursor = secondPage.pageInfo.startCursor;
-            expect(firstPage.edges[0].node.createdAt.getTime()).toBeGreaterThanOrEqual(secondPage.edges[0].node.createdAt.getTime());
+            expect(firstPage.edges[0].node.createdAt.getTime()).toBeGreaterThanOrEqual(
+                secondPage.edges[0].node.createdAt.getTime());
             expect(firstPage.edges[0].node.id.localeCompare(secondPage.edges[0].node.id)).toBeGreaterThan(0);
             const previousPage = await service.getMintedByAddress(wallet.address, sendPageStartCursor, '', 0, 10);
             expect(previousPage.edges.length).toEqual(10);
@@ -597,8 +657,15 @@ describe('WalletService', () => {
     });
 
     describe('getEstimatesByAddress', () => {
-        it('should return correct value', async () => {
-            const coin = await coinService.createCoin({
+        let coin;
+        let sender1;
+        let wallet;
+        let collection;
+        let tier;
+        let paymentToken;
+
+        beforeEach(async () => {
+            coin = await coinService.createCoin({
                 address: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
                 name: 'Wrapped Ether',
                 symbol: 'WETH',
@@ -608,11 +675,11 @@ describe('WalletService', () => {
                 enabled: true,
                 chainId: 1,
             });
-            const sender1 = faker.finance.ethereumAddress();
+            sender1 = faker.finance.ethereumAddress();
 
-            const wallet = await service.createWallet({ address: sender1 });
+            wallet = await service.createWallet({ address: sender1 });
 
-            const collection = await collectionService.createCollection({
+            collection = await collectionService.createCollection({
                 name: faker.company.name(),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
@@ -622,7 +689,7 @@ describe('WalletService', () => {
                 address: faker.finance.ethereumAddress(),
             });
 
-            const tier = await tierService.createTier({
+            tier = await tierService.createTier({
                 name: faker.company.name(),
                 totalMints: 100,
                 tierId: 1,
@@ -647,46 +714,31 @@ describe('WalletService', () => {
                 },
             });
 
-            const paymentToken = coin.address;
+            paymentToken = coin.address;
+        });
 
-            await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+        it('should return correct value', async () => {
+            await createMintSaleTransaction(mintSaleTransactionService, {
                 sender: sender1,
                 recipient: wallet.address,
                 address: collection.address,
                 tierId: tier.tierId,
-                tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
-                price: '1000000000000000000',
-                paymentToken,
-            });
-            await mintSaleTransactionService.createMintSaleTransaction({
-                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(faker.date.recent().getTime() / 1000),
-                sender: sender1,
-                recipient: wallet.address,
-                address: collection.address,
-                tierId: tier.tierId,
-                tokenAddress: faker.finance.ethereumAddress(),
-                tokenId: faker.string.numeric({ length: 3, allowLeadingZeros: false }),
                 price: '1000000000000000000',
                 paymentToken,
             });
 
-            await mintSaleContractService.createMintSaleContract({
-                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
-                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+            await createMintSaleTransaction(mintSaleTransactionService, {
+                sender: sender1,
+                recipient: wallet.address,
+                address: collection.address,
+                tierId: tier.tierId,
+                price: '1000000000000000000',
+                paymentToken,
+            });
+
+            await createMintSaleContract(mintSaleContractService, {
                 sender: sender1,
                 royaltyReceiver: sender1,
-                royaltyRate: faker.string.numeric({ length: 2, allowLeadingZeros: false }),
-                derivativeRoyaltyRate: faker.string.numeric({ length: 2, allowLeadingZeros: false }),
-                isDerivativeAllowed: true,
-                beginTime: Math.floor(faker.date.recent().valueOf() / 1000),
-                endTime: Math.floor(faker.date.future().valueOf() / 1000),
                 price: '1000000000000000000',
                 tierId: tier.tierId,
                 address: collection.address,
@@ -694,7 +746,6 @@ describe('WalletService', () => {
                 startId: 0,
                 endId: 10,
                 currentId: 0,
-                tokenAddress: faker.finance.ethereumAddress(),
             });
 
             const tokenPriceUSD = faker.number.int({ max: 1000 });
@@ -706,6 +757,44 @@ describe('WalletService', () => {
             const estimatedValue = await service.getEstimatesByAddress(sender1);
             expect(estimatedValue[0].total).toBe('2');
             expect(estimatedValue[0].totalUSDC).toBe((tokenPriceUSD * 2).toString());
+        });
+
+        it('should ignore the minted transaction if the payment token is not enabled', async () => {
+            paymentToken = '0x0000000000000000000000000000000000000000',
+            await createMintSaleTransaction(mintSaleTransactionService, {
+                sender: sender1,
+                recipient: wallet.address,
+                address: collection.address,
+                tierId: tier.tierId,
+                price: '0',
+                paymentToken,
+            });
+
+            await createMintSaleTransaction(mintSaleTransactionService, {
+                sender: sender1,
+                recipient: wallet.address,
+                address: collection.address,
+                tierId: tier.tierId,
+                price: '0',
+                paymentToken,
+            });
+
+            // Should not be counted
+            await createMintSaleContract(mintSaleContractService, {
+                sender: sender1,
+                royaltyReceiver: sender1,
+                tierId: tier.tierId,
+                address: collection.address,
+                paymentToken,
+                price: '0',
+                startId: 0,
+                endId: 10,
+                currentId: 0,
+            });
+
+            const estimatedValue = await service.getEstimatesByAddress(sender1);
+            console.log(JSON.stringify(estimatedValue));
+            expect(estimatedValue.length).toBe(0);
         });
     });
 
@@ -859,7 +948,8 @@ describe('WalletService', () => {
             const result = await service.getWalletProfit(sender1);
             expect(result.length).toBeGreaterThan(0);
 
-            const totalProfitInToken = new BigNumber(price).plus(new BigNumber(price)).div(new BigNumber(10).pow(coin.decimals)).toString();
+            const totalProfitInToken = new BigNumber(price).plus(new BigNumber(price)).div(
+                new BigNumber(10).pow(coin.decimals)).toString();
 
             expect(result[0].inPaymentToken).toBe(totalProfitInToken);
         });

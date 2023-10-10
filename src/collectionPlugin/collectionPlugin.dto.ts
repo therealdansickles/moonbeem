@@ -1,5 +1,5 @@
 import { MetadataProperties } from '../metadata/metadata.entity';
-import { IsObject, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsObject, IsOptional, IsString } from 'class-validator';
 import { Field, InputType, ObjectType, OmitType } from '@nestjs/graphql';
 import { GraphQLJSONObject } from 'graphql-type-json';
 import { Metadata, MetadataInput } from '../metadata/metadata.dto';
@@ -79,16 +79,60 @@ export class CollectionPlugin {
 
     @IsObject()
     @IsOptional()
-    @Field(() => GraphQLJSONObject, { nullable: true, description: 'The customized metadata need to be installed on chosen collection. ' })
+    @Field(
+        () => GraphQLJSONObject,
+        { nullable: true, description: 'The customized metadata need to be installed on chosen collection. ' }
+    )
     readonly metadata?: Metadata;
 }
 
+@ObjectType()
+export class InstalledPluginInfo {
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'The name of the collection plugin.', nullable: true })
+    readonly name?: string;
+
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'The address of the plugin collection.', nullable: true })
+    readonly collectionAddress?: string;
+
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'The address of the token.', nullable: true })
+    readonly tokenAddress?: string;
+
+    @IsString()
+    @Field({ description: 'The name of the plugin.' })
+    readonly pluginName: string;
+
+    @IsBoolean()
+    @IsOptional()
+    @Field({ description: 'The plugin is claimed or not.', nullable: true })
+    readonly claimed: boolean;
+
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'The description of the collection plugin.', nullable: true })
+    readonly description?: string;
+
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'The media url of the collection plugin.', nullable: true })
+    readonly mediaUrl?: string;
+}
+
 @InputType()
-export class CreateCollectionPluginInput extends OmitType(CollectionPlugin, ['id', 'metadata', 'plugin', 'collection'], InputType) {
+export class CreateCollectionPluginInput extends OmitType(
+    CollectionPlugin, ['id', 'metadata', 'plugin', 'collection'], InputType) {
     // Reserved to be used for the rule engine plugin
     @IsObject()
     @IsOptional()
-    @Field(() => GraphQLJSONObject, { nullable: true, description: 'The customized metadata need to be installed on chosen collection. ' })
+    @Field(
+        () => GraphQLJSONObject,
+        { nullable: true, description: 'The customized metadata need to be installed on chosen collection. ' }
+    )
     readonly metadata?: MetadataInput;
 
     @IsString()
@@ -101,7 +145,8 @@ export class CreateCollectionPluginInput extends OmitType(CollectionPlugin, ['id
 }
 
 @InputType()
-export class UpdateCollectionPluginInput extends OmitType(CreateCollectionPluginInput, ['collectionId', 'pluginId'], InputType) {
+export class UpdateCollectionPluginInput extends OmitType(
+    CreateCollectionPluginInput, ['collectionId', 'pluginId'], InputType) {
     @IsString()
     @Field({ description: 'The id of the collection plugin.' })
     readonly id: string;

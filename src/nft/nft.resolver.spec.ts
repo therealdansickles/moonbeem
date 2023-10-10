@@ -9,6 +9,12 @@ import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import { NftService } from './nft.service';
+import { createAsset721, createCollection, createMintSaleTransaction, createPlugin, createTier } from '../test-utils';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
+import { Repository } from 'typeorm';
+import { Plugin } from '../plugin/plugin.entity';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 
 export const gql = String.raw;
 
@@ -19,6 +25,10 @@ describe('NftResolver', () => {
     let userService: UserService;
     let walletService: WalletService;
     let app: INestApplication;
+    let mintSaleTransactionService: MintSaleTransactionService;
+    let asset721Service: Asset721Service;
+    let collectionPluginService: CollectionPluginService;
+    let pluginRepository: Repository<Plugin>;
 
     beforeAll(async () => {
         app = global.app;
@@ -28,6 +38,10 @@ describe('NftResolver', () => {
         walletService = global.walletService;
         collectionService = global.collectionService;
         tierService = global.tierService;
+        mintSaleTransactionService = global.mintSaleTransactionService;
+        asset721Service = global.asset721Service;
+        collectionPluginService = global.collectionPluginService;
+        pluginRepository = global.pluginRepository;
     });
 
     afterEach(async () => {
@@ -623,7 +637,9 @@ describe('NftResolver', () => {
                     const { max, min, avg } = body.data.nftPropertyOverview;
                     expect(max).toEqual(nft1.properties.foo.value);
                     expect(min).toEqual(nft3.properties.foo.value);
-                    expect(avg).toEqual(BigNumber(nft1.properties.foo.value).plus(nft3.properties.foo.value).dividedBy(2).toFixed(2).toString());
+                    expect(avg).toEqual(
+                        BigNumber(nft1.properties.foo.value).plus(nft3.properties.foo.value).dividedBy(2).toFixed(
+                            2).toString());
                 });
         });
     });
@@ -692,7 +708,8 @@ describe('NftResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
+                { query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -727,6 +744,105 @@ describe('NftResolver', () => {
                 .expect(({ body }) => {
                     expect(body.data.createOrUpdateNft.id).toBeTruthy();
                     expect(body.data.createOrUpdateNft.collection.id).toEqual(collection.id);
+                });
+        });
+    });
+
+    describe('resolve pluginsInstalled field', function () {
+        it('should resolve pluginsInstalled field', async () => {
+            await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await createCollection(collectionService, {
+                creator: { id: wallet.id },
+            });
+
+            const tier = await createTier(tierService, {
+                collection: { id: collection.id },
+            });
+
+            const nft = await service.createOrUpdateNftByTokenId({
+                collectionId: collection.id,
+                tierId: tier.id,
+                tokenId: faker.string.numeric({ length: 1, allowLeadingZeros: false }),
+                properties: {
+                    foo: { value: 'bar' },
+                },
+            });
+
+            const transaction = await createMintSaleTransaction(mintSaleTransactionService, {
+                recipient: wallet.address,
+                address: collection.address,
+                tierId: tier.tierId,
+            });
+            await createAsset721(asset721Service, {
+                address: transaction.tokenAddress,
+                tokenId: transaction.tokenId,
+                owner: wallet.address,
+            });
+            const plugin = await createPlugin(pluginRepository);
+
+            const input = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: faker.company.name(),
+                description: faker.lorem.paragraph(),
+                mediaUrl: faker.image.url(),
+                pluginDetail: {
+                    collectionAddress: collection.address,
+                    tokenAddress: collection.tokenAddress,
+                },
+            };
+            await collectionPluginService.createCollectionPlugin(input);
+
+            const query = gql`
+                query Nft($id: String!) {
+                    nft(id: $id) {
+                        id
+                        collection {
+                            id
+                        }
+                        properties
+                        pluginsInstalled {
+                            name
+                            collectionAddress
+                            tokenAddress
+                            pluginName
+                            claimed
+                            description
+                            mediaUrl
+                        }
+                    }
+                }
+            `;
+
+            const variables = {
+                id: nft.id,
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.nft.id).toBeTruthy();
+                    expect(body.data.nft.collection.id).toEqual(collection.id);
+                    expect(body.data.nft.properties.foo.value).toEqual('bar');
+                    expect(body.data.nft.pluginsInstalled).toEqual([{
+                        name: input.name,
+                        collectionAddress: collection.address,
+                        tokenAddress: collection.tokenAddress,
+                        pluginName: plugin.name,
+                        description: input.description,
+                        mediaUrl: input.mediaUrl,
+                        claimed: false,
+                    }]);
                 });
         });
     });

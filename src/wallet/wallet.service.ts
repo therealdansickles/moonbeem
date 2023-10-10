@@ -54,7 +54,8 @@ export class WalletService {
         private coinService: CoinService,
         private collectionService: CollectionService,
         private collectionPluginService: CollectionPluginService
-    ) {}
+    ) {
+    }
 
     /**
      * This is the uuid for the ownerId for all unbound wallets, e.g the blackhole.
@@ -193,7 +194,8 @@ export class WalletService {
         const wallet = await this.verifyWallet(address, data.message, data.signature);
 
         if (wallet.owner?.id)
-            throw new Error(`The wallet at ${address} is already connected to an existing account. Please connect another wallet to this account.`);
+            throw new Error(
+                `The wallet at ${address} is already connected to an existing account. Please connect another wallet to this account.`);
 
         await this.updateWallet(wallet.id, { ...omit(wallet, 'owner'), ownerId: owner.id });
         return this.walletRepository.findOne({
@@ -335,23 +337,25 @@ export class WalletService {
 
         const mintedList: Minted[] = await Promise.all(
             mintSaleTransactions.map(async (mintSaleTransaction) => {
-                const { tierId, address, tokenId } = mintSaleTransaction;
+                const { tierId, address: collectionAddress, tokenId } = mintSaleTransaction;
 
                 const tier = await this.tierRepository
                     .createQueryBuilder('tier')
                     .leftJoinAndSelect('tier.collection', 'collection')
                     .leftJoinAndSelect('collection.collaboration', 'collaboration')
-                    .where('collection.address = :address', { address })
+                    .where('collection.address = :address', { address: collectionAddress })
                     .andWhere('tier.tierId = :tierId', { tierId })
                     .getOne();
 
                 let pluginsInstalled = [];
                 if (tier && tier.collection && tier.collection.id) {
-                    tier.collection = (await this.collectionService.getCollectionByQuery({ id: tier.collection.id })) as Collection;
-                    pluginsInstalled = await this.collectionPluginService.getTokenInstalledPlugins(tier.collection.id, tokenId);
+                    tier.collection = (await this.collectionService.getCollectionByQuery(
+                        { id: tier.collection.id })) as Collection;
+                    pluginsInstalled = await this.collectionPluginService.getTokenInstalledPlugins(
+                        tier.collection.id, tokenId);
                 }
 
-                return { ...mintSaleTransaction, tier, pluginsCount: pluginsInstalled.length };
+                return { ...mintSaleTransaction, tier, pluginsInstalled, ownerAddress: address };
             })
         );
 
@@ -431,6 +435,9 @@ export class WalletService {
 
         for (const group of priceTokenGroups) {
             const coin = await this.coinService.getCoinByAddress(group.token);
+            if (!coin) {
+                continue;
+            }
             const quote = await this.coinService.getQuote(coin.symbol);
             const usdPrice = quote['USD'].price;
             const price = group?.price || '0';

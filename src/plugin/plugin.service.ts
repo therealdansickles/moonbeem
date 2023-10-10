@@ -46,12 +46,13 @@ export class PluginService {
      * @param payload
      * @returns
      */
-    async installOnTier(payload: { tier: TierDto, plugin: Plugin, customizedMetadataParameters?: MetadataInput}) {
-        const { tier, plugin, customizedMetadataParameters } = payload;
+    async installOnTier(payload: { tier: TierDto; plugin: Plugin; customizedPluginName?: string; customizedMetadataParameters?: MetadataInput }) {
+        const { tier, plugin, customizedMetadataParameters, customizedPluginName } = payload;
         const { uses = [], properties = {}, conditions = {} as MetadataCondition, configs = {} } = tier.metadata;
+        const pluginName = customizedPluginName || plugin.name;
         const metadataPayload = {
             // add plugin name on uses
-            uses: uniq(uses.concat(plugin.name)).sort(),
+            uses: uniq(uses.concat(pluginName)).sort(),
             // merge properties
             // `plugin.metadata.properties`: the properties data come from new installed plugin
             // `properties`: the existed properties on the tier

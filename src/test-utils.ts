@@ -17,6 +17,9 @@ import * as request from 'supertest';
 import { INestApplication } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Plugin } from './plugin/plugin.entity';
+import { MerkleTree } from './merkleTree/merkleTree.entity';
+import { MerkleTreeType } from './merkleTree/merkleTree.dto';
+import { MerkleTreeService } from './merkleTree/merkleTree.service';
 
 export const createCoin = async (coinService: CoinService, coin?: any) =>
     coinService.createCoin({
@@ -166,6 +169,13 @@ export const createPlugin = async (repo: Repository<Plugin>, plugin?: any) =>
         ...plugin,
     });
 
+export const createRecipientsMerkleTree = async (merkleTreeService: MerkleTreeService, collectionAddress: string, tokenIds: number[]): Promise<MerkleTree> => {
+    const data = tokenIds.map((tokenId) => {
+        return { collection: collectionAddress, tokenId, quantity: '1' };
+    });
+    return merkleTreeService.createGeneralMerkleTree(MerkleTreeType.recipients, data);
+};
+
 /**
  * Get token from email, the user must be created before
  * @param app
@@ -191,7 +201,8 @@ export const getToken = async (app: INestApplication, email: string) => {
         },
     };
 
-    const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
+    const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
+        { query: tokenQuery, variables: tokenVariables });
 
     const { token } = tokenRs.body.data.createSessionFromEmail;
     return token;

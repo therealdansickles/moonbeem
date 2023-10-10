@@ -1,10 +1,31 @@
-import { Field, ID, InputType, Int, ObjectType, OmitType, PartialType, PickType, registerEnumType } from '@nestjs/graphql';
-import { IsArray, IsDateString, IsEnum, IsEthereumAddress, IsNumber, IsNumberString, IsObject, IsOptional, IsString } from 'class-validator';
+import {
+    Field,
+    ID,
+    InputType,
+    Int,
+    ObjectType,
+    OmitType,
+    PartialType,
+    PickType,
+    registerEnumType
+} from '@nestjs/graphql';
+import {
+    IsArray,
+    IsDateString,
+    IsEnum,
+    IsEthereumAddress,
+    IsNumber,
+    IsNumberString,
+    IsObject,
+    IsOptional,
+    IsString
+} from 'class-validator';
 import { User, UserInput } from '../user/user.dto';
 import { Tier } from '../tier/tier.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
 import { Asset721 } from '../sync-chain/asset721/asset721.dto';
 import Paginated from '../pagination/pagination.dto';
+import { InstalledPluginInfo } from '../collectionPlugin/collectionPlugin.dto';
 
 @ObjectType('Wallet')
 export class Wallet {
@@ -26,12 +47,12 @@ export class Wallet {
     @IsOptional()
     readonly name?: string;
 
-    @Field({ nullable: true, description: "The URL pointing to the wallet's avatar." })
+    @Field({ nullable: true, description: 'The URL pointing to the wallet\'s avatar.' })
     @IsString()
     @IsOptional()
     readonly avatarUrl?: string;
 
-    @Field({ description: "The url of the user's website.", nullable: true })
+    @Field({ description: 'The url of the user\'s website.', nullable: true })
     @IsString()
     @IsOptional()
     readonly websiteUrl?: string;
@@ -79,13 +100,18 @@ export class Minted extends PickType(MintSaleTransaction, [
     @Field(() => Tier, { description: 'The tier of the minted token.', nullable: true })
     readonly tier: Tier;
 
-    @IsNumber()
-    @Field(() => Int, { description: 'The number of plugins installed.' })
-    readonly pluginsCount: number;
+    @IsObject()
+    @Field(() => [InstalledPluginInfo], { description: 'The installed plugin info' })
+    readonly pluginsInstalled: InstalledPluginInfo[];
+
+    @IsString()
+    @Field({ description: 'The ownerAddress of the NFT.' })
+    readonly ownerAddress: string;
 }
 
 @ObjectType('MintPaginated')
-export class MintPaginated extends Paginated(Minted) {}
+export class MintPaginated extends Paginated(Minted) {
+}
 
 export enum ActivityType {
     Mint = 'Mint',
@@ -98,7 +124,10 @@ registerEnumType(ActivityType, {
 
 @ObjectType('Activity', { description: 'The activity for a wallet.' })
 export class Activity extends PartialType(
-    PickType(MintSaleTransaction, ['address', 'tokenAddress', 'paymentToken', 'tokenId', 'price', 'txTime', 'txHash', 'chainId'] as const)
+    PickType(
+        MintSaleTransaction,
+        ['address', 'tokenAddress', 'paymentToken', 'tokenId', 'price', 'txTime', 'txHash', 'chainId'] as const
+    )
 ) {
     @IsObject()
     @Field(() => Tier, { description: 'The tier of the minted token.', nullable: true })
@@ -182,7 +211,9 @@ export class WalletInput {
 }
 
 @ObjectType('WalletOutput')
-export class WalletOutput extends OmitType(Wallet, ['websiteUrl', 'twitter', 'instagram', 'discord', 'spotify', 'owner'], ObjectType) {}
+export class WalletOutput extends OmitType(
+    Wallet, ['websiteUrl', 'twitter', 'instagram', 'discord', 'spotify', 'owner'], ObjectType) {
+}
 
 @ObjectType('SearchWallet')
 export class SearchWallet {
@@ -219,7 +250,8 @@ export class CollectionHolderData extends PartialType(OmitType(Wallet, ['owner']
 }
 
 @ObjectType('CollectionHoldersPaginated')
-export class CollectionHoldersPaginated extends Paginated(CollectionHolderData) {}
+export class CollectionHoldersPaginated extends Paginated(CollectionHolderData) {
+}
 
 @ObjectType('TierHolderData')
 export class TierHolderData extends PartialType(OmitType(Wallet, ['owner'], ObjectType)) {
@@ -237,7 +269,8 @@ export class TierHolderData extends PartialType(OmitType(Wallet, ['owner'], Obje
 }
 
 @ObjectType('TierHoldersPaginated')
-export class TierHoldersPaginated extends Paginated(TierHolderData) {}
+export class TierHoldersPaginated extends Paginated(TierHolderData) {
+}
 
 @ObjectType('WalletSold')
 export class WalletSold extends PickType(
@@ -251,4 +284,5 @@ export class WalletSold extends PickType(
 }
 
 @ObjectType('WalletSoldPaginated')
-export class WalletSoldPaginated extends Paginated(WalletSold) {}
+export class WalletSoldPaginated extends Paginated(WalletSold) {
+}

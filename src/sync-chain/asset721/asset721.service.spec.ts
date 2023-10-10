@@ -103,4 +103,24 @@ describe('Asset721Service', () => {
             expect(result.length).toEqual(2);
         });
     });
+
+    describe('lowercaseTransformer', () => { 
+        it('should be lowercase address', async () => {
+            const owner = faker.finance.ethereumAddress().toLocaleUpperCase();
+            const address = faker.finance.ethereumAddress().toLocaleUpperCase();
+            const tokenId = faker.string.numeric({ length: 4, allowLeadingZeros: false });
+            await service.createAsset721({
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address: address,
+                tokenId: tokenId,
+                owner: owner,
+            });
+    
+            const asset721 = await service.getAsset721({ tokenId, address });
+            expect(asset721.owner).toEqual(owner.toLocaleLowerCase());
+            expect(asset721.address).toEqual(address.toLocaleLowerCase());
+        });
+    });
 });
