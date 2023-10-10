@@ -45,7 +45,7 @@ describe('NftService', () => {
     });
 
     describe('#createOrUpdateNftByTokenId', () => {
-        it('should create a nft record if didn\'t exist', async () => {
+        it("should create a nft record if didn't exist", async () => {
             await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',
@@ -550,9 +550,7 @@ describe('NftService', () => {
             const result = await nftService.getNfts({
                 collection: { id: collection.id },
                 tokenIds: [tokenId1, tokenId2, tokenId3],
-                properties: [
-                    { name: 'level', min: 20, max: 50 },
-                ],
+                properties: [{ name: 'level', min: 20, max: 50 }],
             });
             expect(result.length).toEqual(2);
             expect(result.map((nft) => nft.id)).toEqual(expect.arrayContaining([nft2.id, nft3.id]));
@@ -636,7 +634,6 @@ describe('NftService', () => {
             expect(result.length).toEqual(2);
             expect(result.map((nft) => nft.tokenId)).toEqual(expect.arrayContaining(['3', '4']));
         });
-
     });
 
     describe('#getNftWithProperty', () => {
@@ -888,9 +885,7 @@ describe('NftService', () => {
             });
             expect(max.toString()).toEqual(nft1.properties.foo.value);
             expect(min.toString()).toEqual(nft3.properties.foo.value);
-            expect(avg.toString()).toEqual(
-                BigNumber(nft1.properties.foo.value).plus(nft3.properties.foo.value).dividedBy(2).toFixed(
-                    2).toString());
+            expect(avg.toString()).toEqual(BigNumber(nft1.properties.foo.value).plus(nft3.properties.foo.value).dividedBy(2).toFixed(2).toString());
         });
     });
 
@@ -1240,8 +1235,7 @@ describe('NftService', () => {
             });
             expect(result.length).toEqual(1);
             expect(result[0].metadata).toBeTruthy();
-            expect(Object.entries(result[0].metadata.properties).find(
-                (property) => property[0] === 'level')[1].value).toEqual(
+            expect(Object.entries(result[0].metadata.properties).find((property) => property[0] === 'level')[1].value).toEqual(
                 nft.properties['level'].value,
             );
         });
@@ -1313,7 +1307,7 @@ describe('NftService', () => {
             expect(renderedProperties['holding_days'].value).toEqual('10');
         });
 
-        it('should render a empty string if there\'s some properties not provided', async () => {
+        it("should render a empty string if there's some properties not provided", async () => {
             await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',
@@ -1383,7 +1377,7 @@ describe('NftService', () => {
             expect(renderedProperties['holding_months'].value).toEqual('');
         });
 
-        it('should won\'t throw an error if the tier\'s metadata is not in Mustache format', async () => {
+        it("should won't throw an error if the tier's metadata is not in Mustache format", async () => {
             await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',
@@ -1590,7 +1584,7 @@ describe('NftService', () => {
             expect(result.metadata.image).toEqual(nft.properties.image.value);
         });
 
-        it('should render `image` if image property doesn\'t exist on NFT', async () => {
+        it("should render `image` if image property doesn't exist on NFT", async () => {
             await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',
@@ -1659,7 +1653,7 @@ describe('NftService', () => {
             expect(result.metadata.image).toEqual(tier.metadata.image);
         });
 
-        it('should not contain `image` property if image property doesn\'t exist either on NFT or tier', async () => {
+        it("should not contain `image` property if image property doesn't exist either on NFT or tier", async () => {
             await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',
