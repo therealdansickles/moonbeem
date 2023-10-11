@@ -211,10 +211,12 @@ export class NftService {
                 const { name, value, min, max } = condition;
                 if (value) {
                     builder.andWhere(`nft.properties->'${name}'->>'value'='${value}'`);
-                } else if (min && max) {
-                    builder.andWhere(
-                        `(nft.properties->'${name}'->>'value')::NUMERIC>=${min} AND (nft.properties->'${name}'->>'value')::NUMERIC<=${max}`,
-                    );
+                }
+                if (min) {
+                    builder.andWhere(`(nft.properties->'${name}'->>'value')::NUMERIC>=${min}`);
+                }
+                if (max) {
+                    builder.andWhere(`(nft.properties->'${name}'->>'value')::NUMERIC<=${max}`);
                 }
             }
         }
