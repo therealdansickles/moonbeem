@@ -1,6 +1,8 @@
-import { Collection, CollectionInput } from '../collection/collection.dto';
+import { IsInt, IsObject, IsOptional, IsString } from 'class-validator';
+
 import { Field, ID, InputType, Int, ObjectType, OmitType } from '@nestjs/graphql';
-import { IsInt, IsObject, IsString } from 'class-validator';
+
+import { Collection, CollectionInput } from '../collection/collection.dto';
 
 @ObjectType()
 export class Redeem {
@@ -9,24 +11,34 @@ export class Redeem {
     readonly id: string;
 
     @IsString()
-    @Field(() => String)
-    readonly deliveryAddress: string;
+    @IsOptional()
+    @Field(() => String, { nullable: true, description: 'Delivery address.' })
+    readonly deliveryAddress?: string;
 
     @IsString()
-    @Field(() => String)
-    readonly deliveryCity: string;
+    @IsOptional()
+    @Field(() => String, { nullable: true, description: 'Delivery city.' })
+    readonly deliveryCity?: string;
 
     @IsString()
-    @Field(() => String)
-    readonly deliveryZipcode: string;
+    @IsOptional()
+    @Field(() => String, { nullable: true, description: 'Delivery zipcode.' })
+    readonly deliveryZipcode?: string;
 
     @IsString()
-    @Field(() => String)
-    readonly deliveryState: string;
+    @IsOptional()
+    @Field(() => String, { nullable: true, description: 'Delivery state.' })
+    readonly deliveryState?: string;
 
     @IsString()
-    @Field(() => String)
-    readonly deliveryCountry: string;
+    @IsOptional()
+    @Field(() => String, { nullable: true, description: 'Delivery country.' })
+    readonly deliveryCountry?: string;
+
+    @IsString()
+    @IsOptional()
+    @Field(() => String, { nullable: true, description: 'The full name of the redemption client.' })
+    readonly name?: string;
 
     @IsInt()
     @Field(() => Int)

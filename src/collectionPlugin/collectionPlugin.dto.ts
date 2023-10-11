@@ -1,10 +1,12 @@
-import { MetadataProperties } from '../metadata/metadata.entity';
 import { IsBoolean, IsObject, IsOptional, IsString } from 'class-validator';
-import { Field, InputType, ObjectType, OmitType } from '@nestjs/graphql';
 import { GraphQLJSONObject } from 'graphql-type-json';
-import { Metadata, MetadataInput } from '../metadata/metadata.dto';
-import { Plugin } from '../plugin/plugin.dto';
+
+import { Field, InputType, ObjectType, OmitType } from '@nestjs/graphql';
+
 import { Collection } from '../collection/collection.dto';
+import { Metadata, MetadataInput } from '../metadata/metadata.dto';
+import { MetadataProperties } from '../metadata/metadata.entity';
+import { Plugin } from '../plugin/plugin.dto';
 
 type NumberFilter = {
     attribute: string;
@@ -79,10 +81,7 @@ export class CollectionPlugin {
 
     @IsObject()
     @IsOptional()
-    @Field(
-        () => GraphQLJSONObject,
-        { nullable: true, description: 'The customized metadata need to be installed on chosen collection. ' }
-    )
+    @Field(() => GraphQLJSONObject, { nullable: true, description: 'The customized metadata need to be installed on chosen collection. ' })
     readonly metadata?: Metadata;
 }
 
@@ -124,15 +123,11 @@ export class InstalledPluginInfo {
 }
 
 @InputType()
-export class CreateCollectionPluginInput extends OmitType(
-    CollectionPlugin, ['id', 'metadata', 'plugin', 'collection'], InputType) {
+export class CreateCollectionPluginInput extends OmitType(CollectionPlugin, ['id', 'metadata', 'plugin', 'collection'], InputType) {
     // Reserved to be used for the rule engine plugin
     @IsObject()
     @IsOptional()
-    @Field(
-        () => GraphQLJSONObject,
-        { nullable: true, description: 'The customized metadata need to be installed on chosen collection. ' }
-    )
+    @Field(() => GraphQLJSONObject, { nullable: true, description: 'The customized metadata need to be installed on chosen collection.' })
     readonly metadata?: MetadataInput;
 
     @IsString()
@@ -145,8 +140,7 @@ export class CreateCollectionPluginInput extends OmitType(
 }
 
 @InputType()
-export class UpdateCollectionPluginInput extends OmitType(
-    CreateCollectionPluginInput, ['collectionId', 'pluginId'], InputType) {
+export class UpdateCollectionPluginInput extends OmitType(CreateCollectionPluginInput, ['collectionId', 'pluginId'], InputType) {
     @IsString()
     @Field({ description: 'The id of the collection plugin.' })
     readonly id: string;
