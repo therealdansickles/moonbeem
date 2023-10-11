@@ -73,7 +73,6 @@ dotenv.config();
             driver: ApolloDriver, // GraphQL server adapter
             playground: appConfig.global.debug ? true : false, // is show platground? waiting for fix: throw an error when set it true
             autoSchemaFile: true,
-            introspection: true,
         }),
         ScheduleModule.forRoot(),
         TypeOrmModule.forRoot({
