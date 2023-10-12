@@ -26,6 +26,19 @@ export class MaasService {
         return this._invoke(payload);
     }
 
+    async handleAdGated({ collectionId, tokenId, address }) {
+        const payload: AxiosRequestConfig = {
+            url: '/ad-gated/webhook',
+            method: 'POST',
+            data: {
+                collectionId,
+                tokenId,
+                address,
+            },
+        };
+        return this._invoke(payload);
+    }
+
     private async _invoke(payload: AxiosRequestConfig) {
         const baseURL = await this.configService.get<string>('MAAS_DOMAIN');
         payload.baseURL = baseURL;
