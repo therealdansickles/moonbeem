@@ -189,7 +189,7 @@ export class NftService {
             .leftJoinAndSelect('nft.collection', 'collection')
             .leftJoinAndSelect('nft.tier', 'tier');
         let tokenIds = [];
-        if (query.plugins) {
+        if (query.plugins && query.plugins.length > 0) {
             tokenIds = await this.getNftsIdsByPlugins(query.plugins);
         }
         if ((query as INftListQueryWithIds).ids) builder.andWhere('id IN(:...ids)', { ids: (query as INftListQueryWithIds).ids });
