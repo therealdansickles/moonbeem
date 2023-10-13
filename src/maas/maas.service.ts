@@ -26,13 +26,12 @@ export class MaasService {
         return this._invoke(payload);
     }
 
-    async handleAdGated({ collectionId, tokenId, address }) {
+    async handleAdGated({ collectionId, address }) {
         const payload: AxiosRequestConfig = {
             url: '/ad-gated/webhook',
             method: 'POST',
             data: {
                 collectionId,
-                tokenId,
                 address,
             },
         };

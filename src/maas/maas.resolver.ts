@@ -11,7 +11,7 @@ export class MaasResolver {
     @Public()
     @Mutation(() => Boolean, { description: 'Receive external webhook requests.' })
     async maasExternalWebhook(@Args('input') input: MaasExternalWebhookInput) {
-        await this.maasService.handleAdGated({ collectionId: input.collectionId, tokenId: '0', address: input.address });
+        await this.maasService.handleAdGated({ collectionId: input.collectionId, address: input.address.toLowerCase() });
         return true;
     }
 }
