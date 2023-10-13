@@ -14,10 +14,12 @@ import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/
 import {
     createCoin,
     createCollection,
+    createCollectionPlugin,
     createMemberships,
     createMintSaleContract,
     createMintSaleTransaction,
     createOrganization,
+    createPlugin2,
     createTier,
 } from '../test-utils';
 import { TierService } from '../tier/tier.service';
@@ -80,8 +82,7 @@ describe('CollectionResolver', () => {
             }
         `;
 
-        const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
-            { query: tokenQuery, variables: tokenVariables });
+        const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
         const { token } = tokenRs.body.data.createSessionFromEmail;
         return token;
@@ -232,7 +233,7 @@ describe('CollectionResolver', () => {
                 });
         });
 
-        it('should get a collection by id with no contract details, if contract doesn\'t exist', async () => {
+        it("should get a collection by id with no contract details, if contract doesn't exist", async () => {
             const query = gql`
                 query GetCollection($id: String!) {
                     collection(id: $id) {
@@ -464,6 +465,38 @@ describe('CollectionResolver', () => {
                     expect(body.data.collection.buyers).toEqual([transaction.recipient]);
                 });
         });
+
+        it('should resolve collectionPlugins', async () => {
+            const plugin = await createPlugin2();
+            const collectionPlugin = await createCollectionPlugin(collection.id, plugin.id);
+
+            const query = gql`
+                query GetCollection($id: String!) {
+                    collection(id: $id) {
+                        name
+                        collectionPlugins {
+                            name
+                            description
+                            mediaUrl
+                        }
+                    }
+                }
+            `;
+
+            const variables = { id: collection.id };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(authToken, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    const result = body.data.collection.collectionPlugins[0];
+                    expect(result.name).toEqual(collectionPlugin.name);
+                    expect(result.mediaUrl).toEqual(collectionPlugin.mediaUrl);
+                    expect(result.description).toEqual(collectionPlugin.description);
+                });
+        });
     });
 
     describe('createCollection', () => {
@@ -680,8 +713,7 @@ describe('CollectionResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
-                { query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -728,8 +760,7 @@ describe('CollectionResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.errors[0].message).toMatch(
-                        `The collection name ${variables.input.name} is already taken`);
+                    expect(body.errors[0].message).toMatch(`The collection name ${variables.input.name} is already taken`);
                 });
         });
 
@@ -853,8 +884,7 @@ describe('CollectionResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
-                { query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -922,8 +952,7 @@ describe('CollectionResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
-                { query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -990,8 +1019,7 @@ describe('CollectionResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
-                { query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -1952,4 +1980,6 @@ describe('CollectionResolver', () => {
                 });
         });
     });
+
+    describe('collectionPlugins', function () {});
 });

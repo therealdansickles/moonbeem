@@ -32,26 +32,23 @@ import {
     UpdateCollectionInput,
 } from './collection.dto';
 import { CollectionService } from './collection.service';
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.dto';
 
 @Resolver(() => Collection)
 export class CollectionResolver {
     constructor(
         private readonly collectionService: CollectionService,
         private readonly mintSaleContractService: MintSaleContractService,
-        private readonly openseaService: OpenseaService
-    ) {
-    }
+        private readonly openseaService: OpenseaService,
+    ) {}
 
     @AuthorizedCollectionViewer()
-    @Query(
-        () => Collection,
-        { description: 'returns a collection for a given uuid (authorized endpoint)', nullable: true }
-    )
+    @Query(() => Collection, { description: 'returns a collection for a given uuid (authorized endpoint)', nullable: true })
     async collection(
         @Args({ name: 'id', nullable: true }) id: string,
             @Args({ name: 'address', nullable: true }) address: string,
             @Args({ name: 'name', nullable: true }) name: string,
-            @Args({ name: 'slug', nullable: true }) slug: string
+            @Args({ name: 'slug', nullable: true }) slug: string,
     ): Promise<Collection> {
         return this.collectionService.getCollectionByQuery({ id, address, name, slug });
     }
@@ -62,7 +59,7 @@ export class CollectionResolver {
         @Args({ name: 'id', nullable: true }) id: string,
             @Args({ name: 'address', nullable: true }) address: string,
             @Args({ name: 'name', nullable: true }) name: string,
-            @Args({ name: 'slug', nullable: true }) slug: string
+            @Args({ name: 'slug', nullable: true }) slug: string,
     ): Promise<Collection> {
         return this.collectionService.getCollectionByQuery({ id, address, name, slug });
     }
@@ -120,7 +117,7 @@ export class CollectionResolver {
             @Args('before', { nullable: true }) before?: string,
             @Args('after', { nullable: true }) after?: string,
             @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
-            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number,
     ): Promise<CollectionHoldersPaginated> {
         return this.collectionService.getHolders(collection.address, before, after, first, last);
     }
@@ -135,7 +132,7 @@ export class CollectionResolver {
     @Query(() => [CollectionStat], { description: 'Get collection stat from secondary markets', nullable: true })
     async secondaryMarketStat(
         @Args({ name: 'id', nullable: true }) id: string,
-            @Args({ name: 'address', nullable: true }) address: string
+            @Args({ name: 'address', nullable: true }) address: string,
     ): Promise<CollectionStat[]> {
         return this.collectionService.getSecondaryMarketStat({ id, address });
     }
@@ -145,7 +142,7 @@ export class CollectionResolver {
     async activities(
         @Parent() collection: Collection,
             @Args('offset', { nullable: true, defaultValue: 0 }) offset?: number,
-            @Args('limit', { nullable: true, defaultValue: 10 }) limit?: number
+            @Args('limit', { nullable: true, defaultValue: 10 }) limit?: number,
     ): Promise<CollectionActivities> {
         return this.collectionService.getCollectionActivities(collection.address, offset, limit);
     }
@@ -159,10 +156,9 @@ export class CollectionResolver {
             @Args('before', { nullable: true }) before?: string,
             @Args('after', { nullable: true }) after?: string,
             @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
-            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number,
     ): Promise<CollectionAggregatedActivityPaginated> {
-        return this.collectionService.getAggregatedCollectionActivities(
-            collection.address, collection.tokenAddress, before, after, first, last);
+        return this.collectionService.getAggregatedCollectionActivities(collection.address, collection.tokenAddress, before, after, first, last);
     }
 
     @Public()
@@ -170,7 +166,7 @@ export class CollectionResolver {
     async landingPage(
         @Args('status', { nullable: true, defaultValue: CollectionStatus.active }) status: CollectionStatus,
             @Args('offset', { nullable: true, defaultValue: 0 }) offset?: number,
-            @Args('limit', { nullable: true, defaultValue: 10 }) limit?: number
+            @Args('limit', { nullable: true, defaultValue: 10 }) limit?: number,
     ): Promise<LandingPageCollection> {
         return this.collectionService.getLandingPageCollections(status, offset, limit);
     }
@@ -187,7 +183,7 @@ export class CollectionResolver {
         @Args('before', { nullable: true }) before?: string,
             @Args('after', { nullable: true }) after?: string,
             @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
-            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number,
     ): Promise<CollectionPaginated> {
         return this.collectionService.getCollections(before, after, first, last);
     }
@@ -199,7 +195,7 @@ export class CollectionResolver {
             @Args('before', { nullable: true }) before?: string,
             @Args('after', { nullable: true }) after?: string,
             @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
-            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number,
     ): Promise<CollectionSoldPaginated> {
         return this.collectionService.getCollectionSold(collection.address, before, after, first, last);
     }
@@ -242,7 +238,7 @@ export class CollectionResolver {
             @Args('before', { nullable: true }) before?: string,
             @Args('after', { nullable: true }) after?: string,
             @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
-            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number,
     ): Promise<CollectionEarningsChartPaginated> {
         return this.collectionService.getCollectionEarningsChart(collection.address, before, after, first, last);
     }
@@ -265,5 +261,10 @@ export class CollectionResolver {
     @Query(() => MetadataOverview, { description: 'Returns the metadata overview of given collection.' })
     async metadataOverview(@Args('input') input: MetadataOverviewInput): Promise<MetadataOverview> {
         return this.collectionService.getMetadataOverview(input);
+    }
+
+    @ResolveField(() => [CollectionPlugin], { description: 'Returns the collection plugins.' })
+    async collectionPlugins(@Parent() collection: Collection): Promise<CollectionPlugin[]> {
+        return this.collectionService.getCollectionPlugins(collection.id);
     }
 }

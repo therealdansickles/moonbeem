@@ -57,6 +57,7 @@ import {
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
 import { filterTokenIdsByRanges, generateSlug, getCollectionAttributesOverview, getCollectionUpgradesOverview } from './collection.utils';
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.dto';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'tokenAddress' | 'address' | 'name' | 'slug'>>;
 
@@ -1332,5 +1333,9 @@ export class CollectionService {
         }
 
         return plugins;
+    }
+
+    async getCollectionPlugins(collectionId: string): Promise<CollectionPlugin[]> {
+        return this.collectionPluginService.getCollectionPluginsByCollectionId(collectionId);
     }
 }
