@@ -1,12 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { CollectionPluginService } from './collectionPlugin.service';
-import {
-    createAsset721,
-    createCollection,
-    createOrganization,
-    createPlugin,
-    createRecipientsMerkleTree,
-} from '../test-utils';
+import { createAsset721, createCollection, createOrganization, createPlugin, createRecipientsMerkleTree } from '../test-utils';
 import { CollectionService } from '../collection/collection.service';
 import { UserService } from '../user/user.service';
 import { OrganizationService } from '../organization/organization.service';
@@ -227,14 +221,10 @@ describe('CollectionPluginService', () => {
             });
 
             const organization = await createOrganization(organizationService, { owner: user });
-            collection1 = await createCollection(
-                collectionService, { organization, tokenAddress: faker.finance.ethereumAddress() });
-            collection2 = await createCollection(
-                collectionService, { organization, tokenAddress: faker.finance.ethereumAddress() });
-            const merkleTree1 = await createRecipientsMerkleTree(
-                merkleTreeService, collection1.address, [parseInt(token1)]);
-            const merkleTree2 = await createRecipientsMerkleTree(
-                merkleTreeService, collection2.address, [parseInt(token3)]);
+            collection1 = await createCollection(collectionService, { organization, tokenAddress: faker.finance.ethereumAddress() });
+            collection2 = await createCollection(collectionService, { organization, tokenAddress: faker.finance.ethereumAddress() });
+            const merkleTree1 = await createRecipientsMerkleTree(merkleTreeService, collection1.address, [parseInt(token1)]);
+            const merkleTree2 = await createRecipientsMerkleTree(merkleTreeService, collection2.address, [parseInt(token3)]);
             plugin = await createPlugin(pluginRepository, { organization });
 
             const input1 = {
@@ -311,23 +301,26 @@ describe('CollectionPluginService', () => {
         // collection 2 -> token 3 -> apply pluginWithMerkleRoot2
         it('should return all plugins applied to this token', async () => {
             const result = await service.getTokenInstalledPlugins(collection2.id, token3);
-            expect(result).toEqual([{
-                name: pluginWithoutMerkleRoot.name,
-                collectionAddress: collection2.address,
-                tokenAddress: collection2.tokenAddress,
-                description: input3.description,
-                mediaUrl: input3.mediaUrl,
-                pluginName: plugin.name,
-                claimed: false,
-            }, {
-                name: pluginWithMerkleRoot2.name,
-                collectionAddress: collection2.address,
-                tokenAddress: collection2.tokenAddress,
-                description: input2.description,
-                mediaUrl: input2.mediaUrl,
-                pluginName: plugin.name,
-                claimed: false,
-            }]);
+            expect(result).toEqual([
+                {
+                    name: pluginWithoutMerkleRoot.name,
+                    collectionAddress: collection2.address,
+                    tokenAddress: collection2.tokenAddress,
+                    description: input3.description,
+                    mediaUrl: input3.mediaUrl,
+                    pluginName: plugin.name,
+                    claimed: false,
+                },
+                {
+                    name: pluginWithMerkleRoot2.name,
+                    collectionAddress: collection2.address,
+                    tokenAddress: collection2.tokenAddress,
+                    description: input2.description,
+                    mediaUrl: input2.mediaUrl,
+                    pluginName: plugin.name,
+                    claimed: false,
+                },
+            ]);
         });
     });
 
@@ -348,8 +341,11 @@ describe('CollectionPluginService', () => {
             const token1 = '1';
             const token2 = '2';
             const token3 = '3';
-            merkleTree = await createRecipientsMerkleTree(
-                merkleTreeService, collection.address, [parseInt(token1), parseInt(token2), parseInt(token3)]);
+            merkleTree = await createRecipientsMerkleTree(merkleTreeService, collection.address, [
+                parseInt(token1),
+                parseInt(token2),
+                parseInt(token3),
+            ]);
             plugin = await createPlugin(pluginRepository, { organization });
         });
 
@@ -400,15 +396,14 @@ describe('CollectionPluginService', () => {
     describe('checkIfPluginClaimed', function () {
         it('should return true if the token is claimed', async () => {
             const tokenId = '1';
-            const collection = await createCollection(
-                collectionService, { tokenAddress: faker.finance.ethereumAddress() });
+            const collection = await createCollection(collectionService, { tokenAddress: faker.finance.ethereumAddress() });
             const plugin = await createPlugin(pluginRepository);
             const input = {
                 collectionId: collection.id,
                 pluginId: plugin.id,
                 name: 'test collection plugin',
                 pluginDetail: {
-                    tokenAddress: collection.tokenAddress
+                    tokenAddress: collection.tokenAddress,
                 },
             };
             const collectionPlugin = await service.createCollectionPlugin(input);
@@ -437,15 +432,14 @@ describe('CollectionPluginService', () => {
 
     describe('getClaimedCount', function () {
         it('should return the claimed count', async () => {
-            const collection = await createCollection(
-                collectionService, { tokenAddress: faker.finance.ethereumAddress() });
+            const collection = await createCollection(collectionService, { tokenAddress: faker.finance.ethereumAddress() });
             const plugin = await createPlugin(pluginRepository);
             const input = {
                 collectionId: collection.id,
                 pluginId: plugin.id,
                 name: 'test collection plugin',
                 pluginDetail: {
-                    tokenAddress: collection.tokenAddress
+                    tokenAddress: collection.tokenAddress,
                 },
             };
 
@@ -463,6 +457,43 @@ describe('CollectionPluginService', () => {
             const result = await service.getClaimedCount(collectionPlugin);
             expect(result).toEqual(1);
         });
+    });
 
+    describe('getClaimedTokens', function () {
+        it('should return the claimed tokens', async () => {
+            const collection = await createCollection(collectionService, { tokenAddress: faker.finance.ethereumAddress() });
+            const plugin = await createPlugin(pluginRepository);
+            const input = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: 'test collection plugin',
+                pluginDetail: {
+                    tokenAddress: collection.tokenAddress,
+                },
+            };
+
+            const collectionPlugin = await service.createCollectionPlugin(input);
+
+            await asset721Service.createAsset721({
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address: collection.tokenAddress,
+                tokenId: '1',
+                owner: faker.finance.ethereumAddress(),
+            });
+
+            await asset721Service.createAsset721({
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address: collection.tokenAddress,
+                tokenId: '22',
+                owner: faker.finance.ethereumAddress(),
+            });
+
+            const result = await service.getClaimedTokens(collectionPlugin);
+            expect(result).toEqual(expect.arrayContaining(['1', '22']));
+        });
     });
 });

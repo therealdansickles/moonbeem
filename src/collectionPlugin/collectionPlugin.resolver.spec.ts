@@ -337,5 +337,51 @@ describe('MerkleTreeResolver', () => {
                     expect(body.data.collectionPlugins[0].claimedCount).toEqual(1);
                 });
         });
+
+        it('should resolve claimedTokens`', async () => {
+            const input = {
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: faker.company.name(),
+                description: faker.lorem.paragraph(),
+                mediaUrl: faker.image.url(),
+                merkleRoot: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
+                pluginDetail: {
+                    tokenAddress: collection.tokenAddress,
+                },
+            };
+            await collectionPluginService.createCollectionPlugin(input);
+
+            await asset721Service.createAsset721({
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address: collection.tokenAddress,
+                tokenId: '1',
+                owner: faker.finance.ethereumAddress(),
+            });
+
+            const query = gql`
+                query GetCollectionPlugins($collectionId: String!) {
+                    collectionPlugins(collectionId: $collectionId) {
+                        name
+                        claimedTokens
+                    }
+                }
+            `;
+            const variables = { collectionId: collection.id };
+            const token = await getToken(app, user.email);
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.collectionPlugins).toBeDefined();
+                    expect(body.data.collectionPlugins.length).toEqual(1);
+                    expect(body.data.collectionPlugins[0].claimedTokens).toEqual(['1']);
+                });
+        });
     });
 });
