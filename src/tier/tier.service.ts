@@ -32,6 +32,7 @@ import {
 } from './tier.dto';
 import * as tierEntity from './tier.entity';
 import { renderPropertyName } from './tier.utils';
+import { ethers } from 'ethers';
 
 interface ITierSearch {
     collectionId?: string;
@@ -73,7 +74,7 @@ export class TierService {
         private readonly transactionRepository: Repository<MintSaleTransaction>,
         @InjectRepository(Asset721, 'sync_chain')
         private readonly asset721Repository: Repository<Asset721>,
-        private coinService: CoinService
+        private coinService: CoinService,
     ) {}
 
     /**
@@ -225,6 +226,12 @@ export class TierService {
             if (!result) return { inPaymentToken: '0', inUSDC: '0' };
 
             const data = result as BasicPriceInfo;
+            if (data.token === ethers.ZeroAddress && data.price === '0') {
+                return {
+                    inPaymentToken: '0',
+                    inUSDC: '0',
+                };
+            }
             const coin = await this.coinRepository.findOneBy({ address: data.token.toLowerCase() });
 
             /** Example:
@@ -348,7 +355,7 @@ export class TierService {
                     quantity: holder?.quantity ? parseInt(holder?.quantity) : 0,
                     createdAt: new Date(createdAt.getTime() - createdAt.getTimezoneOffset() * 60 * 1000),
                 };
-            })
+            }),
         );
 
         const total = await this.getTotalHolders(id);
@@ -407,7 +414,7 @@ export class TierService {
                         WHERE t.rule_info @> :upgrade
                     )
                     `,
-                    { upgrade: JSON.stringify([{ property: upgrade }]) }
+                    { upgrade: JSON.stringify([{ property: upgrade }]) },
                 );
             });
         }
