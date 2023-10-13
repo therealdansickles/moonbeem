@@ -36,6 +36,7 @@ export class NftResolver {
         @Args({ name: 'collectionId', nullable: true }) collectionId?: string,
             @Args({ name: 'tierId', nullable: true }) tierId?: string,
             @Args({ name: 'tokenIds', nullable: true, type: () => [String] }) tokenIds?: string[],
+            @Args({ name: 'ownerAddress', nullable: true }) ownerAddress?: string,
             @Args({
                 name: 'properties',
                 nullable: true,
@@ -49,7 +50,7 @@ export class NftResolver {
             })
             plugins?: string[],
     ): Promise<Nft[]> {
-        let query: any = { tokenIds, properties };
+        let query: any = { ownerAddress, tokenIds, properties };
         query = omitBy(query, isNil);
         if (collectionId) query.collection = { id: collectionId };
         if (tierId) query.tier = { id: tierId };

@@ -46,6 +46,7 @@ interface INftListQueryWithCollection {
     collection: { id: string };
     tokenIds?: string[];
     properties?: Array<INftPropertiesSearch>;
+    ownerAddress?: string;
     plugins?: Array<string>;
 }
 
@@ -53,6 +54,7 @@ interface INftListQueryWithTier {
     tier: { id: string };
     tokenIds?: string[];
     properties?: Array<INftPropertiesSearch>;
+    ownerAddress?: string;
     plugins?: Array<string>;
 }
 
@@ -189,6 +191,11 @@ export class NftService {
             .leftJoinAndSelect('nft.collection', 'collection')
             .leftJoinAndSelect('nft.tier', 'tier');
         let tokenIds = [];
+        if ((query as INftListQueryWithCollection | INftListQueryWithTier).ownerAddress) {
+            builder.andWhere('nft.ownerAddress = :ownerAddress', {
+                ownerAddress: (query as INftListQueryWithCollection | INftListQueryWithTier).ownerAddress,
+            });
+        }
         if (query.plugins && query.plugins.length > 0) {
             tokenIds = await this.getNftsIdsByPlugins(query.plugins);
         }

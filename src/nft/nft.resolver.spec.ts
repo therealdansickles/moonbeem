@@ -1,14 +1,16 @@
 import BigNumber from 'bignumber.js';
 import * as request from 'supertest';
+import { Repository } from 'typeorm';
 
 import { faker } from '@faker-js/faker';
 import { INestApplication } from '@nestjs/common';
 
 import { CollectionService } from '../collection/collection.service';
-import { TierService } from '../tier/tier.service';
-import { UserService } from '../user/user.service';
-import { WalletService } from '../wallet/wallet.service';
-import { NftService } from './nft.service';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
+import { MerkleTreeService } from '../merkleTree/merkleTree.service';
+import { Plugin } from '../plugin/plugin.entity';
+import { Asset721Service } from '../sync-chain/asset721/asset721.service';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
 import {
     createAsset721,
     createCollection,
@@ -17,14 +19,12 @@ import {
     createPlugin,
     createPlugin2,
     createRecipientsMerkleTree,
-    createTier
+    createTier,
 } from '../test-utils';
-import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import { Asset721Service } from '../sync-chain/asset721/asset721.service';
-import { Repository } from 'typeorm';
-import { Plugin } from '../plugin/plugin.entity';
-import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
-import { MerkleTreeService } from '../merkleTree/merkleTree.service';
+import { TierService } from '../tier/tier.service';
+import { UserService } from '../user/user.service';
+import { WalletService } from '../wallet/wallet.service';
+import { NftService } from './nft.service';
 
 export const gql = String.raw;
 
@@ -376,6 +376,153 @@ describe('NftResolver', () => {
                 });
         });
 
+        it('query by collection and ownerAddress should work', async () => {
+            await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                creator: { id: wallet.id },
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '100',
+                tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
+            });
+
+            const anotherCollection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                creator: { id: wallet.id },
+            });
+
+            const anotherTier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: anotherCollection.id },
+                price: '100',
+                tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
+            });
+
+            const tokenId1 = faker.string.numeric({ length: 1, allowLeadingZeros: false });
+            const tokenId2 = faker.string.numeric({ length: 3, allowLeadingZeros: false });
+            const tokenId3 = faker.string.numeric({ length: 4, allowLeadingZeros: false });
+
+            const [, nft2] = await Promise.all([
+                service.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: tokenId1,
+                    ownerAddress: faker.finance.ethereumAddress(),
+                    properties: {
+                        foo: { value: 'bar' },
+                    },
+                }),
+                service.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: tokenId2,
+                    ownerAddress: wallet.address,
+                    properties: {
+                        foo: { value: 'bar' },
+                    },
+                }),
+                service.createOrUpdateNftByTokenId({
+                    collectionId: anotherCollection.id,
+                    tierId: anotherTier.id,
+                    tokenId: tokenId3,
+                    ownerAddress: wallet.address,
+                    properties: {
+                        foo: { value: 'bar' },
+                    },
+                }),
+            ]);
+
+            const query = gql`
+                query Nfts($collectionId: String, $tierId: String, $ownerAddress: String) {
+                    nfts(collectionId: $collectionId, tierId: $tierId, ownerAddress: $ownerAddress) {
+                        id
+                        collection {
+                            id
+                            creator {
+                                id
+                            }
+                        }
+                        properties
+                        tokenId
+                    }
+                }
+            `;
+
+            const variables = {
+                collectionId: collection.id,
+                tier: tier,
+                ownerAddress: wallet.address,
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    body.data.nfts.sort((a, b) => a.tokenId - b.tokenId); // Sort first, otherwise there may be an order error
+                    expect(body.data.nfts.length).toEqual(1);
+                    expect(body.data.nfts[0].id).toEqual(nft2.id);
+                });
+        });
+
         it('query by tokenIds and plugins', async () => {
             await userService.createUser({
                 email: faker.internet.email(),
@@ -420,28 +567,18 @@ describe('NftResolver', () => {
             ]);
 
             const plugins = ['pluginA', 'pluginB'];
-            const merkleTree1 = await createRecipientsMerkleTree(
-                merkleTreeService, collection.address, [1, 2, 3, 4]);
-            const merkleTree2 = await createRecipientsMerkleTree(
-                merkleTreeService, collection.address, [3, 4, 5, 6]);
+            const merkleTree1 = await createRecipientsMerkleTree(merkleTreeService, collection.address, [1, 2, 3, 4]);
+            const merkleTree2 = await createRecipientsMerkleTree(merkleTreeService, collection.address, [3, 4, 5, 6]);
             const plugin1 = await createPlugin2();
-            await createCollectionPlugin(
-                collection.id,
-                plugin1.id,
-                {
-                    name: plugins[0],
-                    merkleRoot: merkleTree1.merkleRoot,
-                }
-            );
+            await createCollectionPlugin(collection.id, plugin1.id, {
+                name: plugins[0],
+                merkleRoot: merkleTree1.merkleRoot,
+            });
             const pluginB = await createPlugin2({ name: plugins[1] });
-            await createCollectionPlugin(
-                collection.id,
-                pluginB.id,
-                {
-                    name: plugins[1],
-                    merkleRoot: merkleTree2.merkleRoot,
-                }
-            );
+            await createCollectionPlugin(collection.id, pluginB.id, {
+                name: plugins[1],
+                merkleRoot: merkleTree2.merkleRoot,
+            });
 
             const query = gql`
                 query Nfts($collectionId: String, $tokenIds: [String!], $plugins: [String!]) {
@@ -750,9 +887,7 @@ describe('NftResolver', () => {
                     const { max, min, avg } = body.data.nftPropertyOverview;
                     expect(max).toEqual(nft1.properties.foo.value);
                     expect(min).toEqual(nft3.properties.foo.value);
-                    expect(avg).toEqual(
-                        BigNumber(nft1.properties.foo.value).plus(nft3.properties.foo.value).dividedBy(2).toFixed(
-                            2).toString());
+                    expect(avg).toEqual(BigNumber(nft1.properties.foo.value).plus(nft3.properties.foo.value).dividedBy(2).toFixed(2).toString());
                 });
         });
     });
@@ -821,8 +956,7 @@ describe('NftResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
-                { query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -947,15 +1081,17 @@ describe('NftResolver', () => {
                     expect(body.data.nft.id).toBeTruthy();
                     expect(body.data.nft.collection.id).toEqual(collection.id);
                     expect(body.data.nft.properties.foo.value).toEqual('bar');
-                    expect(body.data.nft.pluginsInstalled).toEqual([{
-                        name: input.name,
-                        collectionAddress: collection.address,
-                        tokenAddress: collection.tokenAddress,
-                        pluginName: plugin.name,
-                        description: input.description,
-                        mediaUrl: input.mediaUrl,
-                        claimed: false,
-                    }]);
+                    expect(body.data.nft.pluginsInstalled).toEqual([
+                        {
+                            name: input.name,
+                            collectionAddress: collection.address,
+                            tokenAddress: collection.tokenAddress,
+                            pluginName: plugin.name,
+                            description: input.description,
+                            mediaUrl: input.mediaUrl,
+                            claimed: false,
+                        },
+                    ]);
                 });
         });
     });
