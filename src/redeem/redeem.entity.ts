@@ -1,14 +1,5 @@
-import {
-    BaseEntity,
-    Column,
-    CreateDateColumn,
-    Entity,
-    Index,
-    JoinColumn,
-    ManyToOne,
-    PrimaryGeneratedColumn,
-    UpdateDateColumn,
-} from 'typeorm';
+import { BaseEntity, Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+
 import { Collection } from '../collection/collection.entity';
 
 @Entity({ name: 'Redeem' })
@@ -23,23 +14,26 @@ export class Redeem extends BaseEntity {
     @JoinColumn()
     readonly collection: Collection;
 
-    @Column({ type: 'bigint', comment: 'TokenId of the collection for redeeming.'})
+    @Column({ type: 'bigint', comment: 'TokenId of the collection for redeeming.' })
     readonly tokenId: number;
 
+    @Column({ nullable: true, comment: 'The full name of the redemption client.' })
+    readonly name?: string;
+
     @Column({ nullable: true, comment: 'The delivery address for redeeming.' })
-    readonly deliveryAddress: string;
-    
+    readonly deliveryAddress?: string;
+
     @Column({ nullable: true, comment: 'The delivery city for redeeming.' })
-    readonly deliveryCity: string;
+    readonly deliveryCity?: string;
 
     @Column({ nullable: true, comment: 'The delivery zipcode for redeeming.' })
-    readonly deliveryZipcode: string;
+    readonly deliveryZipcode?: string;
 
     @Column({ nullable: true, comment: 'The delivery state for redeeming.' })
-    readonly deliveryState: string;
+    readonly deliveryState?: string;
 
     @Column({ nullable: true, comment: 'The delivery country for redeeming.' })
-    readonly deliveryCountry: string;
+    readonly deliveryCountry?: string;
 
     @Column({ nullable: true, comment: 'The email address for redeeming.' })
     readonly email: string;

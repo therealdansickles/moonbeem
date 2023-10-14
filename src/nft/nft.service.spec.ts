@@ -6,19 +6,13 @@ import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
 
 import { CollectionService } from '../collection/collection.service';
-import {
-    createCollection,
-    createCollectionPlugin,
-    createPlugin2,
-    createRecipientsMerkleTree,
-    createTier
-} from '../test-utils';
+import { MerkleTreeService } from '../merkleTree/merkleTree.service';
+import { createCollection, createCollectionPlugin, createPlugin2, createRecipientsMerkleTree, createTier } from '../test-utils';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { WalletService } from '../wallet/wallet.service';
 import { Nft } from './nft.entity';
 import { NftService } from './nft.service';
-import { MerkleTreeService } from '../merkleTree/merkleTree.service';
 
 describe('NftService', () => {
     let nftRepository: Repository<Nft>;
@@ -489,6 +483,140 @@ describe('NftService', () => {
             expect(result[0].id).toEqual(nft3.id);
         });
 
+        it('should get NFT list by collection and dynamic properties using min', async () => {
+            await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await createCollection(collectionService, {
+                creator: { id: wallet.id },
+            });
+
+            const tier = await createTier(tierService, {
+                collection: { id: collection.id },
+            });
+
+            const tokenId1 = faker.string.numeric({ length: 1, allowLeadingZeros: false });
+            const tokenId2 = faker.string.numeric({ length: 2, allowLeadingZeros: false });
+            const tokenId3 = faker.string.numeric({ length: 4, allowLeadingZeros: false });
+
+            const [, nft2, nft3] = await Promise.all([
+                nftService.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: tokenId1,
+                    properties: {
+                        level: {
+                            name: 'level',
+                            value: '10',
+                        },
+                    },
+                }),
+                nftService.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: tokenId2,
+                    properties: {
+                        level: {
+                            name: 'level',
+                            value: '30',
+                        },
+                    },
+                }),
+                nftService.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: tokenId3,
+                    properties: {
+                        level: {
+                            name: 'level',
+                            value: '50',
+                        },
+                    },
+                }),
+            ]);
+
+            const result = await nftService.getNfts({
+                collection: { id: collection.id },
+                tokenIds: [tokenId1, tokenId2, tokenId3],
+                properties: [{ name: 'level', min: 20 }],
+            });
+            expect(result.length).toEqual(2);
+            expect(result.map((nft) => nft.id)).toEqual(expect.arrayContaining([nft2.id, nft3.id]));
+        });
+
+        it('should get NFT list by collection and dynamic properties using max', async () => {
+            await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await createCollection(collectionService, {
+                creator: { id: wallet.id },
+            });
+
+            const tier = await createTier(tierService, {
+                collection: { id: collection.id },
+            });
+
+            const tokenId1 = faker.string.numeric({ length: 1, allowLeadingZeros: false });
+            const tokenId2 = faker.string.numeric({ length: 2, allowLeadingZeros: false });
+            const tokenId3 = faker.string.numeric({ length: 4, allowLeadingZeros: false });
+
+            const [nft1, nft2] = await Promise.all([
+                nftService.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: tokenId1,
+                    properties: {
+                        level: {
+                            name: 'level',
+                            value: '10',
+                        },
+                    },
+                }),
+                nftService.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: tokenId2,
+                    properties: {
+                        level: {
+                            name: 'level',
+                            value: '30',
+                        },
+                    },
+                }),
+                nftService.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: tokenId3,
+                    properties: {
+                        level: {
+                            name: 'level',
+                            value: '80',
+                        },
+                    },
+                }),
+            ]);
+
+            const result = await nftService.getNfts({
+                collection: { id: collection.id },
+                tokenIds: [tokenId1, tokenId2, tokenId3],
+                properties: [{ name: 'level', max: 50 }],
+            });
+            expect(result.length).toEqual(2);
+            expect(result.map((nft) => nft.id)).toEqual(expect.arrayContaining([nft1.id, nft2.id]));
+        });
+
         it('should get NFT list by collection and dynamic properties using min and max', async () => {
             await userService.createUser({
                 email: faker.internet.email(),
@@ -603,36 +731,93 @@ describe('NftService', () => {
                 }),
             ]);
 
-            const merkleTree1 = await createRecipientsMerkleTree(
-                merkleTreeService, collection.address, [1, 2, 3, 4]);
-            const merkleTree2 = await createRecipientsMerkleTree(
-                merkleTreeService, collection.address, [3, 4, 5, 6]);
+            const merkleTree1 = await createRecipientsMerkleTree(merkleTreeService, collection.address, [1, 2, 3, 4]);
+            const merkleTree2 = await createRecipientsMerkleTree(merkleTreeService, collection.address, [3, 4, 5, 6]);
             const plugin1 = await createPlugin2();
-            await createCollectionPlugin(
-                collection.id,
-                plugin1.id,
-                {
-                    name: plugins[0],
-                    merkleRoot: merkleTree1.merkleRoot,
-                }
-            );
+            await createCollectionPlugin(collection.id, plugin1.id, {
+                name: plugins[0],
+                merkleRoot: merkleTree1.merkleRoot,
+            });
             const pluginB = await createPlugin2({ name: plugins[1] });
-            await createCollectionPlugin(
-                collection.id,
-                pluginB.id,
-                {
-                    name: plugins[1],
-                    merkleRoot: merkleTree2.merkleRoot,
-                }
-            );
+            await createCollectionPlugin(collection.id, pluginB.id, {
+                name: plugins[1],
+                merkleRoot: merkleTree2.merkleRoot,
+            });
 
             const result = await nftService.getNfts({
                 collection: { id: collection.id },
                 tokenIds: ['2', '3', '4', '5'],
-                plugins
+                plugins,
             });
             expect(result.length).toEqual(2);
             expect(result.map((nft) => nft.tokenId)).toEqual(expect.arrayContaining(['3', '4']));
+        });
+
+        it('should get NFT list by collection and empty plugins', async () => {
+            await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await createCollection(collectionService, {
+                creator: { id: wallet.id },
+            });
+
+            const plugins = [];
+
+            const tier = await createTier(tierService, {
+                collection: { id: collection.id },
+            });
+
+            await Promise.all([
+                nftService.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: '2',
+                    properties: {},
+                }),
+                nftService.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: '3',
+                    properties: {},
+                }),
+                nftService.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: '4',
+                    properties: {},
+                }),
+                nftService.createOrUpdateNftByTokenId({
+                    collectionId: collection.id,
+                    tierId: tier.id,
+                    tokenId: '5',
+                    properties: {},
+                }),
+            ]);
+
+            const merkleTree1 = await createRecipientsMerkleTree(merkleTreeService, collection.address, [1, 2, 3, 4]);
+            const merkleTree2 = await createRecipientsMerkleTree(merkleTreeService, collection.address, [3, 4, 5, 6]);
+            const plugin1 = await createPlugin2();
+            await createCollectionPlugin(collection.id, plugin1.id, {
+                merkleRoot: merkleTree1.merkleRoot,
+            });
+            const pluginB = await createPlugin2();
+            await createCollectionPlugin(collection.id, pluginB.id, {
+                merkleRoot: merkleTree2.merkleRoot,
+            });
+
+            const result = await nftService.getNfts({
+                collection: { id: collection.id },
+                tokenIds: ['2', '3', '4', '5'],
+                plugins,
+            });
+            expect(result.length).toEqual(4);
+            expect(result.map((nft) => nft.tokenId)).toEqual(expect.arrayContaining(['2', '3', '4', '5']));
         });
     });
 
@@ -1158,6 +1343,84 @@ describe('NftService', () => {
                 collectionId: collection.id,
                 tierId: tier.id,
                 tokenId: anotherTokenId,
+                properties: {
+                    foo: { value: 'bar' },
+                },
+            });
+
+            const result = await nftService.getNfts({
+                collection: { id: collection.id },
+                tokenIds: [anotherTokenId],
+            });
+            expect(result.length).toEqual(1);
+            expect(result[0].tokenId).toEqual(anotherTokenId);
+            expect(result[0].id).toEqual(anotherNft.id);
+        });
+
+        it('should get record by collectionId and ownerAddress', async () => {
+            await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                creator: { id: wallet.id },
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '100',
+                // paymentTokenAddress: coin.address,
+                tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: '{{level_name}}',
+                            type: 'string',
+                            value: '{{level}}',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'none',
+                        },
+                    },
+                },
+            });
+
+            const tokenId = faker.string.numeric({ length: 1, allowLeadingZeros: false });
+
+            await nftService.createOrUpdateNftByTokenId({
+                collectionId: collection.id,
+                tierId: tier.id,
+                tokenId,
+                ownerAddress: faker.finance.ethereumAddress(),
+                properties: {
+                    foo: { value: 'bar' },
+                },
+            });
+
+            const anotherTokenId = faker.string.numeric({ length: 2, allowLeadingZeros: false });
+            const anotherNft = await nftService.createOrUpdateNftByTokenId({
+                collectionId: collection.id,
+                tierId: tier.id,
+                tokenId: anotherTokenId,
+                ownerAddress: wallet.address,
                 properties: {
                     foo: { value: 'bar' },
                 },
@@ -1914,30 +2177,19 @@ describe('NftService', () => {
     describe('getNftsIdsByPlugins', () => {
         it('should return the nfts ids filtered', async () => {
             const plugins = ['pluginA', 'pluginB'];
-            const collection = await createCollection(
-                collectionService, { tokenAddress: faker.finance.ethereumAddress() });
-            const merkleTree1 = await createRecipientsMerkleTree(
-                merkleTreeService, collection.address, [1, 2, 3, 4]);
-            const merkleTree2 = await createRecipientsMerkleTree(
-                merkleTreeService, collection.address, [3, 4, 5, 6]);
+            const collection = await createCollection(collectionService, { tokenAddress: faker.finance.ethereumAddress() });
+            const merkleTree1 = await createRecipientsMerkleTree(merkleTreeService, collection.address, [1, 2, 3, 4]);
+            const merkleTree2 = await createRecipientsMerkleTree(merkleTreeService, collection.address, [3, 4, 5, 6]);
             const plugin1 = await createPlugin2();
-            await createCollectionPlugin(
-                collection.id,
-                plugin1.id,
-                {
-                    name: plugins[0],
-                    merkleRoot: merkleTree1.merkleRoot,
-                }
-            );
+            await createCollectionPlugin(collection.id, plugin1.id, {
+                name: plugins[0],
+                merkleRoot: merkleTree1.merkleRoot,
+            });
             const pluginB = await createPlugin2({ name: plugins[1] });
-            await createCollectionPlugin(
-                collection.id,
-                pluginB.id,
-                {
-                    name: plugins[1],
-                    merkleRoot: merkleTree2.merkleRoot,
-                }
-            );
+            await createCollectionPlugin(collection.id, pluginB.id, {
+                name: plugins[1],
+                merkleRoot: merkleTree2.merkleRoot,
+            });
             const tokenIds = await nftService.getNftsIdsByPlugins(plugins);
             expect(tokenIds).toEqual([3, 4]);
         });

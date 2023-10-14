@@ -5,8 +5,7 @@ import { Public } from '../session/session.decorator';
 
 @Resolver(() => CollectionPlugin)
 export class CollectionPluginResolver {
-    constructor(private readonly collectionPluginService: CollectionPluginService) {
-    }
+    constructor(private readonly collectionPluginService: CollectionPluginService) {}
 
     @Public()
     @Query(() => [CollectionPlugin])
@@ -32,5 +31,10 @@ export class CollectionPluginResolver {
     @ResolveField(() => Int)
     async claimedCount(@Parent() collectionPlugin: CollectionPlugin): Promise<number> {
         return await this.collectionPluginService.getClaimedCount(collectionPlugin);
+    }
+
+    @ResolveField(() => [String])
+    async claimedTokens(@Parent() collectionPlugin: CollectionPlugin): Promise<string[]> {
+        return await this.collectionPluginService.getClaimedTokens(collectionPlugin);
     }
 }

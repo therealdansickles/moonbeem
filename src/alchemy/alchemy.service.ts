@@ -50,7 +50,6 @@ export class AlchemyService {
         const baseSetting: Partial<AlchemySettings> = { apiKey: this.apiKey, authToken: this.authToken };
         this.alchemy[Network.ARB_MAINNET] = new Alchemy({ network: Network.ARB_MAINNET, ...baseSetting });
         this.alchemy[Network.ARB_GOERLI] = new Alchemy({ network: Network.ARB_GOERLI, ...baseSetting });
-
         this.alchemy[Network.ETH_MAINNET] = new Alchemy({ network: Network.ETH_MAINNET, ...baseSetting });
         this.alchemy[Network.ETH_GOERLI] = new Alchemy({ network: Network.ETH_GOERLI, ...baseSetting });
     }
@@ -130,9 +129,23 @@ export class AlchemyService {
         return this._createWebhook(network, endpointUrl, type, params);
     }
 
+    private async _updateWebhook(network: Network, id: string, params) {
+        return this.alchemy[network].notify.updateWebhook(id, params);
+    }
+
+    async updateWebhook(network: Network, id: string, params) {
+        return this._updateWebhook(network, id, params);
+    }
+
     async createLocalWebhook(network: Network, type: WebhookType, address: string, alchemyId?: string) {
         await this.alchemyWebhookRepository.upsert({ network, type, address, alchemyId }, ['address']);
         return this.alchemyWebhookRepository.findOneBy({ network, type, address });
+    }
+
+    async getLocalWebhooks(network: Network, type: WebhookType, address?: string) {
+        const query: any = { network, type };
+        if (address) query.address = address;
+        return this.alchemyWebhookRepository.findBy(query);
     }
 
     async initializeFactoryContractWebhooks() {
@@ -147,6 +160,13 @@ export class AlchemyService {
             if (!isExisted) {
                 const res = await this.createWebhook(network, WebhookType.ADDRESS_ACTIVITY, configAddress);
                 res && (await this.createLocalWebhook(network, WebhookType.ADDRESS_ACTIVITY, configAddress, res.id));
+            } else {
+                const existedLocalWebhooks = await this.getLocalWebhooks(network, WebhookType.ADDRESS_ACTIVITY);
+                const targetWebhook = existedLocalWebhooks.find((webhook) => webhook.address === configAddress);
+                if (!targetWebhook) {
+                    await this.updateWebhook(network, isExisted.id, { addAddresses: [configAddress] });
+                    await this.createLocalWebhook(network, WebhookType.ADDRESS_ACTIVITY, configAddress, isExisted.id);
+                }
             }
         }
     }

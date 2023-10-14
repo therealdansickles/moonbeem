@@ -2,12 +2,7 @@ import { Collection as CollectionEntity } from '../collection/collection.entity'
 import { CollectionPlugin as CollectionPluginEntity } from '../collectionPlugin/collectionPlugin.entity';
 import { Plugin as PluginEntity } from '../plugin/plugin.entity';
 
-import {
-    CollectionPlugin,
-    CreateCollectionPluginInput,
-    InstalledPluginInfo,
-    UpdateCollectionPluginInput
-} from './collectionPlugin.dto';
+import { CollectionPlugin, CreateCollectionPluginInput, InstalledPluginInfo, UpdateCollectionPluginInput } from './collectionPlugin.dto';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
@@ -30,8 +25,7 @@ export class CollectionPluginService {
         @InjectRepository(Asset721, 'sync_chain')
         private readonly asset721Repository: Repository<Asset721Entity>,
         private readonly asset721Service: Asset721Service,
-    ) {
-    }
+    ) {}
 
     async createCollectionPlugin(createCollectionPluginInput: CreateCollectionPluginInput): Promise<CollectionPlugin> {
         const { collectionId, pluginId, pluginDetail, ...others } = createCollectionPluginInput;
@@ -149,5 +143,13 @@ export class CollectionPluginService {
         const { tokenAddress: address } = pluginDetail || {};
         if (!address) return 0;
         return await this.asset721Repository.countBy({ address });
+    }
+
+    async getClaimedTokens(collectionPlugin: CollectionPlugin): Promise<string[]> {
+        const { pluginDetail } = collectionPlugin;
+        const { tokenAddress: address } = pluginDetail || {};
+        if (!address) return [];
+        const assets = await this.asset721Repository.findBy({ address });
+        return assets.map((asset) => asset.tokenId);
     }
 }

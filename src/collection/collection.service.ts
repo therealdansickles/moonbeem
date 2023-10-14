@@ -56,12 +56,8 @@ import {
     ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
-import {
-    filterTokenIdsByRanges,
-    generateSlug,
-    getCollectionAttributesOverview,
-    getCollectionUpgradesOverview
-} from './collection.utils';
+import { filterTokenIdsByRanges, generateSlug, getCollectionAttributesOverview, getCollectionUpgradesOverview } from './collection.utils';
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.dto';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'tokenAddress' | 'address' | 'name' | 'slug'>>;
 
@@ -88,9 +84,8 @@ export class CollectionService {
         private collectionPluginService: CollectionPluginService,
         private nftService: NftService,
         @Inject(forwardRef(() => AlchemyService))
-        private alchemyService: AlchemyService
-    ) {
-    }
+        private alchemyService: AlchemyService,
+    ) {}
 
     /**
      * Retrieves the collection associated with the given id.
@@ -285,8 +280,7 @@ export class CollectionService {
                 throw new Error(`The endSaleAt should be greater than startSaleAt.`);
             }
         }
-        const existingCollection = await this.collectionRepository.findOneBy(
-            [{ name: data.name }, { slug: generateSlug(data.name) }]);
+        const existingCollection = await this.collectionRepository.findOneBy([{ name: data.name }, { slug: generateSlug(data.name) }]);
         if (existingCollection) throw new Error(`The collection name ${data.name} is already taken`);
         return true;
     }
@@ -384,8 +378,7 @@ export class CollectionService {
         const kind = collectionEntity.CollectionKind;
         if ([kind.whitelistEdition, kind.whitelistTiered, kind.whitelistBulk].indexOf(collection.kind) >= 0) {
             tiers.forEach((tier) => {
-                if (!tier.merkleRoot) throw new GraphQLError(
-                    'Please provide merkleRoot for the whitelisting collection.');
+                if (!tier.merkleRoot) throw new GraphQLError('Please provide merkleRoot for the whitelisting collection.');
             });
         }
 
@@ -489,7 +482,7 @@ export class CollectionService {
                     tier,
                     createdAt: new Date(createdAt.getTime() + createdAt.getTimezoneOffset() * 60 * 1000), // timestamp to iso time
                 };
-            })
+            }),
         );
         return PaginatedImp(data, totalResult ? parseInt(totalResult.count) : 0);
     }
@@ -522,7 +515,7 @@ export class CollectionService {
             tokenId: In(
                 assets.map((asset) => {
                     return asset.tokenId;
-                })
+                }),
             ),
         });
 
@@ -548,7 +541,7 @@ export class CollectionService {
                     type: type,
                     transaction: txn,
                 };
-            })
+            }),
         );
 
         return { data, total };
@@ -560,10 +553,9 @@ export class CollectionService {
         before: string,
         after: string,
         first: number,
-        last: number
+        last: number,
     ): Promise<CollectionAggregatedActivityPaginated> {
-        const builder = await this.history721Repository.createQueryBuilder('history').where(
-            'history.address = :address', { address: tokenAddress });
+        const builder = await this.history721Repository.createQueryBuilder('history').where('history.address = :address', { address: tokenAddress });
         const countBuilder = builder.clone();
         if (after) {
             const [createdAt, id] = cursorToStrings(after);
@@ -638,7 +630,7 @@ export class CollectionService {
                     id: history.id,
                     createdAt: history.createdAt,
                 };
-            })
+            }),
         );
         return toPaginated(res, count);
     }
@@ -695,7 +687,7 @@ export class CollectionService {
                 address: In(
                     contracts.map((contract) => {
                         return contract.address;
-                    })
+                    }),
                 ),
             },
             relations: {
@@ -714,7 +706,7 @@ export class CollectionService {
                     collection: { id: collection.id },
                 })) as Tier[];
                 return { ...collection };
-            })
+            }),
         );
 
         return {
@@ -807,8 +799,7 @@ export class CollectionService {
     public async getCollectionSold(address: string, before: string, after: string, first: number, last: number): Promise<CollectionSoldPaginated> {
         if (!address) return PaginatedImp([], 0);
 
-        const builder = this.mintSaleTransactionRepository.createQueryBuilder('txn').where(
-            'txn.address = :address', { address });
+        const builder = this.mintSaleTransactionRepository.createQueryBuilder('txn').where('txn.address = :address', { address });
         const countBuilder = builder.clone();
 
         if (after) {
@@ -837,7 +828,7 @@ export class CollectionService {
                     ...txn,
                     tier: tier,
                 };
-            })
+            }),
         );
 
         return PaginatedImp(data, total);
@@ -998,7 +989,7 @@ export class CollectionService {
         before: string,
         after: string,
         first: number,
-        last: number
+        last: number,
     ): Promise<CollectionEarningsChartPaginated> {
         if (!address) return toPaginated([], 0);
 
@@ -1038,7 +1029,7 @@ export class CollectionService {
             this.mintSaleTransactionRepository.manager.query(
                 `SELECT COUNT(1) AS "total"
                  FROM (${subquery.getSql()}) AS subquery`,
-                [address]
+                [address],
             ),
         ]);
 
@@ -1058,7 +1049,7 @@ export class CollectionService {
                         inPaymentToken: totalTokenPrice.toString(),
                     },
                 };
-            })
+            }),
         );
 
         const total = totalResult.length > 0 ? parseInt(totalResult[0].total ?? 0) : 0;
@@ -1217,19 +1208,17 @@ export class CollectionService {
         if (!collection) {
             throw new Error(`Collection not found`);
         }
-        const ranges = await this.getTokenIdRangesByStaticPropertiesFilters(
-            collectionId, collection.address, staticPropertyFilters);
+        const ranges = await this.getTokenIdRangesByStaticPropertiesFilters(collectionId, collection.address, staticPropertyFilters);
         const mintedTokenIds = await this.nftService.getNftsIdsByProperties(collectionId, []);
         const mintedTokenIdsInRanges = filterTokenIdsByRanges(mintedTokenIds, ranges);
-        const tokenIdsWithDynamicProperties = await this.nftService.getNftsIdsByProperties(
-            collectionId, dynamicPropertyFilters);
+        const tokenIdsWithDynamicProperties = await this.nftService.getNftsIdsByProperties(collectionId, dynamicPropertyFilters);
         return union(tokenIdsWithDynamicProperties, mintedTokenIdsInRanges);
     }
 
     async getTokenIdRangesByStaticPropertiesFilters(
         collectionId: string,
         collectionAddress: string,
-        propertyFilters: PropertyFilter[]
+        propertyFilters: PropertyFilter[],
     ): Promise<number[][]> {
         const contracts = await this.mintSaleContractRepository.findBy({
             address: collectionAddress,
@@ -1253,9 +1242,11 @@ export class CollectionService {
         });
         const effectiveFilterConditions = filterConditions.filter((condition) => condition !== '');
         if (effectiveFilterConditions.length > 0) {
-            builder.andWhere(new Brackets((qb) => {
-                effectiveFilterConditions.map((condition) => qb.orWhere(condition));
-            }));
+            builder.andWhere(
+                new Brackets((qb) => {
+                    effectiveFilterConditions.map((condition) => qb.orWhere(condition));
+                }),
+            );
         }
         const tiers = await builder.getRawMany();
         return tiers
@@ -1271,13 +1262,8 @@ export class CollectionService {
             .filter((range) => range.length > 0);
     }
 
-    async getMetadataOverview({
-        collectionId,
-        collectionAddress,
-        collectionSlug
-    }: MetadataOverviewInput): Promise<MetadataOverview> {
-        const builder = await this.tierRepository.createQueryBuilder('tier').leftJoinAndSelect(
-            'tier.collection', 'collection');
+    async getMetadataOverview({ collectionId, collectionAddress, collectionSlug }: MetadataOverviewInput): Promise<MetadataOverview> {
+        const builder = await this.tierRepository.createQueryBuilder('tier').leftJoinAndSelect('tier.collection', 'collection');
         if (collectionId) {
             builder.where('collection.id = :collectionId', { collectionId });
         } else if (collectionAddress) {
@@ -1341,10 +1327,15 @@ export class CollectionService {
             const count = await this.collectionPluginService.getAppliedTokensCount(collectionPlugin, totalSupply);
             plugins.push({
                 name: collectionPlugin.name,
+                pluginName: collectionPlugin.plugin.name,
                 count,
             });
         }
 
         return plugins;
+    }
+
+    async getCollectionPlugins(collectionId: string): Promise<CollectionPlugin[]> {
+        return this.collectionPluginService.getCollectionPluginsByCollectionId(collectionId);
     }
 }

@@ -71,10 +71,8 @@ dotenv.config();
         // integration graphql
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver, // GraphQL server adapter
-            debug: appConfig.global.debug ? true : false, // is debug?
             playground: appConfig.global.debug ? true : false, // is show platground? waiting for fix: throw an error when set it true
             autoSchemaFile: true,
-            introspection: true,
         }),
         ScheduleModule.forRoot(),
         TypeOrmModule.forRoot({

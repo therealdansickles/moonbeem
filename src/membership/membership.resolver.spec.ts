@@ -1,14 +1,14 @@
 import * as request from 'supertest';
+import { Repository } from 'typeorm';
 
 import { faker } from '@faker-js/faker';
 import { INestApplication } from '@nestjs/common';
 
 import { OrganizationService } from '../organization/organization.service';
-import { UserService } from '../user/user.service';
-import { MembershipService } from './membership.service';
 import { createOrganization, getToken } from '../test-utils';
-import { Repository } from 'typeorm';
+import { UserService } from '../user/user.service';
 import { Membership } from './membership.entity';
+import { MembershipService } from './membership.service';
 
 export const gql = String.raw;
 
@@ -603,7 +603,7 @@ describe('MembershipResolver', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.errors[0].message).toEqual('Forbidden resource');
-                    expect(body.errors[0].extensions.response.statusCode).toEqual(403);
+                    expect(body.errors[0].extensions.originalError.statusCode).toEqual(403);
                 });
         });
     });

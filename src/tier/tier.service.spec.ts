@@ -497,6 +497,28 @@ describe('TierService', () => {
             expect(result.inPaymentToken).toBe(totalProfitInToken);
             expect(result.inUSDC).toBe(new BigNumber(totalProfitInToken).multipliedBy(coin.derivedUSDC).toString());
         });
+
+        it('should return 0 if the payment token is zero address and the price is zero', async () => {
+            const coin = await createCoin(coinService);
+            const collection = await createCollection(collectionService);
+
+            const tier = await createTier(service, {
+                collection: { id: collection.id },
+                paymentTokenAddress: coin.address,
+            });
+
+            await createMintSaleTransaction(mintSaleTransactionService, {
+                address: collection.address,
+                collectionId: collection.id,
+                paymentToken: '0x0000000000000000000000000000000000000000',
+                price: '0',
+            });
+
+            const result = await service.getTierProfit(tier.id);
+
+            expect(result.inPaymentToken).toBe('0');
+            expect(result.inUSDC).toBe('0');
+        });
     });
 
     describe('getHolders', () => {
@@ -949,7 +971,7 @@ describe('TierService', () => {
                 '',
                 '',
                 10,
-                10
+                10,
             );
             expect(result).toBeDefined();
             expect(result.totalCount).toEqual(1);
@@ -991,7 +1013,7 @@ describe('TierService', () => {
                 '',
                 '',
                 10,
-                10
+                10,
             );
             expect(result).toBeDefined();
             expect(result.totalCount).toEqual(2);
@@ -1010,7 +1032,7 @@ describe('TierService', () => {
                 '',
                 '',
                 10,
-                10
+                10,
             );
             expect(result).toBeDefined();
             expect(result.totalCount).toEqual(2);
