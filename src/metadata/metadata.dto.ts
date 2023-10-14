@@ -125,6 +125,11 @@ export class MetadataProperty {
     @IsOptional()
     @Field({ nullable: true, description: 'The last time the property has been updated.' })
     public updated_at?: number;
+
+    @IsString()
+    @IsOptional()
+    @Field({ nullable: true, description: 'For which plugin bring in this property.' })
+    public belongs_to?: string;
 }
 
 @ObjectType()
@@ -138,11 +143,27 @@ export class MetadataConfigAlias {
 }
 
 @ObjectType()
+export class MetadataConfigTokenScope {
+    @IsString()
+    @Field(() => String, { description: 'The plugin name.' })
+    readonly name: string;
+
+    @IsArray()
+    @Field(() => [String], { description: 'The tokenIds whom will be applied to for the specific plugin.' })
+    readonly tokens: string[];
+}
+
+@ObjectType()
 export class MetadataConfigs {
     @IsObject()
     @IsOptional()
     @Field(() => GraphQLJSONObject, { nullable: true, description: 'The alias for each property.' })
     readonly alias?: MetadataConfigAlias;
+
+    @IsArray()
+    @IsOptional()
+    @Field(() => [MetadataConfigTokenScope], { nullable: true, description: 'The tokens whom will apply the specific plugin.' })
+    readonly token_scope?: MetadataConfigTokenScope[];
 }
 
 @ObjectType()
