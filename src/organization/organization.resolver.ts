@@ -30,7 +30,7 @@ export class OrganizationResolver {
         private readonly collectionService: CollectionService,
         private readonly collaborationService: CollaborationService,
         private readonly membershipService: MembershipService,
-        private readonly organizationService: OrganizationService
+        private readonly organizationService: OrganizationService,
     ) {}
 
     @Public()
@@ -110,9 +110,9 @@ export class OrganizationResolver {
     }
 
     @Public()
-    @ResolveField(() => Int, { description: 'Returns the total collections for the given organization.' })
+    @ResolveField(() => Int, { description: 'Returns the total mint sales collections for the given organization.' })
     async totalCollections(@Parent() organization: Organization): Promise<number> {
-        return await this.organizationService.getTotalCollections(organization.id);
+        return await this.organizationService.getTotalMintSaleCollections(organization.id);
     }
 
     @Public()
@@ -136,7 +136,7 @@ export class OrganizationResolver {
             @Args('before', { nullable: true }) before?: string,
             @Args('after', { nullable: true }) after?: string,
             @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
-            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number,
     ): Promise<OrganizationLatestSalePaginated> {
         return await this.organizationService.getLatestSales(organization.id, before, after, first, last);
     }
@@ -159,7 +159,7 @@ export class OrganizationResolver {
             @Args('before', { nullable: true }) before?: string,
             @Args('after', { nullable: true }) after?: string,
             @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
-            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number,
     ): Promise<OrganizationEarningsChartPaginated> {
         return this.organizationService.getOrganizationEarningsChart(organization.id, before, after, first, last);
     }
