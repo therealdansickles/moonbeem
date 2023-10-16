@@ -48,7 +48,6 @@ import { TierModule } from '../tier/tier.module';
 import { TierService } from '../tier/tier.service';
 import { User } from '../user/user.entity';
 import { UserModule } from '../user/user.module';
-import { UserService } from '../user/user.service';
 import { Wallet } from '../wallet/wallet.entity';
 import { WalletModule } from '../wallet/wallet.module';
 import { Collection } from '../collection/collection.entity';
@@ -103,7 +102,6 @@ import { AnalyticsResolver } from './analytics.resolver';
         MembershipService,
         OpenseaService,
         TierService,
-        UserService,
         CollectionService,
         CoinMarketCapService,
         MintSaleTransactionService,
