@@ -318,18 +318,25 @@ export class NftService {
      * @param candidateProperties
      * @returns
      */
-    async initializePropertiesFromTierByTokenId(tierId: string, tokenId: string): Promise<MetadataProperties> {
+    async initializePropertiesFromTierByTokenId(
+        tierId: string,
+        tokenId: string,
+        customizedProperties: MetadataProperties = {},
+    ): Promise<MetadataProperties> {
         const tier = await this.tierService.getTier({ id: tierId });
         const tokenScopes = tier.metadata?.configs?.token_scope || [];
-        const properties: MetadataProperties = {};
-        for (const [key, value] of Object.entries(tier.metadata?.properties || {})) {
+        const properties: MetadataProperties = Object.assign(tier.metadata?.properties || {}, customizedProperties);
+        for (const [key, value] of Object.entries(properties)) {
             // limit the property attachment according to the `tokenId` and `config.token_scope`
             if (!isEmpty(value.belongs_to)) {
                 const scopedTokens = tokenScopes.find((scope) => scope.name === value.belongs_to)?.tokens;
                 // if `tokens` array is empty or can find the `tokenId` in the array,
                 // then can confirm the property should be attached.
                 const permitted = isEmpty(scopedTokens) || (!isEmpty(scopedTokens) && scopedTokens.indexOf(tokenId) >= 0);
-                if (!permitted) continue;
+                if (!permitted) {
+                    delete properties[key];
+                    continue;
+                }
             }
             const property = Object.assign({}, value);
             if (value.class === 'upgradable') property.updated_at = new Date().valueOf();
@@ -349,8 +356,8 @@ export class NftService {
      * @returns
      */
     async createOrUpdateNftByTokenId(payload: ICreateOrUpdateNft) {
-        const { tokenId, collectionId, tierId, properties: candidateProperties, ownerAddress } = payload;
-        const properties = this.initializePropertiesFromTier(candidateProperties) as any;
+        const { tokenId, collectionId, tierId, ownerAddress } = payload;
+        const properties = (await this.initializePropertiesFromTierByTokenId(tierId, tokenId, payload.properties)) as any;
         await this.nftRepository.upsert(
             {
                 tokenId,

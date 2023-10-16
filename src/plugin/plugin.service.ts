@@ -1,5 +1,7 @@
 import { merge, uniq } from 'lodash';
+import { render } from 'mustache';
 import { Repository } from 'typeorm';
+import { v4 } from 'uuid';
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -27,7 +29,8 @@ export class PluginService {
      */
     async getPlugins(query: IPluginQuery = {}): Promise<Plugin[]> {
         query = { isPublished: true, ...query };
-        return await this.pluginRepository.findBy(query);
+        const plugins = await this.pluginRepository.findBy(query);
+        return this.patchPredefined(plugins);
     }
 
     /**
@@ -38,6 +41,20 @@ export class PluginService {
      */
     async getPlugin(id: string): Promise<Plugin> {
         return await this.pluginRepository.findOneBy({ id });
+    }
+
+    /**
+     * Patch predefined values for the plugin.
+     * the predefined delimiters are '[[' and ']]' just compare to normal delimiters '{{' and '}} }
+     *
+     * @param id
+     * @param path
+     */
+    async patchPredefined(plugins: Plugin[]) {
+        for (const plugin of plugins) {
+            plugin.metadata = JSON.parse(render(JSON.stringify(plugin.metadata), { id: v4() }, {}, ['[[', ']]']));
+        }
+        return plugins;
     }
 
     /**

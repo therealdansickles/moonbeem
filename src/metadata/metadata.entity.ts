@@ -1,5 +1,6 @@
 export const enum MetadataPropertyClass {
     UPGRADABLE = 'upgradable',
+    PLUGIN = 'plugin',
 }
 
 export class MetadataProperty {

@@ -110,6 +110,49 @@ describe('PluginService', () => {
         });
     });
 
+    describe('#patchPredefined', () => {
+        it('should fill out the value', async () => {
+            const plugin = await pluginRepository.save({
+                name: faker.commerce.productName(),
+                displayName: faker.commerce.productName(),
+                description: faker.commerce.productDescription(),
+                author: faker.commerce.department(),
+                version: faker.git.commitSha(),
+                tpye: 'plugin',
+                metadata: {
+                    configs: {
+                        token_scope: [
+                            {
+                                name: '@vibelabs/physical_redemption/[[id]]',
+                                tokens: ['10', '11', '12'],
+                            },
+                        ],
+                    },
+                    properties: {
+                        '{{physical_redemption_name}}': {
+                            name: '{{physical_redemption_name}}',
+                            type: 'string',
+                            class: MetadataPropertyClass.PLUGIN,
+                            value: '{{physical_redemption}}',
+                            belongs_to: '@vibelabs/physical_redemption/[[id]]',
+                            display_value: '0',
+                        },
+                    },
+                },
+            });
+
+            const result = await pluginService.patchPredefined([plugin]);
+            expect(result).toBeTruthy();
+            expect(result[0].metadata.configs.token_scope[0].name.startsWith('@vibelabs/physical_redemption/')).toBeTruthy();
+            expect(result[0].metadata.configs.token_scope[0].name.endsWith('@vibelabs/physical_redemption/')).toBeFalsy();
+            expect(
+                result[0].metadata.properties[`{{physical_redemption_name}}`].belongs_to.startsWith('@vibelabs/physical_redemption/'),
+            ).toBeTruthy();
+            expect(result[0].metadata.properties[`{{physical_redemption_name}}`].belongs_to.endsWith('@vibelabs/physical_redemption/')).toBeFalsy();
+            expect(result[0].metadata.configs.token_scope[0].name).toEqual(result[0].metadata.properties[`{{physical_redemption_name}}`].belongs_to);
+        });
+    });
+
     describe('#installOnTier', () => {
         let coin;
         let collection;
