@@ -12,7 +12,6 @@ import { RoyaltyService } from './sync-chain/royalty/royalty.service';
 import { TierService } from './tier/tier.service';
 import { MembershipService } from './membership/membership.service';
 import { CreateMembershipInput } from './membership/membership.dto';
-import { gql } from './user/user.resolver.spec';
 import * as request from 'supertest';
 import { INestApplication } from '@nestjs/common';
 import { Repository } from 'typeorm';
@@ -24,6 +23,8 @@ import { CollectionPluginService } from './collectionPlugin/collectionPlugin.ser
 
 const collectionPluginService: CollectionPluginService = global.collectionPluginService;
 const pluginRepository: Repository<Plugin> = global.pluginRepository;
+
+export const gql = String.raw;
 
 export const createCoin = async (coinService: CoinService, coin?: any) =>
     coinService.createCoin({
@@ -173,7 +174,6 @@ export const createPlugin2 = async (plugin?: any) =>
         ...plugin,
     });
 
-
 export const createPlugin = async (repo: Repository<Plugin>, plugin?: any) =>
     repo.save({
         name: faker.commerce.productName(),
@@ -185,7 +185,11 @@ export const createPlugin = async (repo: Repository<Plugin>, plugin?: any) =>
         ...plugin,
     });
 
-export const createRecipientsMerkleTree = async (merkleTreeService: MerkleTreeService, collectionAddress: string, tokenIds: number[]): Promise<MerkleTree> => {
+export const createRecipientsMerkleTree = async (
+    merkleTreeService: MerkleTreeService,
+    collectionAddress: string,
+    tokenIds: number[],
+): Promise<MerkleTree> => {
     const data = tokenIds.map((tokenId) => {
         return { collection: collectionAddress, tokenId, quantity: '1' };
     });
@@ -204,7 +208,7 @@ export const createCollectionPlugin = async (collectionId: string, pluginId: str
             tokenAddress: faker.finance.ethereumAddress(),
         },
         merkleRoot: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
-        ...collectionPlugin
+        ...collectionPlugin,
     });
 };
 
@@ -233,8 +237,7 @@ export const getToken = async (app: INestApplication, email: string) => {
         },
     };
 
-    const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
-        { query: tokenQuery, variables: tokenVariables });
+    const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
     const { token } = tokenRs.body.data.createSessionFromEmail;
     return token;
