@@ -66,6 +66,11 @@ export class InstallOnCollectionInput {
     @Field({ nullable: true, description: 'Customized plugin name.' })
     readonly pluginName?: string;
 
+    @IsString()
+    @IsOptional()
+    @Field({ nullable: true, description: 'Collection plugin id.' })
+    readonly collectionPluginId?: string;
+
     @IsObject()
     @IsOptional()
     @Field(() => GraphQLJSONObject, { nullable: true, description: 'The customized metadata need to be installed on chosen collection. ' })
@@ -86,6 +91,11 @@ export class InstallOnTierInput {
     @IsOptional()
     @Field({ nullable: true, description: 'Customized plugin name.' })
     readonly pluginName?: string;
+
+    @IsString()
+    @IsOptional()
+    @Field({ nullable: true, description: 'Collection plugin id.' })
+    readonly collectionPluginId?: string;
 
     @IsObject()
     @IsOptional()
