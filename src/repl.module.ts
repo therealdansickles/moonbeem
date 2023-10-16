@@ -29,6 +29,7 @@ import { WalletModule } from './wallet/wallet.module';
 import { CoinMarketCapModule } from './coinmarketcap/coinmarketcap.module';
 import { SessionInterceptor } from './session/session.interceptor';
 import { CollectionPluginModule } from './collectionPlugin/collectionPlugin.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 dotenv.config();
 
@@ -56,6 +57,7 @@ dotenv.config();
         SaleHistoryModule,
         PluginModule,
         CollectionPluginModule,
+        AnalyticsModule,
         TypeOrmModule.forRoot({
             name: 'default',
             type: 'postgres',
