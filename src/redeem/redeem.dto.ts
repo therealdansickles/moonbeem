@@ -1,4 +1,4 @@
-import { IsInt, IsObject, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsInt, IsObject, IsOptional, IsString } from 'class-validator';
 
 import { Field, ID, InputType, Int, ObjectType, OmitType } from '@nestjs/graphql';
 
@@ -37,6 +37,11 @@ export class Redeem {
 
     @IsString()
     @IsOptional()
+    @Field(() => String, { nullable: true, description: 'Delivery phone.' })
+    readonly deliveryPhone?: string;
+
+    @IsString()
+    @IsOptional()
     @Field(() => String, { nullable: true, description: 'The full name of the redemption client.' })
     readonly name?: string;
 
@@ -51,10 +56,14 @@ export class Redeem {
     @IsObject()
     @Field(() => Collection, { description: 'The collection associated with this redeem.' })
     readonly collection: Collection;
+
+    @IsBoolean()
+    @Field(() => Boolean)
+    readonly isRedeemed: boolean;
 }
 
 @InputType()
-export class CreateRedeemInput extends OmitType(Redeem, ['id', 'collection'], InputType) {
+export class CreateRedeemInput extends OmitType(Redeem, ['id', 'collection', 'isRedeemed'], InputType) {
     @IsObject()
     @Field(() => CollectionInput, { description: 'The collection associated with this redeem.' })
     readonly collection: CollectionInput;

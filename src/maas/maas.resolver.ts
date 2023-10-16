@@ -11,7 +11,19 @@ export class MaasResolver {
     @Public()
     @Mutation(() => Boolean, { description: 'Receive external webhook requests.' })
     async maasExternalWebhook(@Args('input') input: MaasExternalWebhookInput) {
-        await this.maasService.handleAdGated({ collectionId: input.collectionId, address: input.address.toLowerCase() });
+        // the name should formatted as:
+        // @vibelabs/loyalty-points
+        // @vibelabs/ad-gated
+        const [, name] = input.name?.split('/') || [];
+        switch (name) {
+            case 'ad-gated': {
+                await this.maasService.handleAdGated({ collectionId: input.collectionId, address: input.address.toLowerCase() });
+                break;
+            }
+            default: {
+                console.log(`We don't have external webhook for ${input.name}`);
+            }
+        }
         return true;
     }
 }

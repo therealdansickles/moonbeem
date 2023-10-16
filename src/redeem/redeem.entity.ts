@@ -17,6 +17,9 @@ export class Redeem extends BaseEntity {
     @Column({ type: 'bigint', comment: 'TokenId of the collection for redeeming.' })
     readonly tokenId: number;
 
+    @Column({ comment: 'The wallet address for redeeming.' })
+    readonly address: string;
+
     @Column({ nullable: true, comment: 'The full name of the redemption client.' })
     readonly name?: string;
 
@@ -35,8 +38,14 @@ export class Redeem extends BaseEntity {
     @Column({ nullable: true, comment: 'The delivery country for redeeming.' })
     readonly deliveryCountry?: string;
 
+    @Column({ nullable: true, comment: 'The delivery phone for redeeming.' })
+    readonly deliveryPhone?: string;
+
     @Column({ nullable: true, comment: 'The email address for redeeming.' })
     readonly email: string;
+
+    @Column({ default: false, comment: 'The state of the redeeming.' })
+    readonly isRedeemed: boolean;
 
     @CreateDateColumn()
     readonly createdAt: Date;

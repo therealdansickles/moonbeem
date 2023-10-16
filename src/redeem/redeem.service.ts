@@ -14,6 +14,12 @@ export type IRedeemQuery = {
     tokenId: number;
 };
 
+export type IRedeemListQuery = {
+    collection: { id: string };
+    address: string;
+    isRedeemed?: boolean;
+};
+
 @Injectable()
 export class RedeemService {
     constructor(@InjectRepository(Redeem) private redeemRepository: Repository<Redeem>) {}
@@ -26,6 +32,16 @@ export class RedeemService {
      */
     async getRedeem(id: string): Promise<Redeem> {
         return await this.redeemRepository.findOneBy({ id });
+    }
+
+    /**
+     * Get redeem list
+     *
+     * @param query
+     * @returns
+     */
+    async getRedeems(query: IRedeemListQuery): Promise<Redeem[]> {
+        return this.redeemRepository.findBy(query);
     }
 
     /**
@@ -47,9 +63,15 @@ export class RedeemService {
         try {
             const payload = {
                 deliveryAddress: data.deliveryAddress,
+                deliveryCity: data.deliveryCity,
+                deliveryZipcode: data.deliveryZipcode,
+                deliveryState: data.deliveryState,
+                deliveryCountry: data.deliveryCountry,
+                deliveryPhone: data.deliveryPhone,
                 email: data.email,
                 tokenId: data.tokenId,
                 collection: data.collection.id as unknown as Collection,
+                address: data.address,
             };
             return this.redeemRepository.save(payload);
         } catch (e) {
