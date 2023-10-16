@@ -1,5 +1,4 @@
-import * as collectionEntity from '../collection/collection.entity';
-import { CollectionKind } from '../collection/collection.entity';
+import { Collection, CollectionKind } from '../collection/collection.entity';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { IsNull, Not, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,8 +11,8 @@ import { DataPoint, PlatformStats } from './analytics.dto';
 @Injectable()
 export class AnalyticsService {
     constructor(
-        @InjectRepository(collectionEntity.Collection)
-        private readonly collectionRepository: Repository<collectionEntity.Collection>,
+        @InjectRepository(Collection)
+        private readonly collectionRepository: Repository<Collection>,
         @InjectRepository(Asset721, 'sync_chain')
         private readonly asset721Repository: Repository<Asset721>,
         @InjectRepository(Wallet)
