@@ -1,7 +1,7 @@
 import { IsBoolean, IsObject, IsOptional, IsString, IsUrl } from 'class-validator';
 import { GraphQLJSONObject } from 'graphql-type-json';
 
-import { Field, InputType, ObjectType, OmitType, PickType } from '@nestjs/graphql';
+import { Field, InputType, ObjectType, PickType } from '@nestjs/graphql';
 
 import { Metadata, MetadataInput } from '../metadata/metadata.dto';
 
