@@ -84,6 +84,8 @@ import { WaitlistService } from './waitlist/waitlist.service';
 import { Wallet } from './wallet/wallet.dto';
 import { WalletModule } from './wallet/wallet.module';
 import { WalletService } from './wallet/wallet.service';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { AnalyticsService } from './analytics/analytics.service';
 
 @Resolver()
 export class TestResolver {
@@ -144,6 +146,7 @@ export default async () => {
             MerkleTreeModule,
             TestResolver,
             CollectionPluginModule,
+            AnalyticsModule,
             // import sync modules
             Asset721Module,
             CoinModule,
@@ -202,6 +205,7 @@ export default async () => {
     global.jwtService = module.get<JwtService>(JwtService);
     global.collectionPluginService = module.get<CollectionPluginService>(CollectionPluginService);
     global.maasService = module.get<MaasService>(MaasService);
+    global.analyticsService = module.get<AnalyticsService>(AnalyticsService);
 
     // platform controller
     global.alchemyController = module.get<AlchemyController>(AlchemyController);
