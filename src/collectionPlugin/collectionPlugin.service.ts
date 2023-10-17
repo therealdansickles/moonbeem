@@ -1,15 +1,15 @@
+import { Repository } from 'typeorm';
+
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+
 import { Collection as CollectionEntity } from '../collection/collection.entity';
 import { CollectionPlugin as CollectionPluginEntity } from '../collectionPlugin/collectionPlugin.entity';
-import { Plugin as PluginEntity } from '../plugin/plugin.entity';
-
-import { CollectionPlugin, CreateCollectionPluginInput, InstalledPluginInfo, UpdateCollectionPluginInput } from './collectionPlugin.dto';
-
-import { InjectRepository } from '@nestjs/typeorm';
-import { Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
 import { MerkleTree as MerkleTreeEntity } from '../merkleTree/merkleTree.entity';
+import { Plugin as PluginEntity } from '../plugin/plugin.entity';
+import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
-import { Asset721, Asset721 as Asset721Entity } from '../sync-chain/asset721/asset721.entity';
+import { CollectionPlugin, CreateCollectionPluginInput, InstalledPluginInfo, UpdateCollectionPluginInput } from './collectionPlugin.dto';
 
 @Injectable()
 export class CollectionPluginService {
@@ -23,7 +23,7 @@ export class CollectionPluginService {
         @InjectRepository(MerkleTreeEntity)
         private readonly merkleTreeRepo: Repository<MerkleTreeEntity>,
         @InjectRepository(Asset721, 'sync_chain')
-        private readonly asset721Repository: Repository<Asset721Entity>,
+        private readonly asset721Repository: Repository<Asset721>,
         private readonly asset721Service: Asset721Service,
     ) {}
 
@@ -95,9 +95,10 @@ export class CollectionPluginService {
             const applied = await this.checkIfPluginApplied(collectionPlugin, tokenId);
             if (applied) {
                 const claimed = await this.checkIfPluginClaimed(collectionPlugin, tokenId);
-                const { name, pluginDetail, plugin, description, mediaUrl } = collectionPlugin;
+                const { id, name, pluginDetail, plugin, description, mediaUrl } = collectionPlugin;
                 const { collectionAddress, tokenAddress } = pluginDetail || {};
                 appliedPlugins.push({
+                    id,
                     name,
                     collectionAddress,
                     tokenAddress,

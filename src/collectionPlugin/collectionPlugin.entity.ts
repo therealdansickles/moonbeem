@@ -1,6 +1,8 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+
 import { Collection } from '../collection/collection.entity';
 import { Plugin } from '../plugin/plugin.entity';
+import { Redeem } from '../redeem/redeem.entity';
 
 type PluginDetail = any;
 
@@ -37,6 +39,11 @@ export class CollectionPlugin extends BaseEntity {
 
     @Column({ nullable: true, comment: 'merkle root for the recipients' })
     readonly merkleRoot?: string;
+
+    @OneToMany(() => Redeem, (redeem) => redeem.collectionPlugin, {
+        createForeignKeyConstraints: false,
+    })
+    readonly redeems: Redeem[];
 
     @CreateDateColumn()
     readonly createdAt: Date;

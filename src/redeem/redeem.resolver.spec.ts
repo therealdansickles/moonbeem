@@ -1,25 +1,28 @@
 import { ethers } from 'ethers';
 import * as request from 'supertest';
+import { Repository } from 'typeorm';
 
 import { faker } from '@faker-js/faker';
 import { INestApplication } from '@nestjs/common';
 
 import { CollectionService } from '../collection/collection.service';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 import { OrganizationService } from '../organization/organization.service';
+import { Plugin } from '../plugin/plugin.entity';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
-import {
-    MintSaleContractService
-} from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { UserService } from '../user/user.service';
 import { RedeemService } from './redeem.service';
 
 export const gql = String.raw;
 
 describe('RedeemResolver', () => {
+    let pluginRepository: Repository<Plugin>;
     let redeemService: RedeemService;
     let userService: UserService;
     let organizationService: OrganizationService;
     let collectionService: CollectionService;
+    let collectionPluginService: CollectionPluginService;
     let mintSaleContractService: MintSaleContractService;
     let asset721Service: Asset721Service;
     let app: INestApplication;
@@ -27,12 +30,14 @@ describe('RedeemResolver', () => {
     beforeAll(async () => {
         app = global.app;
 
+        pluginRepository = global.pluginRepository;
         redeemService = global.redeemService;
         userService = global.userService;
         organizationService = global.organizationService;
         collectionService = global.collectionService;
         mintSaleContractService = global.mintSaleContractService;
         asset721Service = global.asset721Service;
+        collectionPluginService = global.collectionPluginService;
     });
 
     afterEach(async () => {
@@ -107,9 +112,22 @@ describe('RedeemResolver', () => {
             const message = 'claim a redeem font';
             const signature = await ownerWallet.signMessage(message);
 
+            const plugin = await pluginRepository.save({
+                name: faker.commerce.productName(),
+                description: faker.commerce.productDescription(),
+                type: 'plugin',
+            });
+
+            const collectionPlugin = await collectionPluginService.createCollectionPlugin({
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: faker.commerce.productName(),
+            });
+
             const createdRedeem = await redeemService.createRedeem({
                 collection: { id: collection.id },
-                tokenId: parseInt(tokenId),
+                collectionPluginId: collectionPlugin.id,
+                tokenId,
                 deliveryAddress: faker.location.streetAddress(),
                 deliveryCity: faker.location.city(),
                 deliveryZipcode: faker.location.zipCode(),
@@ -122,7 +140,7 @@ describe('RedeemResolver', () => {
             });
 
             const query = gql`
-                query GetRedeemByQuery($collectionId: String!, $tokenId: Int!) {
+                query GetRedeemByQuery($collectionId: String!, $tokenId: String!) {
                     getRedeemByQuery(collectionId: $collectionId, tokenId: $tokenId) {
                         id
                         deliveryAddress
@@ -133,7 +151,7 @@ describe('RedeemResolver', () => {
 
             const variables = {
                 collectionId: collection.id,
-                tokenId: parseInt(tokenId),
+                tokenId,
             };
 
             return request(app.getHttpServer())
@@ -177,6 +195,18 @@ describe('RedeemResolver', () => {
                 organization: organization,
             });
 
+            const plugin = await pluginRepository.save({
+                name: faker.commerce.productName(),
+                description: faker.commerce.productDescription(),
+                type: 'plugin',
+            });
+
+            const collectionPlugin = await collectionPluginService.createCollectionPlugin({
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: faker.commerce.productName(),
+            });
+
             const trueWallet = ethers.Wallet.createRandom();
             const randomWallet = ethers.Wallet.createRandom();
             const message = 'claim a redeem font';
@@ -204,6 +234,7 @@ describe('RedeemResolver', () => {
                     deliveryCountry: faker.location.country(),
                     email: faker.internet.email(),
                     collection: { id: collection.id },
+                    collectionPluginId: collectionPlugin.id,
                     tokenId: +faker.string.numeric({ length: 1, allowLeadingZeros: false }),
                 },
             };
@@ -245,6 +276,18 @@ describe('RedeemResolver', () => {
                 artists: [],
                 tags: [],
                 organization: organization,
+            });
+
+            const plugin = await pluginRepository.save({
+                name: faker.commerce.productName(),
+                description: faker.commerce.productDescription(),
+                type: 'plugin',
+            });
+
+            const collectionPlugin = await collectionPluginService.createCollectionPlugin({
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: faker.commerce.productName(),
             });
 
             const mintSaleContract = await mintSaleContractService.createMintSaleContract({
@@ -307,6 +350,7 @@ describe('RedeemResolver', () => {
                     deliveryCountry: faker.location.country(),
                     email: faker.internet.email(),
                     collection: { id: collection.id },
+                    collectionPluginId: collectionPlugin.id,
                     tokenId: +tokenId,
                 },
             };
@@ -348,6 +392,18 @@ describe('RedeemResolver', () => {
                 artists: [],
                 tags: [],
                 organization: organization,
+            });
+
+            const plugin = await pluginRepository.save({
+                name: faker.commerce.productName(),
+                description: faker.commerce.productDescription(),
+                type: 'plugin',
+            });
+
+            const collectionPlugin = await collectionPluginService.createCollectionPlugin({
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: faker.commerce.productName(),
             });
 
             const ownerWallet = ethers.Wallet.createRandom();
@@ -409,7 +465,8 @@ describe('RedeemResolver', () => {
                     deliveryCountry: faker.location.country(),
                     email: faker.internet.email(),
                     collection: { id: collection.id },
-                    tokenId: +tokenId,
+                    collectionPluginId: collectionPlugin.id,
+                    tokenId,
                 },
             };
 
@@ -420,6 +477,158 @@ describe('RedeemResolver', () => {
                 .expect(({ body }) => {
                     expect(body.data.createRedeem.id).toBeTruthy();
                     expect(body.data.createRedeem.deliveryAddress).toEqual(variables.input.deliveryAddress);
+                });
+        });
+    });
+
+    describe('redeemOverview', () => {
+        it('should return the overview for the redeem', async () => {
+            const ownerUser = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: ownerUser,
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+            });
+
+            const plugin = await pluginRepository.save({
+                name: faker.commerce.productName(),
+                description: faker.commerce.productDescription(),
+                type: 'plugin',
+            });
+
+            const totalRecipients1 = Math.floor(Math.random() * 100);
+            const collectionPlugin1 = await collectionPluginService.createCollectionPlugin({
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: faker.commerce.productName(),
+                pluginDetail: {
+                    recipients: new Array(totalRecipients1).fill('0'),
+                },
+            });
+
+            const totalRecipients2 = Math.floor(Math.random() * 200);
+            const collectionPlugin2 = await collectionPluginService.createCollectionPlugin({
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: faker.commerce.productName(),
+                pluginDetail: {
+                    recipients: new Array(totalRecipients2).fill('0'),
+                },
+            });
+
+            const ownerWallet = ethers.Wallet.createRandom();
+            const message = 'claim a redeem font';
+            const signature = await ownerWallet.signMessage(message);
+
+            const tokenId1 = faker.string.numeric({ length: 1, allowLeadingZeros: false });
+            await redeemService.createRedeem({
+                collection: { id: collection.id },
+                collectionPluginId: collectionPlugin1.id,
+                tokenId: tokenId1,
+                deliveryAddress: faker.location.streetAddress(),
+                deliveryCity: faker.location.city(),
+                deliveryZipcode: faker.location.zipCode(),
+                deliveryState: faker.location.state(),
+                deliveryCountry: faker.location.country(),
+                email: faker.internet.email(),
+                address: ownerWallet.address,
+                message,
+                signature,
+            });
+            const tokenId2 = faker.string.numeric({ length: 2, allowLeadingZeros: false });
+            await redeemService.createRedeem({
+                collection: { id: collection.id },
+                collectionPluginId: collectionPlugin1.id,
+                tokenId: tokenId2,
+                deliveryAddress: faker.location.streetAddress(),
+                deliveryCity: faker.location.city(),
+                deliveryZipcode: faker.location.zipCode(),
+                deliveryState: faker.location.state(),
+                deliveryCountry: faker.location.country(),
+                email: faker.internet.email(),
+                address: ownerWallet.address,
+                message,
+                signature,
+            });
+            const tokenId3 = faker.string.numeric({ length: 3, allowLeadingZeros: false });
+            await redeemService.createRedeem({
+                collection: { id: collection.id },
+                collectionPluginId: collectionPlugin1.id,
+                tokenId: tokenId3,
+                deliveryAddress: faker.location.streetAddress(),
+                deliveryCity: faker.location.city(),
+                deliveryZipcode: faker.location.zipCode(),
+                deliveryState: faker.location.state(),
+                deliveryCountry: faker.location.country(),
+                email: faker.internet.email(),
+                address: ownerWallet.address,
+                message,
+                signature,
+            });
+
+            const tokenId4 = faker.string.numeric({ length: 4, allowLeadingZeros: false });
+            await redeemService.createRedeem({
+                collection: { id: collection.id },
+                collectionPluginId: collectionPlugin2.id,
+                tokenId: tokenId4,
+                deliveryAddress: faker.location.streetAddress(),
+                deliveryCity: faker.location.city(),
+                deliveryZipcode: faker.location.zipCode(),
+                deliveryState: faker.location.state(),
+                deliveryCountry: faker.location.country(),
+                email: faker.internet.email(),
+                address: ownerWallet.address,
+                message,
+                signature,
+            });
+
+            const query = gql`
+                query RedeemOverview($collectionId: String!) {
+                    redeemOverview(collectionId: $collectionId) {
+                        collectionPluginId
+                        tokenIds
+                        recipientsTotal
+                    }
+                }
+            `;
+
+            const variables = {
+                address: ownerWallet.address,
+                message,
+                signature,
+                collectionId: collection.id,
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.redeemOverview).toBeTruthy();
+                    expect(body.data.redeemOverview.length).toEqual(2);
+                    expect(body.data.redeemOverview.find((item) => item.tokenIds.length === 3).recipientsTotal).toEqual(totalRecipients1);
+                    expect(body.data.redeemOverview.find((item) => item.tokenIds.length === 1).recipientsTotal).toEqual(totalRecipients2);
                 });
         });
     });

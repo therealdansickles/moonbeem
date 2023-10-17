@@ -89,6 +89,11 @@ export class CollectionPlugin {
 export class InstalledPluginInfo {
     @IsString()
     @IsOptional()
+    @Field({ description: 'The id of the collection plugin.', nullable: true })
+    readonly id?: string;
+
+    @IsString()
+    @IsOptional()
     @Field({ description: 'The name of the collection plugin.', nullable: true })
     readonly name?: string;
 

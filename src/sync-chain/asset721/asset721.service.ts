@@ -14,7 +14,7 @@ export class Asset721Service {
         return await this.asset721Repository.save(data);
     }
 
-    async getAsset721(query: { id?: string, tokenId?: string, address?: string }): Promise<Asset721> {
+    async getAsset721(query: { id?: string; tokenId?: string; address?: string }): Promise<Asset721> {
         // empty query always return empty
         if (isEmpty(query)) return null;
         return await this.asset721Repository.findOneBy(query);

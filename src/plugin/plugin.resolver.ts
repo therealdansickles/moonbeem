@@ -5,6 +5,7 @@ import { In } from 'typeorm';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { CollectionService } from '../collection/collection.service';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 import { Public } from '../session/session.decorator';
 import { Tier } from '../tier/tier.dto';
 import { TierService } from '../tier/tier.service';
@@ -16,6 +17,7 @@ export class PluginResolver {
     constructor(
         private readonly pluginService: PluginService,
         private readonly collectionService: CollectionService,
+        private readonly collectionPluginService: CollectionPluginService,
         private readonly tierService: TierService,
     ) {}
 
@@ -53,12 +55,19 @@ export class PluginResolver {
         const plugin = await this.pluginService.getPlugin(input.pluginId);
         if (!plugin) throw new GraphQLError(`Plugin ${input.pluginId} doesn't exist.`);
 
+        let collectionPlugin = undefined;
+        if (input.collectionPluginId) {
+            collectionPlugin = await this.collectionPluginService.getCollectionPlugin(input.collectionPluginId);
+            if (!collectionPlugin) throw new GraphQLError(`CollectionPlugin ${input.collectionPluginId} doesn't exist.`);
+        }
+
         return Promise.all(
             tiers.map((tier) => {
                 const pluginData = cloneDeep(plugin);
                 return this.pluginService.installOnTier({
                     tier,
                     plugin: pluginData,
+                    collectionPlugin,
                     customizedPluginName: input.pluginName,
                     customizedMetadataParameters: input.metadata,
                 });
@@ -74,9 +83,16 @@ export class PluginResolver {
         const plugin = await this.pluginService.getPlugin(input.pluginId);
         if (!plugin) throw new GraphQLError(`Plugin ${input.pluginId} doesn't exist.`);
 
+        let collectionPlugin = undefined;
+        if (input.collectionPluginId) {
+            collectionPlugin = await this.collectionPluginService.getCollectionPlugin(input.collectionPluginId);
+            if (!collectionPlugin) throw new GraphQLError(`CollectionPlugin ${input.collectionPluginId} doesn't exist.`);
+        }
+
         return this.pluginService.installOnTier({
             tier,
             plugin,
+            collectionPlugin,
             customizedPluginName: input.pluginName,
             customizedMetadataParameters: input.metadata,
         });

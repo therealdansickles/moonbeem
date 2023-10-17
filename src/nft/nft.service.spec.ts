@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 
 import { faker } from '@faker-js/faker';
 
+import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
 import { MerkleTreeService } from '../merkleTree/merkleTree.service';
 import { createCollection, createCollectionPlugin, createPlugin2, createRecipientsMerkleTree, createTier } from '../test-utils';
@@ -1570,7 +1571,7 @@ describe('NftService', () => {
             expect(renderedProperties['holding_days'].value).toEqual('10');
         });
 
-        it("should render a empty string if there's some properties not provided", async () => {
+        it("should render as '0' if there's some properties not provided", async () => {
             await userService.createUser({
                 email: faker.internet.email(),
                 password: 'password',
@@ -1637,7 +1638,7 @@ describe('NftService', () => {
 
             const result = await nftService.renderMetadata(nftInfo);
             const renderedProperties = result.metadata.properties;
-            expect(renderedProperties['holding_months'].value).toEqual('');
+            expect(renderedProperties['holding_months'].value).toEqual('0');
         });
 
         it("should won't throw an error if the tier's metadata is not in Mustache format", async () => {
@@ -1739,12 +1740,14 @@ describe('NftService', () => {
                             type: 'string',
                             value: '{{level}}',
                             display_value: 'Basic',
+                            belongs_to: 'level',
                         },
                         holding_days: {
                             name: '{{holding_days_name}}',
                             type: 'integer',
                             value: '{{holding_days}}',
                             display_value: 'Days of holding',
+                            belongs_to: 'level',
                         },
                     },
                     configs: {
@@ -2025,6 +2028,172 @@ describe('NftService', () => {
             const result = nftService.initializePropertiesFromTier(properties);
             expect(result['holding_days']).toBeTruthy();
             expect(result['holding_days'].value).toEqual('0');
+        });
+    });
+
+    describe('initializePropertiesFromTierByTokenId', () => {
+        let wallet;
+        let collection;
+
+        beforeEach(async () => {
+            wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            collection = await createCollection(collectionService, {
+                creator: { id: wallet.id },
+                kind: CollectionKind.edition,
+            });
+        });
+
+        it('should pass if `metadata` is not defined', async () => {
+            const tier = await createTier(tierService, {
+                collection: { id: collection.id },
+            });
+            const tokenId = faker.string.numeric(1);
+            const result = await nftService.initializePropertiesFromTierByTokenId(tier.id, tokenId);
+            expect(result).toEqual({});
+        });
+
+        it('should pass if `config` is not defined', async () => {
+            const tier = await createTier(tierService, {
+                collection: { id: collection.id },
+                metadata: {
+                    properties: { level: { value: faker.lorem.word(10) } },
+                },
+            });
+            const tokenId = faker.string.numeric(1);
+            const result = await nftService.initializePropertiesFromTierByTokenId(tier.id, tokenId);
+            expect(result.level).toBeTruthy();
+        });
+
+        it('should pass if `config.token_scope` is not defined', async () => {
+            const tier = await createTier(tierService, {
+                collection: { id: collection.id },
+                metadata: {
+                    config: { alias: {} },
+                    properties: { level: { value: faker.lorem.word(10) } },
+                },
+            });
+            const tokenId = faker.string.numeric(1);
+            const result = await nftService.initializePropertiesFromTierByTokenId(tier.id, tokenId);
+            expect(result.level).toBeTruthy();
+        });
+
+        it('should have the properties if the `tokenId` is represented in the `config.token_scope`, and vice versa', async () => {
+            const tokenId = faker.string.numeric(1);
+            const pluginName = faker.lorem.word(10);
+            const anotherTokenId = faker.string.numeric(2);
+            const anotherPluginName = faker.lorem.word(11);
+            const tier = await createTier(tierService, {
+                collection: { id: collection.id },
+                metadata: {
+                    configs: {
+                        token_scope: [
+                            {
+                                name: pluginName,
+                                tokens: [tokenId],
+                            },
+                            {
+                                name: anotherPluginName,
+                                tokens: [anotherTokenId],
+                            },
+                        ],
+                    },
+                    properties: {
+                        level: {
+                            value: faker.lorem.word(10),
+                            belongs_to: pluginName,
+                        },
+                        hidden_level: {
+                            value: faker.lorem.word(10),
+                            belongs_to: anotherPluginName,
+                        },
+                    },
+                },
+            });
+            const result = await nftService.initializePropertiesFromTierByTokenId(tier.id, tokenId);
+            expect(result.level).toBeTruthy();
+            expect(result.hidden_level).toBeFalsy();
+        });
+
+        it('should have the properties if the value for `belongs_to` is not represented in the `config.token_scope`', async () => {
+            const tokenId = faker.string.numeric(1);
+            const tier = await createTier(tierService, {
+                collection: { id: collection.id },
+                metadata: {
+                    configs: {
+                        token_scope: [
+                            {
+                                name: faker.lorem.word(12),
+                                tokens: [tokenId],
+                            },
+                        ],
+                    },
+                    properties: {
+                        level: {
+                            value: faker.lorem.word(10),
+                            belongs_to: faker.lorem.word(10),
+                        },
+                    },
+                },
+            });
+            const result = await nftService.initializePropertiesFromTierByTokenId(tier.id, tokenId);
+            expect(result.level).toBeTruthy();
+        });
+
+        it('should have the properties if the properties dont have `belongs_to`', async () => {
+            const tokenId = faker.string.numeric(1);
+            const tier = await createTier(tierService, {
+                collection: { id: collection.id },
+                metadata: {
+                    configs: {
+                        token_scope: [
+                            {
+                                name: faker.lorem.word(12),
+                                tokens: [tokenId],
+                            },
+                        ],
+                    },
+                    properties: {
+                        level: {
+                            value: faker.lorem.word(10),
+                        },
+                    },
+                },
+            });
+            const result = await nftService.initializePropertiesFromTierByTokenId(tier.id, tokenId);
+            expect(result.level).toBeTruthy();
+        });
+
+        it('should support customized properties', async () => {
+            const tokenId = faker.string.numeric(1);
+            const tier = await createTier(tierService, {
+                collection: { id: collection.id },
+                metadata: {
+                    configs: {
+                        token_scope: [
+                            {
+                                name: faker.lorem.word(12),
+                                tokens: [tokenId],
+                            },
+                        ],
+                    },
+                    properties: {
+                        level: {
+                            value: faker.lorem.word(10),
+                        },
+                    },
+                },
+            });
+            const result = await nftService.initializePropertiesFromTierByTokenId(tier.id, tokenId, {
+                foo: {
+                    name: 'foo',
+                    type: 'string',
+                    value: 'bar',
+                },
+            });
+            expect(result.level).toBeTruthy();
         });
     });
 

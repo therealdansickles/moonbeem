@@ -1,4 +1,4 @@
-import { intersection, isNil } from 'lodash';
+import { intersection, isEmpty, isNil } from 'lodash';
 import { render } from 'mustache';
 import { In, Repository } from 'typeorm';
 
@@ -10,6 +10,7 @@ import { Collection } from '../collection/collection.entity';
 import { MerkleTree } from '../merkleTree/merkleTree.entity';
 import { Metadata, MetadataProperties } from '../metadata/metadata.dto';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
+import { TierService } from '../tier/tier.service';
 import { Nft as NftDto } from './nft.dto';
 import { Nft } from './nft.entity';
 
@@ -77,6 +78,7 @@ export type ICreateOrUpdateNft = {
 export class NftService {
     constructor(
         private readonly asset721Service: Asset721Service,
+        private readonly tierService: TierService,
         @InjectRepository(Nft)
         private readonly nftRepository: Repository<Nft>,
         @InjectRepository(Collection)
@@ -306,6 +308,45 @@ export class NftService {
     }
 
     /**
+     * generate properties from tier.metadata.properties for NFT records
+     *
+     * basically it will handle 3 things
+     * 1. if the property is upgradable, then add `updated_at` field
+     * 2. initialize the property value from template string to 0
+     * 3. filter the properties based on `config.token_scope`
+     *
+     * @param candidateProperties
+     * @returns
+     */
+    async initializePropertiesFromTierByTokenId(
+        tierId: string,
+        tokenId: string,
+        customizedProperties: MetadataProperties = {},
+    ): Promise<MetadataProperties> {
+        const tier = await this.tierService.getTier({ id: tierId });
+        const tokenScopes = tier.metadata?.configs?.token_scope || [];
+        const properties: MetadataProperties = Object.assign(tier.metadata?.properties || {}, customizedProperties);
+        for (const [key, value] of Object.entries(properties)) {
+            // limit the property attachment according to the `tokenId` and `config.token_scope`
+            if (!isEmpty(value.belongs_to)) {
+                const scopedTokens = tokenScopes.find((scope) => scope.name === value.belongs_to)?.tokens;
+                // if `tokens` array is empty or can find the `tokenId` in the array,
+                // then can confirm the property should be attached.
+                const permitted = isEmpty(scopedTokens) || (!isEmpty(scopedTokens) && scopedTokens.indexOf(tokenId) >= 0);
+                if (!permitted) {
+                    delete properties[key];
+                    continue;
+                }
+            }
+            const property = Object.assign({}, value);
+            if (value.class === 'upgradable') property.updated_at = new Date().valueOf();
+            if (value.value?.toString().startsWith('{{') && value.value?.toString().endsWith('}}')) property.value = '0';
+            properties[key] = property;
+        }
+        return properties;
+    }
+
+    /**
      * create or update NFT info
      *
      * @param collectionId
@@ -315,8 +356,8 @@ export class NftService {
      * @returns
      */
     async createOrUpdateNftByTokenId(payload: ICreateOrUpdateNft) {
-        const { tokenId, collectionId, tierId, properties: candidateProperties, ownerAddress } = payload;
-        const properties = this.initializePropertiesFromTier(candidateProperties) as any;
+        const { tokenId, collectionId, tierId, ownerAddress } = payload;
+        const properties = (await this.initializePropertiesFromTierByTokenId(tierId, tokenId, payload.properties)) as any;
         await this.nftRepository.upsert(
             {
                 tokenId,

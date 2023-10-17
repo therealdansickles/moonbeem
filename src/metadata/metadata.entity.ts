@@ -1,5 +1,6 @@
 export const enum MetadataPropertyClass {
-    UPGRADABLE = 'upgradable'
+    UPGRADABLE = 'upgradable',
+    PLUGIN = 'plugin',
 }
 
 export class MetadataProperty {
@@ -9,6 +10,7 @@ export class MetadataProperty {
     display_value?: string;
     class?: MetadataPropertyClass;
     updated_at?: number;
+    belongs_to?: string;
 }
 
 export class MetadataProperties {
@@ -52,8 +54,13 @@ export class MetadataConfigAlias {
     [key: string]: string;
 }
 
+export class MetadataConfigTokenScope {
+    name: string;
+    tokens: string[];
+}
 export class MetadataConfigs {
     alias?: MetadataConfigAlias;
+    token_scope?: MetadataConfigTokenScope[];
 }
 
 export class Metadata {

@@ -1,9 +1,9 @@
 import { MetadataConfigs } from 'src/metadata/metadata.dto';
 import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
 import { MetadataCondition, MetadataProperties } from '../metadata/metadata.entity';
 import { Organization } from '../organization/organization.entity';
-import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
 
 class PluginMetadata {
     properties: MetadataProperties;
@@ -19,8 +19,8 @@ export class Plugin extends BaseEntity {
     @Column({ unique: true, comment: 'The name of the plugin.' })
     readonly name: string;
 
-    @Column({ comment: 'The display name of the plugin.' })
-    readonly displayName: string;
+    @Column({ nullable: true, comment: 'The display name of the plugin.' })
+    readonly displayName?: string;
 
     @Column({ nullable: true, comment: 'The description of the plugin.' })
     readonly description?: string;
@@ -70,7 +70,7 @@ export class Plugin extends BaseEntity {
         type: 'jsonb',
         comment: 'Metadata template.',
     })
-    readonly metadata: PluginMetadata;
+    public metadata: PluginMetadata;
 
     @CreateDateColumn()
     readonly createdAt: Date;

@@ -6,17 +6,27 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as Sentry from '@sentry/node';
 
 import { Collection } from '../collection/collection.entity';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 import { CreateRedeemInput } from './redeem.dto';
 import { Redeem } from './redeem.entity';
 
 export type IRedeemQuery = {
     collection: { id: string };
-    tokenId: number;
+    tokenId: string;
+};
+
+export type IRedeemListQuery = {
+    collection: { id: string };
+    address?: string;
+    isRedeemed?: boolean;
 };
 
 @Injectable()
 export class RedeemService {
-    constructor(@InjectRepository(Redeem) private redeemRepository: Repository<Redeem>) {}
+    constructor(
+        @InjectRepository(Redeem) private redeemRepository: Repository<Redeem>,
+        private readonly collectionPluginService: CollectionPluginService,
+    ) {}
 
     /**
      * Get a redeem by id
@@ -26,6 +36,47 @@ export class RedeemService {
      */
     async getRedeem(id: string): Promise<Redeem> {
         return await this.redeemRepository.findOneBy({ id });
+    }
+
+    /**
+     * Get overview of redeem group by collection plugin
+     *
+     * @param collectionId
+     * @returns
+     */
+    async getRedeemOverview(collectionId: string) {
+        const aggregatedRedeems =
+            (await this.redeemRepository
+                .createQueryBuilder('redeem')
+                .select('min(cast(redeem.collectionPluginId as varchar)) as collectionPluginId')
+                .addSelect('array_agg(redeem.tokenId order by redeem.tokenId)', 'tokenIds')
+                .andWhere({ collection: { id: collectionId } })
+                .groupBy('redeem.collectionPluginId')
+                .getRawMany()) || [];
+        const collectionPluginIds = aggregatedRedeems.map((redeem) => redeem.collectionpluginid);
+        const collectionPlugins = (await Promise.all(collectionPluginIds.map((id) => this.collectionPluginService.getCollectionPlugin(id)))).reduce(
+            (accu, cp) => {
+                accu[cp.id] = (cp.pluginDetail?.recipients || []).length;
+                return accu;
+            },
+            {},
+        );
+        return aggregatedRedeems.map((redeem) => {
+            redeem.recipientsTotal = collectionPlugins[redeem.collectionpluginid];
+            redeem.collectionPluginId = redeem.collectionpluginid;
+            delete redeem['collectionpluginid'];
+            return redeem;
+        });
+    }
+
+    /**
+     * Get redeem list
+     *
+     * @param query
+     * @returns
+     */
+    async getRedeems(query: IRedeemListQuery): Promise<Redeem[]> {
+        return this.redeemRepository.find({ where: query, relations: ['collectionPlugin'] });
     }
 
     /**
@@ -44,12 +95,30 @@ export class RedeemService {
      * @returns
      */
     async createRedeem(data: CreateRedeemInput): Promise<Redeem> {
+        const existedRedeem = await this.redeemRepository.findOneBy({
+            collection: { id: data.collection.id },
+            collectionPlugin: { id: data.collectionPluginId },
+            tokenId: data.tokenId,
+        });
+        if (existedRedeem)
+            throw new GraphQLError('This token has already been redeemed.', {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
         try {
             const payload = {
                 deliveryAddress: data.deliveryAddress,
+                deliveryCity: data.deliveryCity,
+                deliveryZipcode: data.deliveryZipcode,
+                deliveryState: data.deliveryState,
+                deliveryCountry: data.deliveryCountry,
+                deliveryPhone: data.deliveryPhone,
                 email: data.email,
                 tokenId: data.tokenId,
                 collection: data.collection.id as unknown as Collection,
+                collectionPlugin: { id: data.collectionPluginId },
+                address: data.address,
+                name: data.name,
+                isRedeemed: true,
             };
             return this.redeemRepository.save(payload);
         } catch (e) {

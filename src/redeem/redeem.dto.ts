@@ -1,8 +1,12 @@
-import { IsInt, IsObject, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsObject, IsOptional, IsString } from 'class-validator';
 
-import { Field, ID, InputType, Int, ObjectType, OmitType } from '@nestjs/graphql';
+import { Field, ID, InputType, ObjectType, OmitType } from '@nestjs/graphql';
 
 import { Collection, CollectionInput } from '../collection/collection.dto';
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.dto';
+
+@ObjectType()
+export class CollectionPluginInsider extends OmitType(CollectionPlugin, ['plugin']) {}
 
 @ObjectType()
 export class Redeem {
@@ -37,12 +41,17 @@ export class Redeem {
 
     @IsString()
     @IsOptional()
+    @Field(() => String, { nullable: true, description: 'Delivery phone.' })
+    readonly deliveryPhone?: string;
+
+    @IsString()
+    @IsOptional()
     @Field(() => String, { nullable: true, description: 'The full name of the redemption client.' })
     readonly name?: string;
 
-    @IsInt()
-    @Field(() => Int)
-    readonly tokenId: number;
+    @IsString()
+    @Field(() => String)
+    readonly tokenId: string;
 
     @IsString()
     @Field(() => String)
@@ -51,13 +60,43 @@ export class Redeem {
     @IsObject()
     @Field(() => Collection, { description: 'The collection associated with this redeem.' })
     readonly collection: Collection;
+
+    @IsObject()
+    @IsOptional()
+    @Field(() => CollectionPlugin, { nullable: true, description: 'The collection plugin info associated with this redeem.' })
+    readonly collectionPlugin: CollectionPluginInsider;
+
+    @IsBoolean()
+    @Field(() => Boolean)
+    readonly isRedeemed: boolean;
+}
+
+@ObjectType()
+export class RedeemOverview {
+    @IsString()
+    @Field(() => ID)
+    readonly collectionPluginId: string;
+
+    @IsString()
+    @IsOptional()
+    @Field(() => Number, { nullable: true, description: 'Total number of recipients.' })
+    readonly recipientsTotal?: number;
+
+    @IsArray()
+    @IsOptional()
+    @Field(() => [String], { nullable: true, description: 'The tokenId whom already been minted.' })
+    readonly tokenIds?: string[];
 }
 
 @InputType()
-export class CreateRedeemInput extends OmitType(Redeem, ['id', 'collection'], InputType) {
+export class CreateRedeemInput extends OmitType(Redeem, ['id', 'collection', 'collectionPlugin', 'isRedeemed'], InputType) {
     @IsObject()
     @Field(() => CollectionInput, { description: 'The collection associated with this redeem.' })
     readonly collection: CollectionInput;
+
+    @IsString()
+    @Field(() => String, { description: 'The collection plugin id associated with this redeem.' })
+    readonly collectionPluginId: string;
 
     @IsString()
     @Field(() => String)

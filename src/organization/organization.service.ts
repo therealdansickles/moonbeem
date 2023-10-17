@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js';
 import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
 import { GraphQLError } from 'graphql';
 import { generate as generateString } from 'randomstring';
-import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import { LessThanOrEqual, MoreThanOrEqual, Not, Repository } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -14,7 +14,7 @@ import { CoinService } from '../sync-chain/coin/coin.service';
 import { BasicTokenPrice } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.dto';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
 import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import { Collection } from '../collection/collection.entity';
+import { Collection, CollectionKind } from '../collection/collection.entity';
 import { cursorToStrings, dateAndStringToCursor, PaginatedImp, toPaginated } from '../pagination/pagination.utils';
 import { Tier } from '../tier/tier.entity';
 import { User } from '../user/user.entity';
@@ -43,7 +43,7 @@ export class OrganizationService {
         private membershipService: MembershipService,
         private collectionService: CollectionService,
         private coinService: CoinService,
-        private mintSaleTransactionService: MintSaleTransactionService
+        private mintSaleTransactionService: MintSaleTransactionService,
     ) {}
 
     /**
@@ -266,16 +266,19 @@ export class OrganizationService {
      * @returns total usd price
      */
     public async calculateUSDPrice(prices: BasicTokenPrice[]): Promise<BigNumber> {
-        return await prices.reduce(async (accumulatorPromise, current) => {
-            const accumulator = await accumulatorPromise;
-            const coin = await this.coinService.getCoinByAddress(current.token);
-            const quote = await this.coinService.getQuote(coin ? coin.symbol : 'ETH');
-            const usdPrice = quote['USD'].price;
+        return await prices.reduce(
+            async (accumulatorPromise, current) => {
+                const accumulator = await accumulatorPromise;
+                const coin = await this.coinService.getCoinByAddress(current.token);
+                const quote = await this.coinService.getQuote(coin ? coin.symbol : 'ETH');
+                const usdPrice = quote['USD'].price;
 
-            const totalTokenPrice = new BigNumber(current.totalPrice).div(new BigNumber(10).pow(coin ? coin.decimals : 18));
-            const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(usdPrice);
-            return accumulator.plus(totalUSDC);
-        }, Promise.resolve(new BigNumber(0)));
+                const totalTokenPrice = new BigNumber(current.totalPrice).div(new BigNumber(10).pow(coin ? coin.decimals : 18));
+                const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(usdPrice);
+                return accumulator.plus(totalUSDC);
+            },
+            Promise.resolve(new BigNumber(0)),
+        );
     }
 
     /**
@@ -291,7 +294,7 @@ export class OrganizationService {
         const result = await this.mintSaleTransactionService.getTotalSalesByCollectionAddresses(
             collections.map((c) => {
                 if (c.address) return c.address;
-            })
+            }),
         );
 
         const data = await Promise.all(
@@ -305,7 +308,7 @@ export class OrganizationService {
                     inPaymentToken: totalTokenPrice.toString(),
                     inUSDC: totalUSDC.toString(),
                 };
-            })
+            }),
         );
         return data;
     }
@@ -316,8 +319,13 @@ export class OrganizationService {
      * @param id user id
      * @returns collection count
      */
-    async getTotalCollections(id: string): Promise<number> {
-        return await this.collectionRepository.count({ where: { organization: { id } } });
+    async getTotalMintSaleCollections(id: string): Promise<number> {
+        return await this.collectionRepository.count({
+            where: {
+                organization: { id },
+                kind: Not(CollectionKind.airdrop),
+            },
+        });
     }
 
     /**
@@ -332,7 +340,7 @@ export class OrganizationService {
         return await this.mintSaleTransactionService.getTotalItemByCollectionAddresses(
             collections.map((c) => {
                 if (c.address) return c.address;
-            })
+            }),
         );
     }
 
@@ -348,7 +356,7 @@ export class OrganizationService {
         return await this.mintSaleTransactionService.getUniqueRecipientByCollectionAddresses(
             collections.map((c) => {
                 if (c.address) return c.address;
-            })
+            }),
         );
     }
 
@@ -427,7 +435,7 @@ export class OrganizationService {
             this.mintSaleTransactionRepository.manager.query(
                 `SELECT COUNT(1) AS "total"
                  FROM (${subquery.getSql()}) AS subquery`,
-                addresses
+                addresses,
             ),
         ]);
 
@@ -457,10 +465,10 @@ export class OrganizationService {
                     },
                     createdAt: new Date(createdAt.getTime() + createdAt.getTimezoneOffset() * 60 * 1000),
                 };
-            })
+            }),
         );
         return toPaginated(organizationLatestSale, parseInt(totalResult[0].total ?? 0), (entity) =>
-            dateAndStringToCursor(entity.createdAt, entity.txHash)
+            dateAndStringToCursor(entity.createdAt, entity.txHash),
         );
     }
 
@@ -493,7 +501,7 @@ export class OrganizationService {
         before: string,
         after: string,
         first: number,
-        last: number
+        last: number,
     ): Promise<OrganizationEarningsChartPaginated> {
         const collections = await this.collectionService.getCollectionsByOrganizationId(id);
         if (collections.length == 0) return PaginatedImp([], 0);
@@ -538,7 +546,7 @@ export class OrganizationService {
             this.mintSaleTransactionRepository.manager.query(
                 `SELECT COUNT(1) AS "total"
                  FROM (${subquery.getSql()}) AS subquery`,
-                addresses
+                addresses,
             ),
         ]);
 
@@ -556,7 +564,7 @@ export class OrganizationService {
                         inUSDC: totalUSDC.toString(),
                     },
                 };
-            })
+            }),
         );
         const total = totalResult.length > 0 ? parseInt(totalResult[0].total ?? 0) : 0;
         return PaginatedImp(data, total);

@@ -7,12 +7,8 @@ import { CollectionService } from '../collection/collection.service';
 import { Membership } from '../membership/membership.entity';
 import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
-import {
-    MintSaleTransactionService
-} from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
-import {
-    createCoin, createCollection, createMintSaleTransaction, createOrganization
-} from '../test-utils';
+import { MintSaleTransactionService } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.service';
+import { createCoin, createCollection, createMintSaleTransaction, createOrganization } from '../test-utils';
 import { UserService } from '../user/user.service';
 import { OrganizationService } from './organization.service';
 
@@ -49,6 +45,22 @@ describe('OrganizationService', () => {
 
             const result = await service.getOrganization(organization.id);
             expect(result.id).toEqual(organization.id);
+        });
+    });
+
+    describe('getTotalCollections', () => {
+        it('should get total collections except for airdrop', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await createOrganization(service, { owner });
+            await createCollection(collectionService, { organization });
+            await createCollection(collectionService, { organization, kind: 'airdrop' });
+
+            const result = await service.getTotalMintSaleCollections(organization.id);
+            expect(result).toEqual(1);
         });
     });
 
@@ -546,8 +558,7 @@ describe('OrganizationService', () => {
             });
 
             const organization = await createOrganization(service, { owner });
-            const collection = await createCollection(
-                collectionService, { organization, address: faker.finance.ethereumAddress() });
+            const collection = await createCollection(collectionService, { organization, address: faker.finance.ethereumAddress() });
             const tx1 = await createMintSaleTransaction(transactionService, {
                 address: collection.address,
                 paymentToken: coin.address,
@@ -586,15 +597,14 @@ describe('OrganizationService', () => {
             });
 
             const organization = await createOrganization(service, { owner });
-            const collection = await createCollection(
-                collectionService, { organization, address: faker.finance.ethereumAddress() });
+            const collection = await createCollection(collectionService, { organization, address: faker.finance.ethereumAddress() });
             for (let i = 0; i < 28; i++) {
                 const txTime = Math.floor(subSeconds(new Date(), i * 100).getTime() / 1000);
                 await createMintSaleTransaction(transactionService, {
                     address: collection.address,
                     paymentToken: coin.address,
                     price: '1000000000000000000',
-                    txTime
+                    txTime,
                 });
             }
 
