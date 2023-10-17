@@ -1,13 +1,15 @@
+import { Repository } from 'typeorm';
+
 import { faker } from '@faker-js/faker';
-import { CollectionPluginService } from './collectionPlugin.service';
-import { createAsset721, createCollection, createOrganization, createPlugin, createRecipientsMerkleTree } from '../test-utils';
+
 import { CollectionService } from '../collection/collection.service';
-import { UserService } from '../user/user.service';
+import { MerkleTreeService } from '../merkleTree/merkleTree.service';
 import { OrganizationService } from '../organization/organization.service';
 import { Plugin } from '../plugin/plugin.entity';
-import { Repository } from 'typeorm';
-import { MerkleTreeService } from '../merkleTree/merkleTree.service';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
+import { createAsset721, createCollection, createOrganization, createPlugin, createRecipientsMerkleTree } from '../test-utils';
+import { UserService } from '../user/user.service';
+import { CollectionPluginService } from './collectionPlugin.service';
 
 describe('CollectionPluginService', () => {
     let service: CollectionPluginService;
@@ -303,6 +305,7 @@ describe('CollectionPluginService', () => {
             const result = await service.getTokenInstalledPlugins(collection2.id, token3);
             expect(result).toEqual([
                 {
+                    id: pluginWithoutMerkleRoot.id,
                     name: pluginWithoutMerkleRoot.name,
                     collectionAddress: collection2.address,
                     tokenAddress: collection2.tokenAddress,
@@ -312,6 +315,7 @@ describe('CollectionPluginService', () => {
                     claimed: false,
                 },
                 {
+                    id: pluginWithMerkleRoot2.id,
                     name: pluginWithMerkleRoot2.name,
                     collectionAddress: collection2.address,
                     tokenAddress: collection2.tokenAddress,
