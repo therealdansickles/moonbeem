@@ -6,13 +6,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as Sentry from '@sentry/node';
 
 import { Collection } from '../collection/collection.entity';
-import { TierService } from '../tier/tier.service';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 import { CreateRedeemInput } from './redeem.dto';
 import { Redeem } from './redeem.entity';
 
 export type IRedeemQuery = {
     collection: { id: string };
-    tokenId: number;
+    tokenId: string;
 };
 
 export type IRedeemListQuery = {
@@ -25,7 +25,7 @@ export type IRedeemListQuery = {
 export class RedeemService {
     constructor(
         @InjectRepository(Redeem) private redeemRepository: Repository<Redeem>,
-        private readonly tierService: TierService,
+        private readonly collectionPluginService: CollectionPluginService,
     ) {}
 
     /**
@@ -38,11 +38,36 @@ export class RedeemService {
         return await this.redeemRepository.findOneBy({ id });
     }
 
-    // async getRedeemOverview(collectionId: string) {
-    //     const redeems = await this.redeemRepository.findBy({ collection: { id: collectionId } });
-    //     const tiers = await this.tierService.getTiers({ collection: { id: collectionId } });
-    //     // const
-    // }
+    /**
+     * Get overview of redeem group by collection plugin
+     *
+     * @param collectionId
+     * @returns
+     */
+    async getRedeemOverview(collectionId: string) {
+        const aggregatedRedeems =
+            (await this.redeemRepository
+                .createQueryBuilder('redeem')
+                .select('min(cast(redeem.collectionPluginId as varchar)) as collectionPluginId')
+                .addSelect('array_agg(redeem.tokenId order by redeem.tokenId)', 'tokenIds')
+                .andWhere({ collection: { id: collectionId } })
+                .groupBy('redeem.collectionPluginId')
+                .getRawMany()) || [];
+        const collectionPluginIds = aggregatedRedeems.map((redeem) => redeem.collectionpluginid);
+        const collectionPlugins = (await Promise.all(collectionPluginIds.map((id) => this.collectionPluginService.getCollectionPlugin(id)))).reduce(
+            (accu, cp) => {
+                accu[cp.id] = (cp.pluginDetail?.recipients || []).length;
+                return accu;
+            },
+            {},
+        );
+        return aggregatedRedeems.map((redeem) => {
+            redeem.recipientsTotal = collectionPlugins[redeem.collectionpluginid];
+            redeem.collectionPluginId = redeem.collectionpluginid;
+            delete redeem['collectionpluginid'];
+            return redeem;
+        });
+    }
 
     /**
      * Get redeem list

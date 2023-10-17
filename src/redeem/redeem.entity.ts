@@ -4,7 +4,7 @@ import { Collection } from '../collection/collection.entity';
 import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
 
 @Entity({ name: 'Redeem' })
-@Index(['collection.id', 'tokenId'], { unique: true })
+@Index(['collection.id', 'collectionPlugin.id', 'tokenId'], { unique: true })
 export class Redeem extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     readonly id: string;
@@ -18,10 +18,11 @@ export class Redeem extends BaseEntity {
     @ManyToOne(() => CollectionPlugin, (collectionPlugin) => collectionPlugin.redeems, {
         eager: true,
     })
+    @JoinColumn()
     readonly collectionPlugin: CollectionPlugin;
 
-    @Column({ type: 'bigint', comment: 'TokenId of the collection for redeeming.' })
-    readonly tokenId: number;
+    @Column({ comment: 'TokenId of the collection for redeeming.' })
+    readonly tokenId: string;
 
     @Column({ comment: 'The wallet address for redeeming.' })
     readonly address: string;

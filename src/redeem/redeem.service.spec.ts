@@ -92,7 +92,7 @@ describe('RedeemService', () => {
             const redeem1 = await service.createRedeem({
                 collection: { id: collection1.id },
                 collectionPluginId: collectionPlugin1.id,
-                tokenId: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
+                tokenId: faker.string.numeric({ length: 2, allowLeadingZeros: false }),
                 deliveryAddress: faker.location.streetAddress(),
                 deliveryCity: faker.location.city(),
                 deliveryZipcode: faker.location.zipCode(),
@@ -107,7 +107,7 @@ describe('RedeemService', () => {
             const redeem2 = await service.createRedeem({
                 collection: { id: collection2.id },
                 collectionPluginId: collectionPlugin2.id,
-                tokenId: parseInt(faker.string.numeric({ length: 1, allowLeadingZeros: false })),
+                tokenId: faker.string.numeric({ length: 1, allowLeadingZeros: false }),
                 deliveryAddress: faker.location.streetAddress(),
                 deliveryCity: faker.location.city(),
                 deliveryZipcode: faker.location.zipCode(),
@@ -172,7 +172,7 @@ describe('RedeemService', () => {
             const redeem1 = await service.createRedeem({
                 collection: { id: collection1.id },
                 collectionPluginId: collectionPlugin1.id,
-                tokenId: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
+                tokenId: faker.string.numeric({ length: 2, allowLeadingZeros: false }),
                 deliveryAddress: faker.location.streetAddress(),
                 deliveryCity: faker.location.city(),
                 deliveryZipcode: faker.location.zipCode(),
@@ -217,7 +217,7 @@ describe('RedeemService', () => {
 
             const redeem1 = await repository.save({
                 collection: { id: collection1.id },
-                tokenId: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
+                tokenId: faker.string.numeric({ length: 2, allowLeadingZeros: false }),
                 deliveryAddress: faker.location.streetAddress(),
                 deliveryCity: faker.location.city(),
                 deliveryZipcode: faker.location.zipCode(),
@@ -230,7 +230,7 @@ describe('RedeemService', () => {
 
             const redeem2 = await repository.save({
                 collection: { id: collection1.id },
-                tokenId: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
+                tokenId: faker.string.numeric({ length: 2, allowLeadingZeros: false }),
                 deliveryAddress: faker.location.streetAddress(),
                 deliveryCity: faker.location.city(),
                 deliveryZipcode: faker.location.zipCode(),
@@ -244,7 +244,7 @@ describe('RedeemService', () => {
             // a record who will use the default value for `isRedeemed`
             await repository.save({
                 collection: { id: collection1.id },
-                tokenId: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
+                tokenId: faker.string.numeric({ length: 2, allowLeadingZeros: false }),
                 deliveryAddress: faker.location.streetAddress(),
                 deliveryCity: faker.location.city(),
                 deliveryZipcode: faker.location.zipCode(),
@@ -278,6 +278,152 @@ describe('RedeemService', () => {
             });
             expect(result).toBeTruthy();
             expect(result.length).toEqual(3);
+        });
+    });
+
+    describe('getRedeemOverview', () => {
+        it('should get redeem overview', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await createOrganization(organizationService, {
+                owner: owner,
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+            });
+
+            const anotherCollection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+            });
+
+            const plugin = await pluginRepository.save({
+                name: faker.commerce.productName(),
+                description: faker.commerce.productDescription(),
+                type: 'plugin',
+            });
+
+            const totalRecipients1 = Math.floor(Math.random() * 300);
+            const collectionPlugin1 = await collectionPluginService.createCollectionPlugin({
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: faker.commerce.productName(),
+                pluginDetail: {
+                    recipients: new Array(totalRecipients1).fill('0'),
+                },
+            });
+
+            const totalRecipients2 = Math.floor(Math.random() * 500);
+            const collectionPlugin2 = await collectionPluginService.createCollectionPlugin({
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: faker.commerce.productName(),
+                pluginDetail: {
+                    recipients: new Array(totalRecipients2).fill('0'),
+                },
+            });
+
+            const randomWallet = ethers.Wallet.createRandom();
+            const message = 'claim a redeem font';
+            const signature = await randomWallet.signMessage(message);
+
+            const tokenId1 = faker.string.numeric({ length: 1, allowLeadingZeros: false });
+            await service.createRedeem({
+                collection: { id: collection.id },
+                collectionPluginId: collectionPlugin1.id,
+                tokenId: tokenId1,
+                deliveryAddress: faker.location.streetAddress(),
+                deliveryCity: faker.location.city(),
+                deliveryZipcode: faker.location.zipCode(),
+                deliveryState: faker.location.state(),
+                deliveryCountry: faker.location.country(),
+                email: faker.internet.email(),
+                address: randomWallet.address,
+                message,
+                signature,
+            });
+            const tokenId2 = faker.string.numeric({ length: 2, allowLeadingZeros: false });
+            await service.createRedeem({
+                collection: { id: collection.id },
+                collectionPluginId: collectionPlugin1.id,
+                tokenId: tokenId2,
+                deliveryAddress: faker.location.streetAddress(),
+                deliveryCity: faker.location.city(),
+                deliveryZipcode: faker.location.zipCode(),
+                deliveryState: faker.location.state(),
+                deliveryCountry: faker.location.country(),
+                email: faker.internet.email(),
+                address: randomWallet.address,
+                message,
+                signature,
+            });
+            const tokenId3 = faker.string.numeric({ length: 3, allowLeadingZeros: false });
+            await service.createRedeem({
+                collection: { id: collection.id },
+                collectionPluginId: collectionPlugin1.id,
+                tokenId: tokenId3,
+                deliveryAddress: faker.location.streetAddress(),
+                deliveryCity: faker.location.city(),
+                deliveryZipcode: faker.location.zipCode(),
+                deliveryState: faker.location.state(),
+                deliveryCountry: faker.location.country(),
+                email: faker.internet.email(),
+                address: randomWallet.address,
+                message,
+                signature,
+            });
+
+            const tokenId4 = faker.string.numeric({ length: 4, allowLeadingZeros: false });
+            await service.createRedeem({
+                collection: { id: collection.id },
+                collectionPluginId: collectionPlugin2.id,
+                tokenId: tokenId4,
+                deliveryAddress: faker.location.streetAddress(),
+                deliveryCity: faker.location.city(),
+                deliveryZipcode: faker.location.zipCode(),
+                deliveryState: faker.location.state(),
+                deliveryCountry: faker.location.country(),
+                email: faker.internet.email(),
+                address: randomWallet.address,
+                message,
+                signature,
+            });
+
+            const tokenId5 = faker.string.numeric({ length: 5, allowLeadingZeros: false });
+            await service.createRedeem({
+                collection: { id: anotherCollection.id },
+                collectionPluginId: collectionPlugin2.id,
+                tokenId: tokenId5,
+                deliveryAddress: faker.location.streetAddress(),
+                deliveryCity: faker.location.city(),
+                deliveryZipcode: faker.location.zipCode(),
+                deliveryState: faker.location.state(),
+                deliveryCountry: faker.location.country(),
+                email: faker.internet.email(),
+                address: randomWallet.address,
+                message,
+                signature,
+            });
+
+            const result = await service.getRedeemOverview(collection.id);
+            expect(result.length).toEqual(2);
+            expect(result.find((item) => item.recipientsTotal === totalRecipients1).tokenIds.length).toEqual(3);
+            expect(result.find((item) => item.recipientsTotal === totalRecipients2).tokenIds.length).toEqual(1);
         });
     });
 
@@ -321,7 +467,7 @@ describe('RedeemService', () => {
             const result = await service.createRedeem({
                 collection: { id: collection.id },
                 collectionPluginId: collectionPlugin1.id,
-                tokenId: parseInt(faker.string.numeric({ length: 1, allowLeadingZeros: false })),
+                tokenId: faker.string.numeric({ length: 1, allowLeadingZeros: false }),
                 deliveryAddress: faker.location.streetAddress(),
                 deliveryCity: faker.location.city(),
                 deliveryZipcode: faker.location.zipCode(),

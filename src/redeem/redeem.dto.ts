@@ -1,6 +1,6 @@
-import { IsBoolean, IsInt, IsObject, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsObject, IsOptional, IsString } from 'class-validator';
 
-import { Field, ID, InputType, Int, ObjectType, OmitType } from '@nestjs/graphql';
+import { Field, ID, InputType, ObjectType, OmitType } from '@nestjs/graphql';
 
 import { Collection, CollectionInput } from '../collection/collection.dto';
 
@@ -45,9 +45,9 @@ export class Redeem {
     @Field(() => String, { nullable: true, description: 'The full name of the redemption client.' })
     readonly name?: string;
 
-    @IsInt()
-    @Field(() => Int)
-    readonly tokenId: number;
+    @IsString()
+    @Field(() => String)
+    readonly tokenId: string;
 
     @IsString()
     @Field(() => String)
@@ -60,6 +60,23 @@ export class Redeem {
     @IsBoolean()
     @Field(() => Boolean)
     readonly isRedeemed: boolean;
+}
+
+@ObjectType()
+export class RedeemOverview {
+    @IsString()
+    @Field(() => ID)
+    readonly collectionPluginId: string;
+
+    @IsString()
+    @IsOptional()
+    @Field(() => Number, { nullable: true, description: 'Total number of recipients.' })
+    readonly recipientsTotal?: number;
+
+    @IsArray()
+    @IsOptional()
+    @Field(() => [String], { nullable: true, description: 'The tokenId whom already been minted.' })
+    readonly tokenIds?: string[];
 }
 
 @InputType()
