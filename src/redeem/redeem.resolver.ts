@@ -33,7 +33,7 @@ export class RedeemResolver {
     @Public()
     @Query(() => [Redeem], { description: 'Get redeems list' })
     async getRedeems(
-        @Args('collectionId') collectionId: string,
+    @Args('collectionId') collectionId: string,
         @Args('address') address: string,
         @Args({ name: 'isRedeemed', type: () => Boolean, nullable: true }) isRedeemed?: boolean,
     ) {
