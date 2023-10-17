@@ -1,10 +1,15 @@
 import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
+import { Repository } from 'typeorm';
 
 import { faker } from '@faker-js/faker';
 
 import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
+import { MerkleTreeService } from '../merkleTree/merkleTree.service';
+import { OrganizationService } from '../organization/organization.service';
+import { Plugin } from '../plugin/plugin.entity';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CoinQuotes } from '../sync-chain/coin/coin.dto';
 import { CoinService } from '../sync-chain/coin/coin.service';
@@ -18,17 +23,12 @@ import {
     createOrganization,
     createPlugin,
     createRecipientsMerkleTree,
-    createTier
+    createTier,
 } from '../test-utils';
 import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
 import { Wallet } from './wallet.entity';
 import { WalletService } from './wallet.service';
-import { OrganizationService } from '../organization/organization.service';
-import { MerkleTreeService } from '../merkleTree/merkleTree.service';
-import { Repository } from 'typeorm';
-import { Plugin } from '../plugin/plugin.entity';
-import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 
 describe('WalletService', () => {
     let address: string;
@@ -212,9 +212,9 @@ describe('WalletService', () => {
                         owner: { id: anotherOwner.id },
                         message,
                         signature,
-                    })
+                    }),
             ).rejects.toThrow(
-                `The wallet at ${eipAddress} is already connected to an existing account. Please connect another wallet to this account.`
+                `The wallet at ${eipAddress} is already connected to an existing account. Please connect another wallet to this account.`,
             );
         });
     });
@@ -280,8 +280,7 @@ describe('WalletService', () => {
             try {
                 await service.unbindWallet(data);
             } catch (error) {
-                expect((error as Error).message).toBe(
-                    `Wallet ${newWallet.address.toLowerCase()} doesn't belong to the given user.`);
+                expect((error as Error).message).toBe(`Wallet ${newWallet.address.toLowerCase()} doesn't belong to the given user.`);
             }
         });
     });
@@ -347,10 +346,11 @@ describe('WalletService', () => {
             const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
 
             const organization = await createOrganization(organizationService, { owner: user });
-            const collection = await createCollection(
-                collectionService, { creator: { id: wallet.id }, tokenAddress: faker.finance.ethereumAddress() });
-            const merkleTree = await createRecipientsMerkleTree(
-                merkleTreeService, collection.address, [parseInt(tokenId)]);
+            const collection = await createCollection(collectionService, {
+                creator: { id: wallet.id },
+                tokenAddress: faker.finance.ethereumAddress(),
+            });
+            const merkleTree = await createRecipientsMerkleTree(merkleTreeService, collection.address, [parseInt(tokenId)]);
             const plugin = await createPlugin(pluginRepository, { organization });
 
             const input = {
@@ -390,15 +390,18 @@ describe('WalletService', () => {
             expect(result.edges[0].node.tier.collection.id).toEqual(collection.id);
             expect(result.edges[0].node.tier.collection.creator).toBeDefined();
             expect(result.edges[0].node.tier.collection.creator.id).toBeDefined();
-            expect(result.edges[0].node.pluginsInstalled).toEqual([{
-                name: collectionPlugin.name,
-                description: input.description,
-                mediaUrl: input.mediaUrl,
-                collectionAddress: collectionPlugin.pluginDetail.collectionAddress,
-                tokenAddress: collectionPlugin.pluginDetail.tokenAddress,
-                pluginName: collectionPlugin.plugin.name,
-                claimed: false,
-            }]);
+            expect(result.edges[0].node.pluginsInstalled).toEqual([
+                {
+                    id: collectionPlugin.id,
+                    name: collectionPlugin.name,
+                    description: input.description,
+                    mediaUrl: input.mediaUrl,
+                    collectionAddress: collectionPlugin.pluginDetail.collectionAddress,
+                    tokenAddress: collectionPlugin.pluginDetail.tokenAddress,
+                    pluginName: collectionPlugin.plugin.name,
+                    claimed: false,
+                },
+            ]);
             expect(result.edges[0].node.ownerAddress).toEqual(wallet.address);
         });
 
@@ -435,8 +438,7 @@ describe('WalletService', () => {
             expect(firstPageEndCursor).not.toEqual(secondPageEndCursor);
             expect(secondPage.edges.length).toEqual(5);
             const sendPageStartCursor = secondPage.pageInfo.startCursor;
-            expect(firstPage.edges[0].node.createdAt.getTime()).toBeGreaterThanOrEqual(
-                secondPage.edges[0].node.createdAt.getTime());
+            expect(firstPage.edges[0].node.createdAt.getTime()).toBeGreaterThanOrEqual(secondPage.edges[0].node.createdAt.getTime());
             expect(firstPage.edges[0].node.id.localeCompare(secondPage.edges[0].node.id)).toBeGreaterThan(0);
             const previousPage = await service.getMintedByAddress(wallet.address, sendPageStartCursor, '', 0, 10);
             expect(previousPage.edges.length).toEqual(10);
@@ -760,15 +762,15 @@ describe('WalletService', () => {
         });
 
         it('should ignore the minted transaction if the payment token is not enabled', async () => {
-            paymentToken = '0x0000000000000000000000000000000000000000',
-            await createMintSaleTransaction(mintSaleTransactionService, {
-                sender: sender1,
-                recipient: wallet.address,
-                address: collection.address,
-                tierId: tier.tierId,
-                price: '0',
-                paymentToken,
-            });
+            (paymentToken = '0x0000000000000000000000000000000000000000'),
+                await createMintSaleTransaction(mintSaleTransactionService, {
+                    sender: sender1,
+                    recipient: wallet.address,
+                    address: collection.address,
+                    tierId: tier.tierId,
+                    price: '0',
+                    paymentToken,
+                });
 
             await createMintSaleTransaction(mintSaleTransactionService, {
                 sender: sender1,
@@ -948,8 +950,7 @@ describe('WalletService', () => {
             const result = await service.getWalletProfit(sender1);
             expect(result.length).toBeGreaterThan(0);
 
-            const totalProfitInToken = new BigNumber(price).plus(new BigNumber(price)).div(
-                new BigNumber(10).pow(coin.decimals)).toString();
+            const totalProfitInToken = new BigNumber(price).plus(new BigNumber(price)).div(new BigNumber(10).pow(coin.decimals)).toString();
 
             expect(result[0].inPaymentToken).toBe(totalProfitInToken);
         });
