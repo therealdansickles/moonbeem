@@ -1,9 +1,13 @@
 import { IsArray, IsBoolean, IsObject, IsOptional, IsString } from 'class-validator';
+import { CollectionPlugin } from 'src/collectionPlugin/collectionPlugin.dto';
 
 import { Field, ID, InputType, ObjectType, OmitType } from '@nestjs/graphql';
 
 import { Collection, CollectionInput } from '../collection/collection.dto';
 import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.dto';
+
+@ObjectType()
+export class CollectionPluginInsider extends OmitType(CollectionPlugin, ['plugin']) {}
 
 @ObjectType()
 export class CollectionPluginInsider extends OmitType(CollectionPlugin, ['plugin']) {}
