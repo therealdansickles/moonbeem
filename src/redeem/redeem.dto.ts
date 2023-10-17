@@ -3,6 +3,10 @@ import { IsArray, IsBoolean, IsObject, IsOptional, IsString } from 'class-valida
 import { Field, ID, InputType, ObjectType, OmitType } from '@nestjs/graphql';
 
 import { Collection, CollectionInput } from '../collection/collection.dto';
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.dto';
+
+@ObjectType()
+export class CollectionPluginInsider extends OmitType(CollectionPlugin, ['plugin']) {}
 
 @ObjectType()
 export class Redeem {
@@ -57,6 +61,11 @@ export class Redeem {
     @Field(() => Collection, { description: 'The collection associated with this redeem.' })
     readonly collection: Collection;
 
+    @IsObject()
+    @IsOptional()
+    @Field(() => CollectionPlugin, { nullable: true, description: 'The collection plugin info associated with this redeem.' })
+    readonly collectionPlugin: CollectionPluginInsider;
+
     @IsBoolean()
     @Field(() => Boolean)
     readonly isRedeemed: boolean;
@@ -80,7 +89,7 @@ export class RedeemOverview {
 }
 
 @InputType()
-export class CreateRedeemInput extends OmitType(Redeem, ['id', 'collection', 'isRedeemed'], InputType) {
+export class CreateRedeemInput extends OmitType(Redeem, ['id', 'collection', 'collectionPlugin', 'isRedeemed'], InputType) {
     @IsObject()
     @Field(() => CollectionInput, { description: 'The collection associated with this redeem.' })
     readonly collection: CollectionInput;

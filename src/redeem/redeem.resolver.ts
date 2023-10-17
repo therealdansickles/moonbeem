@@ -31,10 +31,11 @@ export class RedeemResolver {
     }
 
     @Public()
+    @Query(() => [Redeem], { description: 'Get redeems list' })
     async getRedeems(
     @Args('collectionId') collectionId: string,
         @Args('address') address: string,
-        @Args({ name: 'isRedeemed', type: Boolean, nullable: true }) isRedeemed?: boolean,
+        @Args({ name: 'isRedeemed', type: () => Boolean, nullable: true }) isRedeemed?: boolean,
     ) {
         const query: IRedeemListQuery = { collection: { id: collectionId }, address };
         if (isBoolean(isRedeemed)) query.isRedeemed = isRedeemed;

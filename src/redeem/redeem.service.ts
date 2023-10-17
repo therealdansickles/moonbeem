@@ -76,7 +76,7 @@ export class RedeemService {
      * @returns
      */
     async getRedeems(query: IRedeemListQuery): Promise<Redeem[]> {
-        return this.redeemRepository.findBy(query);
+        return this.redeemRepository.find({ where: query, relations: ['collectionPlugin'] });
     }
 
     /**
