@@ -762,7 +762,7 @@ describe('WalletService', () => {
         });
 
         it('should ignore the minted transaction if the payment token is not enabled', async () => {
-            (paymentToken = '0x0000000000000000000000000000000000000000'),
+            paymentToken = '0x0000000000000000000000000000000000000000';
             await createMintSaleTransaction(mintSaleTransactionService, {
                 sender: sender1,
                 recipient: wallet.address,

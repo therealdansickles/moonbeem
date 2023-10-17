@@ -17,7 +17,7 @@ export type IRedeemQuery = {
 
 export type IRedeemListQuery = {
     collection: { id: string };
-    address: string;
+    address?: string;
     isRedeemed?: boolean;
 };
 
@@ -108,6 +108,7 @@ export class RedeemService {
                 collection: data.collection.id as unknown as Collection,
                 collectionPlugin: { id: data.collectionPluginId },
                 address: data.address,
+                isRedeemed: true,
             };
             return this.redeemRepository.save(payload);
         } catch (e) {

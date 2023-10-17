@@ -34,10 +34,11 @@ export class RedeemResolver {
     @Query(() => [Redeem], { description: 'Get redeems list' })
     async getRedeems(
     @Args('collectionId') collectionId: string,
-        @Args('address') address: string,
+        @Args({ name: 'address', nullable: true }) address?: string,
         @Args({ name: 'isRedeemed', type: () => Boolean, nullable: true }) isRedeemed?: boolean,
     ) {
-        const query: IRedeemListQuery = { collection: { id: collectionId }, address };
+        const query: IRedeemListQuery = { collection: { id: collectionId } };
+        if (address) query.address = address;
         if (isBoolean(isRedeemed)) query.isRedeemed = isRedeemed;
         return await this.redeemService.getRedeems(query);
     }
