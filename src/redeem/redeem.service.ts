@@ -95,6 +95,15 @@ export class RedeemService {
      * @returns
      */
     async createRedeem(data: CreateRedeemInput): Promise<Redeem> {
+        const existedRedeem = await this.redeemRepository.findOneBy({
+            collection: { id: data.collection.id },
+            collectionPlugin: { id: data.collectionPluginId },
+            tokenId: data.tokenId,
+        });
+        if (existedRedeem)
+            throw new GraphQLError('This token has already been redeemed.', {
+                extensions: { code: 'INTERNAL_SERVER_ERROR' },
+            });
         try {
             const payload = {
                 deliveryAddress: data.deliveryAddress,
@@ -108,6 +117,7 @@ export class RedeemService {
                 collection: data.collection.id as unknown as Collection,
                 collectionPlugin: { id: data.collectionPluginId },
                 address: data.address,
+                name: data.name,
                 isRedeemed: true,
             };
             return this.redeemRepository.save(payload);

@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+import { GraphQLError } from 'graphql';
 import { Repository } from 'typeorm';
 
 import { faker } from '@faker-js/faker';
@@ -479,6 +480,78 @@ describe('RedeemService', () => {
                 signature,
             });
             expect(result.collection).toEqual(collection.id);
+        });
+
+        it('should throw an error if try to do a repeat one', async () => {
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await createOrganization(organizationService, {
+                owner: owner,
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+            });
+
+            const plugin = await pluginRepository.save({
+                name: faker.commerce.productName(),
+                description: faker.commerce.productDescription(),
+                type: 'plugin',
+            });
+
+            const collectionPlugin = await collectionPluginService.createCollectionPlugin({
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: faker.commerce.productName(),
+            });
+
+            const randomWallet = ethers.Wallet.createRandom();
+            const message = 'claim a redeem font';
+            const signature = await randomWallet.signMessage(message);
+
+            const tokenId = faker.string.numeric({ length: 1, allowLeadingZeros: false });
+            await service.createRedeem({
+                collection: { id: collection.id },
+                collectionPluginId: collectionPlugin.id,
+                tokenId,
+                deliveryAddress: faker.location.streetAddress(),
+                deliveryCity: faker.location.city(),
+                deliveryZipcode: faker.location.zipCode(),
+                deliveryState: faker.location.state(),
+                deliveryCountry: faker.location.country(),
+                email: faker.internet.email(),
+                address: randomWallet.address,
+                message,
+                signature,
+            });
+
+            try {
+                await service.createRedeem({
+                    collection: { id: collection.id },
+                    collectionPluginId: collectionPlugin.id,
+                    tokenId,
+                    deliveryAddress: faker.location.streetAddress(),
+                    deliveryCity: faker.location.city(),
+                    deliveryZipcode: faker.location.zipCode(),
+                    deliveryState: faker.location.state(),
+                    deliveryCountry: faker.location.country(),
+                    email: faker.internet.email(),
+                    address: randomWallet.address,
+                    message,
+                    signature,
+                });
+            } catch (error) {
+                expect((error as GraphQLError).message).toEqual('This token has already been redeemed.');
+            }
         });
     });
 });
