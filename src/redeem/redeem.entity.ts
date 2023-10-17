@@ -1,6 +1,7 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 import { Collection } from '../collection/collection.entity';
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
 
 @Entity({ name: 'Redeem' })
 @Index(['collection.id', 'tokenId'], { unique: true })
@@ -13,6 +14,11 @@ export class Redeem extends BaseEntity {
     })
     @JoinColumn()
     readonly collection: Collection;
+
+    @ManyToOne(() => CollectionPlugin, (collectionPlugin) => collectionPlugin.redeems, {
+        eager: true,
+    })
+    readonly collectionPlugin: CollectionPlugin;
 
     @Column({ type: 'bigint', comment: 'TokenId of the collection for redeeming.' })
     readonly tokenId: number;

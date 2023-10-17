@@ -69,6 +69,10 @@ export class CreateRedeemInput extends OmitType(Redeem, ['id', 'collection', 'is
     readonly collection: CollectionInput;
 
     @IsString()
+    @Field(() => String, { description: 'The collection plugin id associated with this redeem.' })
+    readonly collectionPluginId: string;
+
+    @IsString()
     @Field(() => String)
     readonly address: string;
 

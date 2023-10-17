@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as Sentry from '@sentry/node';
 
 import { Collection } from '../collection/collection.entity';
+import { TierService } from '../tier/tier.service';
 import { CreateRedeemInput } from './redeem.dto';
 import { Redeem } from './redeem.entity';
 
@@ -22,7 +23,10 @@ export type IRedeemListQuery = {
 
 @Injectable()
 export class RedeemService {
-    constructor(@InjectRepository(Redeem) private redeemRepository: Repository<Redeem>) {}
+    constructor(
+        @InjectRepository(Redeem) private redeemRepository: Repository<Redeem>,
+        private readonly tierService: TierService,
+    ) {}
 
     /**
      * Get a redeem by id
@@ -33,6 +37,12 @@ export class RedeemService {
     async getRedeem(id: string): Promise<Redeem> {
         return await this.redeemRepository.findOneBy({ id });
     }
+
+    // async getRedeemOverview(collectionId: string) {
+    //     const redeems = await this.redeemRepository.findBy({ collection: { id: collectionId } });
+    //     const tiers = await this.tierService.getTiers({ collection: { id: collectionId } });
+    //     // const
+    // }
 
     /**
      * Get redeem list
@@ -71,6 +81,7 @@ export class RedeemService {
                 email: data.email,
                 tokenId: data.tokenId,
                 collection: data.collection.id as unknown as Collection,
+                collectionPlugin: { id: data.collectionPluginId },
                 address: data.address,
             };
             return this.redeemRepository.save(payload);

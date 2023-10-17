@@ -4,7 +4,9 @@ import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
 
 import { CollectionService } from '../collection/collection.service';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 import { OrganizationService } from '../organization/organization.service';
+import { Plugin } from '../plugin/plugin.entity';
 import { createOrganization } from '../test-utils';
 import { UserService } from '../user/user.service';
 import { Redeem } from './redeem.entity';
@@ -12,17 +14,21 @@ import { RedeemService } from './redeem.service';
 
 describe('RedeemService', () => {
     let repository: Repository<Redeem>;
+    let pluginRepository: Repository<Plugin>;
     let service: RedeemService;
     let userService: UserService;
     let organizationService: OrganizationService;
     let collectionService: CollectionService;
+    let collectionPluginService: CollectionPluginService;
 
     beforeAll(async () => {
         repository = global.redeemRepository;
+        pluginRepository = global.pluginRepository;
         service = global.redeemService;
         userService = global.userService;
         organizationService = global.organizationService;
         collectionService = global.collectionService;
+        collectionPluginService = global.collectionPluginService;
     });
 
     afterEach(async () => {
@@ -61,12 +67,31 @@ describe('RedeemService', () => {
                 organization: organization,
             });
 
+            const plugin = await pluginRepository.save({
+                name: faker.commerce.productName(),
+                description: faker.commerce.productDescription(),
+                type: 'plugin',
+            });
+
+            const collectionPlugin1 = await collectionPluginService.createCollectionPlugin({
+                collectionId: collection1.id,
+                pluginId: plugin.id,
+                name: faker.commerce.productName(),
+            });
+
+            const collectionPlugin2 = await collectionPluginService.createCollectionPlugin({
+                collectionId: collection2.id,
+                pluginId: plugin.id,
+                name: faker.commerce.productName(),
+            });
+
             const randomWallet = ethers.Wallet.createRandom();
             const message = 'claim a redeem font';
             const signature = await randomWallet.signMessage(message);
 
             const redeem1 = await service.createRedeem({
                 collection: { id: collection1.id },
+                collectionPluginId: collectionPlugin1.id,
                 tokenId: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
                 deliveryAddress: faker.location.streetAddress(),
                 deliveryCity: faker.location.city(),
@@ -81,6 +106,7 @@ describe('RedeemService', () => {
 
             const redeem2 = await service.createRedeem({
                 collection: { id: collection2.id },
+                collectionPluginId: collectionPlugin2.id,
                 tokenId: parseInt(faker.string.numeric({ length: 1, allowLeadingZeros: false })),
                 deliveryAddress: faker.location.streetAddress(),
                 deliveryCity: faker.location.city(),
@@ -127,12 +153,25 @@ describe('RedeemService', () => {
                 organization: organization,
             });
 
+            const plugin = await pluginRepository.save({
+                name: faker.commerce.productName(),
+                description: faker.commerce.productDescription(),
+                type: 'plugin',
+            });
+
+            const collectionPlugin1 = await collectionPluginService.createCollectionPlugin({
+                collectionId: collection1.id,
+                pluginId: plugin.id,
+                name: faker.commerce.productName(),
+            });
+
             const randomWallet = ethers.Wallet.createRandom();
             const message = 'claim a redeem font';
             const signature = await randomWallet.signMessage(message);
 
             const redeem1 = await service.createRedeem({
                 collection: { id: collection1.id },
+                collectionPluginId: collectionPlugin1.id,
                 tokenId: parseInt(faker.string.numeric({ length: 2, allowLeadingZeros: false })),
                 deliveryAddress: faker.location.streetAddress(),
                 deliveryCity: faker.location.city(),
@@ -263,12 +302,25 @@ describe('RedeemService', () => {
                 organization: organization,
             });
 
+            const plugin = await pluginRepository.save({
+                name: faker.commerce.productName(),
+                description: faker.commerce.productDescription(),
+                type: 'plugin',
+            });
+
+            const collectionPlugin1 = await collectionPluginService.createCollectionPlugin({
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: faker.commerce.productName(),
+            });
+
             const randomWallet = ethers.Wallet.createRandom();
             const message = 'claim a redeem font';
             const signature = await randomWallet.signMessage(message);
 
             const result = await service.createRedeem({
                 collection: { id: collection.id },
+                collectionPluginId: collectionPlugin1.id,
                 tokenId: parseInt(faker.string.numeric({ length: 1, allowLeadingZeros: false })),
                 deliveryAddress: faker.location.streetAddress(),
                 deliveryCity: faker.location.city(),
