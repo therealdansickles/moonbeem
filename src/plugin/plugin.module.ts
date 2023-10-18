@@ -23,6 +23,9 @@ import { NftModule } from '../nft/nft.module';
 import { NftService } from '../nft/nft.service';
 import { OpenseaModule } from '../opensea/opensea.module';
 import { OpenseaService } from '../opensea/opensea.service';
+import { Redeem } from '../redeem/redeem.entity';
+import { RedeemModule } from '../redeem/redeem.module';
+import { RedeemService } from '../redeem/redeem.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Asset721Module } from '../sync-chain/asset721/asset721.module';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
@@ -46,7 +49,7 @@ import { PluginService } from './plugin.service';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Plugin, Collection, Tier, Nft, Wallet, Collection, MerkleTree, CollectionPlugin, AlchemyWebhook]),
+        TypeOrmModule.forFeature([Plugin, Collection, Tier, Nft, Wallet, Collection, MerkleTree, CollectionPlugin, Redeem, AlchemyWebhook]),
         TypeOrmModule.forFeature([Coin, MintSaleContract, MintSaleTransaction, Asset721, History721], 'sync_chain'),
         forwardRef(() => CollectionModule),
         forwardRef(() => TierModule),
@@ -61,6 +64,7 @@ import { PluginService } from './plugin.service';
         forwardRef(() => CollectionPluginModule),
         forwardRef(() => AlchemyModule),
         forwardRef(() => MaasModule),
+        forwardRef(() => RedeemModule),
         HttpModule,
         JwtModule,
         ConfigModule,
@@ -80,6 +84,7 @@ import { PluginService } from './plugin.service';
         AlchemyService,
         CollectionPluginService,
         MaasService,
+        RedeemService,
     ],
 })
 export class PluginModule {}

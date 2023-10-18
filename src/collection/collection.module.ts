@@ -30,6 +30,8 @@ import { Organization } from '../organization/organization.entity';
 import { OrganizationModule } from '../organization/organization.module';
 import { Plugin } from '../plugin/plugin.entity';
 import { Redeem } from '../redeem/redeem.entity';
+import { RedeemModule } from '../redeem/redeem.module';
+import { RedeemService } from '../redeem/redeem.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Asset721Module } from '../sync-chain/asset721/asset721.module';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
@@ -72,6 +74,7 @@ import { CollectionService } from './collection.service';
             MerkleTree,
             CollectionPlugin,
             AlchemyWebhook,
+            Redeem,
         ]),
         TypeOrmModule.forFeature([Coin, MintSaleContract, MintSaleTransaction, Asset721, History721], 'sync_chain'),
         forwardRef(() => Asset721Module),
@@ -92,6 +95,7 @@ import { CollectionService } from './collection.service';
         forwardRef(() => AlchemyModule),
         forwardRef(() => CollectionPluginModule),
         forwardRef(() => MaasModule),
+        forwardRef(() => RedeemModule),
         JwtModule,
         ConfigModule,
     ],
@@ -113,6 +117,7 @@ import { CollectionService } from './collection.service';
         AlchemyService,
         CollectionPluginService,
         MaasService,
+        RedeemService,
     ],
     controllers: [],
 })

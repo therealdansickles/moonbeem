@@ -15,7 +15,7 @@ export class RedeemResolver {
     @Public()
     @Query(() => Redeem, { description: 'Get a redeem by id.', nullable: true })
     async redeem(@Args('id') id: string) {
-        return await this.redeemService.getRedeem(id);
+        return await this.redeemService.getRedeem({ id });
     }
 
     @Public()

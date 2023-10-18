@@ -6,14 +6,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as Sentry from '@sentry/node';
 
 import { Collection } from '../collection/collection.entity';
-import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
 import { CreateRedeemInput } from './redeem.dto';
 import { Redeem } from './redeem.entity';
 
-export type IRedeemQuery = {
-    collection: { id: string };
-    tokenId: string;
-};
+export type IRedeemQuery =
+    | { id: string }
+    | {
+        collection: { id: string };
+        tokenId: string;
+        collectionPlugin?: { id: string };
+    };
 
 export type IRedeemListQuery = {
     collection: { id: string };
@@ -25,7 +28,7 @@ export type IRedeemListQuery = {
 export class RedeemService {
     constructor(
         @InjectRepository(Redeem) private redeemRepository: Repository<Redeem>,
-        private readonly collectionPluginService: CollectionPluginService,
+        @InjectRepository(CollectionPlugin) private collectionPluginRepositoty: Repository<CollectionPlugin>,
     ) {}
 
     /**
@@ -34,8 +37,8 @@ export class RedeemService {
      * @param id
      * @returns
      */
-    async getRedeem(id: string): Promise<Redeem> {
-        return await this.redeemRepository.findOneBy({ id });
+    async getRedeem(query: IRedeemQuery): Promise<Redeem> {
+        return await this.redeemRepository.findOneBy(query);
     }
 
     /**
@@ -54,7 +57,7 @@ export class RedeemService {
                 .groupBy('redeem.collectionPluginId')
                 .getRawMany()) || [];
         const collectionPluginIds = aggregatedRedeems.map((redeem) => redeem.collectionpluginid);
-        const collectionPlugins = (await Promise.all(collectionPluginIds.map((id) => this.collectionPluginService.getCollectionPlugin(id)))).reduce(
+        const collectionPlugins = (await Promise.all(collectionPluginIds.map((id) => this.collectionPluginRepositoty.findOneBy({ id })))).reduce(
             (accu, cp) => {
                 accu[cp.id] = (cp.pluginDetail?.recipients || []).length;
                 return accu;

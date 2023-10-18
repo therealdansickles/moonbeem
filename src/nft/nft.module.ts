@@ -12,6 +12,9 @@ import { MerkleTree } from '../merkleTree/merkleTree.entity';
 import { MerkleTreeModule } from '../merkleTree/merkleTree.module';
 import { Plugin as PluginEntity } from '../plugin/plugin.entity';
 import { PluginModule } from '../plugin/plugin.module';
+import { Redeem } from '../redeem/redeem.entity';
+import { RedeemModule } from '../redeem/redeem.module';
+import { RedeemService } from '../redeem/redeem.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Asset721Module } from '../sync-chain/asset721/asset721.module';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
@@ -30,7 +33,7 @@ import { NftService } from './nft.service';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Nft, Tier, Collection, PluginEntity, CollectionPlugin, MerkleTree, Wallet]),
+        TypeOrmModule.forFeature([Nft, Tier, Collection, PluginEntity, CollectionPlugin, Redeem, MerkleTree, Wallet]),
         TypeOrmModule.forFeature([Asset721, Coin, MintSaleContract, MintSaleTransaction], 'sync_chain'),
         forwardRef(() => Asset721Module),
         forwardRef(() => PluginModule),
@@ -39,9 +42,10 @@ import { NftService } from './nft.service';
         forwardRef(() => TierModule),
         forwardRef(() => CoinModule),
         forwardRef(() => CoinMarketCapModule),
+        forwardRef(() => RedeemModule),
         HttpModule,
     ],
     exports: [NftModule],
-    providers: [Asset721Service, CoinService, CoinMarketCapService, NftService, NftResolver, CollectionPluginService, TierService],
+    providers: [Asset721Service, CoinService, CoinMarketCapService, NftService, NftResolver, CollectionPluginService, RedeemService, TierService],
 })
 export class NftModule {}

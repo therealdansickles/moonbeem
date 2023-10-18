@@ -11,6 +11,8 @@ import { CoinMarketCapModule } from '../coinmarketcap/coinmarketcap.module';
 import { CoinMarketCapService } from '../coinmarketcap/coinmarketcap.service';
 import { Collaboration } from '../collaboration/collaboration.entity';
 import { CollaborationModule } from '../collaboration/collaboration.module';
+import { Collection } from '../collection/collection.entity';
+import { CollectionService } from '../collection/collection.service';
 import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
 import { CollectionPluginModule } from '../collectionPlugin/collectionPlugin.module';
 import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
@@ -30,6 +32,8 @@ import { Organization } from '../organization/organization.entity';
 import { OrganizationModule } from '../organization/organization.module';
 import { Plugin } from '../plugin/plugin.entity';
 import { Redeem } from '../redeem/redeem.entity';
+import { RedeemModule } from '../redeem/redeem.module';
+import { RedeemService } from '../redeem/redeem.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Asset721Module } from '../sync-chain/asset721/asset721.module';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
@@ -50,10 +54,8 @@ import { User } from '../user/user.entity';
 import { UserModule } from '../user/user.module';
 import { Wallet } from '../wallet/wallet.entity';
 import { WalletModule } from '../wallet/wallet.module';
-import { Collection } from '../collection/collection.entity';
-import { CollectionService } from '../collection/collection.service';
-import { AnalyticsService } from './analytics.service';
 import { AnalyticsResolver } from './analytics.resolver';
+import { AnalyticsService } from './analytics.service';
 
 @Module({
     imports: [
@@ -72,6 +74,7 @@ import { AnalyticsResolver } from './analytics.resolver';
             MerkleTree,
             CollectionPlugin,
             AlchemyWebhook,
+            Redeem,
         ]),
         TypeOrmModule.forFeature([Coin, MintSaleContract, MintSaleTransaction, Asset721, History721], 'sync_chain'),
         forwardRef(() => Asset721Module),
@@ -92,6 +95,7 @@ import { AnalyticsResolver } from './analytics.resolver';
         forwardRef(() => AlchemyModule),
         forwardRef(() => CollectionPluginModule),
         forwardRef(() => MaasModule),
+        forwardRef(() => RedeemModule),
         JwtModule,
         ConfigModule,
     ],
@@ -111,6 +115,7 @@ import { AnalyticsResolver } from './analytics.resolver';
         AlchemyService,
         CollectionPluginService,
         MaasService,
+        RedeemService,
         AnalyticsService,
         AnalyticsResolver,
     ],
