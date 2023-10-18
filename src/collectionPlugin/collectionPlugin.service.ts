@@ -97,18 +97,18 @@ export class CollectionPluginService {
             const applied = await this.checkIfPluginApplied(collectionPlugin, tokenId);
             if (applied) {
                 const appliedPlugin = await this.getTokenInstalledPluginsAdapter(collectionPlugin, tokenId);
-                appliedPlugins.push(appliedPlugin);
+                appliedPlugin && appliedPlugins.push(appliedPlugin);
             }
         }
         return appliedPlugins;
     }
 
     async getTokenInstalledPluginsAdapter(collectionPlugin: CollectionPlugin, tokenId: string) {
-        const { id, name, pluginDetail, plugin, description, mediaUrl } = collectionPlugin;
+        const { id: collectionPluginId, name, pluginDetail, plugin, description, mediaUrl, collection } = collectionPlugin;
         const { collectionAddress, tokenAddress } = pluginDetail || {};
 
         const result = {
-            id,
+            id: collectionPluginId,
             name,
             collectionAddress,
             tokenAddress,
@@ -120,7 +120,8 @@ export class CollectionPluginService {
         const pluginName = collectionPlugin.plugin.name;
         switch (pluginName) {
             case '@vibelabs/physical_redemption': {
-                const { collection, id: collectionPluginId } = collectionPlugin;
+                const isRecipient = (pluginDetail?.recipients || []).find((recipient) => recipient === tokenId);
+                if (!isRecipient) return;
                 const redeemed = await this.redeemService.getRedeem({
                     collection: { id: collection.id },
                     collectionPlugin: { id: collectionPluginId },

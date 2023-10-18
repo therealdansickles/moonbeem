@@ -10,13 +10,16 @@ import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
 import { CreateRedeemInput } from './redeem.dto';
 import { Redeem } from './redeem.entity';
 
-export type IRedeemQuery =
-    | { id: string }
-    | {
-        collection: { id: string };
-        tokenId: string;
-        collectionPlugin?: { id: string };
-    };
+export interface IRedeemQueryById {
+    id: string;
+}
+export interface IRedeemQueryByCollection {
+    collection: { id: string };
+    tokenId: string;
+    collectionPlugin?: { id: string };
+}
+
+export type IRedeemQuery = IRedeemQueryById | IRedeemQueryByCollection;
 
 export type IRedeemListQuery = {
     collection: { id: string };
