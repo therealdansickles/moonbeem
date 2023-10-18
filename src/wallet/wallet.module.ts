@@ -11,6 +11,7 @@ import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
 import { CollectionPluginModule } from '../collectionPlugin/collectionPlugin.module';
 import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 import { MerkleTree } from '../merkleTree/merkleTree.entity';
+import { Nft } from '../nft/nft.entity';
 import { Plugin } from '../plugin/plugin.entity';
 import { Redeem } from '../redeem/redeem.entity';
 import { RedeemModule } from '../redeem/redeem.module';
@@ -37,7 +38,7 @@ import { WalletService } from './wallet.service';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Wallet, Relationship, User, Collaboration, Collection, Tier, CollectionPlugin, Redeem, Plugin, MerkleTree]),
+        TypeOrmModule.forFeature([Wallet, Relationship, User, Collaboration, Collection, Tier, CollectionPlugin, Redeem, Plugin, MerkleTree, Nft]),
         TypeOrmModule.forFeature([MintSaleTransaction, MintSaleContract, Coin, Asset721], 'sync_chain'),
         forwardRef(() => SessionModule),
         forwardRef(() => CollaborationModule),

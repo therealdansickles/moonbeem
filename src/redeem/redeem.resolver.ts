@@ -5,7 +5,7 @@ import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { AuthorizedToken, Public } from '../session/session.decorator';
 import { SignatureGuard } from '../session/session.guard';
-import { CreateRedeemInput, Redeem, RedeemOverview } from './redeem.dto';
+import { CreateRedeemInput, Redeem, RedeemOverview, RedeemQualification } from './redeem.dto';
 import { IRedeemListQuery, RedeemService } from './redeem.service';
 
 @Resolver(() => Redeem)
@@ -28,6 +28,12 @@ export class RedeemResolver {
     @Query(() => Redeem, { description: 'Get a redeem by query.', nullable: true })
     async getRedeemByQuery(@Args('collectionId') collectionId: string, @Args({ type: () => String, name: 'tokenId' }) tokenId: string) {
         return await this.redeemService.getRedeemByQuery({ collection: { id: collectionId }, tokenId });
+    }
+
+    @Public()
+    @Query(() => [RedeemQualification], { description: 'Get the available redeem qualifications.', nullable: true })
+    async getRedeemQualifications(@Args('collectionId') collectionId: string, @Args('address') address: string) {
+        return await this.redeemService.getUnredeemsByAddress(collectionId, address);
     }
 
     @Public()

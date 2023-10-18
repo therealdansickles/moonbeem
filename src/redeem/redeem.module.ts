@@ -7,6 +7,8 @@ import { Collaboration } from '../collaboration/collaboration.entity';
 import { Collection } from '../collection/collection.entity';
 import { CollectionModule } from '../collection/collection.module';
 import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
+import { Nft } from '../nft/nft.entity';
+import { NftModule } from '../nft/nft.module';
 import { Organization } from '../organization/organization.entity';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Asset721Module } from '../sync-chain/asset721/asset721.module';
@@ -23,11 +25,12 @@ import { RedeemService } from './redeem.service';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Collaboration, Collection, CollectionPlugin, Organization, Tier, Wallet, Redeem]),
+        TypeOrmModule.forFeature([Collaboration, Collection, CollectionPlugin, Organization, Tier, Wallet, Nft, Redeem]),
         TypeOrmModule.forFeature([Coin, MintSaleContract, MintSaleTransaction, Asset721], 'sync_chain'),
         forwardRef(() => CollectionModule),
         forwardRef(() => Asset721Module),
         forwardRef(() => MintSaleContractModule),
+        forwardRef(() => NftModule),
         JwtModule,
     ],
     exports: [RedeemModule],

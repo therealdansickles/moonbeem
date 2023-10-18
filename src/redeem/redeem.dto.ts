@@ -88,6 +88,21 @@ export class RedeemOverview {
     readonly tokenIds?: string[];
 }
 
+@ObjectType()
+export class RedeemQualification {
+    @IsString()
+    @Field(() => String)
+    readonly tokenId: string;
+
+    @IsObject()
+    @Field(() => CollectionPlugin)
+    readonly collectionPlugin: CollectionPlugin;
+
+    @IsObject()
+    @Field(() => Collection)
+    readonly collection: Collection;
+}
+
 @InputType()
 export class CreateRedeemInput extends OmitType(Redeem, ['id', 'collection', 'collectionPlugin', 'isRedeemed'], InputType) {
     @IsObject()

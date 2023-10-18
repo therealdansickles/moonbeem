@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Collection } from '../collection/collection.entity';
 import { MerkleTree } from '../merkleTree/merkleTree.entity';
+import { Nft } from '../nft/nft.entity';
 import { Plugin } from '../plugin/plugin.entity';
 import { Redeem } from '../redeem/redeem.entity';
 import { RedeemModule } from '../redeem/redeem.module';
@@ -16,7 +17,7 @@ import { CollectionPluginService } from './collectionPlugin.service';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([CollectionPlugin, Plugin, Collection, Redeem, MerkleTree]),
+        TypeOrmModule.forFeature([CollectionPlugin, Plugin, Collection, Redeem, MerkleTree, Nft]),
         TypeOrmModule.forFeature([Asset721], 'sync_chain'),
         forwardRef(() => Asset721Module),
         forwardRef(() => RedeemModule),
