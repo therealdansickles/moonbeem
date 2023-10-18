@@ -1,12 +1,12 @@
 import { ethers } from 'ethers';
 
 import { faker } from '@faker-js/faker';
+import { JwtService } from '@nestjs/jwt';
 
-import { UserService } from '../user/user.service';
-import { SessionService } from './session.service';
 import { OrganizationService } from '../organization/organization.service';
 import { createOrganization } from '../test-utils';
-import { JwtService } from '@nestjs/jwt';
+import { UserService } from '../user/user.service';
+import { SessionService } from './session.service';
 
 describe('SessionService', () => {
     let service: SessionService;
@@ -40,9 +40,7 @@ describe('SessionService', () => {
             const wallet = await ethers.Wallet.createRandom();
             const message = 'test';
             const signature = await wallet.signMessage(message);
-            const result = await service.createSession(wallet.address, 'bobby', signature);
-
-            expect(result).toBeNull();
+            await expect(async () => await service.createSession(wallet.address, 'bobby', signature)).rejects.toThrow('Invalid signature');
         });
     });
 

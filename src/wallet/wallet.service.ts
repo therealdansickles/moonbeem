@@ -11,7 +11,9 @@ import { captureException } from '@sentry/node';
 
 import { Collection } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
+import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 import { cursorToStrings, fromCursor, PaginatedImp, toPaginated } from '../pagination/pagination.utils';
+import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.entity';
 import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sale-transaction.entity';
@@ -30,8 +32,6 @@ import {
     WalletSoldPaginated,
 } from './wallet.dto';
 import { Wallet } from './wallet.entity';
-import { Asset721 } from '../sync-chain/asset721/asset721.entity';
-import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 
 interface ITokenPrice {
     token: string;
@@ -53,9 +53,8 @@ export class WalletService {
         private mintSaleContractRepository: Repository<MintSaleContract>,
         private coinService: CoinService,
         private collectionService: CollectionService,
-        private collectionPluginService: CollectionPluginService
-    ) {
-    }
+        private collectionPluginService: CollectionPluginService,
+    ) {}
 
     /**
      * This is the uuid for the ownerId for all unbound wallets, e.g the blackhole.
@@ -194,8 +193,7 @@ export class WalletService {
         const wallet = await this.verifyWallet(address, data.message, data.signature);
 
         if (wallet.owner?.id)
-            throw new Error(
-                `The wallet at ${address} is already connected to an existing account. Please connect another wallet to this account.`);
+            throw new Error(`The wallet at ${address} is already connected to an existing account. Please connect another wallet to this account.`);
 
         await this.updateWallet(wallet.id, { ...omit(wallet, 'owner'), ownerId: owner.id });
         return this.walletRepository.findOne({
@@ -264,8 +262,10 @@ export class WalletService {
                     relations: ['owner'],
                 });
             }
+        } else {
+            captureException('Invalid signature', { extra: { walletAddress, message, signature } });
+            throw new Error('Invalid signature');
         }
-        return null;
     }
 
     /**
@@ -349,14 +349,12 @@ export class WalletService {
 
                 let pluginsInstalled = [];
                 if (tier && tier.collection && tier.collection.id) {
-                    tier.collection = (await this.collectionService.getCollectionByQuery(
-                        { id: tier.collection.id })) as Collection;
-                    pluginsInstalled = await this.collectionPluginService.getTokenInstalledPlugins(
-                        tier.collection.id, tokenId);
+                    tier.collection = (await this.collectionService.getCollectionByQuery({ id: tier.collection.id })) as Collection;
+                    pluginsInstalled = await this.collectionPluginService.getTokenInstalledPlugins(tier.collection.id, tokenId);
                 }
 
                 return { ...mintSaleTransaction, tier, pluginsInstalled, ownerAddress: address };
-            })
+            }),
         );
 
         return toPaginated(mintedList, total);
@@ -416,7 +414,7 @@ export class WalletService {
                     .getOne();
 
                 return { ...item, tier };
-            })
+            }),
         );
         return activities;
     }
@@ -466,7 +464,7 @@ export class WalletService {
                 .innerJoinAndSelect(
                     'MintSaleTransaction',
                     'mintSaleTransaction',
-                    'mintSaleTransaction.address = mintSaleContract.address AND mintSaleTransaction.tierId = mintSaleContract.tierId'
+                    'mintSaleTransaction.address = mintSaleContract.address AND mintSaleTransaction.tierId = mintSaleContract.tierId',
                 )
                 .select([])
                 .where('mintSaleContract.sender = :address', { address })
@@ -513,7 +511,7 @@ export class WalletService {
                     ...txn,
                     tier: tier,
                 };
-            })
+            }),
         );
 
         return PaginatedImp(data, total);
@@ -547,7 +545,7 @@ export class WalletService {
                     inPaymentToken: totalTokenPrice.toString(),
                     inUSDC: totalUSDC.toString(),
                 };
-            })
+            }),
         );
 
         return data;

@@ -293,6 +293,13 @@ describe('WalletService', () => {
             const result = await service.verifyWallet(wallet.address, message, signature);
             expect(result.address).toEqual(wallet.address.toLowerCase());
         });
+
+        it('should throw an error if the signature is invalid', async () => {
+            const wallet = ethers.Wallet.createRandom();
+            const message = 'Hi from tests!';
+            const signature = await wallet.signMessage(message + '1');
+            await expect(async () => await service.verifyWallet(wallet.address, message, signature)).rejects.toThrow('Invalid signature');
+        });
     });
 
     describe('parseEIP3770Address', () => {
