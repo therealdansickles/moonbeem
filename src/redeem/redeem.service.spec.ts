@@ -485,7 +485,7 @@ describe('RedeemService', () => {
                 pluginId: plugin.id,
                 name: faker.commerce.productName(),
                 pluginDetail: {
-                    recipients: new Array(Math.floor(Math.random() * 10)).fill('0'),
+                    recipients: new Array(100).fill(0).map((_, idx) => idx.toString()),
                 },
             });
 
@@ -494,7 +494,7 @@ describe('RedeemService', () => {
                 pluginId: plugin.id,
                 name: faker.commerce.productName(),
                 pluginDetail: {
-                    recipients: new Array(Math.floor(Math.random() * 10)).fill('0'),
+                    recipients: new Array(100).fill(0).map((_, idx) => idx.toString()),
                 },
             });
 
@@ -503,7 +503,7 @@ describe('RedeemService', () => {
                 pluginId: anotherPlugin.id,
                 name: faker.commerce.productName(),
                 pluginDetail: {
-                    recipients: new Array(Math.floor(Math.random() * 10)).fill('0'),
+                    recipients: new Array(100).fill(0).map((_, idx) => idx.toString()),
                 },
             });
 

@@ -100,18 +100,19 @@ export class RedeemService {
             (await this.collectionPluginRepositoty.find({ where: { collection: { id: collectionId } }, relations: ['plugin'] })) || [];
         const redeemCollectionPlugins = collectionPlugins.filter((plugin) => plugin.plugin?.name === PHYSICAL_REDEMPTION_PLUGIN_NAME);
         if (!redeemCollectionPlugins) return [];
-      
+
         const nftByOwnerAddress = (await this.NftRepository.findBy({ collection: { id: collectionId }, ownerAddress: address })) || [];
         const result = [];
         for (const nft of nftByOwnerAddress) {
             for (const collectionPlugin of redeemCollectionPlugins) {
+                const isAllowedRecipient = (collectionPlugin.pluginDetail?.recipients || []).find((recipient) => recipient === nft.tokenId);
                 const isExisted = redeems.find(
                     (redeem) =>
                         redeem.collection.id === nft.collection.id &&
                         redeem.collectionPlugin.id === collectionPlugin.id &&
                         redeem.tokenId === nft.tokenId,
                 );
-                if (!isExisted)
+                if (isAllowedRecipient && !isExisted)
                     result.push({
                         tokenId: nft.tokenId,
                         collectionPlugin: collectionPlugin,
