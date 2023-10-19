@@ -29,6 +29,9 @@ import { OpenseaModule } from '../opensea/opensea.module';
 import { OpenseaService } from '../opensea/opensea.service';
 import { Organization } from '../organization/organization.entity';
 import { Plugin } from '../plugin/plugin.entity';
+import { Redeem } from '../redeem/redeem.entity';
+import { RedeemModule } from '../redeem/redeem.module';
+import { RedeemService } from '../redeem/redeem.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Asset721Module } from '../sync-chain/asset721/asset721.module';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
@@ -58,7 +61,20 @@ import { SessionService } from './session.service';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Wallet, User, Collection, Membership, Organization, Tier, Nft, MerkleTree, CollectionPlugin, Plugin, AlchemyWebhook]),
+        TypeOrmModule.forFeature([
+            Wallet,
+            User,
+            Collection,
+            Membership,
+            Organization,
+            Tier,
+            Nft,
+            MerkleTree,
+            CollectionPlugin,
+            Plugin,
+            AlchemyWebhook,
+            Redeem,
+        ]),
         TypeOrmModule.forFeature([Asset721, Coin, MintSaleContract, MintSaleTransaction, History721, Factory], 'sync_chain'),
         forwardRef(() => Asset721Module),
         forwardRef(() => CoinMarketCapModule),
@@ -79,6 +95,7 @@ import { SessionService } from './session.service';
         forwardRef(() => CollectionPluginModule),
         forwardRef(() => AlchemyModule),
         forwardRef(() => MaasModule),
+        forwardRef(() => RedeemModule),
         JwtModule.register({
             secret: process.env.SESSION_SECRET,
             signOptions: { expiresIn: '7d' },
@@ -104,6 +121,7 @@ import { SessionService } from './session.service';
         ConfigService,
         AlchemyService,
         MaasService,
+        RedeemService,
     ],
     exports: [SessionModule, SessionResolver],
 })

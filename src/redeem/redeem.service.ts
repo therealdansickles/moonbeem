@@ -6,14 +6,22 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as Sentry from '@sentry/node';
 
 import { Collection } from '../collection/collection.entity';
-import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.entity';
+import { Nft } from '../nft/nft.entity';
+import { PHYSICAL_REDEMPTION_PLUGIN_NAME } from './redeem.constants';
 import { CreateRedeemInput } from './redeem.dto';
 import { Redeem } from './redeem.entity';
 
-export type IRedeemQuery = {
+export interface IRedeemQueryById {
+    id: string;
+}
+export interface IRedeemQueryByCollection {
     collection: { id: string };
     tokenId: string;
-};
+    collectionPlugin?: { id: string };
+}
+
+export type IRedeemQuery = IRedeemQueryById | IRedeemQueryByCollection;
 
 export type IRedeemListQuery = {
     collection: { id: string };
@@ -25,7 +33,8 @@ export type IRedeemListQuery = {
 export class RedeemService {
     constructor(
         @InjectRepository(Redeem) private redeemRepository: Repository<Redeem>,
-        private readonly collectionPluginService: CollectionPluginService,
+        @InjectRepository(CollectionPlugin) private collectionPluginRepositoty: Repository<CollectionPlugin>,
+        @InjectRepository(Nft) private NftRepository: Repository<Nft>,
     ) {}
 
     /**
@@ -34,8 +43,8 @@ export class RedeemService {
      * @param id
      * @returns
      */
-    async getRedeem(id: string): Promise<Redeem> {
-        return await this.redeemRepository.findOneBy({ id });
+    async getRedeem(query: IRedeemQuery): Promise<Redeem> {
+        return await this.redeemRepository.findOneBy(query);
     }
 
     /**
@@ -54,7 +63,7 @@ export class RedeemService {
                 .groupBy('redeem.collectionPluginId')
                 .getRawMany()) || [];
         const collectionPluginIds = aggregatedRedeems.map((redeem) => redeem.collectionpluginid);
-        const collectionPlugins = (await Promise.all(collectionPluginIds.map((id) => this.collectionPluginService.getCollectionPlugin(id)))).reduce(
+        const collectionPlugins = (await Promise.all(collectionPluginIds.map((id) => this.collectionPluginRepositoty.findOneBy({ id })))).reduce(
             (accu, cp) => {
                 accu[cp.id] = (cp.pluginDetail?.recipients || []).length;
                 return accu;
@@ -76,7 +85,42 @@ export class RedeemService {
      * @returns
      */
     async getRedeems(query: IRedeemListQuery): Promise<Redeem[]> {
-        return this.redeemRepository.find({ where: query, relations: ['collectionPlugin'] });
+        return this.redeemRepository.find({ where: query, relations: ['collectionPlugin', 'collection'] });
+    }
+
+    /**
+     * Get the available redeem qualifications
+     *
+     * @param collectionId
+     * @param address
+     */
+    async getUnredeemsByAddress(collectionId: string, address: string) {
+        const redeems = (await this.getRedeems({ collection: { id: collectionId }, address })) || [];
+        const collectionPlugins =
+            (await this.collectionPluginRepositoty.find({ where: { collection: { id: collectionId } }, relations: ['plugin'] })) || [];
+        const redeemCollectionPlugins = collectionPlugins.filter((plugin) => plugin.plugin?.name === PHYSICAL_REDEMPTION_PLUGIN_NAME);
+        if (!redeemCollectionPlugins) return [];
+
+        const nftByOwnerAddress = (await this.NftRepository.findBy({ collection: { id: collectionId }, ownerAddress: address })) || [];
+        const result = [];
+        for (const nft of nftByOwnerAddress) {
+            for (const collectionPlugin of redeemCollectionPlugins) {
+                const isAllowedRecipient = (collectionPlugin.pluginDetail?.recipients || []).find((recipient) => recipient === nft.tokenId);
+                const isExisted = redeems.find(
+                    (redeem) =>
+                        redeem.collection.id === nft.collection.id &&
+                        redeem.collectionPlugin.id === collectionPlugin.id &&
+                        redeem.tokenId === nft.tokenId,
+                );
+                if (isAllowedRecipient && !isExisted)
+                    result.push({
+                        tokenId: nft.tokenId,
+                        collectionPlugin: collectionPlugin,
+                        collection: nft.collection,
+                    });
+            }
+        }
+        return result;
     }
 
     /**

@@ -7,6 +7,7 @@ import { Collection as CollectionEntity } from '../collection/collection.entity'
 import { CollectionPlugin as CollectionPluginEntity } from '../collectionPlugin/collectionPlugin.entity';
 import { MerkleTree as MerkleTreeEntity } from '../merkleTree/merkleTree.entity';
 import { Plugin as PluginEntity } from '../plugin/plugin.entity';
+import { RedeemService } from '../redeem/redeem.service';
 import { Asset721 } from '../sync-chain/asset721/asset721.entity';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { CollectionPlugin, CreateCollectionPluginInput, InstalledPluginInfo, UpdateCollectionPluginInput } from './collectionPlugin.dto';
@@ -25,6 +26,7 @@ export class CollectionPluginService {
         @InjectRepository(Asset721, 'sync_chain')
         private readonly asset721Repository: Repository<Asset721>,
         private readonly asset721Service: Asset721Service,
+        private readonly redeemService: RedeemService,
     ) {}
 
     async createCollectionPlugin(createCollectionPluginInput: CreateCollectionPluginInput): Promise<CollectionPlugin> {
@@ -94,22 +96,45 @@ export class CollectionPluginService {
         for (const collectionPlugin of CollectionPlugins) {
             const applied = await this.checkIfPluginApplied(collectionPlugin, tokenId);
             if (applied) {
-                const claimed = await this.checkIfPluginClaimed(collectionPlugin, tokenId);
-                const { id, name, pluginDetail, plugin, description, mediaUrl } = collectionPlugin;
-                const { collectionAddress, tokenAddress } = pluginDetail || {};
-                appliedPlugins.push({
-                    id,
-                    name,
-                    collectionAddress,
-                    tokenAddress,
-                    pluginName: plugin.name,
-                    description,
-                    mediaUrl,
-                    claimed,
-                });
+                const appliedPlugin = await this.getTokenInstalledPluginsAdapter(collectionPlugin, tokenId);
+                appliedPlugin && appliedPlugins.push(appliedPlugin);
             }
         }
         return appliedPlugins;
+    }
+
+    async getTokenInstalledPluginsAdapter(collectionPlugin: CollectionPlugin, tokenId: string) {
+        const { id: collectionPluginId, name, pluginDetail, plugin, description, mediaUrl, collection } = collectionPlugin;
+        const { collectionAddress, tokenAddress } = pluginDetail || {};
+
+        const result = {
+            id: collectionPluginId,
+            name,
+            collectionAddress,
+            tokenAddress,
+            pluginName: plugin.name,
+            description,
+            mediaUrl,
+            claimed: false,
+        };
+        const pluginName = collectionPlugin.plugin.name;
+        switch (pluginName) {
+            case '@vibelabs/physical_redemption': {
+                const isRecipient = (pluginDetail?.recipients || []).find((recipient) => recipient === tokenId);
+                if (!isRecipient) return;
+                const redeemed = await this.redeemService.getRedeem({
+                    collection: { id: collection.id },
+                    collectionPlugin: { id: collectionPluginId },
+                    tokenId,
+                });
+                result.claimed = redeemed ? true : false;
+                break;
+            }
+            default: {
+                result.claimed = await this.checkIfPluginClaimed(collectionPlugin, tokenId);
+            }
+        }
+        return result;
     }
 
     async checkIfPluginApplied(plugin: CollectionPlugin, tokenId: string): Promise<boolean> {

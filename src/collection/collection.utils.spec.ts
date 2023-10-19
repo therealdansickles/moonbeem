@@ -1,10 +1,5 @@
-import {
-    filterTokenIdsByRanges,
-    generateSlug,
-    getCollectionAttributesOverview,
-    getCollectionUpgradesOverview,
-} from './collection.utils';
 import { Tier } from '../tier/tier.entity';
+import { filterTokenIdsByRanges, generateSlug, getCollectionAttributesOverview, getCollectionUpgradesOverview } from './collection.utils';
 
 describe('CollectionServiceUtil', () => {
     describe('generateSlug', function () {
@@ -33,7 +28,7 @@ describe('CollectionServiceUtil', () => {
                 [
                     [3, 8],
                     [10, 10],
-                ]
+                ],
             );
             expect(result).toEqual(['3', '4', '5', '7', '8', '10']);
         });
@@ -107,6 +102,7 @@ describe('CollectionServiceUtil', () => {
             const result = getCollectionAttributesOverview([tier1, tier2, tier3], tierTokenCountsMap);
             expect(result.staticAttributes).toEqual([
                 {
+                    key: 'Color',
                     name: 'Color',
                     type: 'string',
                     valueCounts: [
@@ -121,6 +117,7 @@ describe('CollectionServiceUtil', () => {
                     ],
                 },
                 {
+                    key: 'Height',
                     name: 'Height',
                     type: 'number',
                     valueCounts: [
@@ -139,6 +136,7 @@ describe('CollectionServiceUtil', () => {
                     ],
                 },
                 {
+                    key: 'Type',
                     name: 'Type',
                     type: 'string',
                     valueCounts: [
@@ -224,6 +222,7 @@ describe('CollectionServiceUtil', () => {
             const result = getCollectionAttributesOverview([tier1, tier2, tier3], tierTokenCountsMap);
             expect(result.staticAttributes).toEqual([
                 {
+                    key: 'Type',
                     name: 'Type',
                     type: 'string',
                     valueCounts: [
@@ -236,6 +235,7 @@ describe('CollectionServiceUtil', () => {
             ]);
             expect(result.dynamicAttributes).toEqual([
                 {
+                    key: 'Color',
                     name: 'Color',
                     type: 'string',
                     class: 'upgradable',
@@ -251,6 +251,7 @@ describe('CollectionServiceUtil', () => {
                     ],
                 },
                 {
+                    key: 'Height',
                     name: 'Height',
                     type: 'number',
                     class: 'upgradable',

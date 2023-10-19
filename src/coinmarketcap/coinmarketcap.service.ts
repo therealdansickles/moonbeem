@@ -11,7 +11,6 @@ import { coinMarketCapConfig } from '../lib/configs/coinmarketcap.config';
 
 @Injectable()
 export class CoinMarketCapService {
-
     private defaultHeaders = {
         'X-CMC_PRO_API_KEY': coinMarketCapConfig.apiKey,
         'Content-Type': 'application/json',
@@ -19,7 +18,7 @@ export class CoinMarketCapService {
 
     constructor(
         private readonly httpRequest: HttpService,
-        @Inject(CACHE_MANAGER) private cacheManager: Cache
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
     ) {}
 
     private async callCoinMarketCap<T>(url, params: AxiosRequestConfig): Promise<T> {
@@ -27,9 +26,11 @@ export class CoinMarketCapService {
         const { data } = await firstValueFrom(
             this.httpRequest.get(url, params).pipe(
                 catchError((error: AxiosError) => {
-                    throw new Error(`Bad response from coinmarketcap: ${error.response.status}/${error.response.statusText}/${JSON.stringify(params)}`);
-                })
-            )
+                    throw new Error(
+                        `Bad response from coinmarketcap: ${error.response.status}/${error.response.statusText}/${JSON.stringify(params)}`,
+                    );
+                }),
+            ),
         );
         return data;
     }
@@ -41,10 +42,10 @@ export class CoinMarketCapService {
         const params = {
             symbol,
             amount: 1,
-            convert: conversion
+            convert: conversion,
         };
         const cacheKey = `${endpoint}::${JSON.stringify(params)}`;
-        const cache = await this.cacheManager.get(cacheKey) as string;
+        const cache = (await this.cacheManager.get(cacheKey)) as string;
         if (cache) {
             try {
                 // it should be a recoverable JSON string
@@ -60,7 +61,7 @@ export class CoinMarketCapService {
             return {};
         }
         const data = get(result, 'data.0.quote');
-        await this.cacheManager.set(cacheKey, JSON.stringify(data), 60 * 1000);
+        await this.cacheManager.set(cacheKey, JSON.stringify(data), 2 * 60 * 60 * 1000);
 
         return data;
     }
@@ -70,7 +71,7 @@ export class CoinMarketCapService {
         const data = await this.getPrice(symbol, conversion);
 
         return {
-            price: data[conversion.toUpperCase()].price
+            price: data[conversion.toUpperCase()].price,
         };
     }
 }

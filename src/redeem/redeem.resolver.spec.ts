@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+import { NftService } from 'src/nft/nft.service';
 import * as request from 'supertest';
 import { Repository } from 'typeorm';
 
@@ -11,7 +12,9 @@ import { OrganizationService } from '../organization/organization.service';
 import { Plugin } from '../plugin/plugin.entity';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
+import { TierService } from '../tier/tier.service';
 import { UserService } from '../user/user.service';
+import { PHYSICAL_REDEMPTION_PLUGIN_NAME } from './redeem.constants';
 import { RedeemService } from './redeem.service';
 
 export const gql = String.raw;
@@ -22,6 +25,8 @@ describe('RedeemResolver', () => {
     let userService: UserService;
     let organizationService: OrganizationService;
     let collectionService: CollectionService;
+    let tierService: TierService;
+    let nftService: NftService;
     let collectionPluginService: CollectionPluginService;
     let mintSaleContractService: MintSaleContractService;
     let asset721Service: Asset721Service;
@@ -35,6 +40,8 @@ describe('RedeemResolver', () => {
         userService = global.userService;
         organizationService = global.organizationService;
         collectionService = global.collectionService;
+        tierService = global.tierService;
+        nftService = global.nftService;
         mintSaleContractService = global.mintSaleContractService;
         asset721Service = global.asset721Service;
         collectionPluginService = global.collectionPluginService;
@@ -629,6 +636,165 @@ describe('RedeemResolver', () => {
                     expect(body.data.redeemOverview.length).toEqual(2);
                     expect(body.data.redeemOverview.find((item) => item.tokenIds.length === 3).recipientsTotal).toEqual(totalRecipients1);
                     expect(body.data.redeemOverview.find((item) => item.tokenIds.length === 1).recipientsTotal).toEqual(totalRecipients2);
+                });
+        });
+    });
+
+    describe('getRedeemQualifications', () => {
+        it('should work', async () => {
+            const ownerUser = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const organization = await organizationService.createOrganization({
+                name: faker.company.name(),
+                displayName: faker.company.name(),
+                about: faker.company.catchPhrase(),
+                avatarUrl: faker.image.url(),
+                backgroundUrl: faker.image.url(),
+                websiteUrl: faker.internet.url(),
+                twitter: faker.internet.userName(),
+                instagram: faker.internet.userName(),
+                discord: faker.internet.userName(),
+                owner: ownerUser,
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                organization: organization,
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '100',
+                tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {},
+                },
+            });
+
+            const plugin = await pluginRepository.save({
+                name: PHYSICAL_REDEMPTION_PLUGIN_NAME,
+                description: faker.commerce.productDescription(),
+                type: 'plugin',
+            });
+
+            const anotherPlugin = await pluginRepository.save({
+                name: faker.commerce.productName(),
+                description: faker.commerce.productDescription(),
+                type: 'plugin',
+            });
+
+            const collectionPlugin1 = await collectionPluginService.createCollectionPlugin({
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: faker.commerce.productName(),
+                pluginDetail: {
+                    recipients: new Array(100).fill(0).map((_, idx) => idx.toString()),
+                },
+            });
+
+            await collectionPluginService.createCollectionPlugin({
+                collectionId: collection.id,
+                pluginId: plugin.id,
+                name: faker.commerce.productName(),
+                pluginDetail: {
+                    recipients: new Array(100).fill(0).map((_, idx) => idx.toString()),
+                },
+            });
+
+            await collectionPluginService.createCollectionPlugin({
+                collectionId: collection.id,
+                pluginId: anotherPlugin.id,
+                name: faker.commerce.productName(),
+                pluginDetail: {
+                    recipients: new Array(100).fill(0).map((_, idx) => idx.toString()),
+                },
+            });
+
+            const randomWallet = ethers.Wallet.createRandom();
+            const message = 'claim a redeem font';
+            const signature = await randomWallet.signMessage(message);
+
+            const tokenId1 = faker.string.numeric({ length: 1, allowLeadingZeros: false });
+            // mint token1
+            await nftService.createOrUpdateNftByTokenId({
+                collectionId: collection.id,
+                tierId: tier.id,
+                tokenId: tokenId1,
+                ownerAddress: randomWallet.address,
+                properties: {},
+            });
+            // redeem collection plugin 1
+            // and leave collection plugin 2 ready to redeem
+            await redeemService.createRedeem({
+                collection: { id: collection.id },
+                collectionPluginId: collectionPlugin1.id,
+                tokenId: tokenId1,
+                deliveryAddress: faker.location.streetAddress(),
+                deliveryCity: faker.location.city(),
+                deliveryZipcode: faker.location.zipCode(),
+                deliveryState: faker.location.state(),
+                deliveryCountry: faker.location.country(),
+                email: faker.internet.email(),
+                address: randomWallet.address,
+                message,
+                signature,
+            });
+
+            const tokenId2 = faker.string.numeric({ length: 2, allowLeadingZeros: false });
+            await nftService.createOrUpdateNftByTokenId({
+                collectionId: collection.id,
+                tierId: tier.id,
+                tokenId: tokenId2,
+                ownerAddress: randomWallet.address,
+                properties: {},
+            });
+
+            const tokenId3 = faker.string.numeric({ length: 2, allowLeadingZeros: false });
+            await nftService.createOrUpdateNftByTokenId({
+                collectionId: collection.id,
+                tierId: tier.id,
+                tokenId: tokenId3,
+                ownerAddress: faker.finance.ethereumAddress(),
+                properties: {},
+            });
+
+            const query = gql`
+                query GetRedeemQualifications($collectionId: String!, $address: String!) {
+                    getRedeemQualifications(collectionId: $collectionId, address: $address) {
+                        tokenId
+                        collection {
+                            id
+                        }
+                        collectionPlugin {
+                            id
+                        }
+                    }
+                }
+            `;
+
+            const variables = {
+                collectionId: collection.id,
+                address: randomWallet.address,
+            };
+
+            return request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.getRedeemQualifications).toBeTruthy();
+                    expect(body.data.getRedeemQualifications.length).toEqual(3);
                 });
         });
     });

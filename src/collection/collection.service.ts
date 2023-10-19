@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as Sentry from '@sentry/node';
 
 import { AlchemyService } from '../alchemy/alchemy.service';
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.dto';
 import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 import { NftService } from '../nft/nft.service';
 import { OpenseaService } from '../opensea/opensea.service';
@@ -57,7 +58,6 @@ import {
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
 import { filterTokenIdsByRanges, generateSlug, getCollectionAttributesOverview, getCollectionUpgradesOverview } from './collection.utils';
-import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.dto';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'tokenAddress' | 'address' | 'name' | 'slug'>>;
 
@@ -1290,13 +1290,13 @@ export class CollectionService {
         const dynamicAttributes = attributes.dynamicAttributes;
         const enrichedDynamicAttributes = [];
         for (const dynamicAttribute of dynamicAttributes) {
-            const { name, type } = dynamicAttribute;
+            const { key, type } = dynamicAttribute;
             if (type === 'number') {
                 const { min, max } = await this.nftService.getOverviewByCollectionAndProperty({
                     collection: {
                         id: collectionId,
                     },
-                    propertyName: name,
+                    propertyName: key,
                 });
                 enrichedDynamicAttributes.push({
                     min,
