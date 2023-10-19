@@ -100,8 +100,8 @@ export class RedeemService {
             (await this.collectionPluginRepositoty.find({ where: { collection: { id: collectionId } }, relations: ['plugin'] })) || [];
         const redeemCollectionPlugins = collectionPlugins.filter((plugin) => plugin.plugin?.name === PHYSICAL_REDEMPTION_PLUGIN_NAME);
         if (!redeemCollectionPlugins) return [];
-
-        const nftByOwnerAddress = (await this.NftRepository.findBy({ ownerAddress: address })) || [];
+      
+        const nftByOwnerAddress = (await this.NftRepository.findBy({ collection: { id: collectionId }, ownerAddress: address })) || [];
         const result = [];
         for (const nft of nftByOwnerAddress) {
             for (const collectionPlugin of redeemCollectionPlugins) {
