@@ -1,3 +1,6 @@
+import { isNil, omitBy } from 'lodash';
+
+import { MetadataPropertyClass } from '../metadata/metadata.entity';
 /**
  * Generate a slug from a name
  * - Lowercase
@@ -7,9 +10,7 @@
  */
 import { Tier } from '../tier/tier.entity';
 import { renderPropertyName } from '../tier/tier.utils';
-import { MetadataPropertyClass } from '../metadata/metadata.entity';
 import { AttributesOverview, UpgradeOverview } from './collection.dto';
-import { isNil, omitBy } from 'lodash';
 
 export const generateSlug = (name: string) =>
     name
@@ -23,7 +24,7 @@ export const filterTokenIdsByRanges = (tokenIds: string[], ranges: number[][]): 
             const [start, end] = range;
             const value = parseInt(tokenId);
             return start <= value && value <= end;
-        })
+        }),
     );
 };
 
@@ -38,7 +39,7 @@ export const getCollectionAttributesOverview = (tiers: Tier[], tierTokenCountsMa
         const tierTokenCount = tierTokenCountsMap[tier.tierId];
         if (!tier.metadata) continue;
         const { properties } = tier.metadata;
-        for (const [_, property] of Object.entries(properties)) {
+        for (const [key, property] of Object.entries(properties)) {
             const { name, type, value, display_value, class: propertyClass } = property;
             if (display_value === 'none') continue;
             let attributeOverview;
@@ -62,6 +63,7 @@ export const getCollectionAttributesOverview = (tiers: Tier[], tierTokenCountsMa
             } else {
                 attributeOverview.push(
                     filterUndefined({
+                        key,
                         name,
                         type,
                         class: propertyClass,
@@ -72,7 +74,7 @@ export const getCollectionAttributesOverview = (tiers: Tier[], tierTokenCountsMa
                                 count: tierTokenCount,
                             },
                         ],
-                    })
+                    }),
                 );
             }
         }

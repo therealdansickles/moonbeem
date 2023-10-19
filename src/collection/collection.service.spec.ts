@@ -3437,6 +3437,7 @@ describe('CollectionService', () => {
             expect(result.attributes.staticAttributes).toEqual(
                 expect.arrayContaining([
                     {
+                        key: 'BgColor',
                         name: 'BgColor',
                         type: 'string',
                         valueCounts: [
@@ -3447,6 +3448,7 @@ describe('CollectionService', () => {
                         ],
                     },
                     {
+                        key: 'Width',
                         name: 'Width',
                         type: 'number',
                         valueCounts: [
@@ -3457,6 +3459,7 @@ describe('CollectionService', () => {
                         ],
                     },
                     {
+                        key: 'Type',
                         name: 'Type',
                         type: 'string',
                         valueCounts: [
@@ -3471,6 +3474,7 @@ describe('CollectionService', () => {
 
             expect(result.attributes.dynamicAttributes).toEqual([
                 {
+                    key: 'Color',
                     name: 'Color',
                     type: 'string',
                     class: 'upgradable',
@@ -3486,6 +3490,7 @@ describe('CollectionService', () => {
                     ],
                 },
                 {
+                    key: 'Height',
                     name: 'Height',
                     type: 'number',
                     class: 'upgradable',

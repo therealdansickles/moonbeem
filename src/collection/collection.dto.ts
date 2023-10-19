@@ -670,6 +670,10 @@ export class ValueCount {
 @ObjectType()
 export class AttributeOverview {
     @IsString()
+    @Field({ description: 'The key of the property.' })
+    readonly key: string;
+
+    @IsString()
     @Field({ description: 'The name of the property.' })
     readonly name: string;
 
