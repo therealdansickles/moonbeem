@@ -56,6 +56,7 @@ import { WalletModule } from '../wallet/wallet.module';
 import { Collection } from './collection.entity';
 import { CollectionResolver } from './collection.resolver';
 import { CollectionService } from './collection.service';
+import { OrganizationService } from '../organization/organization.service';
 
 @Module({
     imports: [
@@ -118,6 +119,7 @@ import { CollectionService } from './collection.service';
         CollectionPluginService,
         MaasService,
         RedeemService,
+        OrganizationService,
     ],
     controllers: [],
 })

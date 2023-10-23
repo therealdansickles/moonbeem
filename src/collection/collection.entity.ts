@@ -31,6 +31,7 @@ export enum CollectionKind {
     whitelistTiered = 'whitelistTiered',
     whitelistBulk = 'whitelistBulk',
     airdrop = 'airdrop',
+    migration = 'migration',
 }
 
 @Entity({ name: 'Collection' })

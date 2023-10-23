@@ -4,11 +4,11 @@ import { GraphQLError } from 'graphql';
 import { isEmpty, isNil, omitBy, union } from 'lodash';
 import { Brackets, DeepPartial, FindOptionsWhere, In, IsNull, Repository, UpdateResult } from 'typeorm';
 
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as Sentry from '@sentry/node';
 
-import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.dto';
+import { AlchemyService } from '../alchemy/alchemy.service';
 import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 import { NftService } from '../nft/nft.service';
 import { OpenseaService } from '../opensea/opensea.service';
@@ -56,7 +56,11 @@ import {
     ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
+import { CollectionKind } from './collection.entity';
 import { filterTokenIdsByRanges, generateSlug, getCollectionAttributesOverview, getCollectionUpgradesOverview } from './collection.utils';
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.dto';
+import { ethers } from 'ethers';
+import { Organization } from '../organization/organization.entity';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'tokenAddress' | 'address' | 'name' | 'slug'>>;
 
@@ -82,6 +86,8 @@ export class CollectionService {
         private coinService: CoinService,
         private collectionPluginService: CollectionPluginService,
         private nftService: NftService,
+        @Inject(forwardRef(() => AlchemyService))
+        private alchemyService: AlchemyService,
     ) {}
 
     /**
@@ -1335,4 +1341,55 @@ export class CollectionService {
     async getCollectionPlugins(collectionId: string): Promise<CollectionPlugin[]> {
         return this.collectionPluginService.getCollectionPluginsByCollectionId(collectionId);
     }
+
+    async migrateCollection(chainId: number, tokenAddress: string, owner: User, organization: Organization): Promise<Collection> {
+        const collectionMetadata = await this.alchemyService.getNFTCollectionMetadata(chainId, tokenAddress);
+        // TODO: missing the bannerImageUrl in the sdk and it exists in the api
+
+        // check if the collection's owner is one of the user bind wallet
+        // if (owner.wallets.find((wallet) => wallet.address === collectionMetadata.contractDeployer) === undefined) {
+        //    throw new Error('The collection is not owned by the user');
+        // }
+
+        // TODO: check if the collection is already migrated
+
+        // TODO: handle the collaboration
+        // create new collection with tier
+        const createCollectionInput: CreateCollectionInput = {
+            name: collectionMetadata.name,
+            kind: CollectionKind.migration,
+            organization,
+            displayName: collectionMetadata.openSea?.collectionName,
+            about: collectionMetadata.openSea?.description,
+            tokenAddress: collectionMetadata.address,
+            avatarUrl: collectionMetadata.openSea?.imageUrl,
+            // backgroundUrl: collectionMetadata.openSea?.bannerImageUrl,
+            websiteUrl: collectionMetadata.openSea?.externalUrl,
+            twitter: collectionMetadata.openSea?.twitterUsername,
+            discord: collectionMetadata.openSea?.discordUrl,
+            // collaboration
+            creator: owner,
+            tiers: [
+                {
+                    name: collectionMetadata.name,
+                    tierId: 0,
+                    totalMints: parseInt(collectionMetadata.totalSupply),
+                    image: collectionMetadata.openSea?.imageUrl,
+                    paymentTokenAddress: ethers.ZeroAddress,
+                    price: ethers.parseEther(collectionMetadata.openSea?.floorPrice.toString()).toString(),
+                    metadata: {},
+                },
+            ],
+        };
+        const collection = await this.createCollectionWithTiers(createCollectionInput);
+        // sync nft tokens
+        const collectionId = collection.id;
+        const tierId = collection.tiers[0].id;
+        // TODO: optimize this index
+        // using async to index the nft as it can take hours
+        this.alchemyService.syncNFTsForCollection(chainId, tokenAddress, collectionId, tierId);
+        return collection;
+    }
+
+    // TODO: create another API to provide the progress of the migration
 }
