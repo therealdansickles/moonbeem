@@ -43,13 +43,16 @@ import { Wallet } from '../wallet/wallet.entity';
 import { AlchemyWebhook } from './alchemy-webhook.entity';
 import { AlchemyController } from './alchemy.controller';
 import { AlchemyService } from './alchemy.service';
+import { Collaboration } from '../collaboration/collaboration.entity';
+import { CollaborationModule } from '../collaboration/collaboration.module';
 
 @Module({
     imports: [
         ConfigModule,
-        TypeOrmModule.forFeature([Collection, Tier, Nft, Wallet, Plugin, CollectionPlugin, MerkleTree, Redeem, AlchemyWebhook]),
+        TypeOrmModule.forFeature([Collaboration, Collection, Tier, Nft, Wallet, Plugin, CollectionPlugin, MerkleTree, Redeem, AlchemyWebhook]),
         TypeOrmModule.forFeature([Coin, MintSaleContract, MintSaleTransaction, Asset721, History721], 'sync_chain'),
         forwardRef(() => CollectionModule),
+        forwardRef(() => CollaborationModule),
         forwardRef(() => CoinModule),
         forwardRef(() => MintSaleContractModule),
         forwardRef(() => TierModule),

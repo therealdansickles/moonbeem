@@ -61,6 +61,8 @@ import { filterTokenIdsByRanges, generateSlug, getCollectionAttributesOverview, 
 import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.dto';
 import { ethers } from 'ethers';
 import { Organization } from '../organization/organization.entity';
+import { NftContract } from 'alchemy-sdk';
+import { Collaboration } from '../collaboration/collaboration.entity';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'tokenAddress' | 'address' | 'name' | 'slug'>>;
 
@@ -73,13 +75,16 @@ export class CollectionService {
         private readonly tierRepository: Repository<Tier>,
         @InjectRepository(Wallet)
         private readonly walletRepository: Repository<Wallet>,
+        @InjectRepository(Collaboration)
+        private readonly collaborationRepository: Repository<Collaboration>,
         @InjectRepository(MintSaleContract, 'sync_chain')
         private readonly mintSaleContractRepository: Repository<MintSaleContract>,
         @InjectRepository(MintSaleTransaction, 'sync_chain')
         private readonly mintSaleTransactionRepository: Repository<MintSaleTransaction>,
         @InjectRepository(Asset721, 'sync_chain')
         private readonly asset721Repository: Repository<Asset721>,
-        @InjectRepository(History721, 'sync_chain') private readonly history721Repository: Repository<History721>,
+        @InjectRepository(History721, 'sync_chain')
+        private readonly history721Repository: Repository<History721>,
         private tierService: TierService,
         private transactionService: MintSaleTransactionService,
         private openseaService: OpenseaService,
@@ -1346,15 +1351,69 @@ export class CollectionService {
         const collectionMetadata = await this.alchemyService.getNFTCollectionMetadata(chainId, tokenAddress);
         // TODO: missing the bannerImageUrl in the sdk and it exists in the api
 
+        // use the first wallet if no wallet match the contractDeployer address
+        // once we added the collection's owner check, it will block this migration if we can't find it
+        const wallets = await this.walletRepository.findBy({
+            owner: {
+                id: owner.id,
+            },
+        });
+        const wallet = wallets.find((wallet) => wallet.address === collectionMetadata.contractDeployer) || wallets[0];
+
         // check if the collection's owner is one of the user bind wallet
-        // if (owner.wallets.find((wallet) => wallet.address === collectionMetadata.contractDeployer) === undefined) {
+        // if (wallet === undefined) {
         //    throw new Error('The collection is not owned by the user');
         // }
 
         // TODO: check if the collection is already migrated
-
-        // TODO: handle the collaboration
+        const collaboration = await this.createMigrationCollaboration(collectionMetadata.contractDeployer, wallet.id, organization.id, owner.id);
         // create new collection with tier
+        const collection = await this.createMigrationCollectionAndTier(collectionMetadata, organization, wallet, collaboration);
+
+        // sync nft tokens
+        const collectionId = collection.id;
+        const tierId = collection.tiers[0].id;
+        // TODO: optimize this index
+        // using async to index the nft as it can take hours
+        this.alchemyService.syncNFTsForCollection(chainId, tokenAddress, collectionId, tierId);
+        return collection;
+    }
+
+    async createMigrationCollaboration(ownerAddress: string, walletId: string, organizationId: string, userId: string): Promise<Collaboration> {
+        const createCollaboratorInput = {
+            wallet: {
+                id: walletId,
+            },
+            organization: {
+                id: organizationId,
+            },
+            user: {
+                id: userId,
+            },
+            royaltyRate: 0,
+            collaborators: [
+                {
+                    address: ownerAddress,
+                    role: 'owner',
+                    name: 'owner',
+                    rate: 0,
+                },
+            ],
+        };
+        // avoid circular dependency
+        const result = await this.collaborationRepository.save(createCollaboratorInput);
+        return await this.collaborationRepository.findOne({
+            where: { id: result.id },
+            relations: ['wallet', 'user', 'organization'],
+        });
+    }
+
+    async createMigrationCollectionAndTier(
+        collectionMetadata: NftContract,
+        organization: Organization,
+        owner: Wallet,
+        collaboration: Collaboration,
+    ): Promise<Collection> {
         const createCollectionInput: CreateCollectionInput = {
             name: collectionMetadata.name,
             kind: CollectionKind.migration,
@@ -1367,7 +1426,7 @@ export class CollectionService {
             websiteUrl: collectionMetadata.openSea?.externalUrl,
             twitter: collectionMetadata.openSea?.twitterUsername,
             discord: collectionMetadata.openSea?.discordUrl,
-            // collaboration
+            collaboration,
             creator: owner,
             tiers: [
                 {
@@ -1381,14 +1440,7 @@ export class CollectionService {
                 },
             ],
         };
-        const collection = await this.createCollectionWithTiers(createCollectionInput);
-        // sync nft tokens
-        const collectionId = collection.id;
-        const tierId = collection.tiers[0].id;
-        // TODO: optimize this index
-        // using async to index the nft as it can take hours
-        this.alchemyService.syncNFTsForCollection(chainId, tokenAddress, collectionId, tierId);
-        return collection;
+        return this.createCollectionWithTiers(createCollectionInput);
     }
 
     // TODO: create another API to provide the progress of the migration
