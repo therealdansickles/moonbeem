@@ -1,4 +1,13 @@
-import { AddressWebhookParams, Alchemy, AlchemySettings, GetBaseNftsForOwnerOptions, Network, NftWebhookParams, WebhookType } from 'alchemy-sdk';
+import {
+    AddressWebhookParams,
+    Alchemy,
+    AlchemySettings,
+    GetBaseNftsForOwnerOptions,
+    Network,
+    NftContract,
+    NftWebhookParams,
+    WebhookType,
+} from 'alchemy-sdk';
 import { Interface, InterfaceAbi } from 'ethers';
 import { get, isString } from 'lodash';
 import { Repository } from 'typeorm';
@@ -15,6 +24,7 @@ import { MaasService } from '../maas/maas.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { TierService } from '../tier/tier.service';
 import { AlchemyWebhook } from './alchemy-webhook.entity';
+import { NftService } from '../nft/nft.service';
 
 function sleep(duration) {
     return new Promise((resolve) => setTimeout(resolve, duration));
@@ -26,6 +36,13 @@ export enum EventType {
     BURN = 'burn',
     UNKNOWN = 'unknown',
 }
+
+export const chainIdToNetwork = {
+    1: Network.ETH_MAINNET,
+    5: Network.ETH_GOERLI,
+    42161: Network.ARB_MAINNET,
+    421613: Network.ARB_GOERLI,
+};
 
 @Injectable()
 export class AlchemyService {
@@ -43,6 +60,7 @@ export class AlchemyService {
         private mintSaleContractService: MintSaleContractService,
         private tierService: TierService,
         private maasService: MaasService,
+        private nftService: NftService,
     ) {
         this.apiKey = this.configService.get<string>('ALCHEMY_API_KEY');
         this.authToken = this.configService.get<string>('ALCHEMY_AUTH_TOKEN');
@@ -69,9 +87,40 @@ export class AlchemyService {
         return nfts;
     }
 
+    async getNFTCollectionMetadata(chainId: number, tokenAddress: string): Promise<NftContract> {
+        const network = chainIdToNetwork[chainId];
+        return this.alchemy[network].nft.getContractMetadata(tokenAddress);
+    }
+
     async getNFTsForCollection(network: Network, tokenAddress: string) {
         const res = await this._getNFTsForCollection(network, tokenAddress, { omitMetadata: true });
         return res.map((nft) => BigInt(nft.id.tokenId).toString());
+    }
+
+    async syncNFTsForCollection(chainId: number, tokenAddress: string, collectionId: string, tierId: string, options?: GetBaseNftsForOwnerOptions) {
+        const network = chainIdToNetwork[chainId];
+        const iterator = this.alchemy[network].nft.getNftsForContractIterator(tokenAddress, options);
+        for await (const nft of iterator) {
+            const {
+                tokenId,
+                rawMetadata: { attributes },
+            } = nft;
+            console.log(`index nft #${tokenId}`);
+            const response = await this.alchemy[network].nft.getOwnersForNft(tokenAddress, tokenId);
+            const owner = response?.owners[0];
+            // TODO: convert the attributes to vibe properties
+            const createNftInput = {
+                collectionId,
+                tierId,
+                tokenId,
+                ownerAddress: owner,
+                properties: attributes,
+            };
+            console.log(`index nft #${tokenId}, owner: ${owner}`);
+            await this.nftService.createOrUpdateNftByTokenId(createNftInput);
+            await sleep(100);
+        }
+        return true;
     }
 
     private async _getWebhooks(network: Network) {

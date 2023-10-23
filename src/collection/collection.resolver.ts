@@ -4,7 +4,7 @@ import { UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { OpenseaService } from '../opensea/opensea.service';
-import { AuthorizedCollectionViewer, AuthorizedOrganization, Public } from '../session/session.decorator';
+import { AuthorizedCollectionViewer, AuthorizedOrganization, Public, SessionUser } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
@@ -27,12 +27,15 @@ import {
     LandingPageCollection,
     MetadataOverview,
     MetadataOverviewInput,
+    MigrateCollectionInput,
     SearchTokenIdsInput,
     SevenDayVolume,
     UpdateCollectionInput,
 } from './collection.dto';
 import { CollectionService } from './collection.service';
 import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.dto';
+import { User } from '../user/user.entity';
+import { OrganizationService } from 'src/organization/organization.service';
 
 @Resolver(() => Collection)
 export class CollectionResolver {
@@ -40,6 +43,7 @@ export class CollectionResolver {
         private readonly collectionService: CollectionService,
         private readonly mintSaleContractService: MintSaleContractService,
         private readonly openseaService: OpenseaService,
+        private readonly organizationService: OrganizationService,
     ) {}
 
     @AuthorizedCollectionViewer()
@@ -266,5 +270,13 @@ export class CollectionResolver {
     @ResolveField(() => [CollectionPlugin], { description: 'Returns the collection plugins.' })
     async collectionPlugins(@Parent() collection: Collection): Promise<CollectionPlugin[]> {
         return this.collectionService.getCollectionPlugins(collection.id);
+    }
+
+    @UseGuards(SigninByEmailGuard)
+    @Mutation(() => Collection, { description: 'migrate a collection' })
+    async migrateCollection(@Args('input') input: MigrateCollectionInput, @SessionUser() user: User): Promise<Collection> {
+        const { tokenAddress, chainId, organizationId } = input;
+        const organization = await this.organizationService.getOrganization(organizationId);
+        return this.collectionService.migrateCollection(chainId, tokenAddress, user, organization);
     }
 }

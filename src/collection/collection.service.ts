@@ -56,8 +56,11 @@ import {
     ZeroAccount,
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
+import { CollectionKind } from './collection.entity';
 import { filterTokenIdsByRanges, generateSlug, getCollectionAttributesOverview, getCollectionUpgradesOverview } from './collection.utils';
 import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.dto';
+import { ethers } from 'ethers';
+import { Organization } from '../organization/organization.entity';
 
 type ICollectionQuery = Partial<Pick<Collection, 'id' | 'tokenAddress' | 'address' | 'name' | 'slug'>>;
 
@@ -85,7 +88,8 @@ export class CollectionService {
         private nftService: NftService,
         @Inject(forwardRef(() => AlchemyService))
         private alchemyService: AlchemyService,
-    ) {}
+    ) {
+    }
 
     /**
      * Retrieves the collection associated with the given id.
@@ -280,7 +284,8 @@ export class CollectionService {
                 throw new Error(`The endSaleAt should be greater than startSaleAt.`);
             }
         }
-        const existingCollection = await this.collectionRepository.findOneBy([{ name: data.name }, { slug: generateSlug(data.name) }]);
+        const existingCollection = await this.collectionRepository.findOneBy(
+            [{ name: data.name }, { slug: generateSlug(data.name) }]);
         if (existingCollection) throw new Error(`The collection name ${data.name} is already taken`);
         return true;
     }
@@ -378,7 +383,8 @@ export class CollectionService {
         const kind = collectionEntity.CollectionKind;
         if ([kind.whitelistEdition, kind.whitelistTiered, kind.whitelistBulk].indexOf(collection.kind) >= 0) {
             tiers.forEach((tier) => {
-                if (!tier.merkleRoot) throw new GraphQLError('Please provide merkleRoot for the whitelisting collection.');
+                if (!tier.merkleRoot) throw new GraphQLError(
+                    'Please provide merkleRoot for the whitelisting collection.');
             });
         }
 
@@ -555,7 +561,8 @@ export class CollectionService {
         first: number,
         last: number,
     ): Promise<CollectionAggregatedActivityPaginated> {
-        const builder = await this.history721Repository.createQueryBuilder('history').where('history.address = :address', { address: tokenAddress });
+        const builder = await this.history721Repository.createQueryBuilder('history').where(
+            'history.address = :address', { address: tokenAddress });
         const countBuilder = builder.clone();
         if (after) {
             const [createdAt, id] = cursorToStrings(after);
@@ -799,7 +806,8 @@ export class CollectionService {
     public async getCollectionSold(address: string, before: string, after: string, first: number, last: number): Promise<CollectionSoldPaginated> {
         if (!address) return PaginatedImp([], 0);
 
-        const builder = this.mintSaleTransactionRepository.createQueryBuilder('txn').where('txn.address = :address', { address });
+        const builder = this.mintSaleTransactionRepository.createQueryBuilder('txn').where(
+            'txn.address = :address', { address });
         const countBuilder = builder.clone();
 
         if (after) {
@@ -1208,10 +1216,12 @@ export class CollectionService {
         if (!collection) {
             throw new Error(`Collection not found`);
         }
-        const ranges = await this.getTokenIdRangesByStaticPropertiesFilters(collectionId, collection.address, staticPropertyFilters);
+        const ranges = await this.getTokenIdRangesByStaticPropertiesFilters(
+            collectionId, collection.address, staticPropertyFilters);
         const mintedTokenIds = await this.nftService.getNftsIdsByProperties(collectionId, []);
         const mintedTokenIdsInRanges = filterTokenIdsByRanges(mintedTokenIds, ranges);
-        const tokenIdsWithDynamicProperties = await this.nftService.getNftsIdsByProperties(collectionId, dynamicPropertyFilters);
+        const tokenIdsWithDynamicProperties = await this.nftService.getNftsIdsByProperties(
+            collectionId, dynamicPropertyFilters);
         return union(tokenIdsWithDynamicProperties, mintedTokenIdsInRanges);
     }
 
@@ -1262,8 +1272,13 @@ export class CollectionService {
             .filter((range) => range.length > 0);
     }
 
-    async getMetadataOverview({ collectionId, collectionAddress, collectionSlug }: MetadataOverviewInput): Promise<MetadataOverview> {
-        const builder = await this.tierRepository.createQueryBuilder('tier').leftJoinAndSelect('tier.collection', 'collection');
+    async getMetadataOverview({
+        collectionId,
+        collectionAddress,
+        collectionSlug
+    }: MetadataOverviewInput): Promise<MetadataOverview> {
+        const builder = await this.tierRepository.createQueryBuilder('tier').leftJoinAndSelect(
+            'tier.collection', 'collection');
         if (collectionId) {
             builder.where('collection.id = :collectionId', { collectionId });
         } else if (collectionAddress) {
@@ -1338,4 +1353,81 @@ export class CollectionService {
     async getCollectionPlugins(collectionId: string): Promise<CollectionPlugin[]> {
         return this.collectionPluginService.getCollectionPluginsByCollectionId(collectionId);
     }
+
+    async migrateCollection(chainId: number, tokenAddress: string, owner: User, organization: Organization): Promise<Collection> {
+        const collectionMetadata = await this.alchemyService.getNFTCollectionMetadata(chainId, tokenAddress);
+        console.log(collectionMetadata);
+        // TODO: missing the bannerImageUrl in the sdk and it exists in the api
+        // console.log(collectionMetadata.openSea.bannerImageUrl);
+        // const collectionMetadata = {
+        //     address: '0x4135063dc85190660ed08790f59bc711d8b404c0',
+        //     name: 'NewHere',
+        //     symbol: 'NEWHERE',
+        //     totalSupply: '3933',
+        //     tokenType: 'ERC721',
+        //     openSea: {
+        //         floorPrice: 0.022797,
+        //         collectionName: "WE'RE NEW HERE",
+        //         safelistRequestStatus: 'approved',
+        //         imageUrl: 'https://i.seadn.io/gcs/files/d572530166749c4fa036b14375a35af2.jpg?w=500&auto=format',
+        //         description: "WE'RE NEW HERE Newbies are generative pixel NFTs that benefit the production of the I'M NEW HERE film. \n" +
+        //             '\n' +
+        //             'Every Newbie is created from a pool of 1100+ traits based on over 150 iconic artists, voices, and communities in the NFT space! They are made up of several handmade layers, each taken from a 1/1 in the collection.\n' +
+        //             '\n' +
+        //             "The I'M NEW HERE film is a documentary about Cryptoart, its history, and the community of artists, visionaries, and builders that has formed around it. It features an incredible cast of people that have made this space their home. \n" +
+        //             '\n' +
+        //             'Full list here: https://www.newhere.xyz/cast',
+        //         externalUrl: 'https://www.newhere.xyz/',
+        //         twitterUsername: 'newherexyz',
+        //         discordUrl: undefined,
+        //         lastIngestedAt: '2023-10-20T07:31:37.000Z'
+        //     },
+        //     contractDeployer: '0x2945e306b9d4f4e4f19ebb7b857a96866e9d8570',
+        //     deployedBlockNumber: 15617752
+        // };
+
+        // check if the collection's owner is the user bind wallet
+        // if (owner.wallets.find((wallet) => wallet.address === collectionMetadata.contractDeployer) === undefined) {
+        //     return null;
+        // }
+
+        // check if the collection is already migrated
+
+        // TODO: handle the collaboration
+        // create new collection with tier
+        const createCollectionInput: CreateCollectionInput = {
+            name: collectionMetadata.name,
+            kind: CollectionKind.migration,
+            organization,
+            displayName: collectionMetadata.openSea?.collectionName,
+            about: collectionMetadata.openSea?.description,
+            tokenAddress: collectionMetadata.address,
+            avatarUrl: collectionMetadata.openSea?.imageUrl,
+            // backgroundUrl: collectionMetadata.openSea?.bannerImageUrl,
+            websiteUrl: collectionMetadata.openSea?.externalUrl,
+            twitter: collectionMetadata.openSea?.twitterUsername,
+            discord: collectionMetadata.openSea?.discordUrl,
+            // collaboration
+            creator: owner,
+            tiers: [
+                {
+                    name: collectionMetadata.name,
+                    tierId: 0,
+                    totalMints: parseInt(collectionMetadata.totalSupply),
+                    image: collectionMetadata.openSea?.imageUrl,
+                    paymentTokenAddress: ethers.ZeroAddress,
+                    price: ethers.parseEther(collectionMetadata.openSea?.floorPrice.toString()).toString(),
+                    metadata: {},
+                },
+            ],
+        };
+        const collection = await this.createCollectionWithTiers(createCollectionInput);
+        // sync nft tokens
+        const collectionId = collection.id;
+        const tierId = collection.tiers[0].id;
+        this.alchemyService.syncNFTsForCollection(chainId, tokenAddress, collectionId, tierId);
+        return collection;
+    }
+
+    // TODO: create another API to provide the progress of the migration
 }
