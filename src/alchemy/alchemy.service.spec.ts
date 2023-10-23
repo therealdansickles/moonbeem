@@ -146,6 +146,60 @@ describe('AlchemySerice', () => {
         });
     });
 
+    describe('#getNFTsForOwner', () => {
+        jest.setTimeout(600000);
+
+        it('should work for realworld', async () => {
+            const mockRawResponse = {
+                ownedNfts: [
+                    {
+                        contract: {
+                            address: '0xc3fe33455b0b93e124ea2c08626762da4e053777',
+                            name: 'Test collection before the launch',
+                            symbol: 'VIBE',
+                            totalSupply: '0',
+                            tokenType: 'ERC721',
+                            openSea: {},
+                        },
+                        tokenId: '2',
+                        tokenType: 'ERC721',
+                        title: 'Premium',
+                        description: 'Premium',
+                        timeLastUpdated: '2023-08-24T00:38:08.776Z',
+                        rawMetadata: {
+                            name: 'Premium',
+                            description: 'Premium',
+                            image: 'https://media.vibe.xyz/c59fb0bb-aa9a-485d-8a7d-9c048246eeee',
+                            properties: {},
+                        },
+                        tokenUri: {
+                            gateway: 'https://metadata.vibe.xyz/6590f05a-f259-4bb1-9b83-70735d155555/2',
+                            raw: 'https://metadata.vibe.xyz/6590f05a-f259-4bb1-9b83-70735d155555/2',
+                        },
+                        media: [
+                            {
+                                gateway: 'https://nft-cdn.alchemy.com/arb-mainnet/4389bfa2da404ff7914e3949a7fe5555',
+                                thumbnail:
+                                    'https://res.cloudinary.com/alchemyapi/image/upload/thumbnailv2/arb-mainnet/4389bfa2da404ff7914e3949a7fe5555',
+                                raw: 'https://media.vibe.xyz/c59fb0bb-aa9a-485d-8a7d-9c048246eeee',
+                                format: 'jpeg',
+                                bytes: 71003,
+                            },
+                        ],
+                        balance: 1,
+                    },
+                ],
+                totalCount: 1,
+                blockHash: '0x83e232de26ffd67c3648e1e8060b98c46c5111054fb7a37ffaffbdd0910371df',
+            };
+            jest.spyOn(service as any, '_getNftsForOwner').mockImplementation(() => mockRawResponse);
+            const result = await service.getNftsForOwnerAddress(Network.ARB_MAINNET, '0x6532Cf5d7ACBEeBd787381166DF4AC782B8ABf89');
+            expect(result.ownedNfts).toBeTruthy();
+            expect(result.ownedNfts.length).toEqual(1);
+            expect(result.totalCount).toEqual(1);
+        });
+    });
+
     describe('#serializeActivityEvent', () => {
         it('should serialize event from webhook', async () => {
             const req = {

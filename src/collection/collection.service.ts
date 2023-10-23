@@ -4,11 +4,10 @@ import { GraphQLError } from 'graphql';
 import { isEmpty, isNil, omitBy, union } from 'lodash';
 import { Brackets, DeepPartial, FindOptionsWhere, In, IsNull, Repository, UpdateResult } from 'typeorm';
 
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as Sentry from '@sentry/node';
 
-import { AlchemyService } from '../alchemy/alchemy.service';
 import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.dto';
 import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 import { NftService } from '../nft/nft.service';
@@ -83,8 +82,6 @@ export class CollectionService {
         private coinService: CoinService,
         private collectionPluginService: CollectionPluginService,
         private nftService: NftService,
-        @Inject(forwardRef(() => AlchemyService))
-        private alchemyService: AlchemyService,
     ) {}
 
     /**

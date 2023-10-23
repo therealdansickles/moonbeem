@@ -1,4 +1,13 @@
-import { AddressWebhookParams, Alchemy, AlchemySettings, GetBaseNftsForOwnerOptions, Network, NftWebhookParams, WebhookType } from 'alchemy-sdk';
+import {
+    AddressWebhookParams,
+    Alchemy,
+    AlchemySettings,
+    GetBaseNftsForOwnerOptions,
+    GetNftsForOwnerOptions,
+    Network,
+    NftWebhookParams,
+    WebhookType,
+} from 'alchemy-sdk';
 import { Interface, InterfaceAbi } from 'ethers';
 import { get, isString } from 'lodash';
 import { Repository } from 'typeorm';
@@ -11,7 +20,6 @@ import { captureException } from '@sentry/node';
 
 import { CollectionService } from '../collection/collection.service';
 import * as VibeFactoryAbi from '../lib/abi/VibeFactory.json';
-import { MaasService } from '../maas/maas.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { TierService } from '../tier/tier.service';
 import { AlchemyWebhook } from './alchemy-webhook.entity';
@@ -35,14 +43,13 @@ export class AlchemyService {
     private authToken: string;
 
     constructor(
-        private configService: ConfigService,
         @InjectRepository(AlchemyWebhook)
         private readonly alchemyWebhookRepository: Repository<AlchemyWebhook>,
         @Inject(forwardRef(() => CollectionService))
         private collectionService: CollectionService,
         private mintSaleContractService: MintSaleContractService,
         private tierService: TierService,
-        private maasService: MaasService,
+        private configService: ConfigService,
     ) {
         this.apiKey = this.configService.get<string>('ALCHEMY_API_KEY');
         this.authToken = this.configService.get<string>('ALCHEMY_AUTH_TOKEN');
@@ -72,6 +79,14 @@ export class AlchemyService {
     async getNFTsForCollection(network: Network, tokenAddress: string) {
         const res = await this._getNFTsForCollection(network, tokenAddress, { omitMetadata: true });
         return res.map((nft) => BigInt(nft.id.tokenId).toString());
+    }
+
+    async _getNftsForOwner(network: Network, owner: string, options?: GetNftsForOwnerOptions) {
+        return this.alchemy[network].nft.getNftsForOwner(owner, options);
+    }
+
+    async getNftsForOwnerAddress(network: Network, ownerAddress: string) {
+        return await this._getNftsForOwner(network, ownerAddress);
     }
 
     private async _getWebhooks(network: Network) {

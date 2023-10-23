@@ -14,6 +14,7 @@ env:
     AWS_IMAGE_BASE_URI: ${{ secrets.AWS_IMAGE_BASE_URI }}
     AWS_BASE_URL: ${{ secrets.AWS_BASE_URL }}
     COIN_MARKET_CAP_API_KEY: ${{ secrets.COIN_MARKET_CAP_API_KEY }}
+    YARN_IGNORE_NODE: 1
 
 jobs:
     test:
@@ -59,7 +60,7 @@ jobs:
                   cache: 'yarn'
 
             - name: Set Yarn 3
-              run: yarn set version stable
+              run: yarn set version 3
 
             - name: yarn install --immutable
               run: yarn install --immutable
