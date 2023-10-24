@@ -11,6 +11,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AlchemyController } from './alchemy/alchemy.controller';
 import { AlchemyModule } from './alchemy/alchemy.module';
 import { AlchemyService } from './alchemy/alchemy.service';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { AnalyticsService } from './analytics/analytics.service';
 import { CoinMarketCapModule } from './coinmarketcap/coinmarketcap.module';
 import { CoinMarketCapService } from './coinmarketcap/coinmarketcap.service';
 // platform modules
@@ -84,8 +86,6 @@ import { WaitlistService } from './waitlist/waitlist.service';
 import { Wallet } from './wallet/wallet.dto';
 import { WalletModule } from './wallet/wallet.module';
 import { WalletService } from './wallet/wallet.service';
-import { AnalyticsModule } from './analytics/analytics.module';
-import { AnalyticsService } from './analytics/analytics.service';
 
 @Resolver()
 export class TestResolver {
@@ -231,7 +231,7 @@ export default async () => {
     global.waitlistRepository = module.get('WaitlistRepository');
     global.collectionRepository = module.get('CollectionRepository');
     global.membershipRepository = module.get('MembershipRepository');
-    global.OrganizationRepository = module.get('OrganizationRepository');
+    global.organizationRepository = module.get('OrganizationRepository');
     global.relationshipRepository = module.get('RelationshipRepository');
     global.collaborationRepository = module.get('CollaborationRepository');
     global.merkleTreeRepository = module.get('MerkleTreeRepository');
@@ -275,7 +275,7 @@ async function clearDatabase() {
     await global.collectionRepository.query('TRUNCATE TABLE "Collection" CASCADE;');
     await global.membershipRepository.query('TRUNCATE TABLE "Membership" CASCADE;');
     await global.nftRepository.query('TRUNCATE TABLE "Nft" CASCADE;');
-    await global.OrganizationRepository.query('TRUNCATE TABLE "Organization" CASCADE;');
+    await global.organizationRepository.query('TRUNCATE TABLE "Organization" CASCADE;');
     await global.redeemRepository.query('TRUNCATE TABLE "Redeem" CASCADE;');
     await global.relationshipRepository.query('TRUNCATE TABLE "Relationship" CASCADE;');
     await global.tierRepository.query('TRUNCATE TABLE "Tier" CASCADE;');

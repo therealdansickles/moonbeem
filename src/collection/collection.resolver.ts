@@ -3,12 +3,15 @@ import { GraphQLError } from 'graphql';
 import { UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
+import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.dto';
 import { OpenseaService } from '../opensea/opensea.service';
+import { OrganizationService } from '../organization/organization.service';
 import { AuthorizedCollectionViewer, AuthorizedOrganization, Public, SessionUser } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
 import { MintSaleContract } from '../sync-chain/mint-sale-contract/mint-sale-contract.dto';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { Tier } from '../tier/tier.dto';
+import { User } from '../user/user.entity';
 import { CollectionHoldersPaginated } from '../wallet/wallet.dto';
 import {
     AggregatedVolume,
@@ -33,9 +36,6 @@ import {
     UpdateCollectionInput,
 } from './collection.dto';
 import { CollectionService } from './collection.service';
-import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.dto';
-import { User } from '../user/user.entity';
-import { OrganizationService } from '../organization/organization.service';
 
 @Resolver(() => Collection)
 export class CollectionResolver {

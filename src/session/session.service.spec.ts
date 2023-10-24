@@ -49,7 +49,7 @@ describe('SessionService', () => {
             const email = 'engineering+sessionfromemail@vibe.xyz';
             const password = 'password';
             const user = await userService.createUser({ email, password });
-            const result = await service.createSessionFromEmail(email, password);
+            const result = await service.createSessionFromEmail(email, { password });
             const token = jwtService.decode(result.token) as Record<string, string>;
 
             expect(result.user.email).toEqual(email);
@@ -60,7 +60,7 @@ describe('SessionService', () => {
             const email = 'engineering+sessionfromemail+2@vibe.xyz';
             const password = 'password';
             await userService.createUser({ email, password });
-            const result = await service.createSessionFromEmail(email, 'notpassword');
+            const result = await service.createSessionFromEmail(email, { password: 'notpassword' });
 
             expect(result).toBeNull();
         });
@@ -72,7 +72,7 @@ describe('SessionService', () => {
             const organization = await createOrganization(organizationService, {
                 owner: user,
             });
-            const result = await service.createSessionFromEmail(email, 'password');
+            const result = await service.createSessionFromEmail(email, { password: 'password' });
 
             // parse the token to get the organization roles
             const token = jwtService.decode(result.token) as Record<string, string>;
@@ -129,7 +129,7 @@ describe('SessionService', () => {
             expect(result.token).toBeDefined();
 
             try {
-                await expect(async () => await service.createSessionFromEmail(email, 'password'));
+                await expect(async () => await service.createSessionFromEmail(email, { password: 'password' }));
             } catch (err) {
                 expect(err.message).toEqual('This email has been used for Google sign in. Please sign in with Google.');
             }
@@ -150,7 +150,7 @@ describe('SessionService', () => {
             const result = await service.createSessionFromGoogle('access_token');
             expect(result.token).toBeDefined();
 
-            const authenticateByEmail = await service.createSessionFromEmail(email, 'password');
+            const authenticateByEmail = await service.createSessionFromEmail(email, { password: 'password' });
             expect(authenticateByEmail.token).toBeDefined();
             expect(authenticateByEmail.user.email).toEqual(email);
         });

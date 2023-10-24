@@ -100,6 +100,7 @@ import { CollaborationModule } from '../collaboration/collaboration.module';
         forwardRef(() => AlchemyModule),
         forwardRef(() => MaasModule),
         forwardRef(() => RedeemModule),
+        forwardRef(() => WalletModule),
         JwtModule.register({
             secret: process.env.SESSION_SECRET,
             signOptions: { expiresIn: '7d' },
