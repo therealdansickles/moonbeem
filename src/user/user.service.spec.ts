@@ -172,13 +172,23 @@ describe('UserService', () => {
     });
 
     describe('authenticateUser', () => {
-        it('should authenticate the user', async () => {
-            const result = await service.authenticateUser(basicUser.email, 'password');
+        it('should authenticate the user for passing correct password', async () => {
+            const result = await service.authenticateUser(basicUser.email, { password: 'password' });
             expect(result.email).toEqual(basicUser.email.toLowerCase());
         });
 
-        it('should return null on invalid credentials', async () => {
-            const result = await service.authenticateUser(basicUser.email, 'invalidpassword');
+        it('should return null on invalid credentials for passing wrong password', async () => {
+            const result = await service.authenticateUser(basicUser.email, { password: 'invalidpassword' });
+            expect(result).toBeNull();
+        });
+
+        it('should authenticate the user for passing correct hashedPassword', async () => {
+            const result = await service.authenticateUser(basicUser.email, { hashedPassword: basicUser.password });
+            expect(result.email).toEqual(basicUser.email.toLowerCase());
+        });
+
+        it('should return null on invalid credentials for passing wrong password', async () => {
+            const result = await service.authenticateUser(basicUser.email, { hashedPassword: basicUser.password + '1111' });
             expect(result).toBeNull();
         });
 
@@ -190,7 +200,7 @@ describe('UserService', () => {
                 gmail: email,
             });
             try {
-                await service.authenticateUser(user.gmail, 'password');
+                await service.authenticateUser(user.gmail, { password: 'password' });
             } catch (err) {
                 expect(err.message).toEqual('This email has been used for Google sign in. Please sign in with Google.');
             }
@@ -204,7 +214,7 @@ describe('UserService', () => {
                 gmail: email,
                 password: 'password',
             });
-            const result = await service.authenticateUser(user.gmail, 'password');
+            const result = await service.authenticateUser(user.gmail, { password: 'password' });
             expect(result.email).toEqual(user.email.toLowerCase());
         });
     });

@@ -92,11 +92,11 @@ export class WalletService {
      * @param query The condition of the wallet to retrieve.
      * @returns The wallet satisfied the given query.
      */
-    async getWalletByQuery(query: IWalletQuery): Promise<Wallet> {
+    async getWalletByQuery(query: IWalletQuery) {
         query = omitBy(query, isNil);
         if (isEmpty(query)) return null;
         if (query.address) query.address = query.address.toLowerCase();
-        return this.walletRepository.findOneBy(query);
+        return this.walletRepository.findOne({ where: query, relations: ['owner'] });
     }
 
     /**
@@ -190,7 +190,9 @@ export class WalletService {
     async bindWallet(data: BindWalletInput): Promise<Wallet> {
         const { address: rawAddress, owner } = data;
         const address = rawAddress.toLowerCase();
-        const wallet = await this.verifyWallet(address, data.message, data.signature);
+        // if verify not passed, will directly throw an error
+        await this.verifyWallet(address, data.message, data.signature);
+        const wallet = await this.findOrCreateWallet(address);
 
         if (wallet.owner?.id)
             throw new Error(`The wallet at ${address} is already connected to an existing account. Please connect another wallet to this account.`);
@@ -247,24 +249,33 @@ export class WalletService {
      * @param signature The signature of the message.
      * @returns a Wallet object.
      */
-    async verifyWallet(walletAddress: string, message: string, signature: string): Promise<Wallet | null> {
+    async verifyWallet(walletAddress: string, message: string, signature: string): Promise<true> {
         const address = walletAddress.toLowerCase();
-        if (ethers.verifyMessage(message, signature).toLowerCase() === address) {
-            const existedWallet = await this.walletRepository.findOne({
+        if (ethers.verifyMessage(message, signature).toLowerCase() !== address) {
+            captureException('Invalid signature', { extra: { walletAddress, message, signature } });
+            throw new Error('Invalid signature');
+        }
+        return true;
+    }
+
+    /**
+     * find wallet by address, if no wallet then create a new one
+     *
+     * @param address
+     * @returns
+     */
+    async findOrCreateWallet(address: string) {
+        const existedWallet = await this.walletRepository.findOne({
+            where: { address },
+            relations: ['owner'],
+        });
+        if (existedWallet) return existedWallet;
+        else {
+            await this.walletRepository.insert({ address, name: address });
+            return this.walletRepository.findOne({
                 where: { address },
                 relations: ['owner'],
             });
-            if (existedWallet) return existedWallet;
-            else {
-                await this.walletRepository.insert({ address, name: address });
-                return this.walletRepository.findOne({
-                    where: { address },
-                    relations: ['owner'],
-                });
-            }
-        } else {
-            captureException('Invalid signature', { extra: { walletAddress, message, signature } });
-            throw new Error('Invalid signature');
         }
     }
 

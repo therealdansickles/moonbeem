@@ -1,12 +1,15 @@
+import { Network } from 'alchemy-sdk';
 import { intersection, isEmpty, isNil } from 'lodash';
 import { render } from 'mustache';
 import { In, Repository } from 'typeorm';
+import { v4 } from 'uuid';
 
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
+import { AlchemyService } from '../alchemy/alchemy.service';
 import { PropertyFilter } from '../collection/collection.dto';
-import { Collection } from '../collection/collection.entity';
+import { Collection, CollectionKind } from '../collection/collection.entity';
 import { MerkleTree } from '../merkleTree/merkleTree.entity';
 import { Metadata, MetadataProperties } from '../metadata/metadata.dto';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
@@ -77,14 +80,16 @@ export type ICreateOrUpdateNft = {
 @Injectable()
 export class NftService {
     constructor(
-        private readonly asset721Service: Asset721Service,
-        private readonly tierService: TierService,
         @InjectRepository(Nft)
         private readonly nftRepository: Repository<Nft>,
         @InjectRepository(Collection)
         private readonly collectionRepository: Repository<Collection>,
         @InjectRepository(MerkleTree)
         private readonly merkleTreeRepository: Repository<MerkleTree>,
+        @Inject(forwardRef(() => AlchemyService))
+        private alchemyService: AlchemyService,
+        private readonly asset721Service: Asset721Service,
+        private readonly tierService: TierService,
     ) {}
 
     /**
@@ -253,6 +258,39 @@ export class NftService {
 
         if (nfts && nfts.length > 0) return nfts.map((nft) => this.renderMetadata(nft));
         return null;
+    }
+
+    /**
+     * get all user minted NFTs from Alchemy
+     *
+     * @param network
+     * @param ownerAddress
+     */
+    async getNftsFromExtenal(network: Network, ownerAddress: string) {
+        const { ownedNfts: nfts } = await this.alchemyService.getNftsForOwnerAddress(network, ownerAddress);
+        return (nfts || []).reduce((accu, rawNft) => {
+            const nft = {
+                // fake uuid
+                id: v4(),
+                address: rawNft.contract.address,
+                tokenAddress: rawNft.contract.address,
+                tokenId: rawNft.tokenId,
+                ownerAddress,
+                tier: {
+                    name: rawNft.rawMetadata.name,
+                    description: rawNft.rawMetadata.description,
+                    image: rawNft.rawMetadata.image,
+                    tierId: 0,
+                    collection: {
+                        name: rawNft.contract.name,
+                        kind: CollectionKind.edition,
+                        address: rawNft.contract.address,
+                    },
+                },
+            };
+            accu.push(nft);
+            return accu;
+        }, []);
     }
 
     async getNftsIdsByPlugins(plugins: string[]): Promise<string[]> {

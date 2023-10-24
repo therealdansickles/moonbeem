@@ -3,6 +3,7 @@ import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CollaborationModule } from '../collaboration/collaboration.module';
 
 import { AlchemyWebhook } from '../alchemy/alchemy-webhook.entity';
 import { AlchemyModule } from '../alchemy/alchemy.module';
@@ -46,12 +47,26 @@ import { Wallet } from '../wallet/wallet.entity';
 import { Plugin } from './plugin.entity';
 import { PluginResolver } from './plugin.resolver';
 import { PluginService } from './plugin.service';
+import { Collaboration } from '../collaboration/collaboration.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Plugin, Collection, Tier, Nft, Wallet, Collection, MerkleTree, CollectionPlugin, Redeem, AlchemyWebhook]),
+        TypeOrmModule.forFeature([
+            Collaboration,
+            Plugin,
+            Collection,
+            Tier,
+            Nft,
+            Wallet,
+            Collection,
+            MerkleTree,
+            CollectionPlugin,
+            Redeem,
+            AlchemyWebhook,
+        ]),
         TypeOrmModule.forFeature([Coin, MintSaleContract, MintSaleTransaction, Asset721, History721], 'sync_chain'),
         forwardRef(() => CollectionModule),
+        forwardRef(() => CollaborationModule),
         forwardRef(() => TierModule),
         forwardRef(() => OpenseaModule),
         forwardRef(() => CoinMarketCapModule),

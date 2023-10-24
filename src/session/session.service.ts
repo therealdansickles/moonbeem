@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import { Session } from './session.dto';
-import { UserService } from '../user/user.service';
-import { WalletService } from '../wallet/wallet.service';
 import { MembershipService } from '../membership/membership.service';
 import { User } from '../user/user.entity';
+import { IAuthenticateUserHashedPassword, IAuthenticateUserPassword, UserService } from '../user/user.service';
+import { WalletService } from '../wallet/wallet.service';
+import { Session } from './session.dto';
 
 @Injectable()
 export class SessionService {
@@ -13,7 +13,7 @@ export class SessionService {
         private readonly userService: UserService,
         private readonly walletService: WalletService,
         private readonly jwtService: JwtService,
-        private readonly membershipService: MembershipService
+        private readonly membershipService: MembershipService,
     ) {}
 
     /**
@@ -25,7 +25,8 @@ export class SessionService {
      * @returns The session.
      */
     async createSession(address: string, message: string, signature: string): Promise<Session | null> {
-        const wallet = await this.walletService.verifyWallet(address, message, signature);
+        await this.walletService.verifyWallet(address, message, signature);
+        const wallet = await this.walletService.findOrCreateWallet(address);
 
         if (wallet) {
             const token = await this.jwtService.signAsync({ walletId: wallet.id, walletAddress: wallet.address });
@@ -41,8 +42,8 @@ export class SessionService {
      * @param password The password of the user.
      * @returns The session.
      */
-    async createSessionFromEmail(email: string, password: string): Promise<Session | null> {
-        const user = await this.userService.authenticateUser(email, password);
+    async createSessionFromEmail(email: string, payload: IAuthenticateUserPassword | IAuthenticateUserHashedPassword): Promise<Session | null> {
+        const user = await this.userService.authenticateUser(email, payload);
 
         if (user) {
             return this.createUserSession(user);

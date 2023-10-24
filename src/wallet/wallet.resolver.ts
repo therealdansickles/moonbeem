@@ -27,7 +27,7 @@ export class WalletResolver {
     constructor(
         private readonly walletService: WalletService,
         private readonly collectionService: CollectionService,
-        private readonly relationshipService: RelationshipService
+        private readonly relationshipService: RelationshipService,
     ) {}
 
     @Public()
@@ -37,7 +37,7 @@ export class WalletResolver {
     })
     async wallet(
         @Args('address', { description: 'an ethereum or EIP-3770 address.', nullable: true }) address: string,
-            @Args('name', { description: 'a name of the wallet.', nullable: true }) name: string
+            @Args('name', { description: 'a name of the wallet.', nullable: true }) name: string,
     ): Promise<Wallet> {
         return this.walletService.getWalletByQuery({ name, address });
     }
@@ -88,7 +88,7 @@ export class WalletResolver {
             @Args('before', { nullable: true }) before?: string,
             @Args('after', { nullable: true }) after?: string,
             @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
-            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number,
     ): Promise<MintPaginated> {
         return this.walletService.getMintedByAddress(wallet.address, before, after, first, last);
     }
@@ -129,7 +129,7 @@ export class WalletResolver {
             @Args('before', { nullable: true }) before?: string,
             @Args('after', { nullable: true }) after?: string,
             @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
-            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number,
     ): Promise<WalletSoldPaginated> {
         return await this.walletService.getSold(wallet.address, before, after, first, last);
     }

@@ -1,7 +1,9 @@
-import { Field, ObjectType, InputType } from '@nestjs/graphql';
-import { IsString } from 'class-validator';
-import { Wallet } from '../wallet/wallet.dto';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
+
+import { Field, InputType, ObjectType } from '@nestjs/graphql';
+
 import { User } from '../user/user.dto';
+import { Wallet } from '../wallet/wallet.dto';
 
 export class Token {
     readonly walletId?: any;
@@ -33,6 +35,11 @@ export class CreateSessionInput {
     @IsString()
     @Field({ description: 'The signature of the message.' })
     readonly signature: string;
+
+    @IsBoolean()
+    @IsOptional()
+    @Field({ defaultValue: false, description: "Whether we need to create a new user if the wallet have't been bound to a user." })
+    readonly createUser: boolean;
 }
 
 @InputType()

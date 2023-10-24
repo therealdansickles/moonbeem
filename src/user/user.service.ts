@@ -25,6 +25,14 @@ import { generatePluginInviteCodes, generateRandomPassword } from './user.utils'
 
 type IUserQuery = Partial<Pick<User, 'id' | 'username'>>;
 
+export type IAuthenticateUserPassword = {
+    password: string;
+};
+
+export type IAuthenticateUserHashedPassword = {
+    hashedPassword: string;
+};
+
 @Injectable()
 export class UserService {
     constructor(
@@ -36,7 +44,7 @@ export class UserService {
         @InjectRepository(MintSaleTransaction, 'sync_chain')
         private mintSaleTransactionRepository: Repository<MintSaleTransaction>,
         private coinService: CoinService,
-        private collectionService: CollectionService
+        private collectionService: CollectionService,
     ) {}
 
     /**
@@ -85,7 +93,7 @@ export class UserService {
                 this.sendOnboardLink(email);
                 // TODO: update isClaimed to true
                 return user;
-            })
+            }),
         );
     }
 
@@ -211,15 +219,21 @@ export class UserService {
      *
      * @returns The user if credentials are valid.
      */
-    async authenticateUser(email: string, password: string): Promise<User | null> {
+    async authenticateUser(email: string, payload: IAuthenticateUserPassword | IAuthenticateUserHashedPassword): Promise<User | null> {
         // checking the email has been used for `Sign in with Google`
         const signedInByGmail = await this.userRepository.findOneBy({ gmail: email.toLowerCase(), password: IsNull() });
         if (signedInByGmail) throw new GraphQLError(`This email has been used for Google sign in. Please sign in with Google.`);
 
         const user = await this.userRepository.findOneBy({ email: email.toLowerCase() });
 
-        if (user && (await verifyPassword(password, user.password))) {
-            return user;
+        if (user) {
+            let verifyResult = false;
+            if ((payload as IAuthenticateUserPassword).password) {
+                verifyResult = await verifyPassword((payload as IAuthenticateUserPassword).password, user.password);
+            } else if ((payload as IAuthenticateUserHashedPassword).hashedPassword) {
+                verifyResult = (payload as IAuthenticateUserHashedPassword).hashedPassword === user.password;
+            }
+            if (verifyResult) return user;
         }
 
         return null;
@@ -315,7 +329,7 @@ export class UserService {
                     inPaymentToken: totalTokenPrice.toString(),
                     inUSDC: totalUSDC.toString(),
                 };
-            })
+            }),
         );
         return data;
     }
@@ -441,7 +455,7 @@ export class UserService {
                 this.mintSaleTransactionRepository.manager.query(
                     `SELECT COUNT(1) AS "total"
                      FROM (${subquery.getSql()}) AS subquery`,
-                    addresses
+                    addresses,
                 ),
             ]);
 
@@ -471,7 +485,7 @@ export class UserService {
                         },
                         createdAt: new Date(createdAt.getTime() + createdAt.getTimezoneOffset() * 60 * 1000),
                     };
-                })
+                }),
             );
             return PaginatedImp(dd, totalResult.length > 0 ? parseInt(totalResult[0].total ?? 0) : 0);
         }

@@ -101,6 +101,17 @@ describe('WalletService', () => {
             const result = await service.getWalletByQuery({ address: wallet.address });
             expect(result.name).toEqual(wallet.name);
         });
+
+        it('should populate the user info', async () => {
+            const user = await userService.createUser({ username: faker.internet.userName(), email: faker.internet.email() });
+            const wallet = await service.createWallet({
+                address: faker.finance.ethereumAddress(),
+                name: faker.internet.userName(),
+                ownerId: user.id,
+            });
+            expect(wallet.owner).toBeTruthy();
+            expect(wallet.owner.id).toEqual(user.id);
+        });
     });
 
     describe('createWallet', () => {
@@ -286,12 +297,12 @@ describe('WalletService', () => {
     });
 
     describe('verifyWallet', () => {
-        it('should return a valid wallet if the signature is valid', async () => {
+        it("should return true if the wallet doesn't exist yet", async () => {
             const wallet = ethers.Wallet.createRandom();
             const message = 'Hi from tests!';
             const signature = await wallet.signMessage(message);
             const result = await service.verifyWallet(wallet.address, message, signature);
-            expect(result.address).toEqual(wallet.address.toLowerCase());
+            expect(result).toEqual(true);
         });
 
         it('should throw an error if the signature is invalid', async () => {
@@ -299,6 +310,25 @@ describe('WalletService', () => {
             const message = 'Hi from tests!';
             const signature = await wallet.signMessage(message + '1');
             await expect(async () => await service.verifyWallet(wallet.address, message, signature)).rejects.toThrow('Invalid signature');
+        });
+    });
+
+    describe('findOrCreateWallet', () => {
+        it('should simply return the wallet info if already existed', async () => {
+            const wallet = await service.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+            const result = await service.findOrCreateWallet(wallet.address);
+            expect(result).toBeTruthy();
+            expect(wallet.id).toEqual(result.id);
+        });
+
+        it("should create a new wallet if the given one doesn't exist", async () => {
+            const newAddress = faker.finance.ethereumAddress();
+            const result = await service.findOrCreateWallet(newAddress);
+            expect(result).toBeTruthy();
+            expect(result.id).toBeTruthy();
+            expect(result.address).toEqual(newAddress);
         });
     });
 

@@ -1,3 +1,4 @@
+import { Network } from 'alchemy-sdk';
 import BigNumber from 'bignumber.js';
 import { addMinutes } from 'date-fns';
 import { sortBy } from 'lodash';
@@ -5,6 +6,7 @@ import { Repository } from 'typeorm';
 
 import { faker } from '@faker-js/faker';
 
+import { AlchemyService } from '../alchemy/alchemy.service';
 import { CollectionKind } from '../collection/collection.entity';
 import { CollectionService } from '../collection/collection.service';
 import { MerkleTreeService } from '../merkleTree/merkleTree.service';
@@ -23,6 +25,7 @@ describe('NftService', () => {
     let userService: UserService;
     let walletService: WalletService;
     let merkleTreeService: MerkleTreeService;
+    let alchemyService: AlchemyService;
 
     beforeAll(async () => {
         nftRepository = global.nftRepository;
@@ -32,6 +35,7 @@ describe('NftService', () => {
         collectionService = global.collectionService;
         tierService = global.tierService;
         merkleTreeService = global.merkleTreeService;
+        alchemyService = global.alchemyService;
     });
 
     afterEach(async () => {
@@ -1502,6 +1506,59 @@ describe('NftService', () => {
             expect(Object.entries(result[0].metadata.properties).find((property) => property[0] === 'level')[1].value).toEqual(
                 nft.properties['level'].value,
             );
+        });
+    });
+
+    describe('#getNftsFromExtenal', () => {
+        it('should return extenal nfts', async () => {
+            const mockRawResponse = {
+                ownedNfts: [
+                    {
+                        contract: {
+                            address: '0xc3fe33455b0b93e124ea2c08626762da4e053777',
+                            name: 'Test collection before the launch',
+                            symbol: 'VIBE',
+                            totalSupply: '0',
+                            tokenType: 'ERC721',
+                            openSea: {},
+                        },
+                        tokenId: '2',
+                        tokenType: 'ERC721',
+                        title: 'Premium',
+                        description: 'Premium',
+                        timeLastUpdated: '2023-08-24T00:38:08.776Z',
+                        rawMetadata: {
+                            name: 'Premium',
+                            description: 'Premium',
+                            image: 'https://media.vibe.xyz/c59fb0bb-aa9a-485d-8a7d-9c048246eeee',
+                            properties: {},
+                        },
+                        tokenUri: {
+                            gateway: 'https://metadata.vibe.xyz/6590f05a-f259-4bb1-9b83-70735d155555/2',
+                            raw: 'https://metadata.vibe.xyz/6590f05a-f259-4bb1-9b83-70735d155555/2',
+                        },
+                        media: [
+                            {
+                                gateway: 'https://nft-cdn.alchemy.com/arb-mainnet/4389bfa2da404ff7914e3949a7fe5555',
+                                thumbnail:
+                                    'https://res.cloudinary.com/alchemyapi/image/upload/thumbnailv2/arb-mainnet/4389bfa2da404ff7914e3949a7fe5555',
+                                raw: 'https://media.vibe.xyz/c59fb0bb-aa9a-485d-8a7d-9c048246eeee',
+                                format: 'jpeg',
+                                bytes: 71003,
+                            },
+                        ],
+                        balance: 1,
+                    },
+                ],
+                totalCount: 1,
+                blockHash: '0x83e232de26ffd67c3648e1e8060b98c46c5111054fb7a37ffaffbdd0910371df',
+            };
+            jest.spyOn(alchemyService as any, 'getNftsForOwnerAddress').mockImplementation(async () => mockRawResponse);
+            const result = await nftService.getNftsFromExtenal(Network.ARB_GOERLI, faker.finance.ethereumAddress());
+            expect(result.length).toEqual(1);
+            expect(result[0].id).toBeTruthy();
+            expect(result[0].tier.name).toBeTruthy();
+            expect(result[0].tier.collection.name).toBeTruthy();
         });
     });
 
