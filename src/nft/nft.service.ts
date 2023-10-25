@@ -75,6 +75,7 @@ export type ICreateOrUpdateNft = {
     tokenId: string;
     ownerAddress?: string;
     properties: any;
+    image?: string;
 };
 
 @Injectable()
@@ -394,13 +395,14 @@ export class NftService {
      * @returns
      */
     async createOrUpdateNftByTokenId(payload: ICreateOrUpdateNft) {
-        const { tokenId, collectionId, tierId, ownerAddress } = payload;
+        const { tokenId, collectionId, tierId, ownerAddress, image } = payload;
         const properties = (await this.initializePropertiesFromTierByTokenId(tierId, tokenId, payload.properties)) as any;
         await this.nftRepository.upsert(
             {
                 tokenId,
                 collection: { id: collectionId },
                 tier: { id: tierId },
+                image,
                 ownerAddress,
                 properties,
             },

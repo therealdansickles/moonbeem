@@ -146,6 +146,35 @@ describe('AlchemySerice', () => {
         });
     });
 
+    describe('convertAttributesToProperties', () => {
+        it('should convert the attributes to properties', function () {
+            const attributes = [
+                {
+                    trait_type: 'Background',
+                    value: 'Blue',
+                },
+                {
+                    display_type: 'number',
+                    trait_type: 'Height',
+                    value: 23,
+                },
+            ];
+            const result = service.convertAttributesToProperties(attributes);
+            expect(result).toEqual({
+                Background: {
+                    name: 'Background',
+                    type: 'string',
+                    value: 'Blue',
+                },
+                Height: {
+                    name: 'Height',
+                    type: 'number',
+                    value: 23,
+                },
+            });
+        });
+    });
+
     describe('#getNFTsForOwner', () => {
         jest.setTimeout(600000);
 

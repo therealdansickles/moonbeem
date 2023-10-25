@@ -89,6 +89,7 @@ describe('NftService', () => {
                 },
             });
 
+            const image = faker.internet.url();
             const result = await nftService.createOrUpdateNftByTokenId({
                 collectionId: collection.id,
                 tierId: tier.id,
@@ -97,10 +98,12 @@ describe('NftService', () => {
                     foo: { value: 'bar' },
                 },
                 ownerAddress: faker.finance.ethereumAddress(),
+                image: image,
             });
             expect(result.id).toBeTruthy();
             expect(result.properties.foo.value).toEqual('bar');
             expect(result.ownerAddress).toBeTruthy();
+            expect(result.image).toEqual(image);
         });
 
         it('should update a nft record if already exist', async () => {
