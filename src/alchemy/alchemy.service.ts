@@ -21,11 +21,11 @@ import { captureException } from '@sentry/node';
 
 import { CollectionService } from '../collection/collection.service';
 import * as VibeFactoryAbi from '../lib/abi/VibeFactory.json';
+import { MetadataProperties } from '../metadata/metadata.dto';
+import { NftService } from '../nft/nft.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { TierService } from '../tier/tier.service';
 import { AlchemyWebhook } from './alchemy-webhook.entity';
-import { NftService } from '../nft/nft.service';
-import { MetadataProperties } from '../metadata/metadata.dto';
 
 function sleep(duration) {
     return new Promise((resolve) => setTimeout(resolve, duration));
