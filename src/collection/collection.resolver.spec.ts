@@ -157,6 +157,53 @@ describe('CollectionResolver', () => {
                 });
         });
 
+        it('should exclude draft collection for market', async () => {
+            const query = gql`
+                query GetCollection($id: String!) {
+                    marketCollection(id: $id) {
+                        name
+                    }
+                }
+            `;
+
+            const variables = { id: collection.id };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(authToken, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.marketCollection).toBeNull();
+                });
+        });
+
+        it('should get published collection for market', async () => {
+            const publishedCollection = await createCollection(service, {
+                tokenAddress: faker.finance.ethereumAddress(),
+                organization: organization,
+            });
+
+            const query = gql`
+                query GetCollection($id: String!) {
+                    marketCollection(id: $id) {
+                        name
+                    }
+                }
+            `;
+
+            const variables = { id: publishedCollection.id };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(authToken, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.marketCollection.name).toEqual(publishedCollection.name);
+                });
+        });
+
         it('should not be a public query', async () => {
             const query = gql`
                 query GetCollection($id: String!) {

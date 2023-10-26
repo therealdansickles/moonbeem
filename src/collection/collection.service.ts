@@ -114,7 +114,7 @@ export class CollectionService {
      * @param query The condition of the collection to retrieve.
      * @returns The collection satisfied the given query.
      */
-    async getCollectionByQuery(query: ICollectionQuery): Promise<Collection | null> {
+    async getCollectionByQuery(query: FindOptionsWhere<collectionEntity.Collection>): Promise<Collection | null> {
         query = omitBy(query, isNil);
         if (isEmpty(query)) return null;
         return await this.collectionRepository.findOne({
@@ -1428,6 +1428,7 @@ export class CollectionService {
             discord: collectionMetadata.openSea?.discordUrl,
             collaboration,
             creator: owner,
+            publishedAt: new Date(),
             tiers: [
                 {
                     name: collectionMetadata.name,

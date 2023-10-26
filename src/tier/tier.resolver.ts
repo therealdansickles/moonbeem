@@ -97,6 +97,9 @@ export class TierResolver {
                 decimals: 18,
                 chainId: 0,
                 native: true,
+                derivedETH: '1',
+                derivedUSDC: 'NaN',
+                enable: true,
             } as Coin;
         }
 

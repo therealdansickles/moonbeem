@@ -36,6 +36,7 @@ import {
     UpdateCollectionInput,
 } from './collection.dto';
 import { CollectionService } from './collection.service';
+import { IsNull, Not } from 'typeorm';
 
 @Resolver(() => Collection)
 export class CollectionResolver {
@@ -65,7 +66,13 @@ export class CollectionResolver {
             @Args({ name: 'name', nullable: true }) name: string,
             @Args({ name: 'slug', nullable: true }) slug: string,
     ): Promise<Collection> {
-        return this.collectionService.getCollectionByQuery({ id, address, name, slug });
+        return this.collectionService.getCollectionByQuery({
+            id,
+            address,
+            name,
+            slug,
+            tokenAddress: Not(IsNull()),
+        });
     }
 
     @Public()
