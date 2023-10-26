@@ -3649,4 +3649,37 @@ describe('CollectionService', () => {
             expect(collection.collaboration.collaborators[0].rate).toEqual(0);
         });
     });
+
+    describe('createMintSaleContract', () => {
+        it('should create mint sale contract', async () => {
+            const contractMetadata: NftContract = {
+                name: 'NewHere',
+                symbol: 'NEWHERE',
+                totalSupply: '3933',
+                tokenType: 'ERC721',
+                address: '0x4135063dc85190660ed08790f59bc711d8b404c0',
+                contractDeployer: '0x2945e306b9d4f4e4f19ebb7b857a96866e9d8570',
+                deployedBlockNumber: 15617752,
+                openSea: {
+                    floorPrice: 0.022989,
+                    collectionName: "WE'RE NEW HERE",
+                    collectionSlug: 'werenewhere',
+                    safelistRequestStatus: 'approved',
+                    imageUrl: 'https://i.seadn.io/gcs/files/d572530166749c4fa036b14375a35af2.jpg?w=500&auto=format',
+                    description:
+                        "WE'RE NEW HERE Newbies are generative pixel NFTs that benefit the production of the I'M NEW HERE film. \n\nEvery Newbie is created from a pool of 1100+ traits based on over 150 iconic artists, voices, and communities in the NFT space! They are made up of several handmade layers, each taken from a 1/1 in the collection.\n\nThe I'M NEW HERE film is a documentary about Cryptoart, its history, and the community of artists, visionaries, and builders that has formed around it. It features an incredible cast of people that have made this space their home. \n\nFull list here: https://www.newhere.xyz/cast",
+                    externalUrl: 'https://www.newhere.xyz/',
+                    twitterUsername: 'newherexyz',
+                    bannerImageUrl: 'https://i.seadn.io/gcs/files/36f6d3c3664870664ed1b819d92f06f0.png?w=500&auto=format',
+                    lastIngestedAt: '2023-10-10T21:35:09.000Z',
+                },
+            } as any as NftContract;
+
+            const contract = await service.createMintSaleContract(421613, contractMetadata, faker.string.uuid());
+            expect(contract).toBeDefined();
+            expect(contract.address).toEqual(contractMetadata.address);
+            expect(contract.chainId).toEqual(421613);
+            expect(contract.height).toEqual(contractMetadata.deployedBlockNumber);
+        });
+    });
 });

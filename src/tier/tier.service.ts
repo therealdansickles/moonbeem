@@ -19,7 +19,6 @@ import { MintSaleTransaction } from '../sync-chain/mint-sale-transaction/mint-sa
 import { TierHoldersPaginated } from '../wallet/wallet.dto';
 import { Wallet } from '../wallet/wallet.entity';
 import {
-    BasicPriceInfo,
     CreateTierInput,
     IAttributeOverview,
     IOverview,
@@ -211,28 +210,40 @@ export class TierService {
         try {
             const tier = await this.getTier({ id });
             const { collection } = tier;
+            let paymentTokenAddress;
+            let inPaymentToken;
+            let inPaymentTokenWithDecimals;
             if (!collection.address) return { inPaymentToken: '0', inUSDC: '0' };
-
-            const result = await this.transactionRepository
-                .createQueryBuilder('transaction')
-                .select('SUM("transaction".price::decimal(30,0))', 'price')
-                .addSelect('transaction.paymentToken', 'token')
-                .where('transaction.address = :address AND transaction.tierId = :tierId', {
-                    address: collection.address.toLowerCase(),
-                    tierId: tier.tierId,
-                })
-                .groupBy('transaction.paymentToken')
-                .getRawOne();
-            if (!result) return { inPaymentToken: '0', inUSDC: '0' };
-
-            const data = result as BasicPriceInfo;
-            if (data.token === ethers.ZeroAddress && data.price === '0') {
-                return {
-                    inPaymentToken: '0',
-                    inUSDC: '0',
-                };
+            if (collection.kind === CollectionKind.migration) {
+                inPaymentToken = new BigNumber(tier.totalMints).multipliedBy(tier.price);
+                paymentTokenAddress = tier.paymentTokenAddress;
+            } else {
+                const result = await this.transactionRepository
+                    .createQueryBuilder('transaction')
+                    .select('SUM("transaction".price::decimal(30,0))', 'price')
+                    .addSelect('transaction.paymentToken', 'token')
+                    .where('transaction.address = :address AND transaction.tierId = :tierId', {
+                        address: collection.address.toLowerCase(),
+                        tierId: tier.tierId,
+                    })
+                    .groupBy('transaction.paymentToken')
+                    .getRawOne();
+                if (!result) return { inPaymentToken: '0', inUSDC: '0' };
+                paymentTokenAddress = result.token;
+                inPaymentTokenWithDecimals = new BigNumber(result.price);
             }
-            const coin = await this.coinRepository.findOneBy({ address: data.token.toLowerCase() });
+            const coin = await this.coinRepository.findOneBy({ address: paymentTokenAddress });
+            const decimals = paymentTokenAddress === ethers.ZeroAddress ? 18 : coin.decimals;
+            inPaymentToken = inPaymentToken ?? new BigNumber(inPaymentTokenWithDecimals).div(new BigNumber(10).pow(decimals));
+
+            let paymentTokenPrice;
+            if (coin) {
+                paymentTokenPrice = coin.derivedUSDC;
+            } else {
+                const symbol = paymentTokenAddress === ethers.ZeroAddress ? 'ETH' : coin.symbol;
+                const quote = await this.coinService.getQuote(symbol);
+                paymentTokenPrice = quote['USD'].price;
+            }
 
             /** Example:
              * totalPrice: 10000000
@@ -245,11 +256,10 @@ export class TierService {
              * const totalUSDPrice = new BigNumber(totalUsdcPrice).multipliedBy(derivedUSDC);
              * totalUSDPrice = 10 * 0.9 = 9 USD
              */
-            const totalTokenPrice = new BigNumber(data.price).div(new BigNumber(10).pow(coin.decimals));
-            const totalUSDC = new BigNumber(totalTokenPrice).multipliedBy(coin.derivedUSDC);
+            const totalUSDC = new BigNumber(inPaymentToken).multipliedBy(paymentTokenPrice);
 
             return {
-                inPaymentToken: totalTokenPrice.toString(),
+                inPaymentToken: inPaymentToken.toString(),
                 inUSDC: totalUSDC.toString(),
             };
         } catch (error) {

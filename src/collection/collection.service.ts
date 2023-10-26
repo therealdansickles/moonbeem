@@ -1369,6 +1369,8 @@ export class CollectionService {
         const collaboration = await this.createMigrationCollaboration(collectionMetadata.contractDeployer, wallet.id, organization.id, owner.id);
         // create new collection with tier
         const collection = await this.createMigrationCollectionAndTier(collectionMetadata, organization, wallet, collaboration);
+        // create contract record
+        await this.createMintSaleContract(chainId, collectionMetadata, collection.id);
 
         // sync nft tokens
         const collectionId = collection.id;
@@ -1377,6 +1379,31 @@ export class CollectionService {
         // using async to index the nft as it can take hours
         this.alchemyService.syncNFTsForCollection(chainId, tokenAddress, collectionId, tierId);
         return collection;
+    }
+
+    async createMintSaleContract(chainId: number, collectionMetadata: NftContract, collectionId: string): Promise<MintSaleContract> {
+        return await this.mintSaleContractRepository.save({
+            address: collectionMetadata.address,
+            chainId,
+            txHash: '',
+            txTime: 0,
+            height: collectionMetadata.deployedBlockNumber,
+            sender: collectionMetadata.contractDeployer,
+            royaltyReceiver: '',
+            royaltyRate: 0,
+            derivativeRoyaltyRate: 0,
+            isDerivativeAllowed: false,
+            beginTime: 0,
+            endTime: 0,
+            tierId: 0,
+            startId: 0,
+            endId: parseInt(collectionMetadata.totalSupply),
+            currentId: parseInt(collectionMetadata.totalSupply),
+            tokenAddress: collectionMetadata.address,
+            price: collectionMetadata.openSea?.floorPrice.toString(),
+            paymentToken: ethers.ZeroAddress,
+            collectionId,
+        });
     }
 
     async createMigrationCollaboration(ownerAddress: string, walletId: string, organizationId: string, userId: string): Promise<Collaboration> {
