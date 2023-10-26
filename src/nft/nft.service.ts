@@ -14,8 +14,10 @@ import { MerkleTree } from '../merkleTree/merkleTree.entity';
 import { Metadata, MetadataProperties } from '../metadata/metadata.dto';
 import { Asset721Service } from '../sync-chain/asset721/asset721.service';
 import { TierService } from '../tier/tier.service';
-import { Nft as NftDto } from './nft.dto';
+import { Nft as NftDto, NftPaginated } from './nft.dto';
 import { Nft } from './nft.entity';
+import { PaginationInput } from '../pagination/pagination.dto';
+import { cursorToStrings, toPaginated } from '../pagination/pagination.utils';
 
 interface INFTQueryWithId {
     id: string;
@@ -261,6 +263,79 @@ export class NftService {
 
         if (nfts && nfts.length > 0) return nfts.map((nft) => this.renderMetadata(nft));
         return null;
+    }
+
+    async getNftsPaginated(query: INftListQuery, pagination: PaginationInput): Promise<NftPaginated> {
+        const builder = this.nftRepository
+            .createQueryBuilder('nft')
+            .leftJoinAndSelect('nft.collection', 'collection')
+            .leftJoinAndSelect('nft.tier', 'tier');
+        let tokenIds = [];
+        if ((query as INftListQueryWithCollection | INftListQueryWithTier).ownerAddress) {
+            builder.andWhere('nft.ownerAddress = :ownerAddress', {
+                ownerAddress: (query as INftListQueryWithCollection | INftListQueryWithTier).ownerAddress,
+            });
+        }
+        if (query.plugins && query.plugins.length > 0) {
+            tokenIds = await this.getNftsIdsByPlugins(query.plugins);
+        }
+        if ((query as INftListQueryWithIds).ids) builder.andWhere('id IN(:...ids)', { ids: (query as INftListQueryWithIds).ids });
+        if ((query as INftListQueryWithCollection | INftListQueryWithTier).tokenIds) {
+            const tokenIdsFromFilter = (query as INftListQueryWithCollection | INftListQueryWithTier).tokenIds.map((id) => parseInt(id));
+            tokenIds = tokenIds.length > 0 ? intersection(tokenIds, tokenIdsFromFilter) : tokenIdsFromFilter;
+        }
+        if (tokenIds.length > 0) {
+            builder.andWhere('nft.tokenId IN(:...tokenIds)', { tokenIds });
+        }
+        if ((query as INftListQueryWithCollection).collection?.id) {
+            builder.andWhere('nft.collection.id = :collectionId', { collectionId: (query as INftListQueryWithCollection).collection.id });
+        }
+        if ((query as INftListQueryWithTier).tier?.id) {
+            builder.andWhere('nft.tier.id = :tierId', { tierId: (query as INftListQueryWithTier).tier.id });
+        }
+        if (query.properties) {
+            for (const condition of query.properties) {
+                const { name, value, min, max } = condition;
+                if (value) {
+                    builder.andWhere(`nft.properties->'${name}'->>'value'='${value}'`);
+                }
+                if (min) {
+                    builder.andWhere(`(nft.properties->'${name}'->>'value')::NUMERIC>=${min}`);
+                }
+                if (max) {
+                    builder.andWhere(`(nft.properties->'${name}'->>'value')::NUMERIC<=${max}`);
+                }
+            }
+        }
+        const { before, after, first, last } = pagination || {
+            first: 10,
+        };
+        if (after) {
+            const [createdAt, id] = cursorToStrings(after);
+            builder.andWhere('nft.createdAt < :createdAt', { createdAt });
+            builder.orWhere('nft.createdAt = :createdAt AND nft.id < :id', { createdAt, id });
+            builder.orderBy('nft.createdAt', 'DESC');
+            builder.addOrderBy('nft.id', 'DESC');
+            builder.limit(first);
+        } else if (before) {
+            const [createdAt, id] = cursorToStrings(before);
+            builder.andWhere('nft.createdAt > :createdAt', { createdAt });
+            builder.orWhere('nft.createdAt = :createdAt AND nft.id > :id', { createdAt, id });
+            builder.orderBy('nft.createdAt', 'ASC');
+            builder.addOrderBy('nft.id', 'ASC');
+            builder.limit(last);
+        } else {
+            const limit = first || last || 10;
+            builder.orderBy('nft.createdAt', 'DESC');
+            builder.addOrderBy('nft.id', 'DESC');
+            builder.limit(limit);
+        }
+        const nfts = await builder.getMany();
+        const paginated = toPaginated(
+            nfts.map((nft) => this.renderMetadata(nft)),
+            nfts.length,
+        );
+        return paginated;
     }
 
     /**

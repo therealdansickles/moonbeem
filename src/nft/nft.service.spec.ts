@@ -1512,6 +1512,107 @@ describe('NftService', () => {
         });
     });
 
+    describe('#getNftsPaginated', () => {
+        it('should get nfts according to pagination', async () => {
+            await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                creator: { id: wallet.id },
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '100',
+                tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
+            });
+
+            const tokenId = faker.string.numeric({ length: 1, allowLeadingZeros: false });
+
+            await nftService.createOrUpdateNftByTokenId({
+                collectionId: collection.id,
+                tierId: tier.id,
+                tokenId,
+                properties: {
+                    foo: { value: 'bar' },
+                },
+            });
+
+            const anotherTokenId = faker.string.numeric({ length: 2, allowLeadingZeros: false });
+            await nftService.createOrUpdateNftByTokenId({
+                collectionId: collection.id,
+                tierId: tier.id,
+                tokenId: anotherTokenId,
+                properties: {
+                    foo: { value: 'bar' },
+                },
+            });
+
+            const result = await nftService.getNftsPaginated(
+                {
+                    collection: { id: collection.id },
+                },
+                {
+                    first: 10,
+                },
+            );
+            expect(result.totalCount).toEqual(2);
+
+            const firstPage = await nftService.getNftsPaginated(
+                {
+                    collection: { id: collection.id },
+                },
+                {
+                    first: 1,
+                },
+            );
+            const cursor = firstPage.pageInfo.endCursor;
+            expect(firstPage.totalCount).toEqual(1);
+
+            const secondPage = await nftService.getNftsPaginated(
+                {
+                    collection: { id: collection.id },
+                },
+                {
+                    first: 1,
+                    after: cursor,
+                },
+            );
+            expect(secondPage.totalCount).toEqual(1);
+        });
+    });
+
     describe('#getNftsFromExtenal', () => {
         it('should return extenal nfts', async () => {
             const mockRawResponse = {
