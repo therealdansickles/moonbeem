@@ -14,7 +14,7 @@ export class CoinService {
     constructor(
         @InjectRepository(Coin, 'sync_chain') private readonly coinRepository: Repository<Coin>,
         private coinMarketCapService: CoinMarketCapService,
-        @Inject(CACHE_MANAGER) private cacheManager: Cache
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
     ) {}
 
     async createCoin(data: any): Promise<Coin> {

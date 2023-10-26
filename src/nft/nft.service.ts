@@ -117,7 +117,9 @@ export class NftService {
             // 1. NFT's own image property
             // 2. `image` attribute on tier
             // 3. none
-            if (nft.properties.image && nft.properties.image.value) {
+            if (nft.image) {
+                metadata.image = nft.image;
+            } else if (nft.properties.image && nft.properties.image.value) {
                 metadata.image = nft.properties.image.value;
             } else if (nft.tier?.image) {
                 metadata.image = nft.tier.image;

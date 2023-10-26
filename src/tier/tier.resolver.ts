@@ -20,6 +20,7 @@ import {
 import { ITierListQuery, TierService } from './tier.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { Coin } from '../sync-chain/coin/coin.dto';
+import { ZeroAddress } from 'ethers';
 
 @Resolver(() => Tier)
 export class TierResolver {
@@ -84,6 +85,16 @@ export class TierResolver {
 
     @ResolveField(() => Coin, { description: 'Returns the coin for the given tier' })
     async coin(@Parent() tier: Tier): Promise<Coin> {
+        if (tier.paymentTokenAddress === ZeroAddress) {
+            return { name: 'Ether',
+                symbol: 'ETH',
+                address: ZeroAddress,
+                decimals: 18,
+                chainId: 0,
+                native: true,
+            } as Coin;
+        }
+
         return this.coinService.getCoinByAddress(tier.paymentTokenAddress.toLowerCase());
     }
 

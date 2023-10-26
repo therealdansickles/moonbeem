@@ -1435,7 +1435,7 @@ export class CollectionService {
                     totalMints: parseInt(collectionMetadata.totalSupply),
                     image: collectionMetadata.openSea?.imageUrl,
                     paymentTokenAddress: ethers.ZeroAddress,
-                    price: ethers.parseEther(collectionMetadata.openSea?.floorPrice.toString()).toString(),
+                    price: collectionMetadata.openSea?.floorPrice.toString(),
                     metadata: {},
                 },
             ],

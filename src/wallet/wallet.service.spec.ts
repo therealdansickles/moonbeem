@@ -832,7 +832,6 @@ describe('WalletService', () => {
             });
 
             const estimatedValue = await service.getEstimatesByAddress(sender1);
-            console.log(JSON.stringify(estimatedValue));
             expect(estimatedValue.length).toBe(0);
         });
     });
