@@ -3619,6 +3619,7 @@ describe('CollectionService', () => {
                 symbol: 'NEWHERE',
                 totalSupply: '3933',
                 tokenType: 'ERC721',
+                address: '0x4135063dc85190660ed08790f59bc711d8b404c0',
                 contractDeployer: '0x2945e306b9d4f4e4f19ebb7b857a96866e9d8570',
                 deployedBlockNumber: 15617752,
                 openSea: {
@@ -3641,6 +3642,7 @@ describe('CollectionService', () => {
             expect(collection.name).toEqual(contractMetadata.name);
             expect(collection.kind).toEqual(CollectionKind.migration);
             expect(collection.address).toEqual(contractMetadata.address);
+            expect(collection.tokenAddress).toEqual(contractMetadata.address);
             expect(collection.organization.id).toEqual(organization.id);
             expect(collection.collaboration.id).toEqual(collaboration.id);
             expect(collection.collaboration.collaborators[0].address).toEqual(ownerAddress);

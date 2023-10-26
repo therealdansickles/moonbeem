@@ -1420,6 +1420,7 @@ export class CollectionService {
             organization,
             displayName: collectionMetadata.openSea?.collectionName,
             about: collectionMetadata.openSea?.description,
+            address: collectionMetadata.address,
             tokenAddress: collectionMetadata.address,
             avatarUrl: collectionMetadata.openSea?.imageUrl,
             // backgroundUrl: collectionMetadata.openSea?.bannerImageUrl,
