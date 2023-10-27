@@ -280,6 +280,60 @@ describe('CollectionResolver', () => {
                 });
         });
 
+        it('should get a collection by id with migration contract type', async () => {
+            const beginTime = Math.floor(faker.date.recent().getTime() / 1000);
+            const endTime = Math.floor(faker.date.recent().getTime() / 1000);
+            collection = await createCollection(service, {
+                organization: organization,
+                kind: CollectionKind.migration,
+            });
+
+            await createMintSaleContract(mintSaleContractService, {
+                beginTime,
+                endTime,
+                collectionId: collection.id,
+            });
+
+            const query = gql`
+                query GetCollection($id: String!) {
+                    collection(id: $id) {
+                        name
+                        displayName
+                        kind
+
+                        organization {
+                            name
+                        }
+
+                        contract {
+                            beginTime
+                            endTime
+                            kind
+                        }
+                    }
+                }
+            `;
+
+            const variables = { id: collection.id };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(authToken, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    console.log(body.data.collection);
+                    expect(body.data.collection.name).toEqual(collection.name);
+                    expect(body.data.collection.displayName).toEqual(collection.displayName);
+                    expect(body.data.collection.organization.name).toEqual(organization.name);
+                    console.log(body.data.collection.contract);
+                    expect(body.data.collection.contract).toBeDefined();
+                    expect(body.data.collection.contract.kind).toEqual(CollectionKind.migration);
+                    expect(body.data.collection.contract.beginTime).toEqual(beginTime);
+                    expect(body.data.collection.contract.endTime).toEqual(endTime);
+                });
+        });
+
         it("should get a collection by id with no contract details, if contract doesn't exist", async () => {
             const query = gql`
                 query GetCollection($id: String!) {
