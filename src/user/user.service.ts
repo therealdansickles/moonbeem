@@ -522,6 +522,7 @@ export class UserService {
                 ...user,
                 pluginInvited: true,
                 pluginInviteCodes: generatePluginInviteCodes(3, 12),
+                usedPluginInviteCode: pluginInviteCode,
             });
         } catch (e) {
             captureException(e);

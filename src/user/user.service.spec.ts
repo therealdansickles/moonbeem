@@ -1450,5 +1450,24 @@ describe('UserService', () => {
 
             expect(updatedInviter.pluginInviteCodes).toEqual([inviteCode]);
         });
+
+        it('should save the used plugin invitation code for current user', async () => {
+            const inviteCode = faker.string.sample(7);
+            await service.createUser({
+                email: faker.internet.email().toLowerCase(),
+                password: 'password',
+                pluginInviteCodes: [inviteCode],
+            });
+            const invitee = await service.createUser({
+                email: faker.internet.email().toLowerCase(),
+                password: 'password',
+            });
+            await service.acceptPluginInvitation(invitee, inviteCode);
+            const updatedInvitee = await service.getUserByQuery({
+                id: invitee.id,
+            });
+
+            expect(updatedInvitee.usedPluginInviteCode).toEqual(inviteCode);
+        });
     });
 });
