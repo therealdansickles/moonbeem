@@ -13,6 +13,7 @@ import { createAsset721, createCoin, createCollection, createMintSaleContract, c
 import { WalletService } from '../wallet/wallet.service';
 import { Tier } from './tier.dto';
 import { TierService } from './tier.service';
+import { ethers } from 'ethers';
 
 describe('TierService', () => {
     let service: TierService;
@@ -496,6 +497,68 @@ describe('TierService', () => {
 
             expect(result.inPaymentToken).toBe(totalProfitInToken);
             expect(result.inUSDC).toBe(new BigNumber(totalProfitInToken).multipliedBy(coin.derivedUSDC).toString());
+        });
+
+        it('should get back tier profits for zero address', async () => {
+            const collection = await createCollection(collectionService);
+
+            const tier = await createTier(service, {
+                collection: { id: collection.id },
+                paymentTokenAddress: ethers.ZeroAddress,
+            });
+
+            const transaction = await createMintSaleTransaction(mintSaleTransactionService, {
+                address: collection.address,
+                collectionId: collection.id,
+                paymentToken: ethers.ZeroAddress,
+            });
+
+            const transaction2 = await createMintSaleTransaction(mintSaleTransactionService, {
+                address: collection.address,
+                collectionId: collection.id,
+                paymentToken: ethers.ZeroAddress,
+            });
+            jest.spyOn(coinService, 'getQuote').mockResolvedValue({
+                USD: {
+                    price: 1800,
+                },
+            });
+
+            const result = await service.getTierProfit(tier.id);
+
+            const totalProfitInToken = new BigNumber(transaction.price)
+                .plus(new BigNumber(transaction2.price))
+                .div(new BigNumber(10).pow(18))
+                .toString();
+
+            expect(result.inPaymentToken).toBe(totalProfitInToken);
+            expect(result.inUSDC).toBe(new BigNumber(totalProfitInToken).multipliedBy(1800).toString());
+        });
+
+        it('should get back tier profits for migration collection', async () => {
+            const collection = await createCollection(collectionService, {
+                kind: CollectionKind.migration,
+            });
+
+            const tier = await createTier(service, {
+                collection: { id: collection.id },
+                paymentTokenAddress: ethers.ZeroAddress,
+                totalMints: 100,
+                price: 1,
+            });
+
+            jest.spyOn(coinService, 'getQuote').mockResolvedValue({
+                USD: {
+                    price: 1800,
+                },
+            });
+
+            const result = await service.getTierProfit(tier.id);
+
+            const totalProfitInToken = new BigNumber(tier.price).multipliedBy(tier.totalMints).toString();
+
+            expect(result.inPaymentToken).toBe(totalProfitInToken);
+            expect(result.inUSDC).toBe(new BigNumber(totalProfitInToken).multipliedBy(1800).toString());
         });
 
         it('should return 0 if the payment token is zero address and the price is zero', async () => {

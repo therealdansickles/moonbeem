@@ -146,6 +146,35 @@ describe('AlchemySerice', () => {
         });
     });
 
+    describe('convertAttributesToProperties', () => {
+        it('should convert the attributes to properties', function () {
+            const attributes = [
+                {
+                    trait_type: 'Background',
+                    value: 'Blue',
+                },
+                {
+                    display_type: 'number',
+                    trait_type: 'Height',
+                    value: 23,
+                },
+            ];
+            const result = service.convertAttributesToProperties(attributes);
+            expect(result).toEqual({
+                Background: {
+                    name: 'Background',
+                    type: 'string',
+                    value: 'Blue',
+                },
+                Height: {
+                    name: 'Height',
+                    type: 'number',
+                    value: 23,
+                },
+            });
+        });
+    });
+
     describe('#getNFTsForOwner', () => {
         jest.setTimeout(600000);
 
@@ -472,7 +501,32 @@ describe('AlchemySerice', () => {
                 },
             ];
             jest.spyOn(service as any, '_getLogs').mockImplementation(async () => mockLogResponse);
-            const [{ tokenAddress, contractAddress }] = await service.serializeAddressActivityEvent(payload);
+            const mockTransactionResponse = {
+                hash: '0x0b44f3eb913e3a2a2492db1eba31595a0868a72703f49a4849ccac2f75b5e628',
+                type: 2,
+                accessList: [],
+                blockHash: '0x9eb46fd85cc1c734ea0ec14de80b92b6b783ae91ca9b9ad63f73c54d10c395ae',
+                blockNumber: 42655657,
+                transactionIndex: 1,
+                confirmations: 8133923,
+                from: '0x6532Cf5d7ACBEeBd787381166DF4AC782B8ABbbbb',
+                gasPrice: { _hex: '0x4190ab00', _isBigNumber: true },
+                maxPriorityFeePerGas: { _hex: '0x3b9aca00', _isBigNumber: true },
+                maxFeePerGas: { _hex: '0x42294180', _isBigNumber: true },
+                gasLimit: { _hex: '0x0d6027', _isBigNumber: true },
+                to: '0xd32BaAAeE8f50eEEa535E1cf2083FEe7EddE0E1D',
+                value: { _hex: '0x00', _isBigNumber: true },
+                nonce: 55,
+                data: '0x301dd745000000000000000000000000000000000000000000000000000000000000018000000000000000000000000000000000000000000000000000000000000001c000000000000000000000000000000000000000000000000000000000000002000000000000000000000000007e86c9032cef6da46351ff949c4b6ad212b5d27b00000000000000000000000000000000000000000000000000000000000004b000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000650b203800000000000000000000000000000000000000000000000000000000651845ff0000000000000000000000000000000000000000000000000de0b6b3a7640000000000000000000000000000c0703aaa3c7db8410b998ef6c678ffb5fba271aa0000000000000000000000000000000000000000000000000000000000000004564942450000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000086162637662766161000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003f68747470733a2f2f6d657461646174612e766962652e78797a2f37326330643634332d393938662d343066302d613239332d6235303361373036393132302f00',
+                r: '0x6752c5e154627ee6e1402864f7d91fea94e4191a6480514601f79fa47cc68667',
+                s: '0x2a8ab188581f3e7798b95af404bc054886e87d96ec3b164db569bbc31392e1b9',
+                v: 1,
+                creates: null,
+                chainId: 421613,
+            };
+            jest.spyOn(service as any, '_getTransaction').mockImplementation(async () => mockTransactionResponse);
+            const events = await service.serializeAddressActivityEvent(payload);
+            const [{ tokenAddress, contractAddress }] = events;
             expect(tokenAddress).toEqual('0x1515ce5fa004ce9854ad8ebe207dc455048219c7');
             expect(contractAddress).toEqual('0x533dca29aa090f90b46723c74d8047486777e5c3');
         });

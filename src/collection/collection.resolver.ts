@@ -36,6 +36,8 @@ import {
     UpdateCollectionInput,
 } from './collection.dto';
 import { CollectionService } from './collection.service';
+import { IsNull, Not } from 'typeorm';
+import { ContractType } from '../sync-chain/factory/factory.entity';
 
 @Resolver(() => Collection)
 export class CollectionResolver {
@@ -65,7 +67,13 @@ export class CollectionResolver {
             @Args({ name: 'name', nullable: true }) name: string,
             @Args({ name: 'slug', nullable: true }) slug: string,
     ): Promise<Collection> {
-        return this.collectionService.getCollectionByQuery({ id, address, name, slug });
+        return this.collectionService.getCollectionByQuery({
+            id,
+            address,
+            name,
+            slug,
+            tokenAddress: Not(IsNull()),
+        });
     }
 
     @Public()
@@ -111,7 +119,13 @@ export class CollectionResolver {
     @Public()
     @ResolveField(() => MintSaleContract, { description: 'Returns the contract for the given collection' })
     async contract(@Parent() collection: Collection): Promise<MintSaleContract> {
-        return this.mintSaleContractService.getMintSaleContractByCollection(collection.id);
+        const mintSaleContract = await this.mintSaleContractService.getMintSaleContractByCollection(collection.id);
+        return collection.kind === 'migration'
+            ? {
+                ...mintSaleContract,
+                kind: ContractType.migration,
+            }
+            : mintSaleContract;
     }
 
     @Public()

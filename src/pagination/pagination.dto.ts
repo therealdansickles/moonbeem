@@ -1,7 +1,7 @@
 import { IPaginatedType } from './pagination.interface';
 import { Type } from '@nestjs/common';
-import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { IsArray, IsBoolean, IsObject, IsString } from 'class-validator';
+import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
+import { IsArray, IsBoolean, IsObject, IsOptional, IsString } from 'class-validator';
 
 @ObjectType('PageInfo')
 export class PageInfo {
@@ -49,4 +49,31 @@ export default function Paginated<T>(classRef: Type<T>) {
     }
 
     return PaginatedType;
+}
+
+/*
+   @Args('before', { nullable: true }) before?: string,
+            @Args('after', { nullable: true }) after?: string,
+            @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number,
+ */
+
+@InputType()
+export class PaginationInput {
+    @Field(() => String, { nullable: true, description: 'Cursor value to search before' })
+    @IsOptional()
+    @IsString()
+    readonly before?: string;
+    @Field(() => String, { nullable: true, description: 'Cursor value to search after' })
+    @IsOptional()
+    @IsString()
+    readonly after?: string;
+    @Field(() => Int, { defaultValue: 10, nullable: true, description: 'Number of items to return, work with after together' })
+    @IsOptional()
+    @IsString()
+    readonly first?: number;
+    @Field(() => Int, { defaultValue: 10, nullable: true, description: 'Number of items to return, work with before together' })
+    @IsOptional()
+    @IsString()
+    readonly last?: number;
 }

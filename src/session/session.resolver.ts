@@ -44,7 +44,8 @@ export class SessionResolver {
                 passwordPayload.password = generatedPassword;
             }
 
-            return this.sessionService.createSessionFromEmail(email, passwordPayload);
+            const session = await this.sessionService.createSessionFromEmail(email, passwordPayload);
+            return { wallet, ...session };
         }
         return this.sessionService.createSession(address, message, signature);
     }

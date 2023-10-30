@@ -972,7 +972,150 @@ describe('PluginService', () => {
             expect(result.metadata.properties.holding_days.belongs_to.endsWith(collectionPlugin.id)).toBeTruthy();
         });
 
-        it('should allow install the same plugin multiple times', async () => {
+        it('should throw an error if install the same plugin multiple times with the same name', async () => {
+            let tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '100',
+                paymentTokenAddress: coin.address,
+                tierId: 0,
+                metadata: {
+                    properties: {
+                        level: {
+                            name: '{{level_name}}',
+                            type: 'string',
+                            value: '{{basic}}',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: '{{holding_days_name}}',
+                            type: 'number',
+                            value: '{{holding_days}}',
+                            display_value: '0',
+                        },
+                    },
+                    conditions: {
+                        operator: 'and',
+                        rules: [
+                            {
+                                property: 'holding_days',
+                                rule: 'greater_than',
+                                value: -1,
+                                update: [
+                                    {
+                                        property: 'holding_days',
+                                        action: 'increase',
+                                        value: 99,
+                                    },
+                                ],
+                            },
+                            {
+                                property: 'holding_days',
+                                rule: 'less_than',
+                                value: 999,
+                                update: [
+                                    {
+                                        property: 'holding_days',
+                                        action: 'increase',
+                                        value: 99,
+                                    },
+                                ],
+                            },
+                        ],
+                        trigger: [
+                            {
+                                type: 'schedule',
+                                updatedAt: new Date().toISOString(),
+                                config: {
+                                    startAt: new Date().toISOString(),
+                                    endAt: new Date().toISOString(),
+                                    every: 99,
+                                    unit: 'minutes',
+                                },
+                            },
+                        ],
+                    },
+                    configs: {
+                        alias: {
+                            level_name: 'level',
+                        },
+                    },
+                },
+            });
+            const name = faker.commerce.productName();
+            const plugin = await pluginRepository.save({
+                name,
+                displayName: faker.commerce.productName(),
+                description: faker.commerce.productDescription(),
+                author: faker.commerce.department(),
+                version: faker.git.commitSha(),
+                metadata: {
+                    configs: {
+                        token_scope: [
+                            {
+                                name,
+                                tokens: [],
+                            },
+                        ],
+                    },
+                    properties: {
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'number',
+                            value: 0,
+                            display_value: '0',
+                            belongs_to: name,
+                        },
+                    },
+                    conditions: {
+                        operator: 'and',
+                        rules: [
+                            {
+                                property: 'holding_days',
+                                rule: 'greater_than',
+                                value: -1,
+                                update: [
+                                    {
+                                        property: 'holding_days',
+                                        action: 'increase',
+                                        value: 1,
+                                    },
+                                ],
+                            },
+                            {
+                                property: 'holding_days',
+                                rule: 'less_than',
+                                value: 999,
+                                update: [
+                                    {
+                                        property: 'holding_days',
+                                        action: 'increase',
+                                        value: 1,
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                },
+            });
+
+            await pluginService.installOnTier({
+                tier,
+                plugin,
+            });
+
+            tier = await tierService.getTier({ id: tier.id });
+            await expect(
+                async () =>
+                    await pluginService.installOnTier({
+                        tier,
+                        plugin,
+                    }),
+            ).rejects.toThrow(`Can't install ${plugin.name} more than once`);
+        });
+
+        it('should allow install the same plugin multiple times with different name', async () => {
             let tier = await tierService.createTier({
                 name: faker.company.name(),
                 totalMints: 100,

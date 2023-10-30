@@ -81,6 +81,9 @@ export class User extends BaseEntity {
     @Column({ type: 'text', array: true, default: [], comment: 'The list of plugin invite code.' })
     readonly pluginInviteCodes: string[];
 
+    @Column({ nullable: true, comment: 'The plugin invitation code used for this user.' })
+    readonly usedPluginInviteCode: string;
+
     /**
      * Hashes the password and generate token before inserting it into the database.
      */

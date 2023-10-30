@@ -1,4 +1,4 @@
-import { IsNumber, IsObject, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsNumber, IsObject, IsOptional, IsString } from 'class-validator';
 import { GraphQLJSONObject } from 'graphql-type-json';
 
 import { Field, InputType, ObjectType, PickType } from '@nestjs/graphql';
@@ -7,6 +7,7 @@ import { Collection } from '../collection/collection.dto';
 import { Metadata, MetadataProperties } from '../metadata/metadata.dto';
 import { Tier } from '../tier/tier.dto';
 import { InstalledPluginInfo } from '../collectionPlugin/collectionPlugin.dto';
+import Paginated, { PaginationInput } from '../pagination/pagination.dto';
 
 @ObjectType('Nft')
 export class Nft {
@@ -50,6 +51,9 @@ export class Nft {
     @Field(() => [InstalledPluginInfo], { description: 'The installed plugin info', nullable: true })
     public pluginsInstalled?: InstalledPluginInfo[];
 }
+
+@ObjectType('NftPaginated')
+export class NftPaginated extends Paginated(Nft) {}
 
 @InputType('NftPropertiesSearchInput')
 export class NftPropertiesSearchInput {
@@ -100,4 +104,42 @@ export class CreateOrUpdateNftInput extends PickType(Nft, ['tokenId', 'propertie
     @IsString()
     @Field({ description: 'The tier of the NFT belongs to.' })
     readonly tierId: string;
+}
+
+@InputType()
+export class GetNftsPaginatedInput {
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'The collection of the NFT belongs to.', nullable: true })
+    readonly collectionId?: string;
+
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'The tier of the NFT belongs to.', nullable: true })
+    readonly tierId?: string;
+
+    @IsArray()
+    @IsOptional()
+    @Field(() => [String], { description: 'The tokenIds of the NFT to search.', nullable: true })
+    readonly tokenIds?: string[];
+
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'The ownerAddress of the NFT.', nullable: true })
+    readonly ownerAddress?: string;
+
+    @IsObject()
+    @IsOptional()
+    @Field(() => [NftPropertiesSearchInput], { description: 'The properties of the NFT to search.', nullable: true })
+    readonly properties?: NftPropertiesSearchInput[];
+
+    @IsArray()
+    @IsOptional()
+    @Field(() => [String], { description: 'The plugins of the NFT.', nullable: true })
+    readonly plugins?: string[];
+
+    @IsObject()
+    @IsOptional()
+    @Field(() => PaginationInput, { description: 'The pagination of the NFT to search.', nullable: true })
+    readonly pagination?: PaginationInput;
 }

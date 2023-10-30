@@ -84,6 +84,8 @@ export class PluginService {
         const renderedPluginName = render(plugin.name, { id: installedPluginId }, {}, ['[[', ']]']);
         const pluginName = customizedPluginName || renderedPluginName;
 
+        if (existedUses.indexOf(pluginName) >= 0) throw new Error(`Can't install ${plugin.name} more than once`);
+
         // generate & merge properties
         // merge properties
         // `plugin.metadata.properties`: the properties data come from new installed plugin

@@ -5,7 +5,7 @@ import { Args, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/g
 import { InstalledPluginInfo } from '../collectionPlugin/collectionPlugin.dto';
 import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 import { Public } from '../session/session.decorator';
-import { CreateOrUpdateNftInput, Nft, NftPropertiesSearchInput, NftPropertyOverview } from './nft.dto';
+import { CreateOrUpdateNftInput, GetNftsPaginatedInput, Nft, NftPaginated, NftPropertiesSearchInput, NftPropertyOverview } from './nft.dto';
 import { INftWithPropertyAndCollection, NftService } from './nft.service';
 
 @Resolver(() => Nft)
@@ -56,6 +56,18 @@ export class NftResolver {
         if (tierId) query.tier = { id: tierId };
         if (plugins) query.plugins = plugins;
         return await this.nftService.getNfts(query);
+    }
+
+    @Public()
+    @Query(() => NftPaginated, { description: 'Get NFTs by query.', nullable: true })
+    async nftsPaginated(@Args({ name: 'input', nullable: false }) input: GetNftsPaginatedInput): Promise<NftPaginated> {
+        const { collectionId, tierId, tokenIds, ownerAddress, properties, plugins, pagination } = input;
+        let query: any = { ownerAddress, tokenIds, properties };
+        query = omitBy(query, isNil);
+        if (collectionId) query.collection = { id: collectionId };
+        if (tierId) query.tier = { id: tierId };
+        if (plugins) query.plugins = plugins;
+        return this.nftService.getNftsPaginated(query, pagination);
     }
 
     @Public()

@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, BaseEntity } from 'typeorm';
+import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { Exclude } from 'class-transformer';
 
 export enum ContractType {
@@ -13,6 +13,7 @@ export enum ContractType {
     mintSaleMultipleWhitelisting = 'mintSaleMultipleWhitelisting',
     airdrop = 'airdrop',
     unknown = 'unknown',
+    migration = 'migration',
 }
 
 @Entity({ name: 'Factory' })
@@ -50,7 +51,7 @@ export class Factory extends BaseEntity {
     readonly chainId?: number;
 
     @CreateDateColumn({
-        precision: 3
+        precision: 3,
     })
     @Exclude()
     readonly createdAt: Date;

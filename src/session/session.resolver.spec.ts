@@ -118,6 +118,9 @@ describe('SessionResolver', () => {
                             id
                             username
                         }
+                        wallet {
+                            id
+                        }
                     }
                 }
             `;
@@ -143,6 +146,9 @@ describe('SessionResolver', () => {
                     expect(body.data.createSession.user.id).toEqual(walletInfo.owner.id);
                     const orgInfo = await organizationRepository.findOneBy({ owner: { id: walletInfo.owner.id } });
                     expect(orgInfo).toBeTruthy();
+                    // still will return the wallet info
+                    expect(body.data.createSession.wallet).toBeTruthy();
+                    expect(body.data.createSession.wallet.id).toEqual(walletInfo.id);
                 });
         });
 

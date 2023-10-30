@@ -89,6 +89,7 @@ describe('NftService', () => {
                 },
             });
 
+            const image = faker.internet.url();
             const result = await nftService.createOrUpdateNftByTokenId({
                 collectionId: collection.id,
                 tierId: tier.id,
@@ -97,10 +98,12 @@ describe('NftService', () => {
                     foo: { value: 'bar' },
                 },
                 ownerAddress: faker.finance.ethereumAddress(),
+                image: image,
             });
             expect(result.id).toBeTruthy();
             expect(result.properties.foo.value).toEqual('bar');
             expect(result.ownerAddress).toBeTruthy();
+            expect(result.image).toEqual(image);
         });
 
         it('should update a nft record if already exist', async () => {
@@ -1509,6 +1512,107 @@ describe('NftService', () => {
         });
     });
 
+    describe('#getNftsPaginated', () => {
+        it('should get nfts according to pagination', async () => {
+            await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                creator: { id: wallet.id },
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '100',
+                tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
+            });
+
+            const tokenId = faker.string.numeric({ length: 1, allowLeadingZeros: false });
+
+            await nftService.createOrUpdateNftByTokenId({
+                collectionId: collection.id,
+                tierId: tier.id,
+                tokenId,
+                properties: {
+                    foo: { value: 'bar' },
+                },
+            });
+
+            const anotherTokenId = faker.string.numeric({ length: 2, allowLeadingZeros: false });
+            await nftService.createOrUpdateNftByTokenId({
+                collectionId: collection.id,
+                tierId: tier.id,
+                tokenId: anotherTokenId,
+                properties: {
+                    foo: { value: 'bar' },
+                },
+            });
+
+            const result = await nftService.getNftsPaginated(
+                {
+                    collection: { id: collection.id },
+                },
+                {
+                    first: 10,
+                },
+            );
+            expect(result.totalCount).toEqual(2);
+
+            const firstPage = await nftService.getNftsPaginated(
+                {
+                    collection: { id: collection.id },
+                },
+                {
+                    first: 1,
+                },
+            );
+            const cursor = firstPage.pageInfo.endCursor;
+            expect(firstPage.totalCount).toEqual(1);
+
+            const secondPage = await nftService.getNftsPaginated(
+                {
+                    collection: { id: collection.id },
+                },
+                {
+                    first: 1,
+                    after: cursor,
+                },
+            );
+            expect(secondPage.totalCount).toEqual(1);
+        });
+    });
+
     describe('#getNftsFromExtenal', () => {
         it('should return extenal nfts', async () => {
             const mockRawResponse = {
@@ -1974,6 +2078,75 @@ describe('NftService', () => {
 
             const result = await nftService.renderMetadata(nftInfo);
             expect(result.metadata.image).toEqual(tier.metadata.image);
+        });
+
+        it('should render `image` if image field existed on NFT', async () => {
+            await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                creator: { id: wallet.id },
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '100',
+                tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: '{{level_name}}',
+                            type: 'string',
+                            value: '{{level}}',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: '{{holding_days_name}}',
+                            type: 'integer',
+                            value: '{{holding_days}}',
+                            display_value: 'Days of holding',
+                        },
+                    },
+                    configs: {
+                        alias: {
+                            level_name: 'real_level_name',
+                        },
+                    },
+                },
+            });
+
+            const tokenId = faker.string.numeric({ length: 1, allowLeadingZeros: false });
+
+            const nft = await nftService.createOrUpdateNftByTokenId({
+                collectionId: collection.id,
+                tierId: tier.id,
+                tokenId,
+                properties: {
+                    level: { value: '1' },
+                    holding_days: { value: 10 },
+                },
+                image: faker.internet.url(),
+            });
+
+            const nftInfo = await nftRepository.findOne({ where: { id: nft.id }, relations: ['tier'] });
+
+            const result = await nftService.renderMetadata(nftInfo);
+            expect(result.metadata.image).toEqual(nft.image);
         });
 
         it("should not contain `image` property if image property doesn't exist either on NFT or tier", async () => {

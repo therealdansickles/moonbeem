@@ -41,6 +41,9 @@ export class Nft extends BaseEntity {
     @Column({ nullable: true, comment: 'The owner address of the NFT.' })
     readonly ownerAddress: string;
 
+    @Column({ nullable: true })
+    readonly image: string;
+
     // @Column({
     //     default: {}
     // })

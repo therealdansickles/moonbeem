@@ -227,6 +227,44 @@ describe('NftResolver', () => {
         });
     });
 
+    describe('getNftsPaginated', function () {
+        it('should call the api successfully', async () => {
+            const query = gql`
+                query GetNftsPaginated($input: GetNftsPaginatedInput!) {
+                    nftsPaginated(input: $input) {
+                        edges {
+                            node {
+                                id
+                                properties
+                                tokenId
+                            }
+                        }
+                        pageInfo {
+                            startCursor
+                            endCursor
+                        }
+                        totalCount
+                    }
+                }
+            `;
+
+            const variables = {
+                input: {
+                    collectionId: faker.string.uuid(),
+                },
+            };
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    console.log(body);
+                    expect(body.data.nftsPaginated.totalCount).toEqual(0);
+                });
+        });
+    });
+
     describe('getNftListByQuery', () => {
         it('query by tokenIds should work', async () => {
             await userService.createUser({

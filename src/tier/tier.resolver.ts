@@ -20,10 +20,14 @@ import {
 import { ITierListQuery, TierService } from './tier.service';
 import { CoinService } from '../sync-chain/coin/coin.service';
 import { Coin } from '../sync-chain/coin/coin.dto';
+import { ZeroAddress } from 'ethers';
 
 @Resolver(() => Tier)
 export class TierResolver {
-    constructor(private readonly tierService: TierService, private readonly coinService: CoinService) {}
+    constructor(
+        private readonly tierService: TierService,
+        private readonly coinService: CoinService,
+    ) {}
 
     @Public()
     @Query(() => Tier, { description: 'Get a specific tier by id.', nullable: true })
@@ -36,7 +40,7 @@ export class TierResolver {
     async tiers(
         @Args({ name: 'collectionId', nullable: true }) collectionId?: string,
             @Args({ name: 'name', nullable: true }) name?: string,
-            @Args({ name: 'pluginName', nullable: true }) pluginName?: string
+            @Args({ name: 'pluginName', nullable: true }) pluginName?: string,
     ): Promise<Tier[]> {
         const query: ITierListQuery = { name, pluginName };
         if (collectionId) query.collection = { id: collectionId };
@@ -77,13 +81,28 @@ export class TierResolver {
             @Args('before', { nullable: true }) before?: string,
             @Args('after', { nullable: true }) after?: string,
             @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
-            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number,
     ): Promise<TierHoldersPaginated> {
         return this.tierService.getHolders(tier.id, before, after, first, last);
     }
 
     @ResolveField(() => Coin, { description: 'Returns the coin for the given tier' })
     async coin(@Parent() tier: Tier): Promise<Coin> {
+        if (tier.paymentTokenAddress === ZeroAddress) {
+            return {
+                id: '00000000-0000-0000-0000-000000000000',
+                name: 'Ether',
+                symbol: 'ETH',
+                address: ZeroAddress,
+                decimals: 18,
+                chainId: 0,
+                native: true,
+                derivedETH: '1',
+                derivedUSDC: 'NaN',
+                enable: true,
+            } as Coin;
+        }
+
         return this.coinService.getCoinByAddress(tier.paymentTokenAddress.toLowerCase());
     }
 
@@ -94,7 +113,7 @@ export class TierResolver {
             @Args('before', { nullable: true }) before?: string,
             @Args('after', { nullable: true }) after?: string,
             @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
-            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number,
     ): Promise<TierSearchPaginated> {
         const { collectionId, collectionAddress, collectionSlug, keyword, properties, plugins, upgrades } = input;
         return this.tierService.searchTier(
@@ -102,7 +121,7 @@ export class TierResolver {
             before,
             after,
             first,
-            last
+            last,
         );
     }
 
@@ -115,7 +134,7 @@ export class TierResolver {
     @Query(() => GraphQLJSONObject, { description: 'Returns attributes overview for collection/tier' })
     async attributeOverview(
         @Args('collectionAddress', { nullable: true }) collectionAddress: string,
-            @Args('input', { nullable: true }) input?: AttributeOverviewInput
+            @Args('input', { nullable: true }) input?: AttributeOverviewInput,
     ): Promise<IOverview> {
         const mergedCollectionAddress = input.collectionAddress || collectionAddress;
         const collectionSlug = input.collectionSlug;

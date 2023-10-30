@@ -1,4 +1,4 @@
-import { isNil, omitBy } from 'lodash';
+import { isEmpty, isNil, omitBy } from 'lodash';
 
 import { MetadataPropertyClass } from '../metadata/metadata.entity';
 /**
@@ -37,7 +37,7 @@ export const getCollectionAttributesOverview = (tiers: Tier[], tierTokenCountsMa
     for (const tierEntity of tiers) {
         const tier = renderPropertyName(tierEntity);
         const tierTokenCount = tierTokenCountsMap[tier.tierId];
-        if (!tier.metadata) continue;
+        if (!tier.metadata || isEmpty(tier.metadata)) continue;
         const { properties } = tier.metadata;
         for (const [key, property] of Object.entries(properties)) {
             const { name, type, value, display_value, class: propertyClass } = property;

@@ -10,7 +10,7 @@ import {
     WebhookType,
 } from 'alchemy-sdk';
 import { Interface, InterfaceAbi } from 'ethers';
-import { get, isString } from 'lodash';
+import { get, isNil, isString, omitBy } from 'lodash';
 import { Repository } from 'typeorm';
 import { URL } from 'url';
 
@@ -21,10 +21,11 @@ import { captureException } from '@sentry/node';
 
 import { CollectionService } from '../collection/collection.service';
 import * as VibeFactoryAbi from '../lib/abi/VibeFactory.json';
+import { MetadataProperties } from '../metadata/metadata.dto';
+import { NftService } from '../nft/nft.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
 import { TierService } from '../tier/tier.service';
 import { AlchemyWebhook } from './alchemy-webhook.entity';
-import { NftService } from '../nft/nft.service';
 
 function sleep(duration) {
     return new Promise((resolve) => setTimeout(resolve, duration));
@@ -102,22 +103,38 @@ export class AlchemyService {
         for await (const nft of iterator) {
             const {
                 tokenId,
-                rawMetadata: { attributes },
+                rawMetadata: { attributes, image },
             } = nft;
             const response = await this.alchemy[network].nft.getOwnersForNft(tokenAddress, tokenId);
             const owner = response?.owners[0];
-            // TODO: convert the attributes to vibe properties
             const createNftInput = {
                 collectionId,
                 tierId,
                 tokenId,
+                image,
                 ownerAddress: owner,
-                properties: attributes,
+                properties: this.convertAttributesToProperties(attributes),
             };
             await this.nftService.createOrUpdateNftByTokenId(createNftInput);
             await sleep(100);
         }
         return true;
+    }
+
+    convertAttributesToProperties(attributes: Record<string, any>[]): MetadataProperties {
+        const properties = {};
+        for (const attribute of attributes) {
+            const { trait_type, value, display_type } = attribute;
+            properties[trait_type] = omitBy(
+                {
+                    name: trait_type,
+                    value,
+                    type: display_type || 'string',
+                },
+                isNil,
+            );
+        }
+        return properties;
     }
 
     async _getNftsForOwner(network: Network, owner: string, options?: GetNftsForOwnerOptions) {
