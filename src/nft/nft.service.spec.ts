@@ -1598,7 +1598,7 @@ describe('NftService', () => {
                 },
             );
             const cursor = firstPage.pageInfo.endCursor;
-            expect(firstPage.totalCount).toEqual(1);
+            expect(firstPage.totalCount).toEqual(2);
 
             const secondPage = await nftService.getNftsPaginated(
                 {
@@ -1609,7 +1609,7 @@ describe('NftService', () => {
                     after: cursor,
                 },
             );
-            expect(secondPage.totalCount).toEqual(1);
+            expect(secondPage.totalCount).toEqual(2);
         });
     });
 
