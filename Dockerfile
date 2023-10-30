@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY package.json yarn.lock .yarnrc.yml .pnp.cjs ./
 COPY .yarn .yarn
-RUN yarn set version stable
+RUN yarn set version 3.5
 RUN yarn install --immutable
 
 COPY . .
