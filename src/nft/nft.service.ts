@@ -310,6 +310,7 @@ export class NftService {
         const { before, after, first, last } = pagination || {
             first: 10,
         };
+        const totalCount = await builder.getCount();
         if (after) {
             const [createdAt, id] = cursorToStrings(after);
             builder.andWhere('nft.createdAt < :createdAt', { createdAt });
@@ -333,7 +334,7 @@ export class NftService {
         const nfts = await builder.getMany();
         const paginated = toPaginated(
             nfts.map((nft) => this.renderMetadata(nft)),
-            nfts.length,
+            totalCount,
         );
         return paginated;
     }
