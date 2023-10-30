@@ -30,7 +30,8 @@ export class SessionService {
 
         if (wallet) {
             const token = await this.jwtService.signAsync({ walletId: wallet.id, walletAddress: wallet.address });
-            return { token, wallet };
+            const user = await this.userService.getUserByQuery({ id: wallet.owner?.id });
+            return { token, wallet, user };
         }
         return null;
     }

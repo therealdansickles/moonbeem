@@ -4,7 +4,7 @@ import { faker } from '@faker-js/faker';
 import { JwtService } from '@nestjs/jwt';
 
 import { OrganizationService } from '../organization/organization.service';
-import { createOrganization } from '../test-utils';
+import { createOrganization, createUser, createWallet } from '../test-utils';
 import { UserService } from '../user/user.service';
 import { SessionService } from './session.service';
 
@@ -41,6 +41,23 @@ describe('SessionService', () => {
             const message = 'test';
             const signature = await wallet.signMessage(message);
             await expect(async () => await service.createSession(wallet.address, 'bobby', signature)).rejects.toThrow('Invalid signature');
+        });
+
+        it('should return user as well', async () => {
+            const etherWallet = await ethers.Wallet.createRandom();
+            const owner = await createUser();
+            const wallet = await createWallet({
+                address: etherWallet.address,
+                owner: {
+                    id: owner.id,
+                },
+            });
+            const message = 'test';
+            const signature = await etherWallet.signMessage(message);
+            const result = await service.createSession(wallet.address, message, signature);
+
+            expect(result.wallet.address).toEqual(wallet.address.toLowerCase());
+            expect(result.user.id).toEqual(owner.id);
         });
     });
 
