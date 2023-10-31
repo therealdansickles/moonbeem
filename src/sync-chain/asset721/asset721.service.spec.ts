@@ -102,6 +102,24 @@ describe('Asset721Service', () => {
             const result = await service.getAssets(address);
             expect(result.length).toEqual(2);
         });
+
+        it('should get erc6551 account', async () => {
+            const address = faker.finance.ethereumAddress();
+            const account = faker.finance.ethereumAddress();
+            await service.createAsset721({
+                height: parseInt(faker.string.numeric({ length: 5, allowLeadingZeros: false })),
+                txHash: faker.string.hexadecimal({ length: 66, casing: 'lower' }),
+                txTime: Math.floor(faker.date.recent().getTime() / 1000),
+                address,
+                tokenId: faker.string.numeric({ length: 5, allowLeadingZeros: false }),
+                owner: faker.finance.ethereumAddress(),
+                account
+            });
+
+            const result = await service.getAssets(address);
+            expect(result.length).toEqual(1);
+            expect(result[0].account).toEqual(account);
+        });
     });
 
     describe('lowercaseTransformer', () => { 

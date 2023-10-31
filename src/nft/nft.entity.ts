@@ -48,6 +48,8 @@ export class Nft extends BaseEntity {
     //     default: {}
     // })
     // readonly metadataConfig: { [key: string]: string };
+    @Column({ default: '', comment: 'The Erc6551 account.' })
+    readonly account: string;
 
     @CreateDateColumn()
     @Exclude()

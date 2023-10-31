@@ -38,6 +38,10 @@ export class Nft {
     @Field({ nullable: true, description: 'The ownerAddress of the NFT.' })
     public ownerAddress?: string;
 
+    @IsString()
+    @Field({defaultValue: '', description: 'The erc6551 account address' })
+    public account: string;
+
     @IsObject()
     @Field(() => GraphQLJSONObject, { description: 'The properties of the NFT.', nullable: true })
     readonly properties: MetadataProperties;
