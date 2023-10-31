@@ -17,7 +17,7 @@ import { Membership } from '../membership/membership.dto';
 import { MembershipService } from '../membership/membership.service';
 import { Organization } from '../organization/organization.dto';
 import { OrganizationService } from '../organization/organization.service';
-import { VibeEmailGuard } from '../session/session.guard';
+import { SigninByEmailGuard, VibeEmailGuard } from '../session/session.guard';
 import { ForbiddenException, UseGuards } from '@nestjs/common';
 
 @Resolver(() => User)
@@ -25,10 +25,10 @@ export class UserResolver {
     constructor(
         private readonly userService: UserService,
         private readonly membershipService: MembershipService,
-        private readonly organizationService: OrganizationService
+        private readonly organizationService: OrganizationService,
     ) {}
 
-    @Public()
+    @UseGuards(SigninByEmailGuard)
     @Query(() => User, { description: 'Returns an user for the given id or username', nullable: true })
     async user(@Args({ name: 'id', nullable: true }) id: string, @Args({ name: 'username', nullable: true }) username: string): Promise<User> {
         return await this.userService.getUserByQuery({ id, username });
@@ -120,10 +120,10 @@ export class UserResolver {
     @ResolveField(() => LatestSalePaginated, { description: 'Returns the latest sales list for the given user.' })
     async latestSales(
         @Parent() user: User,
-            @Args('before', { nullable: true }) before?: string,
-            @Args('after', { nullable: true }) after?: string,
-            @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
-            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number
+        @Args('before', { nullable: true }) before?: string,
+        @Args('after', { nullable: true }) after?: string,
+        @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+        @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number,
     ): Promise<LatestSalePaginated> {
         return await this.userService.getLatestSales(user.id, before, after, first, last);
     }

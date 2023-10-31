@@ -79,9 +79,11 @@ describe('UserResolver', () => {
             `;
 
             const variables = { id: basicUser.id };
+            const token = await getToken(app, basicUser.email);
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
