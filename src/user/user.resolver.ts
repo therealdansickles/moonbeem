@@ -120,10 +120,11 @@ export class UserResolver {
     @ResolveField(() => LatestSalePaginated, { description: 'Returns the latest sales list for the given user.' })
     async latestSales(
         @Parent() user: User,
-        @Args('before', { nullable: true }) before?: string,
-        @Args('after', { nullable: true }) after?: string,
-        @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
-        @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number,
+            @Args('before', { nullable: true }) before?: string,
+            @Args('after', { nullable: true }) after?: string,
+            @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
+            @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number,
+
     ): Promise<LatestSalePaginated> {
         return await this.userService.getLatestSales(user.id, before, after, first, last);
     }
