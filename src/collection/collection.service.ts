@@ -1388,7 +1388,7 @@ export class CollectionService {
             txHash: '',
             txTime: 0,
             height: collectionMetadata.deployedBlockNumber,
-            sender: collectionMetadata.contractDeployer,
+            sender: collectionMetadata.contractDeployer || ethers.ZeroAddress,
             royaltyReceiver: '',
             royaltyRate: 0,
             derivativeRoyaltyRate: 0,
@@ -1420,7 +1420,7 @@ export class CollectionService {
             royaltyRate: 0,
             collaborators: [
                 {
-                    address: ownerAddress,
+                    address: ownerAddress || ethers.ZeroAddress,
                     role: 'owner',
                     name: 'owner',
                     rate: 0,
