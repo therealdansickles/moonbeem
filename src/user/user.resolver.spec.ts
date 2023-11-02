@@ -338,11 +338,14 @@ describe('UserResolver', () => {
         let owner: User;
         let collection: Collection;
         let coin: Coin;
+        let token: string;
         beforeEach(async () => {
             owner = await service.createUser({
                 email: faker.internet.email(),
                 password: 'password',
             });
+            token = await getToken(app, owner.email);
+
             const wallet = await walletService.createWallet({
                 address: faker.finance.ethereumAddress(),
                 ownerId: owner.id,
@@ -403,6 +406,7 @@ describe('UserResolver', () => {
             };
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -456,6 +460,7 @@ describe('UserResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -514,6 +519,7 @@ describe('UserResolver', () => {
                 };
                 return await request(app.getHttpServer())
                     .post('/graphql')
+                    .auth(token, { type: 'bearer' })
                     .send({ query, variables })
                     .expect(200)
                     .expect(({ body }) => {
@@ -529,6 +535,7 @@ describe('UserResolver', () => {
                 email: faker.internet.email(),
                 password: 'password',
             });
+            const token = await getToken(app, owner.email);
             const wallet = await walletService.createWallet({
                 address: faker.finance.ethereumAddress(),
                 ownerId: owner.id,
@@ -603,6 +610,7 @@ describe('UserResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -617,6 +625,7 @@ describe('UserResolver', () => {
                 email: faker.internet.email(),
                 password: 'password',
             });
+            const token = await getToken(app, owner.email);
             const wallet = await walletService.createWallet({
                 address: faker.finance.ethereumAddress(),
                 ownerId: owner.id,
@@ -691,6 +700,7 @@ describe('UserResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -705,6 +715,7 @@ describe('UserResolver', () => {
                 email: faker.internet.email(),
                 password: 'password',
             });
+            const token = await getToken(app, owner.email);
             const wallet = await walletService.createWallet({
                 address: faker.finance.ethereumAddress(),
                 ownerId: owner.id,
@@ -832,6 +843,7 @@ describe('UserResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {

@@ -322,11 +322,9 @@ describe('CollectionResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    console.log(body.data.collection);
                     expect(body.data.collection.name).toEqual(collection.name);
                     expect(body.data.collection.displayName).toEqual(collection.displayName);
                     expect(body.data.collection.organization.name).toEqual(organization.name);
-                    console.log(body.data.collection.contract);
                     expect(body.data.collection.contract).toBeDefined();
                     expect(body.data.collection.contract.kind).toEqual(CollectionKind.migration);
                     expect(body.data.collection.contract.beginTime).toEqual(beginTime);

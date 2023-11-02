@@ -259,7 +259,6 @@ describe('NftResolver', () => {
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
-                    console.log(body);
                     expect(body.data.nftsPaginated.totalCount).toEqual(0);
                 });
         });
