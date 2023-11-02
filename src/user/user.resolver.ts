@@ -1,24 +1,17 @@
+import { ForbiddenException, UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
-import { AuthorizedUser, Public, SessionUser } from '../session/session.decorator';
-import { UserService } from './user.service';
-import {
-    CreateUserInput,
-    LatestSalePaginated,
-    OnboardUsersInput,
-    PasswordResetLinkInput,
-    ResetPasswordInput,
-    ResetPasswordOutput,
-    UpdateUserInput,
-    User,
-    UserProfit,
-    VerifyUserInput,
-} from './user.dto';
+
 import { Membership } from '../membership/membership.dto';
 import { MembershipService } from '../membership/membership.service';
 import { Organization } from '../organization/organization.dto';
 import { OrganizationService } from '../organization/organization.service';
+import { AuthorizedUser, Public, SessionUser } from '../session/session.decorator';
 import { SigninByEmailGuard, VibeEmailGuard } from '../session/session.guard';
-import { ForbiddenException, UseGuards } from '@nestjs/common';
+import {
+    CreateUserInput, LatestSalePaginated, OnboardUsersInput, PasswordResetLinkInput, ResetPasswordInput, ResetPasswordOutput, UpdateUserInput, User,
+    UserProfit, VerifyUserInput
+} from './user.dto';
+import { UserService } from './user.service';
 
 @Resolver(() => User)
 export class UserResolver {
@@ -124,7 +117,6 @@ export class UserResolver {
             @Args('after', { nullable: true }) after?: string,
             @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
             @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number,
-
     ): Promise<LatestSalePaginated> {
         return await this.userService.getLatestSales(user.id, before, after, first, last);
     }
@@ -136,5 +128,17 @@ export class UserResolver {
             throw new ForbiddenException('Forbidden resource');
         }
         return this.userService.acceptPluginInvitation(user, pluginInviteCode);
+    }
+
+    @Public()
+    @Mutation(() => User, { description: 'Generate plugin invitation codes for user.' })
+    async generatePluginInvitationCodes(
+        @SessionUser() user,
+            @Args({ type: () => Int, name: 'count', nullable: false }) count: number,
+    ): Promise<User> {
+        if (!user) {
+            throw new ForbiddenException('Forbidden resource');
+        }
+        return this.userService.generatePluginInviteCodes(user, count);
     }
 }

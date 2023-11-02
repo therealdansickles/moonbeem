@@ -1028,4 +1028,42 @@ describe('UserResolver', () => {
                 });
         });
     });
+
+    describe('generatePluginInvitationCodes', function () {
+        it('should generate new plugin invitation', async () => {
+            const inviteCode = faker.string.sample(7);
+            const inviter = await service.createUser({
+                email: faker.internet.email().toLowerCase(),
+                password: 'password',
+                pluginInviteCodes: [inviteCode],
+            });
+
+            const count = faker.number.int({ min: 1, max: 10 });
+            const token = await getToken(app, inviter.email);
+            const variables = {
+                count,
+            };
+
+            const query = gql`
+                mutation GeneratePluginInvitationCodes($count: Int!) {
+                    generatePluginInvitationCodes(count: $count) {
+                        id
+                        pluginInviteCodes
+                    }
+                }
+            `;
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.generatePluginInvitationCodes).toBeDefined();
+                    expect(body.data.generatePluginInvitationCodes.id).toEqual(inviter.id);
+                    expect(body.data.generatePluginInvitationCodes.pluginInviteCodes).toBeTruthy();
+                    expect(body.data.generatePluginInvitationCodes.pluginInviteCodes).toHaveLength(1 + count);
+                });
+        });
+    });
 });
