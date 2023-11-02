@@ -21,6 +21,7 @@ import {
     createAsset721,
     createCoin,
     createCollection,
+    createCollection2,
     createHistory721,
     createMintSaleContract,
     createMintSaleTransaction,
@@ -36,6 +37,7 @@ import { CollectionActivityType, CollectionStat, CollectionStatus } from './coll
 import { Collection, CollectionKind } from './collection.entity';
 import { CollectionService } from './collection.service';
 import { NftContract } from 'alchemy-sdk';
+import { AlchemyService } from '../alchemy/alchemy.service';
 
 describe('CollectionService', () => {
     let repository: Repository<Collection>;
@@ -54,6 +56,7 @@ describe('CollectionService', () => {
     let nftService: NftService;
     let merkleTreeService: MerkleTreeService;
     let collectionPluginService: CollectionPluginService;
+    let alchemyService: AlchemyService;
 
     beforeAll(async () => {
         repository = global.collectionRepository;
@@ -72,6 +75,7 @@ describe('CollectionService', () => {
         nftService = global.nftService;
         merkleTreeService = global.merkleTreeService;
         collectionPluginService = global.collectionPluginService;
+        alchemyService = global.alchemyService;
     });
 
     afterEach(async () => {
@@ -3675,11 +3679,60 @@ describe('CollectionService', () => {
                 },
             } as any as NftContract;
 
-            const contract = await service.createMintSaleContract(421613, contractMetadata, faker.string.uuid());
+            const contract = await service.createMintSaleContract(421613, contractMetadata, faker.string.uuid(), contractMetadata.contractDeployer);
             expect(contract).toBeDefined();
             expect(contract.address).toEqual(contractMetadata.address);
             expect(contract.chainId).toEqual(421613);
             expect(contract.height).toEqual(contractMetadata.deployedBlockNumber);
+        });
+    });
+
+    describe('migrateCollection', () => {
+        it('should throw if the user doesnt have a wallet with the same address as the collection owner', async () => {
+            const chainId = 1;
+            const tokenAddress = faker.finance.ethereumAddress();
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+            const organization = await createOrganization(organizationService, {
+                owner: owner,
+            });
+            jest.spyOn(alchemyService as any, 'getContractOwner').mockResolvedValue('');
+
+            await expect(async () => {
+                await service.migrateCollection(chainId, tokenAddress, owner, organization);
+            }).rejects.toThrow(new Error(`The collection is not owned by the user`));
+        });
+
+        it('should return the existing collection with the same tokenAddress', async () => {
+            const chainId = 1;
+            const tokenAddress = faker.finance.ethereumAddress();
+            const address = faker.finance.ethereumAddress();
+            const owner = await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            await walletService.createWallet({
+                address,
+                ownerId: owner.id,
+            });
+            const organization = await createOrganization(organizationService, {
+                owner: owner,
+            });
+
+            const existingCollection = await createCollection2({
+                tokenAddress,
+            });
+
+            jest.spyOn(alchemyService as any, 'getNFTCollectionMetadata').mockResolvedValue({
+                contractDeployer: address,
+            });
+            jest.spyOn(alchemyService as any, 'getContractOwner').mockResolvedValue('');
+
+            const result = await service.migrateCollection(chainId, tokenAddress, owner, organization);
+            expect(result.id).toEqual(existingCollection.id);
         });
     });
 });

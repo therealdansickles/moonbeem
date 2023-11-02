@@ -9,7 +9,7 @@ import {
     NftWebhookParams,
     WebhookType,
 } from 'alchemy-sdk';
-import { Interface, InterfaceAbi } from 'ethers';
+import { Contract, Interface, InterfaceAbi, JsonRpcProvider } from 'ethers';
 import { get, isNil, isString, omitBy } from 'lodash';
 import { Repository } from 'typeorm';
 import { URL } from 'url';
@@ -21,6 +21,7 @@ import { captureException } from '@sentry/node';
 
 import { CollectionService } from '../collection/collection.service';
 import * as VibeFactoryAbi from '../lib/abi/VibeFactory.json';
+import * as ownableAbi from '../lib/abi/Ownable.json';
 import { MetadataProperties } from '../metadata/metadata.dto';
 import { NftService } from '../nft/nft.service';
 import { MintSaleContractService } from '../sync-chain/mint-sale-contract/mint-sale-contract.service';
@@ -333,5 +334,20 @@ export class AlchemyService {
             captureException(err);
         }
         return result;
+    }
+
+    async getContractOwner(chainId: number, tokenAddress: string): Promise<string> {
+        const network = chainIdToNetwork[chainId];
+        const rpcUrl = `https://${network}.g.alchemy.com/v2/${this.apiKey}`;
+        const provider = new JsonRpcProvider(rpcUrl);
+        const contract = new Contract(tokenAddress, ownableAbi, provider);
+        try {
+            const owner = contract.owner();
+            return owner;
+        } catch (error) {
+            console.error(error.message, error.stack);
+            captureException(error);
+            return '';
+        }
     }
 }

@@ -1187,7 +1187,7 @@ describe('UserService', () => {
             });
 
             const collection = await collectionService.createCollection({
-                name: faker.company.name(),
+                name: faker.string.sample(12),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),

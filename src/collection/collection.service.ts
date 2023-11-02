@@ -1349,6 +1349,7 @@ export class CollectionService {
 
     async migrateCollection(chainId: number, tokenAddress: string, owner: User, organization: Organization): Promise<Collection> {
         const collectionMetadata = await this.alchemyService.getNFTCollectionMetadata(chainId, tokenAddress);
+        const contractOwner = await this.alchemyService.getContractOwner(chainId, tokenAddress);
         // TODO: missing the bannerImageUrl in the sdk and it exists in the api
 
         // use the first wallet if no wallet match the contractDeployer address
@@ -1358,19 +1359,26 @@ export class CollectionService {
                 id: owner.id,
             },
         });
-        const wallet = wallets.find((wallet) => wallet.address === collectionMetadata.contractDeployer) || wallets[0];
+        const wallet = wallets.find((wallet) => wallet.address === contractOwner) || wallets[0];
 
         // check if the collection's owner is one of the user bind wallet
-        // if (wallet === undefined) {
-        //    throw new Error('The collection is not owned by the user');
-        // }
+        if (wallet === undefined) {
+            throw new Error('The collection is not owned by the user');
+        }
+
+        const existedCollection = await this.getCollectionByQuery({
+            tokenAddress,
+        });
+        if (existedCollection) {
+            return existedCollection;
+        }
 
         // TODO: check if the collection is already migrated
         const collaboration = await this.createMigrationCollaboration(collectionMetadata.contractDeployer, wallet.id, organization.id, owner.id);
         // create new collection with tier
         const collection = await this.createMigrationCollectionAndTier(collectionMetadata, organization, wallet, collaboration);
         // create contract record
-        await this.createMintSaleContract(chainId, collectionMetadata, collection.id);
+        await this.createMintSaleContract(chainId, collectionMetadata, collection.id, contractOwner);
 
         // sync nft tokens
         const collectionId = collection.id;
@@ -1381,14 +1389,19 @@ export class CollectionService {
         return collection;
     }
 
-    async createMintSaleContract(chainId: number, collectionMetadata: NftContract, collectionId: string): Promise<MintSaleContract> {
+    async createMintSaleContract(
+        chainId: number,
+        collectionMetadata: NftContract,
+        collectionId: string,
+        contractOwner: string,
+    ): Promise<MintSaleContract> {
         return await this.mintSaleContractRepository.save({
             address: collectionMetadata.address,
             chainId,
             txHash: '',
             txTime: 0,
             height: collectionMetadata.deployedBlockNumber,
-            sender: collectionMetadata.contractDeployer || ethers.ZeroAddress,
+            sender: collectionMetadata.contractDeployer || contractOwner || '',
             royaltyReceiver: '',
             royaltyRate: 0,
             derivativeRoyaltyRate: 0,
