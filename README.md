@@ -6,10 +6,8 @@
 [![CI](https://github.com/vibexyz/vibe-server-restful/actions/workflows/ci.yml/badge.svg)](https://github.com/vibexyz/vibe-server-restful/actions/workflows/ci.yml)
 
 :clipboard: https://studio.apollographql.com/graph/V1-Staging-8tuw9f/variant/current/home ( Apollo Graph )
-
-:clipboard: https://railway.app/project/18a37276-7b78-4adb-b6e4-91a6c4df89cf ( "staging" )
-
-:clipboard: https://railway.app/project/6ee0852c-c977-4984-af99-af6405c87bcc ( "prod" )
+:clipboard: [Digital Ocean Prod](https://cloud.digitalocean.com/apps/af524e26-a8fa-455d-8d35-327d98cf17d1/overview)
+:clipboard: [Digital Ocean Staging](https://cloud.digitalocean.com/apps/66de8d03-ab4b-4037-862c-567f7dec7bc3/overview)
 
 # Quickstart
 
