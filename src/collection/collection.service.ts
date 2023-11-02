@@ -1413,7 +1413,7 @@ export class CollectionService {
             endId: parseInt(collectionMetadata.totalSupply),
             currentId: parseInt(collectionMetadata.totalSupply),
             tokenAddress: collectionMetadata.address,
-            price: collectionMetadata.openSea?.floorPrice.toString(),
+            price: collectionMetadata.openSea?.floorPrice?.toString() || '0',
             paymentToken: ethers.ZeroAddress,
             collectionId,
         });
