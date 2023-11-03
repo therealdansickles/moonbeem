@@ -38,6 +38,18 @@ export class MaasService {
         return this._invoke(payload);
     }
 
+    async handleImageUpdate({ collectionId, tokenId }) {
+        const payload: AxiosRequestConfig = {
+            url: '/metadata-image-update/webhook',
+            method: 'POST',
+            data: {
+                collectionId,
+                tokenId,
+            },
+        };
+        return this._invoke(payload);
+    }
+
     private async _invoke(payload: AxiosRequestConfig) {
         const baseURL = await this.configService.get<string>('MAAS_DOMAIN');
         payload.baseURL = baseURL;

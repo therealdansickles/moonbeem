@@ -20,6 +20,10 @@ export class MaasResolver {
                 await this.maasService.handleAdGated({ collectionId: input.collectionId, address: input.address.toLowerCase() });
                 break;
             }
+            case 'metadata-image-update': {
+                await this.maasService.handleImageUpdate({ collectionId: input.collectionId, tokenId: input.tokenId });
+                break;
+            }
             default: {
                 console.log(`We don't have external webhook for ${input.name}`);
             }

@@ -15,4 +15,8 @@ export class MaasExternalWebhookInput {
     @IsString()
     @Field({ description: 'The wallet address need to be checked.', nullable: true })
     readonly address?: string;
+
+    @IsString()
+    @Field({ description: 'The tokenId need to be checked.', nullable: true })
+    readonly tokenId?: string;
 }
