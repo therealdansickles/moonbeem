@@ -4,10 +4,10 @@ import { GraphQLJSONObject } from 'graphql-type-json';
 import { Field, InputType, ObjectType, PickType } from '@nestjs/graphql';
 
 import { Collection } from '../collection/collection.dto';
-import { Metadata, MetadataProperties } from '../metadata/metadata.dto';
-import { Tier } from '../tier/tier.dto';
 import { InstalledPluginInfo } from '../collectionPlugin/collectionPlugin.dto';
+import { Metadata, MetadataProperties } from '../metadata/metadata.dto';
 import Paginated, { PaginationInput } from '../pagination/pagination.dto';
+import { Tier } from '../tier/tier.dto';
 
 @ObjectType('Nft')
 export class Nft {
@@ -39,7 +39,7 @@ export class Nft {
     public ownerAddress?: string;
 
     @IsString()
-    @Field({defaultValue: '', description: 'The erc6551 account address' })
+    @Field({ defaultValue: '', description: 'The erc6551 account address' })
     public account: string;
 
     @IsObject()
@@ -49,6 +49,11 @@ export class Nft {
     @IsObject()
     @Field(() => GraphQLJSONObject, { description: 'The full rendered metadata of the NFT', nullable: true })
     public metadata?: Metadata;
+
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'The image of the NFT.', nullable: true })
+    readonly image?: string;
 
     @IsObject()
     @IsOptional()
@@ -100,7 +105,7 @@ export class NftPropertyOverview {
 }
 
 @InputType()
-export class CreateOrUpdateNftInput extends PickType(Nft, ['tokenId', 'properties'] as const, InputType) {
+export class CreateOrUpdateNftInput extends PickType(Nft, ['tokenId', 'properties', 'image'] as const, InputType) {
     @IsString()
     @Field({ description: 'The collection of the NFT belongs to.' })
     readonly collectionId: string;
