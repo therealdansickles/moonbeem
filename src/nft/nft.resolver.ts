@@ -5,7 +5,15 @@ import { Args, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/g
 import { InstalledPluginInfo } from '../collectionPlugin/collectionPlugin.dto';
 import { CollectionPluginService } from '../collectionPlugin/collectionPlugin.service';
 import { Public } from '../session/session.decorator';
-import { CreateOrUpdateNftInput, GetNftsPaginatedInput, Nft, NftPaginated, NftPropertiesSearchInput, NftPropertyOverview } from './nft.dto';
+import {
+    CreateOrUpdateNftInput,
+    GetNftsPaginatedInput,
+    Nft,
+    NftPaginated,
+    NftPropertiesSearchInput,
+    NftPropertyOverview,
+    UpdateNftPropertiesInput
+} from './nft.dto';
 import { INftWithPropertyAndCollection, NftService } from './nft.service';
 
 @Resolver(() => Nft)
@@ -13,15 +21,16 @@ export class NftResolver {
     constructor(
         private readonly nftService: NftService,
         private readonly collectionPluginService: CollectionPluginService,
-    ) {}
+    ) {
+    }
 
     @Public()
     @Query(() => Nft, { description: 'Get a specific NFT by id.', nullable: true })
     async nft(
         @Args({ name: 'id', nullable: true }) id: string,
-            @Args({ name: 'collectionId', nullable: true }) collectionId: string,
-            @Args({ name: 'tierId', nullable: true }) tierId: string,
-            @Args({ name: 'tokenId', nullable: true, type: () => String }) tokenId: string,
+        @Args({ name: 'collectionId', nullable: true }) collectionId: string,
+        @Args({ name: 'tierId', nullable: true }) tierId: string,
+        @Args({ name: 'tokenId', nullable: true, type: () => String }) tokenId: string,
     ): Promise<Nft> {
         let query: any = { id, tokenId };
         query = omitBy(query, isNil);
@@ -34,20 +43,20 @@ export class NftResolver {
     @Query(() => [Nft], { description: 'Get some NFTs by query.', nullable: true })
     async nfts(
         @Args({ name: 'collectionId', nullable: true }) collectionId?: string,
-            @Args({ name: 'tierId', nullable: true }) tierId?: string,
-            @Args({ name: 'tokenIds', nullable: true, type: () => [String] }) tokenIds?: string[],
-            @Args({ name: 'ownerAddress', nullable: true }) ownerAddress?: string,
-            @Args({
-                name: 'properties',
-                nullable: true,
-                type: () => [NftPropertiesSearchInput],
-            })
+        @Args({ name: 'tierId', nullable: true }) tierId?: string,
+        @Args({ name: 'tokenIds', nullable: true, type: () => [String] }) tokenIds?: string[],
+        @Args({ name: 'ownerAddress', nullable: true }) ownerAddress?: string,
+        @Args({
+            name: 'properties',
+            nullable: true,
+            type: () => [NftPropertiesSearchInput],
+        })
             properties?: NftPropertiesSearchInput[],
-            @Args({
-                name: 'plugins',
-                nullable: true,
-                type: () => [String],
-            })
+        @Args({
+            name: 'plugins',
+            nullable: true,
+            type: () => [String],
+        })
             plugins?: string[],
     ): Promise<Nft[]> {
         let query: any = { ownerAddress, tokenIds, properties };
@@ -72,14 +81,16 @@ export class NftResolver {
 
     @Public()
     @Query(() => [Nft], { description: 'Get NFTs with specific property.', nullable: true })
-    async nftsByProperty(@Args({ name: 'collectionId' }) collectionId: string, @Args({ name: 'propertyName' }) propertyName: string): Promise<Nft[]> {
+    async nftsByProperty(@Args({ name: 'collectionId' }) collectionId: string, @Args(
+        { name: 'propertyName' }) propertyName: string): Promise<Nft[]> {
         const query: INftWithPropertyAndCollection = { collection: { id: collectionId }, propertyName };
         return await this.nftService.getNftByProperty(query);
     }
 
     @Public()
     @Query(() => NftPropertyOverview, { description: 'Returns the activity for collection' })
-    async nftPropertyOverview(@Args({ name: 'collectionId' }) collectionId: string, @Args({ name: 'propertyName' }) propertyName: string) {
+    async nftPropertyOverview(@Args({ name: 'collectionId' }) collectionId: string, @Args(
+        { name: 'propertyName' }) propertyName: string) {
         const query: INftWithPropertyAndCollection = { collection: { id: collectionId }, propertyName };
         return await this.nftService.getOverviewByCollectionAndProperty(query);
     }
@@ -88,6 +99,12 @@ export class NftResolver {
     @Mutation(() => Nft, { description: 'Mutate a NFT for the given data.' })
     async createOrUpdateNft(@Args('input') input: CreateOrUpdateNftInput): Promise<Nft> {
         return await this.nftService.createOrUpdateNftByTokenId(input);
+    }
+
+    @Public()
+    @Mutation(() => Nft, { description: 'Mutate a NFT properties.' })
+    async updateNftProperties(@Args('input') input: UpdateNftPropertiesInput): Promise<Nft> {
+        return this.nftService.updateNftProperties(input);
     }
 
     @ResolveField(() => [InstalledPluginInfo], { description: 'The installed plugin info' })

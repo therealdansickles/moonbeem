@@ -36,10 +36,13 @@ import { Wallet } from '../wallet/wallet.entity';
 import { Nft } from './nft.entity';
 import { NftResolver } from './nft.resolver';
 import { NftService } from './nft.service';
+import { MaasService } from '../maas/maas.service';
+import { MaasModule } from '../maas/maas.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Nft, Tier, Collection, PluginEntity, CollectionPlugin, Redeem, MerkleTree, Wallet, AlchemyWebhook]),
+        TypeOrmModule.forFeature(
+            [Nft, Tier, Collection, PluginEntity, CollectionPlugin, Redeem, MerkleTree, Wallet, AlchemyWebhook]),
         TypeOrmModule.forFeature([Asset721, Coin, MintSaleContract, MintSaleTransaction], 'sync_chain'),
         forwardRef(() => Asset721Module),
         forwardRef(() => PluginModule),
@@ -52,6 +55,7 @@ import { NftService } from './nft.service';
         forwardRef(() => RedeemModule),
         forwardRef(() => AlchemyModule),
         forwardRef(() => MintSaleContractModule),
+        forwardRef(() => MaasModule),
         HttpModule,
         ConfigModule,
     ],
@@ -66,6 +70,8 @@ import { NftService } from './nft.service';
         RedeemService,
         TierService,
         AlchemyService,
+        MaasService,
     ],
 })
-export class NftModule {}
+export class NftModule {
+}

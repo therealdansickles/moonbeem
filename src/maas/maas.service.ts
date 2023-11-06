@@ -10,7 +10,8 @@ export class MaasService {
     constructor(
         private readonly configService: ConfigService,
         private readonly httpService: HttpService,
-    ) {}
+    ) {
+    }
 
     async handleLoyaltyPointsTransfer({ collectionId, tokenId, metadata }) {
         const payload: AxiosRequestConfig = {
@@ -33,6 +34,19 @@ export class MaasService {
             data: {
                 collectionId,
                 address,
+            },
+        };
+        return this._invoke(payload);
+    }
+
+    async updateNftProperties({ collectionId, tokenId, updates }) {
+        const payload: AxiosRequestConfig = {
+            url: '/editable-attributes/webhook',
+            method: 'POST',
+            data: {
+                collectionId,
+                tokenId,
+                updates,
             },
         };
         return this._invoke(payload);

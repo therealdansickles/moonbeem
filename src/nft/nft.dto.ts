@@ -39,7 +39,7 @@ export class Nft {
     public ownerAddress?: string;
 
     @IsString()
-    @Field({defaultValue: '', description: 'The erc6551 account address' })
+    @Field({ defaultValue: '', description: 'The erc6551 account address' })
     public account: string;
 
     @IsObject()
@@ -57,7 +57,8 @@ export class Nft {
 }
 
 @ObjectType('NftPaginated')
-export class NftPaginated extends Paginated(Nft) {}
+export class NftPaginated extends Paginated(Nft) {
+}
 
 @InputType('NftPropertiesSearchInput')
 export class NftPropertiesSearchInput {
@@ -146,4 +147,20 @@ export class GetNftsPaginatedInput {
     @IsOptional()
     @Field(() => PaginationInput, { description: 'The pagination of the NFT to search.', nullable: true })
     readonly pagination?: PaginationInput;
+}
+
+@InputType()
+export class UpdateNftPropertiesInput {
+
+    @IsString()
+    @Field({ description: 'The collectionId of the NFT to update.' })
+    readonly collectionId: string;
+
+    @IsString()
+    @Field({ description: 'The tokenId of the NFT to update.' })
+    readonly tokenId: string;
+
+    @IsArray()
+    @Field(() => [GraphQLJSONObject], { description: 'The properties of the NFT to update.' })
+    readonly updates: object[];
 }
