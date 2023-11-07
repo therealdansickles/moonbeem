@@ -14,7 +14,8 @@ export class SessionService {
         private readonly walletService: WalletService,
         private readonly jwtService: JwtService,
         private readonly membershipService: MembershipService,
-    ) {}
+    ) {
+    }
 
     /**
      * Create a session for a wallet.
@@ -55,6 +56,8 @@ export class SessionService {
 
     async createUserSession(user: User): Promise<Session | null> {
         const memberships = await this.membershipService.getMembershipsByUserId(user.id);
+        const wallets = await this.walletService.getWalletsByOwner(user.id);
+        const wallet = wallets[0];
         const organizationRoles = memberships.map((membership) => {
             const organizationId = membership.organization.id;
             const role = membership.role;
@@ -63,6 +66,7 @@ export class SessionService {
         const token = await this.jwtService.signAsync({
             userId: user.id,
             organizationRoles: organizationRoles,
+            walletAddress: wallet?.address,
         });
         return { token, user };
     }

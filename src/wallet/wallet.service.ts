@@ -54,7 +54,8 @@ export class WalletService {
         private coinService: CoinService,
         private collectionService: CollectionService,
         private collectionPluginService: CollectionPluginService,
-    ) {}
+    ) {
+    }
 
     /**
      * This is the uuid for the ownerId for all unbound wallets, e.g the blackhole.
@@ -97,6 +98,10 @@ export class WalletService {
         if (isEmpty(query)) return null;
         if (query.address) query.address = query.address.toLowerCase();
         return this.walletRepository.findOne({ where: query, relations: ['owner'] });
+    }
+
+    async getWalletsByOwner(ownerId: string): Promise<Wallet[]> {
+        return this.walletRepository.findBy({ owner: { id: ownerId } });
     }
 
     /**
@@ -195,7 +200,8 @@ export class WalletService {
         const wallet = await this.findOrCreateWallet(address);
 
         if (wallet.owner?.id)
-            throw new Error(`The wallet at ${address} is already connected to an existing account. Please connect another wallet to this account.`);
+            throw new Error(
+                `The wallet at ${address} is already connected to an existing account. Please connect another wallet to this account.`);
 
         await this.updateWallet(wallet.id, { ...omit(wallet, 'owner'), ownerId: owner.id });
         return this.walletRepository.findOne({
@@ -360,8 +366,10 @@ export class WalletService {
 
                 let pluginsInstalled = [];
                 if (tier && tier.collection && tier.collection.id) {
-                    tier.collection = (await this.collectionService.getCollectionByQuery({ id: tier.collection.id })) as Collection;
-                    pluginsInstalled = await this.collectionPluginService.getTokenInstalledPlugins(tier.collection.id, tokenId);
+                    tier.collection = (await this.collectionService.getCollectionByQuery(
+                        { id: tier.collection.id })) as Collection;
+                    pluginsInstalled = await this.collectionPluginService.getTokenInstalledPlugins(
+                        tier.collection.id, tokenId);
                 }
 
                 return { ...mintSaleTransaction, tier, pluginsInstalled, ownerAddress: address };
