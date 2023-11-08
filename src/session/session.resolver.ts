@@ -15,7 +15,8 @@ export class SessionResolver {
         private readonly walletService: WalletService,
         private readonly userService: UserService,
         private readonly sessionService: SessionService,
-    ) {}
+    ) {
+    }
 
     @Public()
     @Mutation(() => Session, { description: 'Create a session.', nullable: true })
@@ -33,7 +34,8 @@ export class SessionResolver {
                 passwordPayload.hashedPassword = wallet.owner.password;
             } else {
                 const hashedWalletAddress = createHash('SHA3-256').update(wallet.address).digest('hex');
-                const generatedPassword = createHash('SHA3-256').update(wallet.address).update(generateRandomString(10)).digest('hex');
+                const generatedPassword = createHash('SHA3-256').update(wallet.address).update(
+                    generateRandomString(10)).digest('hex');
                 const user = await this.userService.createUserWithOrganization({
                     username: hashedWalletAddress,
                     email: `${hashedWalletAddress}@no-reply.vibe.xyz`,
@@ -44,7 +46,7 @@ export class SessionResolver {
                 passwordPayload.password = generatedPassword;
             }
 
-            const session = await this.sessionService.createSessionFromEmail(email, passwordPayload);
+            const session = await this.sessionService.createSessionFromEmail(email, passwordPayload, address);
             return { wallet, ...session };
         }
         return this.sessionService.createSession(address, message, signature);
