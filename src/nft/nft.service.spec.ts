@@ -1738,7 +1738,7 @@ describe('NftService', () => {
             const result = await nftService.renderMetadata(nftInfo);
             const renderedProperties = result.metadata.properties;
             expect(renderedProperties['level'].value).toEqual('1');
-            expect(renderedProperties['holding_days'].value).toEqual('10');
+            expect(renderedProperties['holding_days'].value).toEqual(10);
         });
 
         it('should render as \'0\' if there\'s some properties not provided', async () => {
@@ -1787,7 +1787,7 @@ describe('NftService', () => {
                             type: 'integer',
                             value: '{{holding_months}}',
                             display_value: 'Months of holding',
-                        },
+                        }
                     },
                 },
             });
@@ -1809,6 +1809,84 @@ describe('NftService', () => {
             const result = await nftService.renderMetadata(nftInfo);
             const renderedProperties = result.metadata.properties;
             expect(renderedProperties['holding_months'].value).toEqual('0');
+        });
+
+        it('should merge the nft properties with the tier properties right', async () => {
+            await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                creator: { id: wallet.id },
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '100',
+                tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: '{{level}}',
+                            display_value: 'Basic',
+                        },
+                        plugin_property: {
+                            name: 'plugin_property',
+                            type: 'integer',
+                            value: 0,
+                            display_value: 'Plugin property',
+                        },
+                    },
+                },
+            });
+
+            const tokenId = faker.string.numeric({ length: 1, allowLeadingZeros: false });
+
+            const nft = await nftService.createOrUpdateNftByTokenId({
+                collectionId: collection.id,
+                tierId: tier.id,
+                tokenId,
+                properties: {
+                    level: { value: '1' },
+                    extra_property: {
+                        name: 'extra_property',
+                        type: 'integer',
+                        value: 30,
+                        display_value: 'Extra Property',
+                    },
+                    plugin_property: {
+                        name: 'plugin_property',
+                        type: 'integer',
+                        value: 20,
+                        display_value: 'Plugin property',
+                    },
+                },
+            });
+
+            const nftInfo = await nftRepository.findOne({ where: { id: nft.id }, relations: ['tier'] });
+
+            const result = await nftService.renderMetadata(nftInfo);
+            const renderedProperties = result.metadata.properties;
+            // should use the nft's property if it's not in the tier's properties
+            expect(renderedProperties['extra_property'].value).toEqual(30);
+            // should use the nft's property and override the tier's property
+            expect(renderedProperties['plugin_property'].value).toEqual(20);
         });
 
         it('should won\'t throw an error if the tier\'s metadata is not in Mustache format', async () => {
@@ -1873,7 +1951,7 @@ describe('NftService', () => {
             const result = await nftService.renderMetadata(nftInfo);
             const renderedProperties = result.metadata.properties;
             expect(renderedProperties['level'].value).toEqual('1');
-            expect(renderedProperties['holding_days'].value).toEqual('10');
+            expect(renderedProperties['holding_days'].value).toEqual(10);
         });
 
         it('should render `name` as expected', async () => {
@@ -1946,7 +2024,7 @@ describe('NftService', () => {
             const renderedProperties = result.metadata.properties;
             expect(renderedProperties['level'].value).toEqual('1');
             expect(renderedProperties['level'].name).toEqual('real_level_name');
-            expect(renderedProperties['holding_days'].value).toEqual('10');
+            expect(renderedProperties['holding_days'].value).toEqual(10);
             expect(renderedProperties['holding_days'].name).toEqual('holding_days');
         });
 

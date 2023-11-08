@@ -1,5 +1,5 @@
 import { Network } from 'alchemy-sdk';
-import { intersection, isEmpty, isNil } from 'lodash';
+import { intersection, isEmpty, isNil, merge } from 'lodash';
 import { render } from 'mustache';
 import { In, Repository } from 'typeorm';
 import { v4 } from 'uuid';
@@ -105,27 +105,31 @@ export class NftService {
      * @param tier
      */
     renderMetadata(nft: Nft): NftDto {
-        const result: NftDto = Object.assign({}, nft);
+        const result: NftDto = merge({}, nft);
         if (nft?.properties && nft?.tier?.metadata) {
-            const properties = Object.keys(nft.properties).reduce((accu, key) => {
-                accu[key] = nft.properties[key]?.value;
+            const nftProperties = nft.properties;
+            const properties = Object.keys(nftProperties).reduce((accu, key) => {
+                accu[key] = nftProperties[key]?.value;
                 return accu;
             }, {});
             const alias = nft.tier.metadata.configs?.alias || {};
-            const allValues = Object.assign(alias, properties);
-            const metadata = JSON.parse(render(JSON.stringify(nft.tier.metadata), allValues));
+            const allValues = merge(alias, properties);
+            // merge the properties from tier and nft
+            const mergedMetadata = merge({}, nft.tier.metadata, { properties: nftProperties });
+            const metadata = JSON.parse(render(JSON.stringify(mergedMetadata), allValues));
             // if some property.name is empty, then use the key as default
             for (const key in (metadata as Metadata).properties) {
                 if (metadata.properties[key].name === '') metadata.properties[key].name = key;
             }
+
             // attach image on metadata with the priority below
             // 1. NFT's own image property
             // 2. `image` attribute on tier
             // 3. none
             if (nft.image) {
                 metadata.image = nft.image;
-            } else if (nft.properties.image && nft.properties.image.value) {
-                metadata.image = nft.properties.image.value;
+            } else if (nftProperties.image && nftProperties.image.value) {
+                metadata.image = nftProperties.image.value;
             } else if (nft.tier?.image) {
                 metadata.image = nft.tier.image;
             }
