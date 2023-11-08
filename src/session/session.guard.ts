@@ -34,7 +34,8 @@ const extractToken = (request) => {
 
 @Injectable()
 export class SigninByWalletGuard implements CanActivate {
-    constructor(private reflector: Reflector, private readonly jwtService: JwtService, private readonly walletService: WalletService) {}
+    constructor(private reflector: Reflector, private readonly jwtService: JwtService, private readonly walletService: WalletService) {
+    }
 
     /**
      * Checks if the user is authenticated via the JWT token that was given to them.
@@ -91,11 +92,13 @@ export class SigninByWalletGuard implements CanActivate {
 //          See: https://docs.nestjs.com/faq/request-lifecycle
 //      3. Cleanup the code to remove the duplicated code used in other Guards
 @Injectable()
-export class SessionGuard extends SigninByWalletGuard {}
+export class SessionGuard extends SigninByWalletGuard {
+}
 
 @Injectable()
 export class SigninByEmailGuard implements CanActivate {
-    constructor(private reflector: Reflector, private readonly jwtService: JwtService, private readonly userService: UserService) {}
+    constructor(private reflector: Reflector, private readonly jwtService: JwtService, private readonly userService: UserService) {
+    }
 
     /**
      * Checks if the user is authenticated via the JWT token that was given to them.
@@ -147,32 +150,35 @@ export class SigninByEmailGuard implements CanActivate {
 
 @Injectable()
 export class AuthorizedWalletGuard implements CanActivate {
-    constructor(private readonly reflector: Reflector, private readonly jwtService: JwtService) {}
+    constructor(private readonly reflector: Reflector, private readonly jwtService: JwtService, private readonly walletService: WalletService) {
+    }
 
-    canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+    async canActivate(context: ExecutionContext): Promise<boolean> {
         const walletParameter = this.reflector.get<string>(WALLET_PARAMETER, context.getHandler());
         if (!walletParameter) return false;
 
+
         const ctx = GqlExecutionContext.create(context);
         const request: IGraphQLRequest = ctx.getContext().req;
-        const walletIdFromParameter = get(request.body.variables?.input, walletParameter);
-        const walletIdFromToken = this.getWalletIdFromToken(request);
+        const walletAddressFromToken = this.getWalletAddressFromToken(request);
 
-        if (!walletIdFromParameter || !walletIdFromToken) return false;
-        return walletIdFromParameter === walletIdFromToken;
+        const walletIdFromParameter = get(request.body.variables?.input, walletParameter);
+        const walletAddress = await this.walletService.getWallet(walletIdFromParameter).then(wallet => wallet.address);
+        return walletAddressFromToken && walletAddress && walletAddressFromToken === walletAddress;
     }
 
-    getWalletIdFromToken(request): string | undefined {
+    getWalletAddressFromToken(request): string | undefined {
         const [type, token] = request.headers.authorization?.split(' ') ?? [];
         if (type !== 'Bearer') return;
         const payload = this.jwtService.verify(token, { secret: process.env.SESSION_SECRET });
-        return payload.walletId;
+        return payload.walletAddress;
     }
 }
 
 @Injectable()
 export class AuthorizedWalletAddressGuard implements CanActivate {
-    constructor(private readonly reflector: Reflector, private readonly jwtService: JwtService) {}
+    constructor(private readonly reflector: Reflector, private readonly jwtService: JwtService) {
+    }
 
     canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
         const walletParameter = this.reflector.get<string>(WALLET_ADDRESS_PARAMETER, context.getHandler());
@@ -197,7 +203,8 @@ export class AuthorizedWalletAddressGuard implements CanActivate {
 
 @Injectable()
 export class AuthorizedUserGuard implements CanActivate {
-    constructor(private readonly reflector: Reflector, private readonly jwtService: JwtService) {}
+    constructor(private readonly reflector: Reflector, private readonly jwtService: JwtService) {
+    }
 
     canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
         const userParameter = this.reflector.get<string>(USER_PARAMETER, context.getHandler());
@@ -206,7 +213,8 @@ export class AuthorizedUserGuard implements CanActivate {
         const ctx = GqlExecutionContext.create(context);
         const request: IGraphQLRequest = ctx.getContext().req;
         const userIdFromParameter = get(request.body.variables?.input, userParameter);
-        const userIdFromToken = getUserIdFromToken(request.headers.authorization, this.jwtService, process.env.SESSION_SECRET);
+        const userIdFromToken = getUserIdFromToken(
+            request.headers.authorization, this.jwtService, process.env.SESSION_SECRET);
         if (!userIdFromParameter || !userIdFromToken) return false;
         return userIdFromParameter === userIdFromToken;
     }
@@ -231,7 +239,8 @@ export class AuthorizedCollectionOwnerGuard implements CanActivate {
         private readonly reflector: Reflector,
         private readonly jwtService: JwtService,
         private readonly collectionService: CollectionService
-    ) {}
+    ) {
+    }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const collectionIdParameter = this.reflector.get<string>(COLLECTION_ID_PARAMETER, context.getHandler());
@@ -263,7 +272,8 @@ export class AuthorizedTokenGuard implements CanActivate {
         private readonly collectionService: CollectionService,
         private readonly asset721Service: Asset721Service,
         private readonly mintSaleContractService: MintSaleContractService
-    ) {}
+    ) {
+    }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const tokenIdParameter = this.reflector.get<string>(TOKEN_ID_PARAMETER, context.getHandler());
@@ -283,7 +293,8 @@ export class AuthorizedTokenGuard implements CanActivate {
         const mintSaleContract = await this.mintSaleContractService.getMintSaleContractByCollection(collection.id);
         if (!mintSaleContract) return false;
 
-        const asset = await this.asset721Service.getAsset721({ tokenId: tokenIdFromParameter.toString(), address: mintSaleContract.tokenAddress });
+        const asset = await this.asset721Service.getAsset721(
+            { tokenId: tokenIdFromParameter.toString(), address: mintSaleContract.tokenAddress });
         return asset && asset?.owner?.toLowerCase() === ownerAddress.toLowerCase();
     }
 }
@@ -294,7 +305,8 @@ export class AuthorizedOrganizationGuard implements CanActivate {
         private readonly reflector: Reflector,
         private readonly jwtService: JwtService,
         private readonly membershipService: MembershipService
-    ) {}
+    ) {
+    }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const organizationIdParameter = this.reflector.get<string>(ORGANIZATION_ID_PARAMETER, context.getHandler());
@@ -303,10 +315,12 @@ export class AuthorizedOrganizationGuard implements CanActivate {
         const ctx = GqlExecutionContext.create(context);
         const request: IGraphQLRequest = ctx.getContext().req;
         const organizationIdFromParameter = get(request.body.variables?.input, organizationIdParameter);
-        const userIdFromToken = getUserIdFromToken(request.headers.authorization, this.jwtService, process.env.SESSION_SECRET);
+        const userIdFromToken = getUserIdFromToken(
+            request.headers.authorization, this.jwtService, process.env.SESSION_SECRET);
         if (!userIdFromToken) return false;
 
-        return await this.membershipService.checkMembershipByOrganizationIdAndUserId(organizationIdFromParameter, userIdFromToken);
+        return await this.membershipService.checkMembershipByOrganizationIdAndUserId(
+            organizationIdFromParameter, userIdFromToken);
     }
 }
 
@@ -317,7 +331,8 @@ export class AuthorizedCollectionViewerGuard implements CanActivate {
         private readonly jwtService: JwtService,
         private readonly collectionService: CollectionService,
         private readonly membershipService: MembershipService
-    ) {}
+    ) {
+    }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const ctx = GqlExecutionContext.create(context);
@@ -342,7 +357,8 @@ export class AuthorizedCollectionViewerGuard implements CanActivate {
 
 @Injectable()
 export class VibeEmailGuard implements CanActivate {
-    constructor(private reflector: Reflector, private readonly jwtService: JwtService, private readonly userService: UserService) {}
+    constructor(private reflector: Reflector, private readonly jwtService: JwtService, private readonly userService: UserService) {
+    }
 
     /**
      * Checks if the user is authenticated via the JWT token that registered with vibe email.
@@ -359,7 +375,8 @@ export class VibeEmailGuard implements CanActivate {
         if (isPublic) return true;
 
         try {
-            const userId = getUserIdFromToken(request.headers.authorization, this.jwtService, process.env.SESSION_SECRET);
+            const userId = getUserIdFromToken(
+                request.headers.authorization, this.jwtService, process.env.SESSION_SECRET);
             const user = await this.userService.getUserByQuery({ id: userId });
             request.user = user;
             request.userId = userId;
@@ -387,7 +404,8 @@ export class VibeEmailGuard implements CanActivate {
 //      3. Get the decorator's parameter and compare with the Session's roles
 @Injectable()
 export class OrganizationProtectionGuard implements CanActivate {
-    constructor(private readonly membershipService: MembershipService) {}
+    constructor(private readonly membershipService: MembershipService) {
+    }
 
     /**
      * Checks if the user is authenticated via the JWT token that registered with vibe email.
