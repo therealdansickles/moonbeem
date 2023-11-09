@@ -1,16 +1,22 @@
-import { Query, Resolver } from '@nestjs/graphql';
+import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { AnalyticsService } from './analytics.service';
-import { PlatformStats } from './analytics.dto';
-import { VibeEmailGuard } from '../session/session.guard';
-import { UseGuards } from '@nestjs/common';
+import { PlatformData, PlatformStats } from './analytics.dto';
+import { Public } from '../session/session.decorator';
+
 
 @Resolver(() => PlatformStats)
 export class AnalyticsResolver {
-    constructor(private readonly analyticsService: AnalyticsService) {}
+    constructor(private readonly analyticsService: AnalyticsService) {
+    }
 
-    @UseGuards(VibeEmailGuard)
+    @Public()
     @Query(() => PlatformStats)
     async analytics(): Promise<PlatformStats> {
         return this.analyticsService.getPlatformStats();
+    }
+
+    @ResolveField(() => PlatformData, { description: 'Get platform data.' })
+    async platformData(): Promise<PlatformData> {
+        return this.analyticsService.getPlatformData();
     }
 }
