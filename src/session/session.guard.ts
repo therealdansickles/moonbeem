@@ -164,7 +164,7 @@ export class AuthorizedWalletGuard implements CanActivate {
 
         const walletIdFromParameter = get(request.body.variables?.input, walletParameter);
         const walletAddress = await this.walletService.getWallet(walletIdFromParameter).then(wallet => wallet.address);
-        return walletAddressFromToken && walletAddress && walletAddressFromToken === walletAddress;
+        return walletAddressFromToken && walletAddress && walletAddressFromToken.toLowerCase() === walletAddress.toLowerCase();
     }
 
     getWalletAddressFromToken(request): string | undefined {
