@@ -691,7 +691,6 @@ export class CollectionService {
             .createQueryBuilder('contract')
             .distinctOn(['contract.address'])
             .where(inWhere);
-        console.log(builder.getSql());
         const [contracts, totalResult] = await Promise.all([
             builder
                 .offset(offset)
