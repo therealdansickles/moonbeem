@@ -1187,7 +1187,7 @@ describe('UserService', () => {
             });
 
             const collection = await collectionService.createCollection({
-                name: faker.company.name(),
+                name: faker.string.sample(12),
                 displayName: 'The best collection',
                 about: 'The best collection ever',
                 address: faker.finance.ethereumAddress(),
@@ -1468,6 +1468,50 @@ describe('UserService', () => {
             });
 
             expect(updatedInvitee.usedPluginInviteCode).toEqual(inviteCode);
+        });
+    });
+
+    describe('generatePluginInviteCodes', function () {
+        it('should generate new codes', async () => {
+            const inviteCode1 = faker.string.sample(7);
+            const inviteCode2 = faker.string.sample(8);
+            const inviter = await service.createUser({
+                email: faker.internet.email().toLowerCase(),
+                password: 'password',
+                pluginInviteCodes: [inviteCode1, inviteCode2],
+            });
+            const count = faker.number.int({ min: 1, max: 10 });
+            const updatedInviter = await service.generatePluginInviteCodes(inviter, count);
+
+            expect(updatedInviter.pluginInviteCodes).toBeTruthy();
+            expect(updatedInviter.pluginInviteCodes.length).toEqual(2 + count);
+        });
+
+        it('should throw an error if given count is negative', async () => {
+            const inviter = await service.createUser({
+                email: faker.internet.email().toLowerCase(),
+                password: 'password',
+                pluginInviteCodes: [],
+            });
+            const count = faker.number.int({ min: -10, max: -1 });
+            await expect(async () => await service.generatePluginInviteCodes(inviter, count)).rejects.toThrow(`count must be positive`);
+        });
+
+        it('should generate a integer count invitation code if the given count is in float type', async () => {
+            const inviteCode1 = faker.string.sample(7);
+            const inviteCode2 = faker.string.sample(8);
+            const inviter = await service.createUser({
+                email: faker.internet.email().toLowerCase(),
+                password: 'password',
+                pluginInviteCodes: [inviteCode1, inviteCode2],
+            });
+            const count = faker.number.float({ min: 1, max: 10 });
+            const realCount = Math.floor(count);
+            const updatedInviter = await service.generatePluginInviteCodes(inviter, count);
+
+            expect(Math.floor(count)).toBeLessThan(count);
+            expect(updatedInviter.pluginInviteCodes).toBeTruthy();
+            expect(updatedInviter.pluginInviteCodes.length).toEqual(2 + realCount);
         });
     });
 });

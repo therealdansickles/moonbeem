@@ -21,7 +21,8 @@ export class PluginService {
     constructor(
         @InjectRepository(Plugin) private readonly pluginRepository: Repository<Plugin>,
         private tierService: TierService,
-    ) {}
+    ) {
+    }
 
     /**
      * Retrieve all plugins
@@ -93,7 +94,7 @@ export class PluginService {
         const renderedPluginProperties = JSON.parse(
             render(JSON.stringify(plugin.metadata?.properties || {}), { id: installedPluginId }, {}, ['[[', ']]']),
         );
-        const properties = merge(renderedPluginProperties, existedProperties);
+        const properties = merge(renderedPluginProperties, existedProperties, customizedMetadataParameters?.properties);
 
         // generate configs & merge configs
         // `existedConfigs`: the existed config on the tier
@@ -115,7 +116,8 @@ export class PluginService {
         // `plugin.metadata.conditions`: the conditions data come from new installed plugin
         // `conditions`: the existed condition on the tier
         // `customizedMetadataParameters.conditions`: the customized conditions parameter by end user
-        const conditions = merge(plugin.metadata?.conditions || {}, existedConditions, customizedMetadataParameters?.conditions);
+        const conditions = merge(
+            plugin.metadata?.conditions || {}, existedConditions, customizedMetadataParameters?.conditions);
 
         const metadataPayload = {
             // add plugin name on uses

@@ -28,6 +28,9 @@ export class Asset721 extends BaseEntity {
     @Column({ default: 1, comment: 'The chain id for the transaction.' })
     readonly chainId?: number;
 
+    @Column({ default: '', comment: 'The Erc6551 account.' })
+    readonly account: string;
+
     @CreateDateColumn({
         precision: 3
     })

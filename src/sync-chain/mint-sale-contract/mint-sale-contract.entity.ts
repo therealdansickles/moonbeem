@@ -75,6 +75,9 @@ export class MintSaleContract extends BaseEntity {
     @Column({ default: 1, comment: 'The chain id for the MintSale.' })
     readonly chainId?: number;
 
+    @Column({ default: false, comment: 'Support for erc6551 account' })
+    readonly accountSupported: boolean;
+
     @CreateDateColumn({
         precision: 3
     })

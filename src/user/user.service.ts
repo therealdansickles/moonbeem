@@ -531,4 +531,15 @@ export class UserService {
             });
         }
     }
+
+    async generatePluginInviteCodes(user: User, count: number) {
+        count = Math.floor(count);
+        if (count < 1) throw new Error(`count must be positive`);
+        const codes = generatePluginInviteCodes(count, 20);
+        const allCodes = user.pluginInviteCodes.concat(codes);
+        return this.userRepository.save({
+            ...user,
+            pluginInviteCodes: allCodes,
+        });
+    }
 }

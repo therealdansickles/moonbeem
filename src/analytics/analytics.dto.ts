@@ -55,8 +55,4 @@ export class PlatformStats {
     @IsObject()
     @Field(() => PlatformTotalCounts)
     readonly totalCounts: PlatformTotalCounts;
-
-    @IsObject()
-    @Field(() => PlatformData)
-    readonly platformData: PlatformData;
 }

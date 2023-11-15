@@ -79,9 +79,11 @@ describe('UserResolver', () => {
             `;
 
             const variables = { id: basicUser.id };
+            const token = await getToken(app, basicUser.email);
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -336,11 +338,14 @@ describe('UserResolver', () => {
         let owner: User;
         let collection: Collection;
         let coin: Coin;
+        let token: string;
         beforeEach(async () => {
             owner = await service.createUser({
                 email: faker.internet.email(),
                 password: 'password',
             });
+            token = await getToken(app, owner.email);
+
             const wallet = await walletService.createWallet({
                 address: faker.finance.ethereumAddress(),
                 ownerId: owner.id,
@@ -401,6 +406,7 @@ describe('UserResolver', () => {
             };
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -454,6 +460,7 @@ describe('UserResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -512,6 +519,7 @@ describe('UserResolver', () => {
                 };
                 return await request(app.getHttpServer())
                     .post('/graphql')
+                    .auth(token, { type: 'bearer' })
                     .send({ query, variables })
                     .expect(200)
                     .expect(({ body }) => {
@@ -527,6 +535,7 @@ describe('UserResolver', () => {
                 email: faker.internet.email(),
                 password: 'password',
             });
+            const token = await getToken(app, owner.email);
             const wallet = await walletService.createWallet({
                 address: faker.finance.ethereumAddress(),
                 ownerId: owner.id,
@@ -601,6 +610,7 @@ describe('UserResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -615,6 +625,7 @@ describe('UserResolver', () => {
                 email: faker.internet.email(),
                 password: 'password',
             });
+            const token = await getToken(app, owner.email);
             const wallet = await walletService.createWallet({
                 address: faker.finance.ethereumAddress(),
                 ownerId: owner.id,
@@ -689,6 +700,7 @@ describe('UserResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -703,6 +715,7 @@ describe('UserResolver', () => {
                 email: faker.internet.email(),
                 password: 'password',
             });
+            const token = await getToken(app, owner.email);
             const wallet = await walletService.createWallet({
                 address: faker.finance.ethereumAddress(),
                 ownerId: owner.id,
@@ -830,6 +843,7 @@ describe('UserResolver', () => {
 
             return await request(app.getHttpServer())
                 .post('/graphql')
+                .auth(token, { type: 'bearer' })
                 .send({ query, variables })
                 .expect(200)
                 .expect(({ body }) => {
@@ -1011,6 +1025,44 @@ describe('UserResolver', () => {
                     expect(user.id).toEqual(invitee.id);
                     expect(user.pluginInvited).toBeTruthy();
                     expect(user.pluginInviteCodes).toHaveLength(3);
+                });
+        });
+    });
+
+    describe('generatePluginInvitationCodes', function () {
+        it('should generate new plugin invitation', async () => {
+            const inviteCode = faker.string.sample(7);
+            const inviter = await service.createUser({
+                email: faker.internet.email().toLowerCase(),
+                password: 'password',
+                pluginInviteCodes: [inviteCode],
+            });
+
+            const count = faker.number.int({ min: 1, max: 10 });
+            const token = await getToken(app, inviter.email);
+            const variables = {
+                count,
+            };
+
+            const query = gql`
+                mutation GeneratePluginInvitationCodes($count: Int!) {
+                    generatePluginInvitationCodes(count: $count) {
+                        id
+                        pluginInviteCodes
+                    }
+                }
+            `;
+
+            return await request(app.getHttpServer())
+                .post('/graphql')
+                .auth(token, { type: 'bearer' })
+                .send({ query, variables })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data.generatePluginInvitationCodes).toBeDefined();
+                    expect(body.data.generatePluginInvitationCodes.id).toEqual(inviter.id);
+                    expect(body.data.generatePluginInvitationCodes.pluginInviteCodes).toBeTruthy();
+                    expect(body.data.generatePluginInvitationCodes.pluginInviteCodes).toHaveLength(1 + count);
                 });
         });
     });

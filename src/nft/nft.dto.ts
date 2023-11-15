@@ -4,10 +4,10 @@ import { GraphQLJSONObject } from 'graphql-type-json';
 import { Field, InputType, ObjectType, PickType } from '@nestjs/graphql';
 
 import { Collection } from '../collection/collection.dto';
-import { Metadata, MetadataProperties } from '../metadata/metadata.dto';
-import { Tier } from '../tier/tier.dto';
 import { InstalledPluginInfo } from '../collectionPlugin/collectionPlugin.dto';
+import { Metadata, MetadataProperties } from '../metadata/metadata.dto';
 import Paginated, { PaginationInput } from '../pagination/pagination.dto';
+import { Tier } from '../tier/tier.dto';
 
 @ObjectType('Nft')
 export class Nft {
@@ -38,6 +38,10 @@ export class Nft {
     @Field({ nullable: true, description: 'The ownerAddress of the NFT.' })
     public ownerAddress?: string;
 
+    @IsString()
+    @Field({ defaultValue: '', description: 'The erc6551 account address' })
+    public account: string;
+
     @IsObject()
     @Field(() => GraphQLJSONObject, { description: 'The properties of the NFT.', nullable: true })
     readonly properties: MetadataProperties;
@@ -46,6 +50,11 @@ export class Nft {
     @Field(() => GraphQLJSONObject, { description: 'The full rendered metadata of the NFT', nullable: true })
     public metadata?: Metadata;
 
+    @IsString()
+    @IsOptional()
+    @Field({ description: 'The image of the NFT.', nullable: true })
+    readonly image?: string;
+
     @IsObject()
     @IsOptional()
     @Field(() => [InstalledPluginInfo], { description: 'The installed plugin info', nullable: true })
@@ -53,7 +62,8 @@ export class Nft {
 }
 
 @ObjectType('NftPaginated')
-export class NftPaginated extends Paginated(Nft) {}
+export class NftPaginated extends Paginated(Nft) {
+}
 
 @InputType('NftPropertiesSearchInput')
 export class NftPropertiesSearchInput {
@@ -96,7 +106,7 @@ export class NftPropertyOverview {
 }
 
 @InputType()
-export class CreateOrUpdateNftInput extends PickType(Nft, ['tokenId', 'properties'] as const, InputType) {
+export class CreateOrUpdateNftInput extends PickType(Nft, ['tokenId', 'properties', 'image'] as const, InputType) {
     @IsString()
     @Field({ description: 'The collection of the NFT belongs to.' })
     readonly collectionId: string;
@@ -142,4 +152,20 @@ export class GetNftsPaginatedInput {
     @IsOptional()
     @Field(() => PaginationInput, { description: 'The pagination of the NFT to search.', nullable: true })
     readonly pagination?: PaginationInput;
+}
+
+@InputType()
+export class UpdateNftPropertiesInput {
+
+    @IsString()
+    @Field({ description: 'The collectionId of the NFT to update.' })
+    readonly collectionId: string;
+
+    @IsString()
+    @Field({ description: 'The tokenId of the NFT to update.' })
+    readonly tokenId: string;
+
+    @IsArray()
+    @Field(() => [GraphQLJSONObject], { description: 'The properties of the NFT to update.' })
+    readonly updates: object[];
 }

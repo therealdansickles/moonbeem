@@ -35,6 +35,10 @@ export class Asset721 {
     @Field({ description: 'The chain id for the transaction' })
     readonly chainId?: number;
 
+    @IsString()
+    @Field({ description: 'The Erc6551 account.' })
+    readonly account: string;
+
     @IsDateString()
     @Field({ description: 'The DateTime that this organization was created(initially created as a draft).' })
     readonly createdAt: Date;

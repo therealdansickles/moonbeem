@@ -93,6 +93,10 @@ export class MintSaleContract {
     @Field({ description: 'The collection address for the transaction' })
     readonly collectionId?: string;
 
+    @IsBoolean()
+    @Field({ description: 'Support for erc6551' })
+    readonly accountSupported: boolean;
+
     @IsDateString()
     @Field({ description: 'The DateTime of create.' })
     readonly createdAt: Date;

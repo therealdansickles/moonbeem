@@ -57,7 +57,12 @@ import {
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
 import { CollectionKind } from './collection.entity';
-import { filterTokenIdsByRanges, generateSlug, getCollectionAttributesOverview, getCollectionUpgradesOverview } from './collection.utils';
+import {
+    filterTokenIdsByRanges,
+    generateSlug,
+    getCollectionAttributesOverview,
+    getCollectionUpgradesOverview
+} from './collection.utils';
 import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.dto';
 import { ethers } from 'ethers';
 import { Organization } from '../organization/organization.entity';
@@ -93,7 +98,8 @@ export class CollectionService {
         private nftService: NftService,
         @Inject(forwardRef(() => AlchemyService))
         private alchemyService: AlchemyService,
-    ) {}
+    ) {
+    }
 
     /**
      * Retrieves the collection associated with the given id.
@@ -288,7 +294,8 @@ export class CollectionService {
                 throw new Error(`The endSaleAt should be greater than startSaleAt.`);
             }
         }
-        const existingCollection = await this.collectionRepository.findOneBy([{ name: data.name }, { slug: generateSlug(data.name) }]);
+        const existingCollection = await this.collectionRepository.findOneBy(
+            [{ name: data.name }, { slug: generateSlug(data.name) }]);
         if (existingCollection) throw new Error(`The collection name ${data.name} is already taken`);
         return true;
     }
@@ -386,7 +393,8 @@ export class CollectionService {
         const kind = collectionEntity.CollectionKind;
         if ([kind.whitelistEdition, kind.whitelistTiered, kind.whitelistBulk].indexOf(collection.kind) >= 0) {
             tiers.forEach((tier) => {
-                if (!tier.merkleRoot) throw new GraphQLError('Please provide merkleRoot for the whitelisting collection.');
+                if (!tier.merkleRoot) throw new GraphQLError(
+                    'Please provide merkleRoot for the whitelisting collection.');
             });
         }
 
@@ -563,7 +571,8 @@ export class CollectionService {
         first: number,
         last: number,
     ): Promise<CollectionAggregatedActivityPaginated> {
-        const builder = await this.history721Repository.createQueryBuilder('history').where('history.address = :address', { address: tokenAddress });
+        const builder = await this.history721Repository.createQueryBuilder('history').where(
+            'history.address = :address', { address: tokenAddress });
         const countBuilder = builder.clone();
         if (after) {
             const [createdAt, id] = cursorToStrings(after);
@@ -656,7 +665,7 @@ export class CollectionService {
         }
     }
 
-    async getLandingPageCollections(status: CollectionStatus, offset: number, limit: number): Promise<LandingPageCollection> {
+    async getLandingPageCollections(status: CollectionStatus, offset: number, limit: number, collectionIds: string[]): Promise<LandingPageCollection> {
         const currentTimestamp = Math.round(new Date().valueOf() / 1000);
 
         let inWhere = '';
@@ -674,12 +683,16 @@ export class CollectionService {
                 inWhere = `"beginTime" >= ${currentTimestamp} OR "beginTime" <= ${currentTimestamp} AND "endTime" >= ${currentTimestamp}`;
                 break;
         }
+        if (collectionIds.length > 0) {
+            inWhere += ` AND "collectionId" IN ('${collectionIds.join('\',\'')}')`;
+        }
 
+        const builder = this.mintSaleContractRepository
+            .createQueryBuilder('contract')
+            .distinctOn(['contract.address'])
+            .where(inWhere);
         const [contracts, totalResult] = await Promise.all([
-            this.mintSaleContractRepository
-                .createQueryBuilder('contract')
-                .distinctOn(['contract.address'])
-                .where(inWhere)
+            builder
                 .offset(offset)
                 .limit(limit)
                 .getMany(),
@@ -807,7 +820,8 @@ export class CollectionService {
     public async getCollectionSold(address: string, before: string, after: string, first: number, last: number): Promise<CollectionSoldPaginated> {
         if (!address) return PaginatedImp([], 0);
 
-        const builder = this.mintSaleTransactionRepository.createQueryBuilder('txn').where('txn.address = :address', { address });
+        const builder = this.mintSaleTransactionRepository.createQueryBuilder('txn').where(
+            'txn.address = :address', { address });
         const countBuilder = builder.clone();
 
         if (after) {
@@ -1216,10 +1230,12 @@ export class CollectionService {
         if (!collection) {
             throw new Error(`Collection not found`);
         }
-        const ranges = await this.getTokenIdRangesByStaticPropertiesFilters(collectionId, collection.address, staticPropertyFilters);
+        const ranges = await this.getTokenIdRangesByStaticPropertiesFilters(
+            collectionId, collection.address, staticPropertyFilters);
         const mintedTokenIds = await this.nftService.getNftsIdsByProperties(collectionId, []);
         const mintedTokenIdsInRanges = filterTokenIdsByRanges(mintedTokenIds, ranges);
-        const tokenIdsWithDynamicProperties = await this.nftService.getNftsIdsByProperties(collectionId, dynamicPropertyFilters);
+        const tokenIdsWithDynamicProperties = await this.nftService.getNftsIdsByProperties(
+            collectionId, dynamicPropertyFilters);
         return union(tokenIdsWithDynamicProperties, mintedTokenIdsInRanges);
     }
 
@@ -1270,8 +1286,13 @@ export class CollectionService {
             .filter((range) => range.length > 0);
     }
 
-    async getMetadataOverview({ collectionId, collectionAddress, collectionSlug }: MetadataOverviewInput): Promise<MetadataOverview> {
-        const builder = await this.tierRepository.createQueryBuilder('tier').leftJoinAndSelect('tier.collection', 'collection');
+    async getMetadataOverview({
+        collectionId,
+        collectionAddress,
+        collectionSlug
+    }: MetadataOverviewInput): Promise<MetadataOverview> {
+        const builder = await this.tierRepository.createQueryBuilder('tier').leftJoinAndSelect(
+            'tier.collection', 'collection');
         if (collectionId) {
             builder.where('collection.id = :collectionId', { collectionId });
         } else if (collectionAddress) {
@@ -1349,6 +1370,7 @@ export class CollectionService {
 
     async migrateCollection(chainId: number, tokenAddress: string, owner: User, organization: Organization): Promise<Collection> {
         const collectionMetadata = await this.alchemyService.getNFTCollectionMetadata(chainId, tokenAddress);
+        const contractOwner = await this.alchemyService.getContractOwner(chainId, tokenAddress);
         // TODO: missing the bannerImageUrl in the sdk and it exists in the api
 
         // use the first wallet if no wallet match the contractDeployer address
@@ -1358,19 +1380,28 @@ export class CollectionService {
                 id: owner.id,
             },
         });
-        const wallet = wallets.find((wallet) => wallet.address === collectionMetadata.contractDeployer) || wallets[0];
+        const wallet = wallets.find((wallet) => wallet.address === contractOwner) || wallets[0];
 
         // check if the collection's owner is one of the user bind wallet
-        // if (wallet === undefined) {
-        //    throw new Error('The collection is not owned by the user');
-        // }
+        if (wallet === undefined) {
+            throw new Error('The collection is not owned by the user');
+        }
+
+        const existedCollection = await this.getCollectionByQuery({
+            tokenAddress,
+        });
+        if (existedCollection) {
+            return existedCollection;
+        }
 
         // TODO: check if the collection is already migrated
-        const collaboration = await this.createMigrationCollaboration(collectionMetadata.contractDeployer, wallet.id, organization.id, owner.id);
+        const collaboration = await this.createMigrationCollaboration(
+            collectionMetadata.contractDeployer, wallet.id, organization.id, owner.id);
         // create new collection with tier
-        const collection = await this.createMigrationCollectionAndTier(collectionMetadata, organization, wallet, collaboration);
+        const collection = await this.createMigrationCollectionAndTier(
+            collectionMetadata, organization, wallet, collaboration);
         // create contract record
-        await this.createMintSaleContract(chainId, collectionMetadata, collection.id);
+        await this.createMintSaleContract(chainId, collectionMetadata, collection.id, contractOwner);
 
         // sync nft tokens
         const collectionId = collection.id;
@@ -1381,14 +1412,19 @@ export class CollectionService {
         return collection;
     }
 
-    async createMintSaleContract(chainId: number, collectionMetadata: NftContract, collectionId: string): Promise<MintSaleContract> {
+    async createMintSaleContract(
+        chainId: number,
+        collectionMetadata: NftContract,
+        collectionId: string,
+        contractOwner: string,
+    ): Promise<MintSaleContract> {
         return await this.mintSaleContractRepository.save({
             address: collectionMetadata.address,
             chainId,
             txHash: '',
             txTime: 0,
             height: collectionMetadata.deployedBlockNumber,
-            sender: collectionMetadata.contractDeployer,
+            sender: collectionMetadata.contractDeployer || contractOwner || '',
             royaltyReceiver: '',
             royaltyRate: 0,
             derivativeRoyaltyRate: 0,
@@ -1400,7 +1436,7 @@ export class CollectionService {
             endId: parseInt(collectionMetadata.totalSupply),
             currentId: parseInt(collectionMetadata.totalSupply),
             tokenAddress: collectionMetadata.address,
-            price: collectionMetadata.openSea?.floorPrice.toString(),
+            price: collectionMetadata.openSea?.floorPrice?.toString() || '0',
             paymentToken: ethers.ZeroAddress,
             collectionId,
         });
@@ -1420,7 +1456,7 @@ export class CollectionService {
             royaltyRate: 0,
             collaborators: [
                 {
-                    address: ownerAddress,
+                    address: ownerAddress || ethers.ZeroAddress,
                     role: 'owner',
                     name: 'owner',
                     rate: 0,
