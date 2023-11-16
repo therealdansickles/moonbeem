@@ -97,6 +97,10 @@ export class MintSaleContract {
     @Field({ description: 'Support for erc6551' })
     readonly accountSupported: boolean;
 
+    @IsNumber()
+    @Field({ description: 'The maximum number of mints that can be minted, generally for airdrop collections.' })
+    readonly maxMint: number;
+
     @IsDateString()
     @Field({ description: 'The DateTime of create.' })
     readonly createdAt: Date;

@@ -54,7 +54,7 @@ export class MintSaleContract extends BaseEntity {
     @Column({ comment: 'The end id of the tier' })
     readonly endId: number;
 
-    @Column({ comment: 'The current id of the tier' })
+    @Column({ default: 0, comment: 'The current id of the tier' })
     readonly currentId: number;
 
     @Column({ comment: 'The token address(erc721 address) of the collection' })
@@ -77,6 +77,9 @@ export class MintSaleContract extends BaseEntity {
 
     @Column({ default: false, comment: 'Support for erc6551 account' })
     readonly accountSupported: boolean;
+
+    @Column({ default: 0, comment: 'The maximum number of mints that can be minted, generally for airdrop collections.' })
+    readonly maxMint: number;
 
     @CreateDateColumn({
         precision: 3
