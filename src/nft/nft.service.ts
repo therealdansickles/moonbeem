@@ -498,6 +498,9 @@ export class NftService {
         const { tokenId, collectionId, tierId, ownerAddress, image } = payload;
         const properties = (await this.initializePropertiesFromTierByTokenId(
             tierId, tokenId, payload.properties)) as any;
+        if (image) {
+            properties.image = image;
+        }
         await this.nftRepository.upsert(
             {
                 tokenId,

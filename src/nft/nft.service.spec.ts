@@ -179,6 +179,76 @@ describe('NftService', () => {
             expect(result.id).toBeTruthy();
             expect(result.properties.foo.value).toEqual('barrrrr');
         });
+
+        it('should update the image property if the image is given', async () => {
+            await userService.createUser({
+                email: faker.internet.email(),
+                password: 'password',
+            });
+
+            const wallet = await walletService.createWallet({
+                address: faker.finance.ethereumAddress(),
+            });
+
+            const collection = await collectionService.createCollection({
+                name: faker.company.name(),
+                displayName: 'The best collection',
+                about: 'The best collection ever',
+                address: faker.finance.ethereumAddress(),
+                artists: [],
+                tags: [],
+                creator: { id: wallet.id },
+            });
+
+            const tier = await tierService.createTier({
+                name: faker.company.name(),
+                totalMints: 100,
+                collection: { id: collection.id },
+                price: '100',
+                tierId: 0,
+                metadata: {
+                    uses: [],
+                    properties: {
+                        level: {
+                            name: 'level',
+                            type: 'string',
+                            value: 'basic',
+                            display_value: 'Basic',
+                        },
+                        holding_days: {
+                            name: 'holding_days',
+                            type: 'integer',
+                            value: 125,
+                            display_value: 'Days of holding',
+                        },
+                    },
+                },
+            });
+
+            const tokenId = faker.string.numeric({ length: 1, allowLeadingZeros: false });
+
+            await nftService.createOrUpdateNftByTokenId({
+                collectionId: collection.id,
+                tierId: tier.id,
+                tokenId,
+                properties: {
+                    foo: { value: 'bar' },
+                },
+            });
+
+            const image = faker.image.url();
+            const result = await nftService.createOrUpdateNftByTokenId({
+                collectionId: collection.id,
+                tierId: tier.id,
+                tokenId,
+                image,
+                properties: {
+                    foo: { value: 'bar' },
+                },
+            });
+            expect(result.id).toBeTruthy();
+            expect(result.properties.image).toEqual(image);
+        });
     });
 
     describe('#getNftListByQuery', () => {
