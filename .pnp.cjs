@@ -64,7 +64,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@typescript-eslint/eslint-plugin", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:6.1.0"],\
             ["@typescript-eslint/parser", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:6.1.0"],\
             ["@uploadcare/upload-client", "npm:6.6.1"],\
-            ["alchemy-sdk", "npm:2.10.1"],\
+            ["alchemy-sdk", "npm:3.0.0"],\
             ["apollo-server-core", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:3.12.0"],\
             ["apollo-server-express", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:3.12.0"],\
             ["aws-sdk", "npm:2.1401.0"],\
@@ -6431,10 +6431,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["alchemy-sdk", [\
-        ["npm:2.10.1", {\
-          "packageLocation": "./.yarn/cache/alchemy-sdk-npm-2.10.1-914caef84f-e6ee4edece.zip/node_modules/alchemy-sdk/",\
+        ["npm:3.0.0", {\
+          "packageLocation": "./.yarn/cache/alchemy-sdk-npm-3.0.0-d700ee0b33-bc5fe09ad3.zip/node_modules/alchemy-sdk/",\
           "packageDependencies": [\
-            ["alchemy-sdk", "npm:2.10.1"],\
+            ["alchemy-sdk", "npm:3.0.0"],\
             ["@ethersproject/abi", "npm:5.7.0"],\
             ["@ethersproject/abstract-provider", "npm:5.7.0"],\
             ["@ethersproject/bignumber", "npm:5.7.0"],\
@@ -13840,7 +13840,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@typescript-eslint/eslint-plugin", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:6.1.0"],\
             ["@typescript-eslint/parser", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:6.1.0"],\
             ["@uploadcare/upload-client", "npm:6.6.1"],\
-            ["alchemy-sdk", "npm:2.10.1"],\
+            ["alchemy-sdk", "npm:3.0.0"],\
             ["apollo-server-core", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:3.12.0"],\
             ["apollo-server-express", "virtual:73e10c0ad0338c9179e922a27bd684bb4c9721d7661b99277e123eec047e05134dd8cb6a5584f70911cdb42ca5badcb65990551cbadf2abf9c42ffcdb9c8a6c8#npm:3.12.0"],\
             ["aws-sdk", "npm:2.1401.0"],\

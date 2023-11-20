@@ -1708,12 +1708,13 @@ describe('NftService', () => {
                         tokenId: '2',
                         tokenType: 'ERC721',
                         title: 'Premium',
-                        description: 'Premium',
                         timeLastUpdated: '2023-08-24T00:38:08.776Z',
+                        name: 'Premium',
+                        description: 'Premium',
+                        image: {
+                            originalUrl: 'https://media.vibe.xyz/c59fb0bb-aa9a-485d-8a7d-9c048246eeee'
+                        },
                         rawMetadata: {
-                            name: 'Premium',
-                            description: 'Premium',
-                            image: 'https://media.vibe.xyz/c59fb0bb-aa9a-485d-8a7d-9c048246eeee',
                             properties: {},
                         },
                         tokenUri: {

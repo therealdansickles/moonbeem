@@ -374,9 +374,9 @@ export class NftService {
                 tokenId: rawNft.tokenId,
                 ownerAddress,
                 tier: {
-                    name: rawNft.rawMetadata.name,
-                    description: rawNft.rawMetadata.description,
-                    image: rawNft.rawMetadata.image,
+                    name: rawNft.name,
+                    description: rawNft.description,
+                    image: rawNft.image.originalUrl,
                     tierId: 0,
                     collection: {
                         name: rawNft.contract.name,

@@ -5,6 +5,7 @@ import {
     GetBaseNftsForOwnerOptions,
     GetNftsForOwnerOptions,
     Network,
+    Nft,
     NftContract,
     NftWebhookParams,
     WebhookType,
@@ -44,6 +45,8 @@ export const chainIdToNetwork = {
     5: Network.ETH_GOERLI,
     42161: Network.ARB_MAINNET,
     421613: Network.ARB_GOERLI,
+    421614: Network.ARB_SEPOLIA,
+    11155111: Network.ETH_SEPOLIA,
 };
 
 @Injectable()
@@ -69,8 +72,10 @@ export class AlchemyService {
         const baseSetting: Partial<AlchemySettings> = { apiKey: this.apiKey, authToken: this.authToken };
         this.alchemy[Network.ARB_MAINNET] = new Alchemy({ network: Network.ARB_MAINNET, ...baseSetting });
         this.alchemy[Network.ARB_GOERLI] = new Alchemy({ network: Network.ARB_GOERLI, ...baseSetting });
+        this.alchemy[Network.ARB_SEPOLIA] = new Alchemy({ network: Network.ARB_SEPOLIA, ...baseSetting });
         this.alchemy[Network.ETH_MAINNET] = new Alchemy({ network: Network.ETH_MAINNET, ...baseSetting });
         this.alchemy[Network.ETH_GOERLI] = new Alchemy({ network: Network.ETH_GOERLI, ...baseSetting });
+        this.alchemy[Network.ETH_SEPOLIA] = new Alchemy({ network: Network.ETH_SEPOLIA, ...baseSetting });
     }
 
     async onModuleInit() {
@@ -104,17 +109,18 @@ export class AlchemyService {
         for await (const nft of iterator) {
             const {
                 tokenId,
-                rawMetadata: { attributes, image },
-            } = nft;
+                image,
+                raw: { metadata },
+            }: Nft = nft;
             const response = await this.alchemy[network].nft.getOwnersForNft(tokenAddress, tokenId);
             const owner = response?.owners[0];
             const createNftInput = {
                 collectionId,
                 tierId,
                 tokenId,
-                image,
+                image: image.originalUrl,
                 ownerAddress: owner,
-                properties: this.convertAttributesToProperties(attributes),
+                properties: metadata
             };
             await this.nftService.createOrUpdateNftByTokenId(createNftInput);
             await sleep(100);
@@ -270,7 +276,8 @@ export class AlchemyService {
             const eventType = this.getEventTypeByAddress(fromAddress, toAddress);
             const collection = await this.collectionService.getCollectionByQuery({ tokenAddress: contractAddress });
             if (!collection) throw new Error(`Unknown collection ${contractAddress} from Alchemy webhook`);
-            const contract = await this.mintSaleContractService.getMintSaleContractByCollection(collection.id, +tokenId);
+            const contract = await this.mintSaleContractService.getMintSaleContractByCollection(
+                collection.id, +tokenId);
             if (!contract) throw new Error(`Can't find corresponding contract with collection id ${collection.id}`);
             const tier = await this.tierService.getTier({ collection: { id: collection.id }, tierId: contract.tierId });
             // TODO: need to deduplication
