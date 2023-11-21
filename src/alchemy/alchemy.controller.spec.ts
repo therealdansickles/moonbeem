@@ -35,7 +35,7 @@ describe('AlchemyController', () => {
             paymentTokenAddress: coin.address,
             tierId: 0,
             metadata: {
-                uses: [],
+                uses: ['@vibelabs/referral'],
                 properties: {
                     level: {
                         name: '{{level}}',
@@ -58,7 +58,8 @@ describe('AlchemyController', () => {
             tierId: 1,
         });
 
-        jest.spyOn(maasService, 'handleLoyaltyPointsTransfer').mockImplementation(() => ({ before: 10, after: 10 })) as unknown as MaasService;
+        jest.spyOn(maasService, 'handleLoyaltyPointsTransfer').mockImplementation(
+            () => ({ before: 10, after: 10 })) as unknown as MaasService;
         controller = new AlchemyController(alchemyService, collectionService, tierService, nftService, maasService);
     });
 
@@ -111,9 +112,12 @@ describe('AlchemyController', () => {
             expect(nft.properties.level).toBeTruthy();
             expect(nft.properties.holding_days).toBeTruthy();
             expect(nft.properties.holding_days.value).toEqual(125);
+            expect(nft.properties.referral_code).toBeDefined();
+            expect(nft.properties.referral_code.name).toEqual('Referral Code');
+            expect(nft.properties.referral_code.value.length).toEqual(10);
         });
 
-        it("should serialize the MINT event if the tier doesn't have metadata or metadata.properties", async () => {
+        it('should serialize the MINT event if the tier doesn\'t have metadata or metadata.properties', async () => {
             // tier 1
             const tokenId = faker.number.int({ min: 100, max: 200 });
             const hexHokenId = '0x' + tokenId.toString(16);

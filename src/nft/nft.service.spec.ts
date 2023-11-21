@@ -2809,4 +2809,62 @@ describe('NftService', () => {
             expect(nft.properties.level.value).toEqual('Silver');
         });
     });
+
+    describe('initialReferralCode', function () {
+        it('should initial referral code it use @vibelabs/referral plugin', async () => {
+            const collection = await createCollection(
+                collectionService, { tokenAddress: faker.finance.ethereumAddress() });
+            const tier = await createTier(tierService, {
+                collection: { id: collection.id },
+                tierId: 0,
+                metadata: {
+                    uses: ['@vibelabs/referral']
+                }
+            });
+            const nft = await nftService.createOrUpdateNftByTokenId({
+                collectionId: collection.id,
+                tierId: tier.id,
+                tokenId: faker.string.numeric(),
+                properties: {
+                    level: {
+                        name: 'level',
+                        type: 'string',
+                        value: 'Brozen',
+                    },
+                },
+            });
+
+            const actual = await nftService.initialReferralCode(nft);
+
+            expect(actual.properties.referral_code).toBeDefined();
+            expect(actual.properties.referral_code.value.length).toEqual(10);
+            expect(actual.properties.referral_code.name).toEqual('Referral Code');
+        });
+
+        it('should not initial referral code it not use @vibelabs/referral plugin', async () => {
+            const collection = await createCollection(
+                collectionService, { tokenAddress: faker.finance.ethereumAddress() });
+            const tier = await createTier(tierService, {
+                collection: { id: collection.id },
+                tierId: 0,
+                metadata: {}
+            });
+            const nft = await nftService.createOrUpdateNftByTokenId({
+                collectionId: collection.id,
+                tierId: tier.id,
+                tokenId: faker.string.numeric(),
+                properties: {
+                    level: {
+                        name: 'level',
+                        type: 'string',
+                        value: 'Brozen',
+                    },
+                },
+            });
+
+            const actual = await nftService.initialReferralCode(nft);
+
+            expect(actual.properties.referral_code).toBeUndefined();
+        });
+    });
 });

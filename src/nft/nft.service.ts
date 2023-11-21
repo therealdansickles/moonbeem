@@ -19,6 +19,7 @@ import { Nft } from './nft.entity';
 import { PaginationInput } from '../pagination/pagination.dto';
 import { cursorToStrings, toPaginated } from '../pagination/pagination.utils';
 import { MaasService } from '../maas/maas.service';
+import { generateReferralCode } from './nft.utils';
 
 interface INFTQueryWithId {
     id: string;
@@ -494,7 +495,7 @@ export class NftService {
      * @param properties
      * @returns
      */
-    async createOrUpdateNftByTokenId(payload: ICreateOrUpdateNft) {
+    async createOrUpdateNftByTokenId(payload: ICreateOrUpdateNft): Promise<Nft> {
         const { tokenId, collectionId, tierId, ownerAddress, image } = payload;
         const properties = (await this.initializePropertiesFromTierByTokenId(
             tierId, tokenId, payload.properties)) as any;
@@ -508,11 +509,34 @@ export class NftService {
                 tier: { id: tierId },
                 image,
                 ownerAddress,
-                properties,
+                properties
             },
             ['collection.id', 'tier.id', 'tokenId'],
         );
         return this.nftRepository.findOneBy({ collection: { id: collectionId }, tier: { id: tierId }, tokenId });
+    }
+
+    /**
+     * initial referral code for NFT if the tier uses `@vibelabs/referral`
+     * @param nft
+     */
+    async initialReferralCode(nft: Nft): Promise<Nft> {
+        const referralCode = generateReferralCode(10);
+        const uses = nft.tier.metadata.uses || [];
+        if (uses.includes('@vibelabs/referral')) {
+            nft.properties.referral_code = {
+                name: 'Referral Code',
+                value: referralCode,
+                type: 'string',
+            };
+            return await this.createOrUpdateNftByTokenId({
+                collectionId: nft.collection.id,
+                tierId: nft.tier.id,
+                tokenId: nft.tokenId,
+                properties: nft.properties,
+            });
+        }
+        return nft;
     }
 
     async updateNftProperties(input: UpdateNftPropertiesInput) {
