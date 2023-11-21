@@ -51,6 +51,19 @@ export class MaasService {
         return this._invoke(payload);
     }
 
+    async handleReferralUpdate({ collectionId, tokenId, referralCode }) {
+        const payload: AxiosRequestConfig = {
+            url: '/referral/webhook',
+            method: 'POST',
+            data: {
+                collectionId,
+                tokenId,
+                referralCode,
+            },
+        };
+        return this._invoke(payload);
+    }
+     
     async updateNftProperties({ collectionId, tokenId, updates }) {
         const payload: AxiosRequestConfig = {
             url: '/editable-attributes/webhook',

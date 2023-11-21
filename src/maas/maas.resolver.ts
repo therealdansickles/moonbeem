@@ -24,6 +24,14 @@ export class MaasResolver {
                 await this.maasService.handleImageUpdate({ collectionId: input.collectionId, tokenId: input.tokenId });
                 break;
             }
+            case 'referral': {
+                await this.maasService.handleReferralUpdate({
+                    collectionId: input.collectionId,
+                    tokenId: input.tokenId,
+                    referralCode: input.referralCode,
+                });
+                break;
+            }
             default: {
                 console.log(`We don't have external webhook for ${input.name}`);
             }
