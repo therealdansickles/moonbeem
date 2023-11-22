@@ -86,6 +86,8 @@ import { WaitlistService } from './waitlist/waitlist.service';
 import { Wallet } from './wallet/wallet.dto';
 import { WalletModule } from './wallet/wallet.module';
 import { WalletService } from './wallet/wallet.service';
+import { ReferralService } from './referral/referral.service';
+import { ReferralModule } from './referral/referral.module';
 
 @Resolver()
 export class TestResolver {
@@ -157,6 +159,7 @@ export default async () => {
             Record721Module,
             RoyaltyModule,
             SystemConfigModule,
+            ReferralModule,
             GraphQLModule.forRoot({
                 driver: ApolloDriver,
                 autoSchemaFile: true,
@@ -206,6 +209,7 @@ export default async () => {
     global.collectionPluginService = module.get<CollectionPluginService>(CollectionPluginService);
     global.maasService = module.get<MaasService>(MaasService);
     global.analyticsService = module.get<AnalyticsService>(AnalyticsService);
+    global.referralService = module.get<ReferralService>(ReferralService);
 
     // platform controller
     global.alchemyController = module.get<AlchemyController>(AlchemyController);
@@ -237,6 +241,7 @@ export default async () => {
     global.merkleTreeRepository = module.get('MerkleTreeRepository');
     global.collectionPluginRepository = module.get('CollectionPluginRepository');
     global.alchemyWebhookRepository = module.get('AlchemyWebhookRepository');
+    global.referralRepository = module.get('ReferralRepository');
 
     // sync chain repositories
     global.asset721Repository = module.get('sync_chain_Asset721Repository');
@@ -285,6 +290,7 @@ async function clearDatabase() {
     await global.collectionPluginRepository.query('TRUNCATE TABLE "CollectionPlugin" CASCADE;');
     await global.alchemyWebhookRepository.query('TRUNCATE TABLE "AlchemyWebhook" CASCADE;');
     await global.redeemRepository.query('TRUNCATE TABLE "Redeem" CASCADE;');
+    await global.referralRepository.query('TRUNCATE TABLE "Referral" CASCADE;');
 
     // sync chain database clear
     await global.asset721Repository.query('TRUNCATE TABLE "Asset721" CASCADE;');

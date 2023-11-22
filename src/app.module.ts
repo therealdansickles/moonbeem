@@ -39,6 +39,7 @@ import { UserModule } from './user/user.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { WalletModule } from './wallet/wallet.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { ReferralModule } from './referral/referral.module';
 
 dotenv.config();
 
@@ -70,6 +71,7 @@ dotenv.config();
         MerkleTreeModule,
         CollectionPluginModule,
         AnalyticsModule,
+        ReferralModule,
         // integration graphql
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver, // GraphQL server adapter
@@ -108,4 +110,5 @@ dotenv.config();
     ],
     exports: [],
 })
-export class AppModule {}
+export class AppModule {
+}

@@ -29,6 +29,7 @@ import { WalletModule } from './wallet/wallet.module';
 import { CoinMarketCapModule } from './coinmarketcap/coinmarketcap.module';
 import { SessionInterceptor } from './session/session.interceptor';
 import { CollectionPluginModule } from './collectionPlugin/collectionPlugin.module';
+import { ReferralModule } from './referral/referral.module';
 
 dotenv.config();
 
@@ -56,6 +57,7 @@ dotenv.config();
         SaleHistoryModule,
         PluginModule,
         CollectionPluginModule,
+        ReferralModule,
         TypeOrmModule.forRoot({
             name: 'default',
             type: 'postgres',
@@ -82,4 +84,5 @@ dotenv.config();
     ],
     exports: [],
 })
-export class ReplModule {}
+export class ReplModule {
+}
