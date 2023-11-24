@@ -333,11 +333,18 @@ export class AlchemyService {
                 // staging is using VibeFactoryERC6551Abi but production is using VibeFactoryAbi
                 const isSepolia = network.includes('sepolia');
                 const abi = isSepolia ? VibeFactoryERC6551Abi : VibeFactoryAbi;
+                console.log(isSepolia, transaction.data);
                 const { args } = this._parseTransaction(abi, transaction.data);
-
-                if (args && args[0] && args[0][2], isString(args[0][2])) {
-                    const collectionId = new URL(args[0][2]).pathname.replace(/\//gi, '');
-                    result.push({ network, tokenAddress, contractAddress, collectionId });
+                if (isSepolia) {
+                    if (args && args[0] && args[0][2], isString(args[0][2])) {
+                        const collectionId = new URL(args[0][2]).pathname.replace(/\//gi, '');
+                        result.push({ network, tokenAddress, contractAddress, collectionId });
+                    }
+                } else {
+                    if (args && args[2] && isString(args[2])) {
+                        const collectionId = new URL(args[2]).pathname.replace(/\//gi, '');
+                        result.push({ network, tokenAddress, contractAddress, collectionId });
+                    }
                 }
             }
         } catch (err) {
