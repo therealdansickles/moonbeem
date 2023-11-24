@@ -22,6 +22,7 @@ import { captureException } from '@sentry/node';
 
 import { CollectionService } from '../collection/collection.service';
 import * as VibeFactoryAbi from '../lib/abi/VibeFactory.json';
+import * as VibeFactoryERC6551Abi from '../lib/abi/VibeFactory-withERC6551.json';
 import * as ownableAbi from '../lib/abi/Ownable.json';
 import { MetadataProperties } from '../metadata/metadata.dto';
 import { NftService } from '../nft/nft.service';
@@ -329,10 +330,13 @@ export class AlchemyService {
                 const contractAddress = `0x${eventForMintSale?.topics[2]?.slice(-40)}`;
 
                 const transaction = await this._getTransaction(network, transactionHash);
-                const { args } = this._parseTransaction(VibeFactoryAbi, transaction.data);
+                // staging is using VibeFactoryERC6551Abi but production is using VibeFactoryAbi
+                const isSepolia = network.includes('sepolia');
+                const abi = isSepolia ? VibeFactoryERC6551Abi : VibeFactoryAbi;
+                const { args } = this._parseTransaction(abi, transaction.data);
 
-                if (args && args[2] && isString(args[2])) {
-                    const collectionId = new URL(args[2]).pathname.replace(/\//gi, '');
+                if (args && args[0] && args[0][2], isString(args[0][2])) {
+                    const collectionId = new URL(args[0][2]).pathname.replace(/\//gi, '');
                     result.push({ network, tokenAddress, contractAddress, collectionId });
                 }
             }
