@@ -1,6 +1,6 @@
-import { IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
-import { Field, InputType, ObjectType, OmitType } from '@nestjs/graphql';
+import { Field, InputType, Int, ObjectType, OmitType } from '@nestjs/graphql';
 
 
 @ObjectType('Referral')
@@ -17,9 +17,15 @@ export class Referral {
     @IsString()
     readonly collectionId: string;
 
-    @Field(() => String)
+    @Field(() => String, { nullable: true })
+    @IsOptional()
     @IsString()
-    readonly tokenId: string;
+    readonly tokenId?: string;
+
+    @Field(() => Int, { defaultValue: 1 })
+    @IsOptional()
+    @IsNumber()
+    readonly count?: number;
 }
 
 @InputType('CreateReferralInput')

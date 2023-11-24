@@ -13,8 +13,11 @@ export class Referral extends BaseEntity {
     @Column({ comment: 'The collection id.' })
     readonly collectionId: string;
 
-    @Column({ comment: 'The token id.' })
-    readonly tokenId: string;
+    @Column({ comment: 'The token id.', nullable: true })
+    readonly tokenId?: string;
+
+    @Column({ comment: 'The count of referral.', default: 1 })
+    readonly count: number;
 
     @CreateDateColumn()
     readonly createdAt: Date;
