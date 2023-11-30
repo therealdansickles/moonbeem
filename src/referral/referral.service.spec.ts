@@ -49,12 +49,29 @@ describe('Referral', function () {
         expect(actual[0].count).toEqual(referral.count);
     });
 
-    it('should update nft referral count', async () => {
+    it('should update nft referral points', async () => {
         const collection = await createCollection2();
         const tier = await createTier2({
             collection: {
                 id: collection.id,
-            }
+            },
+            metadata: {
+                conditions: {
+                    rules: [
+                        {
+                            name: 'referral',
+                            property: 'referral_points',
+                            update: [
+                                {
+                                    action: 'increase',
+                                    value: 10,
+                                    property: 'referral_points',
+                                },
+                            ],
+                        },
+                    ],
+                },
+            },
         });
         const referralCode = generateReferralCode(12);
         await nftService.createOrUpdateNftByTokenId({
@@ -65,17 +82,17 @@ describe('Referral', function () {
                 referral_code: {
                     name: 'Referral Code',
                     value: referralCode,
-                    type: 'string'
+                    type: 'string',
                 },
-                referral_count: {
-                    name: 'Referral Count',
+                referral_points: {
+                    name: 'Referral Points',
                     value: 2,
-                    type: 'number'
+                    type: 'number',
                 },
-            }
+            },
         });
 
-        const actual = await referralService.updateNftReferralCount(collection.id, referralCode, 3);
-        expect(actual.properties.referral_count.value).toEqual(5);
+        const actual = await referralService.updateNftReferralPoints(collection.id, referralCode, 3);
+        expect(actual.properties.referral_points.value).toEqual(32);
     });
 });

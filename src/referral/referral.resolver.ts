@@ -5,15 +5,13 @@ import { GraphQLError } from 'graphql';
 
 @Resolver(() => Referral)
 export class ReferralResolver {
-
-    constructor(private readonly referralService: ReferralService) {
-    }
+    constructor(private readonly referralService: ReferralService) {}
 
     @Mutation(() => Referral)
     async createReferral(@Args('input') referral: CreateReferralInput): Promise<Referral> {
         const { collectionId, referralCode, count } = referral;
         try {
-            await this.referralService.updateNftReferralCount(collectionId, referralCode, count);
+            await this.referralService.updateNftReferralPoints(collectionId, referralCode, count);
         } catch (e) {
             throw new GraphQLError('Invalid referral code', {
                 extensions: { code: 'BAD_REQUEST' },

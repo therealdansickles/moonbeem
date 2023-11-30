@@ -24,7 +24,24 @@ describe('Referral', function () {
         const tier = await createTier2({
             collection: {
                 id: collection.id,
-            }
+            },
+            metadata: {
+                conditions: {
+                    rules: [
+                        {
+                            name: 'referral',
+                            property: 'referral_points',
+                            update: [
+                                {
+                                    action: 'increase',
+                                    value: 10,
+                                    property: 'referral_points',
+                                },
+                            ],
+                        },
+                    ],
+                },
+            },
         });
         const referralCode = 'super-secret-referral-code';
         const nft = await nftService.createOrUpdateNftByTokenId({
@@ -35,14 +52,14 @@ describe('Referral', function () {
                 referral_code: {
                     name: 'Referral Code',
                     value: referralCode,
-                    type: 'string'
+                    type: 'string',
                 },
-                referral_count: {
-                    name: 'Referral Count',
+                referral_points: {
+                    name: 'Referral Points',
                     value: 2,
-                    type: 'number'
+                    type: 'number',
                 },
-            }
+            },
         });
         const query = gql`
             mutation CreateReferral($input: CreateReferralInput!) {
@@ -59,7 +76,7 @@ describe('Referral', function () {
                 collectionId: collection.id,
                 tokenId: nft.tokenId,
                 referralCode,
-            }
+            },
         };
 
         const user = await userService.createUser({
@@ -68,7 +85,6 @@ describe('Referral', function () {
             password: 'password',
         });
         const token = await getToken(app, user.email);
-
 
         return request(app.getHttpServer())
             .post('/graphql')
@@ -98,7 +114,7 @@ describe('Referral', function () {
                 collectionId: faker.string.uuid(),
                 tokenId: faker.string.numeric(1),
                 referralCode: 'wrong code',
-            }
+            },
         };
 
         const user = await userService.createUser({
@@ -107,7 +123,6 @@ describe('Referral', function () {
             password: 'password',
         });
         const token = await getToken(app, user.email);
-
 
         return request(app.getHttpServer())
             .post('/graphql')
