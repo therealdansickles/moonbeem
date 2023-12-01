@@ -3,8 +3,8 @@ export const appConfig = {
         prefix: 'v1',
         host: process.env.HOST || 'localhost',
         port: process.env.PORT || 3000,
-        debug: process.env.NODE_ENV === 'dev' ?? false,
-        sql_logging: process.env.SQL_LOGGING_ENABLED === 'true' ? true : false,
+        debug: process.env.DEBUG === 'true',
+        sql_logging: process.env.SQL_LOGGING_ENABLED === 'true',
     },
     cron: {
         disabled: Boolean(process.env.DISABLE_CRON),

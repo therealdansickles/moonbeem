@@ -22,8 +22,7 @@ export class AlchemyController {
         private readonly tierService: TierService,
         private readonly nftService: NftService,
         private readonly maasService: MaasService,
-    ) {
-    }
+    ) {}
 
     private readonly logger = new Logger(AlchemyController.name);
 
@@ -38,15 +37,13 @@ export class AlchemyController {
                 const { collectionId, tierId, tokenId, properties, ownerAddress, eventType } = nft;
                 switch (eventType) {
                     case EventType.MINT: {
-                        const nft = await this.nftService.createOrUpdateNftByTokenId(
-                            { collectionId, tierId, tokenId, ownerAddress, properties });
+                        const nft = await this.nftService.createOrUpdateNftByTokenId({ collectionId, tierId, tokenId, ownerAddress, properties });
                         await this.nftService.initialReferralCode(nft);
                         break;
                     }
                     case EventType.TRANSFER: {
                         const tierInfo = await this.tierService.getTier({ id: tierId });
-                        await this.maasService.handleLoyaltyPointsTransfer(
-                            { collectionId, tokenId, metadata: tierInfo.metadata });
+                        await this.maasService.handleLoyaltyPointsTransfer({ collectionId, tokenId, metadata: tierInfo.metadata });
                         break;
                     }
                 }
@@ -68,8 +65,7 @@ export class AlchemyController {
             for (const event of events) {
                 const { network, tokenAddress, contractAddress, collectionId } = event;
                 const collection = await this.collectionService.getCollection(collectionId);
-                await this.collectionService.updateCollection(
-                    collection.id, { tokenAddress, address: contractAddress });
+                await this.collectionService.updateCollection(collection.id, { tokenAddress, address: contractAddress });
                 const res = await this.alchemyService.createWebhook(network, WebhookType.NFT_ACTIVITY, tokenAddress);
                 await this.alchemyService.createLocalWebhook(network, WebhookType.NFT_ACTIVITY, tokenAddress, res.id);
             }
