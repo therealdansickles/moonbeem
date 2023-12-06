@@ -25,10 +25,8 @@ describe('AlchemySerice', () => {
         collectionService = global.collectionService;
         collection = await createCollection(collectionService, { tokenAddress: faker.finance.ethereumAddress() });
         const mintSaleContractService = global.mintSaleContractService;
-        await createMintSaleContract(
-            mintSaleContractService, { collectionId: collection.id, startId: 1, endId: 100, tierId: 0 });
-        await createMintSaleContract(
-            mintSaleContractService, { collectionId: collection.id, startId: 101, endId: 200, tierId: 1 });
+        await createMintSaleContract(mintSaleContractService, { collectionId: collection.id, startId: 1, endId: 100, tierId: 0 });
+        await createMintSaleContract(mintSaleContractService, { collectionId: collection.id, startId: 101, endId: 200, tierId: 1 });
         tierService = global.tierService;
         await createTier(tierService, {
             collection: { id: collection.id },
@@ -49,26 +47,22 @@ describe('AlchemySerice', () => {
 
     describe('#getEventTypeByAddress', () => {
         it('should identify `mint` event', () => {
-            const result = service.getEventTypeByAddress(
-                '0x0000000000000000000000000000000000000000', faker.finance.ethereumAddress());
+            const result = service.getEventTypeByAddress('0x0000000000000000000000000000000000000000', faker.finance.ethereumAddress());
             expect(result).toEqual('mint');
         });
 
         it('should identify `burn` event', () => {
-            const result = service.getEventTypeByAddress(
-                faker.finance.ethereumAddress(), '0x0000000000000000000000000000000000000000');
+            const result = service.getEventTypeByAddress(faker.finance.ethereumAddress(), '0x0000000000000000000000000000000000000000');
             expect(result).toEqual('burn');
         });
 
         it('should identify `tranfer` event', () => {
-            const result = service.getEventTypeByAddress(
-                faker.finance.ethereumAddress(), faker.finance.ethereumAddress());
+            const result = service.getEventTypeByAddress(faker.finance.ethereumAddress(), faker.finance.ethereumAddress());
             expect(result).toEqual('transfer');
         });
 
         it('should identify `unknown` event', () => {
-            const result = service.getEventTypeByAddress(
-                '0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000');
+            const result = service.getEventTypeByAddress('0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000');
             expect(result).toEqual('unknown');
         });
     });
@@ -228,8 +222,7 @@ describe('AlchemySerice', () => {
                 blockHash: '0x83e232de26ffd67c3648e1e8060b98c46c5111054fb7a37ffaffbdd0910371df',
             };
             jest.spyOn(service as any, '_getNftsForOwner').mockImplementation(() => mockRawResponse);
-            const result = await service.getNftsForOwnerAddress(
-                Network.ARB_MAINNET, '0x6532Cf5d7ACBEeBd787381166DF4AC782B8ABf89');
+            const result = await service.getNftsForOwnerAddress(Network.ARB_MAINNET, '0x6532Cf5d7ACBEeBd787381166DF4AC782B8ABf89');
             expect(result.ownedNfts).toBeTruthy();
             expect(result.ownedNfts.length).toEqual(1);
             expect(result.totalCount).toEqual(1);
@@ -698,24 +691,21 @@ describe('AlchemySerice', () => {
         it('should update webhook from Alchemy', async () => {
             // the real response is undefined
             jest.spyOn(service as any, '_updateWebhook').mockImplementation(async () => undefined);
-            const result = await service.updateWebhook(
-                Network.ARB_GOERLI, 'wh_k59xn8hy0id8wxax', faker.finance.ethereumAddress());
+            const result = await service.updateWebhook(Network.ARB_GOERLI, 'wh_k59xn8hy0id8wxax', faker.finance.ethereumAddress());
             expect(result).toBeFalsy();
         });
     });
 
     describe('#createLocalWebhook', () => {
         it('should create record for address activity event', async () => {
-            const { id } = await service.createLocalWebhook(
-                Network.OPT_GOERLI, WebhookType.ADDRESS_ACTIVITY, collection.tokenAddress);
+            const { id } = await service.createLocalWebhook(Network.OPT_GOERLI, WebhookType.ADDRESS_ACTIVITY, collection.tokenAddress);
             const webhook = await repository.findOneBy({ id });
             expect(webhook.type).toEqual(WebhookType.ADDRESS_ACTIVITY);
             expect(webhook.network).toEqual(Network.OPT_GOERLI);
         });
 
         it('should create record for nft activity event', async () => {
-            const { id } = await service.createLocalWebhook(
-                Network.MATIC_MUMBAI, WebhookType.NFT_ACTIVITY, collection.tokenAddress);
+            const { id } = await service.createLocalWebhook(Network.MATIC_MUMBAI, WebhookType.NFT_ACTIVITY, collection.tokenAddress);
             const webhook = await repository.findOneBy({ id });
             expect(webhook.type).toEqual(WebhookType.NFT_ACTIVITY);
             expect(webhook.network).toEqual(Network.MATIC_MUMBAI);
@@ -729,10 +719,8 @@ describe('AlchemySerice', () => {
         });
 
         it('should get record for address activity event', async () => {
-            const { id } = await service.createLocalWebhook(
-                Network.OPT_GOERLI, WebhookType.ADDRESS_ACTIVITY, collection.tokenAddress);
-            const webhook = await service.getLocalWebhooks(
-                Network.OPT_GOERLI, WebhookType.ADDRESS_ACTIVITY, collection.tokenAddress);
+            const { id } = await service.createLocalWebhook(Network.OPT_GOERLI, WebhookType.ADDRESS_ACTIVITY, collection.tokenAddress);
+            const webhook = await service.getLocalWebhooks(Network.OPT_GOERLI, WebhookType.ADDRESS_ACTIVITY, collection.tokenAddress);
             expect(webhook).toBeTruthy();
             expect(webhook.length).toEqual(1);
             expect(webhook[0].id).toEqual(id);
@@ -760,14 +748,12 @@ describe('AlchemySerice', () => {
         });
 
         it('should get records without passing address', async () => {
-            const { id } = await service.createLocalWebhook(
-                Network.OPT_GOERLI, WebhookType.ADDRESS_ACTIVITY, collection.tokenAddress);
+            const { id } = await service.createLocalWebhook(Network.OPT_GOERLI, WebhookType.ADDRESS_ACTIVITY, collection.tokenAddress);
             const webhook = await service.getLocalWebhooks(Network.OPT_GOERLI, WebhookType.ADDRESS_ACTIVITY);
             expect(webhook).toBeTruthy();
             expect(webhook.length).toEqual(1);
             expect(webhook[0].id).toEqual(id);
-            const uncreatedWebhookForDifferentNetwork = await service.getLocalWebhooks(
-                Network.OPT_MAINNET, WebhookType.ADDRESS_ACTIVITY);
+            const uncreatedWebhookForDifferentNetwork = await service.getLocalWebhooks(Network.OPT_MAINNET, WebhookType.ADDRESS_ACTIVITY);
             expect(uncreatedWebhookForDifferentNetwork).toBeTruthy();
             expect(uncreatedWebhookForDifferentNetwork.length).toEqual(0);
             const uncreatedWebhookForDifferentType = await service.getLocalWebhooks(

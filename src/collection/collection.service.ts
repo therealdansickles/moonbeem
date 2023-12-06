@@ -57,12 +57,7 @@ import {
 } from './collection.dto';
 import * as collectionEntity from './collection.entity';
 import { CollectionKind } from './collection.entity';
-import {
-    filterTokenIdsByRanges,
-    generateSlug,
-    getCollectionAttributesOverview,
-    getCollectionUpgradesOverview
-} from './collection.utils';
+import { filterTokenIdsByRanges, generateSlug, getCollectionAttributesOverview, getCollectionUpgradesOverview } from './collection.utils';
 import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.dto';
 import { ethers } from 'ethers';
 import { Organization } from '../organization/organization.entity';
@@ -98,8 +93,7 @@ export class CollectionService {
         private nftService: NftService,
         @Inject(forwardRef(() => AlchemyService))
         private alchemyService: AlchemyService,
-    ) {
-    }
+    ) {}
 
     /**
      * Retrieves the collection associated with the given id.
@@ -294,8 +288,7 @@ export class CollectionService {
                 throw new Error(`The endSaleAt should be greater than startSaleAt.`);
             }
         }
-        const existingCollection = await this.collectionRepository.findOneBy(
-            [{ name: data.name }, { slug: generateSlug(data.name) }]);
+        const existingCollection = await this.collectionRepository.findOneBy([{ name: data.name }, { slug: generateSlug(data.name) }]);
         if (existingCollection) throw new Error(`The collection name ${data.name} is already taken`);
         return true;
     }
@@ -393,8 +386,7 @@ export class CollectionService {
         const kind = collectionEntity.CollectionKind;
         if ([kind.whitelistEdition, kind.whitelistTiered, kind.whitelistBulk].indexOf(collection.kind) >= 0) {
             tiers.forEach((tier) => {
-                if (!tier.merkleRoot) throw new GraphQLError(
-                    'Please provide merkleRoot for the whitelisting collection.');
+                if (!tier.merkleRoot) throw new GraphQLError('Please provide merkleRoot for the whitelisting collection.');
             });
         }
 
@@ -571,8 +563,7 @@ export class CollectionService {
         first: number,
         last: number,
     ): Promise<CollectionAggregatedActivityPaginated> {
-        const builder = await this.history721Repository.createQueryBuilder('history').where(
-            'history.address = :address', { address: tokenAddress });
+        const builder = await this.history721Repository.createQueryBuilder('history').where('history.address = :address', { address: tokenAddress });
         const countBuilder = builder.clone();
         if (after) {
             const [createdAt, id] = cursorToStrings(after);
@@ -665,7 +656,12 @@ export class CollectionService {
         }
     }
 
-    async getLandingPageCollections(status: CollectionStatus, offset: number, limit: number, collectionIds: string[]): Promise<LandingPageCollection> {
+    async getLandingPageCollections(
+        status: CollectionStatus,
+        offset: number,
+        limit: number,
+        collectionIds: string[],
+    ): Promise<LandingPageCollection> {
         const currentTimestamp = Math.round(new Date().valueOf() / 1000);
 
         let inWhere = '';
@@ -684,18 +680,12 @@ export class CollectionService {
                 break;
         }
         if (collectionIds.length > 0) {
-            inWhere += ` AND "collectionId" IN ('${collectionIds.join('\',\'')}')`;
+            inWhere += ` AND "collectionId" IN ('${collectionIds.join("','")}')`;
         }
 
-        const builder = this.mintSaleContractRepository
-            .createQueryBuilder('contract')
-            .distinctOn(['contract.address'])
-            .where(inWhere);
+        const builder = this.mintSaleContractRepository.createQueryBuilder('contract').distinctOn(['contract.address']).where(inWhere);
         const [contracts, totalResult] = await Promise.all([
-            builder
-                .offset(offset)
-                .limit(limit)
-                .getMany(),
+            builder.offset(offset).limit(limit).getMany(),
             this.mintSaleContractRepository
                 .createQueryBuilder('contract')
                 .select('COUNT(DISTINCT("contract".address)) AS count')
@@ -820,8 +810,7 @@ export class CollectionService {
     public async getCollectionSold(address: string, before: string, after: string, first: number, last: number): Promise<CollectionSoldPaginated> {
         if (!address) return PaginatedImp([], 0);
 
-        const builder = this.mintSaleTransactionRepository.createQueryBuilder('txn').where(
-            'txn.address = :address', { address });
+        const builder = this.mintSaleTransactionRepository.createQueryBuilder('txn').where('txn.address = :address', { address });
         const countBuilder = builder.clone();
 
         if (after) {
@@ -1230,12 +1219,10 @@ export class CollectionService {
         if (!collection) {
             throw new Error(`Collection not found`);
         }
-        const ranges = await this.getTokenIdRangesByStaticPropertiesFilters(
-            collectionId, collection.address, staticPropertyFilters);
+        const ranges = await this.getTokenIdRangesByStaticPropertiesFilters(collectionId, collection.address, staticPropertyFilters);
         const mintedTokenIds = await this.nftService.getNftsIdsByProperties(collectionId, []);
         const mintedTokenIdsInRanges = filterTokenIdsByRanges(mintedTokenIds, ranges);
-        const tokenIdsWithDynamicProperties = await this.nftService.getNftsIdsByProperties(
-            collectionId, dynamicPropertyFilters);
+        const tokenIdsWithDynamicProperties = await this.nftService.getNftsIdsByProperties(collectionId, dynamicPropertyFilters);
         return union(tokenIdsWithDynamicProperties, mintedTokenIdsInRanges);
     }
 
@@ -1286,13 +1273,8 @@ export class CollectionService {
             .filter((range) => range.length > 0);
     }
 
-    async getMetadataOverview({
-        collectionId,
-        collectionAddress,
-        collectionSlug
-    }: MetadataOverviewInput): Promise<MetadataOverview> {
-        const builder = await this.tierRepository.createQueryBuilder('tier').leftJoinAndSelect(
-            'tier.collection', 'collection');
+    async getMetadataOverview({ collectionId, collectionAddress, collectionSlug }: MetadataOverviewInput): Promise<MetadataOverview> {
+        const builder = await this.tierRepository.createQueryBuilder('tier').leftJoinAndSelect('tier.collection', 'collection');
         if (collectionId) {
             builder.where('collection.id = :collectionId', { collectionId });
         } else if (collectionAddress) {
@@ -1395,11 +1377,9 @@ export class CollectionService {
         }
 
         // TODO: check if the collection is already migrated
-        const collaboration = await this.createMigrationCollaboration(
-            collectionMetadata.contractDeployer, wallet.id, organization.id, owner.id);
+        const collaboration = await this.createMigrationCollaboration(collectionMetadata.contractDeployer, wallet.id, organization.id, owner.id);
         // create new collection with tier
-        const collection = await this.createMigrationCollectionAndTier(
-            collectionMetadata, organization, wallet, collaboration);
+        const collection = await this.createMigrationCollectionAndTier(collectionMetadata, organization, wallet, collaboration);
         // create contract record
         await this.createMintSaleContract(chainId, collectionMetadata, collection.id, contractOwner);
 

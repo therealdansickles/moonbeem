@@ -121,7 +121,7 @@ export class AlchemyService {
                 tokenId,
                 image: image.originalUrl,
                 ownerAddress: owner,
-                properties: metadata
+                properties: metadata,
             };
             await this.nftService.createOrUpdateNftByTokenId(createNftInput);
             await sleep(100);
@@ -277,8 +277,7 @@ export class AlchemyService {
             const eventType = this.getEventTypeByAddress(fromAddress, toAddress);
             const collection = await this.collectionService.getCollectionByQuery({ tokenAddress: contractAddress });
             if (!collection) throw new Error(`Unknown collection ${contractAddress} from Alchemy webhook`);
-            const contract = await this.mintSaleContractService.getMintSaleContractByCollection(
-                collection.id, +tokenId);
+            const contract = await this.mintSaleContractService.getMintSaleContractByCollection(collection.id, +tokenId);
             if (!contract) throw new Error(`Can't find corresponding contract with collection id ${collection.id}`);
             const tier = await this.tierService.getTier({ collection: { id: collection.id }, tierId: contract.tierId });
             // TODO: need to deduplication
@@ -333,10 +332,9 @@ export class AlchemyService {
                 // staging is using VibeFactoryERC6551Abi but production is using VibeFactoryAbi
                 const isSepolia = network.includes('sepolia');
                 const abi = isSepolia ? VibeFactoryERC6551Abi : VibeFactoryAbi;
-                console.log(isSepolia, transaction.data);
                 const { args } = this._parseTransaction(abi, transaction.data);
                 if (isSepolia) {
-                    if (args && args[0] && args[0][2], isString(args[0][2])) {
+                    if ((args && args[0] && args[0][2], isString(args[0][2]))) {
                         const collectionId = new URL(args[0][2]).pathname.replace(/\//gi, '');
                         result.push({ network, tokenAddress, contractAddress, collectionId });
                     }

@@ -15,7 +15,7 @@ export class CollaborationResolver {
     constructor(
         private readonly collaborationService: CollaborationService,
         private readonly collectionService: CollectionService,
-        private readonly royaltyService: RoyaltyService
+        private readonly royaltyService: RoyaltyService,
     ) {}
 
     @Public()

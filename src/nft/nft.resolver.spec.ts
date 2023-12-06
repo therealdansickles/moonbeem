@@ -924,9 +924,7 @@ describe('NftResolver', () => {
                     const { max, min, avg } = body.data.nftPropertyOverview;
                     expect(max).toEqual(nft1.properties.foo.value);
                     expect(min).toEqual(nft3.properties.foo.value);
-                    expect(avg).toEqual(
-                        BigNumber(nft1.properties.foo.value).plus(nft3.properties.foo.value).dividedBy(2).toFixed(
-                            2).toString());
+                    expect(avg).toEqual(BigNumber(nft1.properties.foo.value).plus(nft3.properties.foo.value).dividedBy(2).toFixed(2).toString());
                 });
         });
     });
@@ -995,8 +993,7 @@ describe('NftResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
-                { query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -1138,14 +1135,13 @@ describe('NftResolver', () => {
 
     describe('updateNftProperties', () => {
         it('should update nft properties', async () => {
-            const collection = await createCollection(
-                collectionService, { tokenAddress: faker.finance.ethereumAddress() });
+            const collection = await createCollection(collectionService, { tokenAddress: faker.finance.ethereumAddress() });
             const tier = await createTier(tierService, {
                 collection: { id: collection.id },
                 tierId: 0,
                 metadata: {
-                    uses: ['@vibelabs/editable-attributes']
-                }
+                    uses: ['@vibelabs/editable-attributes'],
+                },
             });
             const mockNft = await service.createOrUpdateNftByTokenId({
                 collectionId: collection.id,
@@ -1159,17 +1155,16 @@ describe('NftResolver', () => {
                     },
                 },
             });
-            jest.spyOn(service['maasService'], 'updateNftProperties').mockResolvedValue(
-                {
-                    ...mockNft,
-                    properties: {
-                        level: {
-                            name: 'level',
-                            type: 'string',
-                            value: 'Silver',
-                        },
+            jest.spyOn(service['maasService'], 'updateNftProperties').mockResolvedValue({
+                ...mockNft,
+                properties: {
+                    level: {
+                        name: 'level',
+                        type: 'string',
+                        value: 'Silver',
                     },
-                });
+                },
+            });
 
             const query = gql`
                 mutation UpdateNftProperties($input: UpdateNftPropertiesInput!) {
@@ -1177,23 +1172,23 @@ describe('NftResolver', () => {
                         id
                         properties
                     }
-                }`;
+                }
+            `;
 
             const variables = {
                 input: {
                     collectionId: mockNft.collection.id,
                     tokenId: mockNft.tokenId,
-                    updates: [{
-                        property: 'level',
-                        beforeValue: 'Brozen',
-                        afterValue: 'Silver',
-                    }],
-                }
+                    updates: [
+                        {
+                            property: 'level',
+                            beforeValue: 'Brozen',
+                            afterValue: 'Silver',
+                        },
+                    ],
+                },
             };
-            return await request(app.getHttpServer())
-                .post('/graphql')
-                .send({ query, variables })
-                .expect(200);
+            return await request(app.getHttpServer()).post('/graphql').send({ query, variables }).expect(200);
         });
     });
 });

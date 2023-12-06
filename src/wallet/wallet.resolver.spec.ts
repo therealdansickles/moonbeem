@@ -227,7 +227,7 @@ describe('WalletResolver', () => {
                 });
         });
 
-        it('should forbid if candidate wallet id isn\'t equal the one extract from token', async () => {
+        it("should forbid if candidate wallet id isn't equal the one extract from token", async () => {
             const randomWallet = ethers.Wallet.createRandom();
             const message = 'Hi from tests!';
             const signature = await randomWallet.signMessage(message);
@@ -357,8 +357,7 @@ describe('WalletResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
-                { query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
             const query = gql`
@@ -425,8 +424,7 @@ describe('WalletResolver', () => {
                 },
             };
 
-            const tokenRs = await request(app.getHttpServer()).post('/graphql').send(
-                { query: tokenQuery, variables: tokenVariables });
+            const tokenRs = await request(app.getHttpServer()).post('/graphql').send({ query: tokenQuery, variables: tokenVariables });
 
             const { token } = tokenRs.body.data.createSessionFromEmail;
 
@@ -593,8 +591,7 @@ describe('WalletResolver', () => {
         it('should get minted NFTs', async () => {
             const wallet = await service.createWallet({ address: faker.finance.ethereumAddress() });
 
-            const collection = await createCollection(
-                collectionService, { tokenAddress: faker.finance.ethereumAddress() });
+            const collection = await createCollection(collectionService, { tokenAddress: faker.finance.ethereumAddress() });
             const tier = await createTier(tierService, { collection: { id: collection.id } });
             const transaction = await createMintSaleTransaction(mintSaleTransactionService, {
                 recipient: wallet.address,
@@ -672,13 +669,15 @@ describe('WalletResolver', () => {
                     expect(result.edges[0].node.txTime).toEqual(transaction.txTime);
                     expect(result.edges[0].node.txHash).toEqual(transaction.txHash);
                     expect(result.edges[0].node.chainId).toEqual(transaction.chainId);
-                    expect(result.edges[0].node.pluginsInstalled).toEqual([{
-                        name: input.name,
-                        collectionAddress: collection.address,
-                        tokenAddress: collection.tokenAddress,
-                        pluginName: plugin.name,
-                        claimed: false,
-                    }]);
+                    expect(result.edges[0].node.pluginsInstalled).toEqual([
+                        {
+                            name: input.name,
+                            collectionAddress: collection.address,
+                            tokenAddress: collection.tokenAddress,
+                            pluginName: plugin.name,
+                            claimed: false,
+                        },
+                    ]);
                     expect(result.edges[0].node.tier.name).toEqual(tier.name);
                     expect(result.edges[0].node.tier.collection.name).toEqual(collection.name);
                 });

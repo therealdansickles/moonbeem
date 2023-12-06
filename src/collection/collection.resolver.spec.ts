@@ -912,6 +912,7 @@ describe('CollectionResolver', () => {
                         name
                         slug
                         displayName
+                        chainId
                         kind
                     }
                 }
@@ -925,6 +926,7 @@ describe('CollectionResolver', () => {
                     about: 'The best collection ever',
                     kind: CollectionKind.edition,
                     address: faker.finance.ethereumAddress(),
+                    chainId: 11155111,
                     organization: {
                         id: organization.id,
                     },
@@ -944,6 +946,7 @@ describe('CollectionResolver', () => {
                     expect(body.data.createCollection.name).toEqual(variables.input.name);
                     expect(body.data.createCollection.slug).toEqual(generateSlug(name));
                     expect(body.data.createCollection.displayName).toEqual(variables.input.displayName);
+                    expect(body.data.createCollection.chainId).toEqual(variables.input.chainId);
                 });
         });
     });

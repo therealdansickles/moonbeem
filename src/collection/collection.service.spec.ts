@@ -2425,8 +2425,7 @@ describe('CollectionService', () => {
                 createdAt: startOfDay(new Date()),
             });
 
-            const result = await service.getCollectionsByOrganizationIdAndBeginTime(
-                organization.id, startOfDay(new Date()));
+            const result = await service.getCollectionsByOrganizationIdAndBeginTime(organization.id, startOfDay(new Date()));
             expect(result).toBe(1);
         });
 
@@ -2460,8 +2459,7 @@ describe('CollectionService', () => {
                 createdAt: startOfWeek(new Date()),
             });
 
-            const result1 = await service.getCollectionsByOrganizationIdAndBeginTime(
-                organization.id, startOfWeek(new Date()));
+            const result1 = await service.getCollectionsByOrganizationIdAndBeginTime(organization.id, startOfWeek(new Date()));
             expect(result1).toBe(1);
         });
 
@@ -2495,8 +2493,7 @@ describe('CollectionService', () => {
                 createdAt: startOfMonth(new Date()),
             });
 
-            const result2 = await service.getCollectionsByOrganizationIdAndBeginTime(
-                organization.id, startOfMonth(new Date()));
+            const result2 = await service.getCollectionsByOrganizationIdAndBeginTime(organization.id, startOfMonth(new Date()));
             expect(result2).toBe(1);
         });
     });
@@ -2616,8 +2613,7 @@ describe('CollectionService', () => {
             });
             jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
 
-            const result = await service.getAggregatedCollectionActivities(
-                collectionAddress, tokenAddress, '', '', 10, 10);
+            const result = await service.getAggregatedCollectionActivities(collectionAddress, tokenAddress, '', '', 10, 10);
             expect(result.totalCount).toEqual(4);
             expect(result.edges.length).toEqual(4);
 
@@ -2666,13 +2662,11 @@ describe('CollectionService', () => {
             });
             jest.spyOn(service['coinService'], 'getQuote').mockResolvedValue(mockPriceQuote);
 
-            const result = await service.getAggregatedCollectionActivities(
-                collectionAddress, tokenAddress, '', '', 1, 1);
+            const result = await service.getAggregatedCollectionActivities(collectionAddress, tokenAddress, '', '', 1, 1);
             expect(result.edges.length).toBe(1);
             expect(result.edges[0].node.tokenId).toBe(tokenId1);
 
-            const result1 = await service.getAggregatedCollectionActivities(
-                collectionAddress, tokenAddress, '', result.pageInfo.endCursor, 1, 1);
+            const result1 = await service.getAggregatedCollectionActivities(collectionAddress, tokenAddress, '', result.pageInfo.endCursor, 1, 1);
             expect(result1.edges.length).toBe(1);
             expect(result1.edges[0].node.tokenId).toBe(tokenId2);
         });
@@ -3167,8 +3161,7 @@ describe('CollectionService', () => {
         };
 
         it('should return the right ranges when getTokenIdRangesByStaticPropertiesFilters', async () => {
-            const allTokenIdsRange = await service.getTokenIdRangesByStaticPropertiesFilters(
-                collection.id, collection.address, []);
+            const allTokenIdsRange = await service.getTokenIdRangesByStaticPropertiesFilters(collection.id, collection.address, []);
             expect(allTokenIdsRange.length).toBe(6);
             expect(allTokenIdsRange).toEqual([
                 [0, 2],
@@ -3184,8 +3177,7 @@ describe('CollectionService', () => {
                     value: 'golden',
                 },
             ];
-            const rangesWithTypeFilter = await service.getTokenIdRangesByStaticPropertiesFilters(
-                collection.id, collection.address, typeFilter);
+            const rangesWithTypeFilter = await service.getTokenIdRangesByStaticPropertiesFilters(collection.id, collection.address, typeFilter);
             expect(rangesWithTypeFilter.length).toBe(4);
             expect(rangesWithTypeFilter).toEqual([
                 [6, 8],
@@ -3201,8 +3193,7 @@ describe('CollectionService', () => {
                 },
             ];
 
-            const rangesWithHeightFilter = await service.getTokenIdRangesByStaticPropertiesFilters(
-                collection.id, collection.address, heightFilter);
+            const rangesWithHeightFilter = await service.getTokenIdRangesByStaticPropertiesFilters(collection.id, collection.address, heightFilter);
             expect(rangesWithHeightFilter.length).toBe(3);
             expect(rangesWithHeightFilter).toEqual([
                 [0, 2],
@@ -3211,8 +3202,7 @@ describe('CollectionService', () => {
             ]);
 
             const combinedFilter = [...typeFilter, ...heightFilter];
-            const combinedRanges = await service.getTokenIdRangesByStaticPropertiesFilters(
-                collection.id, collection.address, combinedFilter);
+            const combinedRanges = await service.getTokenIdRangesByStaticPropertiesFilters(collection.id, collection.address, combinedFilter);
             // It's OR condition now
             expect(combinedRanges.length).toBe(5);
             expect(combinedRanges).toEqual([
@@ -3630,8 +3620,7 @@ describe('CollectionService', () => {
                 address: ownerAddress,
             });
 
-            const collaboration = await service.createMigrationCollaboration(
-                ownerAddress, wallet.id, organization.id, owner.id);
+            const collaboration = await service.createMigrationCollaboration(ownerAddress, wallet.id, organization.id, owner.id);
 
             expect(collaboration).toBeDefined();
             expect(collaboration.collaborators[0].address).toBe(ownerAddress);
@@ -3666,8 +3655,7 @@ describe('CollectionService', () => {
                 address: ownerAddress,
             });
 
-            const collaboration = await service.createMigrationCollaboration(
-                ownerAddress, wallet.id, organization.id, owner.id);
+            const collaboration = await service.createMigrationCollaboration(ownerAddress, wallet.id, organization.id, owner.id);
             const contractMetadata: NftContract = {
                 name: 'NewHere',
                 symbol: 'NEWHERE',
@@ -3678,13 +3666,13 @@ describe('CollectionService', () => {
                 deployedBlockNumber: 15617752,
                 openSeaMetadata: {
                     floorPrice: 0.022989,
-                    collectionName: 'WE\'RE NEW HERE',
+                    collectionName: "WE'RE NEW HERE",
                     collectionSlug: 'werenewhere',
                     safelistRequestStatus: 'approved',
                     imageUrl: 'https://i.seadn.io/gcs/files/d572530166749c4fa036b14375a35af2.jpg?w=500&auto=format',
                     imageBannerUrl: 'https://i.seadn.io/gcs/files/d572530166749c4fa036b14375a35af2.jpg?w=500&auto=format',
                     description:
-                        'WE\'RE NEW HERE Newbies are generative pixel NFTs that benefit the production of the I\'M NEW HERE film. \n\nEvery Newbie is created from a pool of 1100+ traits based on over 150 iconic artists, voices, and communities in the NFT space! They are made up of several handmade layers, each taken from a 1/1 in the collection.\n\nThe I\'M NEW HERE film is a documentary about Cryptoart, its history, and the community of artists, visionaries, and builders that has formed around it. It features an incredible cast of people that have made this space their home. \n\nFull list here: https://www.newhere.xyz/cast',
+                        "WE'RE NEW HERE Newbies are generative pixel NFTs that benefit the production of the I'M NEW HERE film. \n\nEvery Newbie is created from a pool of 1100+ traits based on over 150 iconic artists, voices, and communities in the NFT space! They are made up of several handmade layers, each taken from a 1/1 in the collection.\n\nThe I'M NEW HERE film is a documentary about Cryptoart, its history, and the community of artists, visionaries, and builders that has formed around it. It features an incredible cast of people that have made this space their home. \n\nFull list here: https://www.newhere.xyz/cast",
                     externalUrl: 'https://www.newhere.xyz/',
                     twitterUsername: 'newherexyz',
                     bannerImageUrl: 'https://i.seadn.io/gcs/files/36f6d3c3664870664ed1b819d92f06f0.png?w=500&auto=format',
@@ -3692,8 +3680,7 @@ describe('CollectionService', () => {
                 },
             } as any as NftContract;
 
-            const collection = await service.createMigrationCollectionAndTier(
-                contractMetadata, organization, wallet, collaboration);
+            const collection = await service.createMigrationCollectionAndTier(contractMetadata, organization, wallet, collaboration);
             expect(collection).toBeDefined();
             expect(collection.name).toEqual(contractMetadata.name);
             expect(collection.kind).toEqual(CollectionKind.migration);
@@ -3719,12 +3706,12 @@ describe('CollectionService', () => {
                 deployedBlockNumber: 15617752,
                 openSea: {
                     floorPrice: 0.022989,
-                    collectionName: 'WE\'RE NEW HERE',
+                    collectionName: "WE'RE NEW HERE",
                     collectionSlug: 'werenewhere',
                     safelistRequestStatus: 'approved',
                     imageUrl: 'https://i.seadn.io/gcs/files/d572530166749c4fa036b14375a35af2.jpg?w=500&auto=format',
                     description:
-                        'WE\'RE NEW HERE Newbies are generative pixel NFTs that benefit the production of the I\'M NEW HERE film. \n\nEvery Newbie is created from a pool of 1100+ traits based on over 150 iconic artists, voices, and communities in the NFT space! They are made up of several handmade layers, each taken from a 1/1 in the collection.\n\nThe I\'M NEW HERE film is a documentary about Cryptoart, its history, and the community of artists, visionaries, and builders that has formed around it. It features an incredible cast of people that have made this space their home. \n\nFull list here: https://www.newhere.xyz/cast',
+                        "WE'RE NEW HERE Newbies are generative pixel NFTs that benefit the production of the I'M NEW HERE film. \n\nEvery Newbie is created from a pool of 1100+ traits based on over 150 iconic artists, voices, and communities in the NFT space! They are made up of several handmade layers, each taken from a 1/1 in the collection.\n\nThe I'M NEW HERE film is a documentary about Cryptoart, its history, and the community of artists, visionaries, and builders that has formed around it. It features an incredible cast of people that have made this space their home. \n\nFull list here: https://www.newhere.xyz/cast",
                     externalUrl: 'https://www.newhere.xyz/',
                     twitterUsername: 'newherexyz',
                     bannerImageUrl: 'https://i.seadn.io/gcs/files/36f6d3c3664870664ed1b819d92f06f0.png?w=500&auto=format',
@@ -3732,8 +3719,7 @@ describe('CollectionService', () => {
                 },
             } as any as NftContract;
 
-            const contract = await service.createMintSaleContract(
-                421613, contractMetadata, faker.string.uuid(), contractMetadata.contractDeployer);
+            const contract = await service.createMintSaleContract(421613, contractMetadata, faker.string.uuid(), contractMetadata.contractDeployer);
             expect(contract).toBeDefined();
             expect(contract.address).toEqual(contractMetadata.address);
             expect(contract.chainId).toEqual(421613);

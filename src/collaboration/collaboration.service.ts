@@ -19,7 +19,7 @@ export class CollaborationService {
         @InjectRepository(Collaboration)
         private readonly collaborationRepository: Repository<Collaboration>,
         private readonly collectionService: CollectionService,
-        private readonly coinService: CoinService
+        private readonly coinService: CoinService,
     ) {}
 
     /**

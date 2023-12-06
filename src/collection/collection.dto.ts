@@ -144,6 +144,10 @@ export class Collection {
     @Field(() => Collaboration, { description: 'The collaboration of the collection.', nullable: true })
     readonly collaboration?: Collaboration;
 
+    @IsNumber()
+    @Field({ description: 'The chain id for the collection.', nullable: true })
+    readonly chainId?: number;
+
     @IsObject()
     @Field(() => Collection, { description: 'The parent collection', nullable: true })
     @IsOptional()
@@ -155,8 +159,7 @@ export class Collection {
 }
 
 @InputType()
-export class CollectionInput extends PickType(Collection, ['id'], InputType) {
-}
+export class CollectionInput extends PickType(Collection, ['id'], InputType) {}
 
 @InputType()
 export class CreateCollectionInput extends OmitType(PartialType(Collection, InputType), [
@@ -440,8 +443,7 @@ export class CollectionAggregatedActivityData extends PickType(
 }
 
 @ObjectType('CollectionAggregatedActivities')
-export class CollectionAggregatedActivityPaginated extends Paginated(CollectionAggregatedActivityData) {
-}
+export class CollectionAggregatedActivityPaginated extends Paginated(CollectionAggregatedActivityData) {}
 
 @ObjectType('SecondarySale')
 export class SecondarySale {
@@ -462,8 +464,7 @@ export class LandingPageCollection {
 }
 
 @ObjectType('CollectionPaginated')
-export class CollectionPaginated extends Paginated(Collection) {
-}
+export class CollectionPaginated extends Paginated(Collection) {}
 
 @ObjectType('CollectionSold')
 export class CollectionSold extends PickType(
@@ -477,8 +478,7 @@ export class CollectionSold extends PickType(
 }
 
 @ObjectType('CollectionSoldPaginated')
-export class CollectionSoldPaginated extends Paginated(CollectionSold) {
-}
+export class CollectionSoldPaginated extends Paginated(CollectionSold) {}
 
 @ObjectType('Volume')
 export class Volume {
@@ -499,16 +499,13 @@ export class Volume {
 }
 
 @ObjectType('SevenDayVolume')
-export class SevenDayVolume extends Volume {
-}
+export class SevenDayVolume extends Volume {}
 
 @ObjectType('GrossEarnings')
-export class GrossEarnings extends Volume {
-}
+export class GrossEarnings extends Volume {}
 
 @ObjectType('EarningChartVolume')
-export class EarningChartVolume extends Volume {
-}
+export class EarningChartVolume extends Volume {}
 
 @ObjectType('CollectionEarningsChart')
 export class CollectionEarningsChart {
@@ -522,8 +519,7 @@ export class CollectionEarningsChart {
 }
 
 @ObjectType('CollectionEarningsChartPaginated')
-export class CollectionEarningsChartPaginated extends Paginated(CollectionEarningsChart) {
-}
+export class CollectionEarningsChartPaginated extends Paginated(CollectionEarningsChart) {}
 
 @ObjectType('AggregatedVolume')
 export class AggregatedVolume {

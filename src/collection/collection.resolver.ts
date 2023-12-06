@@ -4,7 +4,6 @@ import { UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { CollectionPlugin } from '../collectionPlugin/collectionPlugin.dto';
-import { OpenseaService } from '../opensea/opensea.service';
 import { OrganizationService } from '../organization/organization.service';
 import { AuthorizedCollectionViewer, AuthorizedOrganization, Public, SessionUser } from '../session/session.decorator';
 import { SigninByEmailGuard } from '../session/session.guard';
@@ -44,16 +43,11 @@ export class CollectionResolver {
     constructor(
         private readonly collectionService: CollectionService,
         private readonly mintSaleContractService: MintSaleContractService,
-        private readonly openseaService: OpenseaService,
         private readonly organizationService: OrganizationService,
-    ) {
-    }
+    ) {}
 
     @AuthorizedCollectionViewer()
-    @Query(
-        () => Collection,
-        { description: 'returns a collection for a given uuid (authorized endpoint)', nullable: true }
-    )
+    @Query(() => Collection, { description: 'returns a collection for a given uuid (authorized endpoint)', nullable: true })
     async collection(
         @Args({ name: 'id', nullable: true }) id: string,
             @Args({ name: 'address', nullable: true }) address: string,
@@ -180,8 +174,7 @@ export class CollectionResolver {
             @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
             @Args('last', { type: () => Int, nullable: true, defaultValue: 10 }) last?: number,
     ): Promise<CollectionAggregatedActivityPaginated> {
-        return this.collectionService.getAggregatedCollectionActivities(
-            collection.address, collection.tokenAddress, before, after, first, last);
+        return this.collectionService.getAggregatedCollectionActivities(collection.address, collection.tokenAddress, before, after, first, last);
     }
 
     @Public()
@@ -294,8 +287,7 @@ export class CollectionResolver {
 
     @UseGuards(SigninByEmailGuard)
     @Mutation(() => Collection, { description: 'migrate a collection' })
-    async migrateCollection(@Args(
-        'input') input: MigrateCollectionInput, @SessionUser() user: User): Promise<Collection> {
+    async migrateCollection(@Args('input') input: MigrateCollectionInput, @SessionUser() user: User): Promise<Collection> {
         const { tokenAddress, chainId, organizationId } = input;
         const organization = await this.organizationService.getOrganization(organizationId);
         return this.collectionService.migrateCollection(chainId, tokenAddress, user, organization);

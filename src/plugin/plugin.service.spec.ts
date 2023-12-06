@@ -97,7 +97,7 @@ describe('PluginService', () => {
             expect(result.author).toEqual(plugin.author);
         });
 
-        it('should get the plugin even it\'s `isPublish` equals to false', async () => {
+        it("should get the plugin even it's `isPublish` equals to false", async () => {
             const plugin = await pluginRepository.save({
                 name: faker.commerce.productName(),
                 displayName: faker.commerce.productName(),
@@ -146,18 +146,13 @@ describe('PluginService', () => {
 
             const result = await pluginService.patchPredefined([plugin]);
             expect(result).toBeTruthy();
-            expect(result[0].metadata.configs.token_scope[0].name.startsWith(
-                '@vibelabs/physical_redemption/')).toBeTruthy();
+            expect(result[0].metadata.configs.token_scope[0].name.startsWith('@vibelabs/physical_redemption/')).toBeTruthy();
+            expect(result[0].metadata.configs.token_scope[0].name.endsWith('@vibelabs/physical_redemption/')).toBeFalsy();
             expect(
-                result[0].metadata.configs.token_scope[0].name.endsWith('@vibelabs/physical_redemption/')).toBeFalsy();
-            expect(
-                result[0].metadata.properties[`{{physical_redemption_name}}`].belongs_to.startsWith(
-                    '@vibelabs/physical_redemption/'),
+                result[0].metadata.properties[`{{physical_redemption_name}}`].belongs_to.startsWith('@vibelabs/physical_redemption/'),
             ).toBeTruthy();
-            expect(result[0].metadata.properties[`{{physical_redemption_name}}`].belongs_to.endsWith(
-                '@vibelabs/physical_redemption/')).toBeFalsy();
-            expect(result[0].metadata.configs.token_scope[0].name).toEqual(
-                result[0].metadata.properties[`{{physical_redemption_name}}`].belongs_to);
+            expect(result[0].metadata.properties[`{{physical_redemption_name}}`].belongs_to.endsWith('@vibelabs/physical_redemption/')).toBeFalsy();
+            expect(result[0].metadata.configs.token_scope[0].name).toEqual(result[0].metadata.properties[`{{physical_redemption_name}}`].belongs_to);
         });
     });
 
@@ -374,7 +369,7 @@ describe('PluginService', () => {
                         type: 'string',
                         value: 'world',
                     },
-                }
+                },
             };
             const result = await pluginService.installOnTier({ tier, plugin, customizedMetadataParameters });
             expect(result.metadata.properties.holding_days.value).toEqual('{{holding_days}}');
@@ -383,7 +378,7 @@ describe('PluginService', () => {
             expect(result.metadata.properties.hello.value).toEqual('world');
         });
 
-        it('shouldn\'t update the existed conditions of the metadata', async () => {
+        it("shouldn't update the existed conditions of the metadata", async () => {
             const tier = await tierService.createTier({
                 name: faker.company.name(),
                 totalMints: 100,
@@ -504,11 +499,8 @@ describe('PluginService', () => {
             const result = await pluginService.installOnTier({ tier, plugin });
             expect(result.metadata.conditions.rules.length).toEqual(2);
             const rules = result.metadata.conditions.rules;
-            expect(rules.find(
-                (rule) => rule.property === 'holding_days' && rule.rule === 'greater_than').update[0].value).toEqual(
-                99);
-            expect(rules.find(
-                (rule) => rule.property === 'holding_days' && rule.rule === 'less_than').update[0].value).toEqual(99);
+            expect(rules.find((rule) => rule.property === 'holding_days' && rule.rule === 'greater_than').update[0].value).toEqual(99);
+            expect(rules.find((rule) => rule.property === 'holding_days' && rule.rule === 'less_than').update[0].value).toEqual(99);
             const trigger = result.metadata.conditions.trigger;
             expect(trigger[0].config.every).toEqual(99);
         });
